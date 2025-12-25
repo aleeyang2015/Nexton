@@ -1,0 +1,6 @@
+// Core utilities and configurations
+// - constants/: App-wide constants and values
+// - errors/: Custom error types and exception handling
+// - network/: HTTP client, interceptors, and network utilities
+// - utils/: Helper functions and utilities
+// - theme/: App theming and styling configuration

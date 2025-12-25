@@ -1,0 +1,4 @@
+// Placeholders for app-level configuration files
+// These will be implemented as the app grows
+// - app.dart: Main app configuration
+// - router/app_router.dart: App navigation configuration

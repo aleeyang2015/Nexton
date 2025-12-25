@@ -1,0 +1,5 @@
+// Feature-based modules following clean architecture principles
+// Each feature contains:
+// - data/: Data layer (datasources, models, repositories implementation)
+// - domain/: Business logic layer (entities, repositories interfaces, use cases)
+// - presentation/: UI layer (pages, widgets, providers)

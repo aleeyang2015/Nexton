@@ -1,0 +1,4 @@
+// Data layer for sample feature
+// - datasources/: Remote and local data sources
+// - models/: Data transfer objects (DTOs)
+// - repositories/: Repository implementations

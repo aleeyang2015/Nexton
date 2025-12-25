@@ -1,0 +1,4 @@
+// Domain layer for sample feature
+// - entities/: Core business objects
+// - repositories/: Repository interfaces (contracts)
+// - usecases/: Business logic use cases

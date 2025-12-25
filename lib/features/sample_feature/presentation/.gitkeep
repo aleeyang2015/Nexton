@@ -1,0 +1,4 @@
+// Presentation layer for sample feature
+// - pages/: Screen/page widgets
+// - widgets/: Feature-specific widgets
+// - providers/: Riverpod providers for state management

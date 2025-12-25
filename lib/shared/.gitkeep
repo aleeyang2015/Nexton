@@ -1,0 +1,4 @@
+// Shared components used across features
+// - models/: Shared data models and entities
+// - providers/: Shared Riverpod providers
+// - widgets/: Reusable UI components
