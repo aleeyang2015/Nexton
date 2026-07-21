@@ -43,3 +43,15 @@ class Failure with _$Failure {
     dynamic error,
   }) = UnknownFailure;
 }
+
+extension FailureX on Failure {
+  /// The human-readable message, whichever variant this is
+  String get message => when(
+        network: (message, _, __) => message,
+        server: (message, _, __) => message,
+        validation: (message, _) => message,
+        cache: (message, _) => message,
+        auth: (message, _) => message,
+        unknown: (message, _) => message,
+      );
+}

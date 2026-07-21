@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
-import '../core/utils/injection_container.dart';
 import 'router/app_router.dart';
 
 /// Main application widget
@@ -39,12 +38,10 @@ class App extends ConsumerWidget {
 
 /// App initialization helper
 class AppInitializer {
-  /// Initialize app services and dependencies
+  /// Initialize services that must be ready before the first frame.
+  /// Dependencies themselves are wired through Riverpod providers, not here.
   static Future<void> initialize() async {
-    // Initialize dependency injection
-    await configureDependencies();
-
-    // Initialize other services here
+    // Initialize services here
     // For example:
     // await Firebase.initializeApp();
     // await Hive.initFlutter();
@@ -55,7 +52,6 @@ class AppInitializer {
   static Future<void> cleanup() async {
     // Cleanup resources here
     // For example:
-    // await DI.reset();
     // await Hive.close();
   }
 }

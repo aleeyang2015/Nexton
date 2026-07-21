@@ -1,24 +1,23 @@
 import '../errors/failure.dart';
 import '../errors/exceptions.dart';
-import 'either.dart';
+import 'result.dart';
 
-/// Base repository interface that all repositories should extend
-/// Provides common functionality for data operations
+/// Base repository that all repositories should extend.
+/// Turns thrown exceptions from the data layer into a [Result].
 abstract class BaseRepository {
-  /// Handle exceptions and convert to Either&lt;Failure, T&gt;
-  FutureEither<T> handleException<T>(
+  /// Runs [operation] and wraps the outcome in a [Result]
+  FutureResult<T> guard<T>(
     Future<T> Function() operation,
   ) async {
     try {
-      final result = await operation();
-      return Either.right(result);
+      return Result.success(await operation());
     } catch (e) {
-      return Either.left(_handleException(e));
+      return Result.failure(_toFailure(e));
     }
   }
 
   /// Convert exceptions to Failure objects
-  Failure _handleException(dynamic exception) {
+  Failure _toFailure(dynamic exception) {
     if (exception is Failure) {
       return exception;
     }
