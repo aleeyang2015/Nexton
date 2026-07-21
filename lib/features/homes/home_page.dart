@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:next_on/core/theme/app_colors.dart';
-
 import '../../shared/widgets/global_widgets.dart';
 
 class HomePage extends StatefulWidget {
