@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/widgets/global_widgets.dart';
+import '../../../../core/widgets/global_widgets.dart';
 
 /// "Remember me" toggle
 class RememberMeCheckbox extends StatelessWidget {

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
-import '../../features/homes/presentation/pages/home_page.dart';
-import '../../shared/widgets/error_page.dart';
+import '../../features/home/presentation/pages/home_page.dart';
+import '../../core/widgets/error_page.dart';
 
 /// Go Router provider
 final appRouterProvider = Provider<GoRouter>((ref) {

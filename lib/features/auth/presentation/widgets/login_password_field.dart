@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../shared/widgets/global_widgets.dart';
+import '../../../../core/widgets/global_widgets.dart';
 
 /// Password input with a visibility toggle and an error border.
 /// Purely presentational — state comes from the caller.

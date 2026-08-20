@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failure.dart';
+import '../../auth_providers.dart';
 import '../../domain/usecases/login_usecase.dart';
-import 'auth_providers.dart';
 import 'login_state.dart';
 
 /// Owns all login-screen behaviour. The widget only forwards events here.

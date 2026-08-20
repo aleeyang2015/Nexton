@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/failure.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/widgets/global_widgets.dart';
+import '../../../../core/widgets/global_widgets.dart';
 import '../providers/login_notifier.dart';
 import '../providers/login_state.dart';
 import '../widgets/login_email_field.dart';

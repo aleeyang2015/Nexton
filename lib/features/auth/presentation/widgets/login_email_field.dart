@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../shared/widgets/global_widgets.dart';
+import '../../../../core/widgets/global_widgets.dart';
 
 /// Email input with an error border and message
 class LoginEmailField extends StatelessWidget {
