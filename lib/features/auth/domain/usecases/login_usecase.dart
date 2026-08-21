@@ -2,7 +2,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/utils/base_usecase.dart';
 import '../../../../core/utils/result.dart';
-import '../entities/user.dart';
+import '../entities/auth_session.dart';
 import '../repositories/auth_repository.dart';
 
 /// Field names a [ValidationFailure] can point at, so the UI knows
@@ -66,21 +66,24 @@ class LoginParams extends BaseParams {
   }
 }
 
-/// Validates credentials, then signs the user in
-class LoginUseCase implements BaseUseCase<User, LoginParams> {
+/// Validates credentials, then signs the user in.
+///
+/// The email is trimmed **and lower-cased** before it goes to the backend, so
+/// the same account can't be created twice by capitalisation.
+class LoginUseCase implements BaseUseCase<AuthSession, LoginParams> {
   final AuthRepository _repository;
 
   LoginUseCase(this._repository);
 
   @override
-  FutureResult<User> call(LoginParams params) async {
+  FutureResult<AuthSession> call(LoginParams params) async {
     final validation = params.validate();
     if (validation.isFailure) {
       return Result.failure(validation.failureOrNull!);
     }
 
     return _repository.login(
-      email: params.email.trim(),
+      email: params.email.trim().toLowerCase(),
       password: params.password,
     );
   }

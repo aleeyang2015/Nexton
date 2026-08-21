@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import '../constants/app_constants.dart';
-import '../errors/failure.dart';
+import 'api_error_mapper.dart';
 
 /// Interface for checking network connectivity
 abstract class NetworkInfo {
@@ -31,7 +31,11 @@ class NetworkInfoImpl implements NetworkInfo {
   }
 }
 
-/// Network interceptor for handling errors and adding headers
+/// Adds the headers every request needs and normalises transport errors into a
+/// [Failure] carried on `DioException.error`, which [BaseRepository] unwraps.
+///
+/// Register this **after** any interceptor that needs to inspect the raw
+/// response (e.g. AuthInterceptor's 401 refresh) — it rejects the error chain.
 class NetworkInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -47,80 +51,20 @@ class NetworkInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     // Convert Dio exceptions to Failure
-    final failure = _handleDioError(err);
-    handler.reject(DioException(
-      requestOptions: err.requestOptions,
-      error: failure,
-    ));
+    final failure = ApiErrorMapper.fromDioException(err);
+    handler.reject(
+      DioException(
+        requestOptions: err.requestOptions,
+        response: err.response,
+        type: err.type,
+        error: failure,
+      ),
+    );
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     // Successful response handling
     super.onResponse(response, handler);
-  }
-
-  /// Convert Dio exceptions to Failure objects
-  Failure _handleDioError(DioException error) {
-    switch (error.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-        return Failure.network(
-          message: 'Request timeout. Please try again.',
-          errorCode: 'TIMEOUT',
-        );
-      case DioExceptionType.badResponse:
-        return Failure.network(
-          message: _getErrorMessage(error.response?.statusCode),
-          statusCode: error.response?.statusCode,
-          errorCode: error.response?.statusMessage,
-        );
-      case DioExceptionType.cancel:
-        return Failure.network(
-          message: 'Request was cancelled',
-          errorCode: 'CANCELLED',
-        );
-      case DioExceptionType.unknown:
-        if (error.error?.toString().contains('SocketException') == true) {
-          return Failure.network(
-            message: 'No internet connection',
-            errorCode: 'NO_INTERNET',
-          );
-        }
-        return Failure.unknown(
-          message: error.message ?? 'Unknown network error',
-          error: error.error,
-        );
-      default:
-        return Failure.unknown(
-          message: error.message ?? 'Unknown network error',
-          error: error.error,
-        );
-    }
-  }
-
-  /// Get user-friendly error message based on status code
-  String _getErrorMessage(int? statusCode) {
-    switch (statusCode) {
-      case 400:
-        return 'Bad request. Please check your input.';
-      case 401:
-        return 'Unauthorized. Please login again.';
-      case 403:
-        return 'Access forbidden. You don\'t have permission.';
-      case 404:
-        return 'Resource not found.';
-      case 429:
-        return 'Too many requests. Please try again later.';
-      case 500:
-        return 'Internal server error. Please try again later.';
-      case 502:
-        return 'Bad gateway. Please try again later.';
-      case 503:
-        return 'Service unavailable. Please try again later.';
-      default:
-        return 'Network error occurred. Please try again.';
-    }
   }
 }

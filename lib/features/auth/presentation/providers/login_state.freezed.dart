@@ -12,7 +12,8 @@ part of 'login_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$LoginState {
@@ -22,7 +23,13 @@ mixin _$LoginState {
   bool get rememberMe => throw _privateConstructorUsedError;
   String? get emailError => throw _privateConstructorUsedError;
   String? get passwordError => throw _privateConstructorUsedError;
-  AsyncValue<User?> get submission => throw _privateConstructorUsedError;
+  AsyncValue<AuthSession?> get submission => throw _privateConstructorUsedError;
+
+  /// Bumped whenever the password field must be emptied — a wrong-credentials
+  /// answer from the server. The page watches it and clears its controller;
+  /// a network blip (or a 429 throttle) never bumps it, so the typed
+  /// password survives a retry.
+  int get passwordClearTick => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $LoginStateCopyWith<LoginState> get copyWith =>
@@ -32,17 +39,20 @@ mixin _$LoginState {
 /// @nodoc
 abstract class $LoginStateCopyWith<$Res> {
   factory $LoginStateCopyWith(
-          LoginState value, $Res Function(LoginState) then) =
-      _$LoginStateCopyWithImpl<$Res, LoginState>;
+    LoginState value,
+    $Res Function(LoginState) then,
+  ) = _$LoginStateCopyWithImpl<$Res, LoginState>;
   @useResult
-  $Res call(
-      {String email,
-      String password,
-      bool obscurePassword,
-      bool rememberMe,
-      String? emailError,
-      String? passwordError,
-      AsyncValue<User?> submission});
+  $Res call({
+    String email,
+    String password,
+    bool obscurePassword,
+    bool rememberMe,
+    String? emailError,
+    String? passwordError,
+    AsyncValue<AuthSession?> submission,
+    int passwordClearTick,
+  });
 }
 
 /// @nodoc
@@ -65,37 +75,45 @@ class _$LoginStateCopyWithImpl<$Res, $Val extends LoginState>
     Object? emailError = freezed,
     Object? passwordError = freezed,
     Object? submission = null,
+    Object? passwordClearTick = null,
   }) {
-    return _then(_value.copyWith(
-      email: null == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
-              as String,
-      password: null == password
-          ? _value.password
-          : password // ignore: cast_nullable_to_non_nullable
-              as String,
-      obscurePassword: null == obscurePassword
-          ? _value.obscurePassword
-          : obscurePassword // ignore: cast_nullable_to_non_nullable
-              as bool,
-      rememberMe: null == rememberMe
-          ? _value.rememberMe
-          : rememberMe // ignore: cast_nullable_to_non_nullable
-              as bool,
-      emailError: freezed == emailError
-          ? _value.emailError
-          : emailError // ignore: cast_nullable_to_non_nullable
-              as String?,
-      passwordError: freezed == passwordError
-          ? _value.passwordError
-          : passwordError // ignore: cast_nullable_to_non_nullable
-              as String?,
-      submission: null == submission
-          ? _value.submission
-          : submission // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<User?>,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            email: null == email
+                ? _value.email
+                : email // ignore: cast_nullable_to_non_nullable
+                      as String,
+            password: null == password
+                ? _value.password
+                : password // ignore: cast_nullable_to_non_nullable
+                      as String,
+            obscurePassword: null == obscurePassword
+                ? _value.obscurePassword
+                : obscurePassword // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            rememberMe: null == rememberMe
+                ? _value.rememberMe
+                : rememberMe // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            emailError: freezed == emailError
+                ? _value.emailError
+                : emailError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            passwordError: freezed == passwordError
+                ? _value.passwordError
+                : passwordError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            submission: null == submission
+                ? _value.submission
+                : submission // ignore: cast_nullable_to_non_nullable
+                      as AsyncValue<AuthSession?>,
+            passwordClearTick: null == passwordClearTick
+                ? _value.passwordClearTick
+                : passwordClearTick // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -103,18 +121,21 @@ class _$LoginStateCopyWithImpl<$Res, $Val extends LoginState>
 abstract class _$$LoginStateImplCopyWith<$Res>
     implements $LoginStateCopyWith<$Res> {
   factory _$$LoginStateImplCopyWith(
-          _$LoginStateImpl value, $Res Function(_$LoginStateImpl) then) =
-      __$$LoginStateImplCopyWithImpl<$Res>;
+    _$LoginStateImpl value,
+    $Res Function(_$LoginStateImpl) then,
+  ) = __$$LoginStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {String email,
-      String password,
-      bool obscurePassword,
-      bool rememberMe,
-      String? emailError,
-      String? passwordError,
-      AsyncValue<User?> submission});
+  $Res call({
+    String email,
+    String password,
+    bool obscurePassword,
+    bool rememberMe,
+    String? emailError,
+    String? passwordError,
+    AsyncValue<AuthSession?> submission,
+    int passwordClearTick,
+  });
 }
 
 /// @nodoc
@@ -122,8 +143,9 @@ class __$$LoginStateImplCopyWithImpl<$Res>
     extends _$LoginStateCopyWithImpl<$Res, _$LoginStateImpl>
     implements _$$LoginStateImplCopyWith<$Res> {
   __$$LoginStateImplCopyWithImpl(
-      _$LoginStateImpl _value, $Res Function(_$LoginStateImpl) _then)
-      : super(_value, _then);
+    _$LoginStateImpl _value,
+    $Res Function(_$LoginStateImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -135,52 +157,60 @@ class __$$LoginStateImplCopyWithImpl<$Res>
     Object? emailError = freezed,
     Object? passwordError = freezed,
     Object? submission = null,
+    Object? passwordClearTick = null,
   }) {
-    return _then(_$LoginStateImpl(
-      email: null == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
-              as String,
-      password: null == password
-          ? _value.password
-          : password // ignore: cast_nullable_to_non_nullable
-              as String,
-      obscurePassword: null == obscurePassword
-          ? _value.obscurePassword
-          : obscurePassword // ignore: cast_nullable_to_non_nullable
-              as bool,
-      rememberMe: null == rememberMe
-          ? _value.rememberMe
-          : rememberMe // ignore: cast_nullable_to_non_nullable
-              as bool,
-      emailError: freezed == emailError
-          ? _value.emailError
-          : emailError // ignore: cast_nullable_to_non_nullable
-              as String?,
-      passwordError: freezed == passwordError
-          ? _value.passwordError
-          : passwordError // ignore: cast_nullable_to_non_nullable
-              as String?,
-      submission: null == submission
-          ? _value.submission
-          : submission // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<User?>,
-    ));
+    return _then(
+      _$LoginStateImpl(
+        email: null == email
+            ? _value.email
+            : email // ignore: cast_nullable_to_non_nullable
+                  as String,
+        password: null == password
+            ? _value.password
+            : password // ignore: cast_nullable_to_non_nullable
+                  as String,
+        obscurePassword: null == obscurePassword
+            ? _value.obscurePassword
+            : obscurePassword // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        rememberMe: null == rememberMe
+            ? _value.rememberMe
+            : rememberMe // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        emailError: freezed == emailError
+            ? _value.emailError
+            : emailError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        passwordError: freezed == passwordError
+            ? _value.passwordError
+            : passwordError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        submission: null == submission
+            ? _value.submission
+            : submission // ignore: cast_nullable_to_non_nullable
+                  as AsyncValue<AuthSession?>,
+        passwordClearTick: null == passwordClearTick
+            ? _value.passwordClearTick
+            : passwordClearTick // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$LoginStateImpl extends _LoginState {
-  const _$LoginStateImpl(
-      {this.email = '',
-      this.password = '',
-      this.obscurePassword = true,
-      this.rememberMe = false,
-      this.emailError = null,
-      this.passwordError = null,
-      this.submission = const AsyncValue.data(null)})
-      : super._();
+  const _$LoginStateImpl({
+    this.email = '',
+    this.password = '',
+    this.obscurePassword = true,
+    this.rememberMe = false,
+    this.emailError = null,
+    this.passwordError = null,
+    this.submission = const AsyncValue.data(null),
+    this.passwordClearTick = 0,
+  }) : super._();
 
   @override
   @JsonKey()
@@ -202,11 +232,19 @@ class _$LoginStateImpl extends _LoginState {
   final String? passwordError;
   @override
   @JsonKey()
-  final AsyncValue<User?> submission;
+  final AsyncValue<AuthSession?> submission;
+
+  /// Bumped whenever the password field must be emptied — a wrong-credentials
+  /// answer from the server. The page watches it and clears its controller;
+  /// a network blip (or a 429 throttle) never bumps it, so the typed
+  /// password survives a retry.
+  @override
+  @JsonKey()
+  final int passwordClearTick;
 
   @override
   String toString() {
-    return 'LoginState(email: $email, password: $password, obscurePassword: $obscurePassword, rememberMe: $rememberMe, emailError: $emailError, passwordError: $passwordError, submission: $submission)';
+    return 'LoginState(email: $email, password: $password, obscurePassword: $obscurePassword, rememberMe: $rememberMe, emailError: $emailError, passwordError: $passwordError, submission: $submission, passwordClearTick: $passwordClearTick)';
   }
 
   @override
@@ -226,12 +264,23 @@ class _$LoginStateImpl extends _LoginState {
             (identical(other.passwordError, passwordError) ||
                 other.passwordError == passwordError) &&
             (identical(other.submission, submission) ||
-                other.submission == submission));
+                other.submission == submission) &&
+            (identical(other.passwordClearTick, passwordClearTick) ||
+                other.passwordClearTick == passwordClearTick));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, email, password, obscurePassword,
-      rememberMe, emailError, passwordError, submission);
+  int get hashCode => Object.hash(
+    runtimeType,
+    email,
+    password,
+    obscurePassword,
+    rememberMe,
+    emailError,
+    passwordError,
+    submission,
+    passwordClearTick,
+  );
 
   @JsonKey(ignore: true)
   @override
@@ -241,14 +290,16 @@ class _$LoginStateImpl extends _LoginState {
 }
 
 abstract class _LoginState extends LoginState {
-  const factory _LoginState(
-      {final String email,
-      final String password,
-      final bool obscurePassword,
-      final bool rememberMe,
-      final String? emailError,
-      final String? passwordError,
-      final AsyncValue<User?> submission}) = _$LoginStateImpl;
+  const factory _LoginState({
+    final String email,
+    final String password,
+    final bool obscurePassword,
+    final bool rememberMe,
+    final String? emailError,
+    final String? passwordError,
+    final AsyncValue<AuthSession?> submission,
+    final int passwordClearTick,
+  }) = _$LoginStateImpl;
   const _LoginState._() : super._();
 
   @override
@@ -264,7 +315,13 @@ abstract class _LoginState extends LoginState {
   @override
   String? get passwordError;
   @override
-  AsyncValue<User?> get submission;
+  AsyncValue<AuthSession?> get submission;
+  @override
+  /// Bumped whenever the password field must be emptied — a wrong-credentials
+  /// answer from the server. The page watches it and clears its controller;
+  /// a network blip (or a 429 throttle) never bumps it, so the typed
+  /// password survives a retry.
+  int get passwordClearTick;
   @override
   @JsonKey(ignore: true)
   _$$LoginStateImplCopyWith<_$LoginStateImpl> get copyWith =>

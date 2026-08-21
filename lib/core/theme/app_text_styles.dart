@@ -8,7 +8,7 @@ class AppTextStyles {
   static const String fontFamily = 'NotoSansLao';
   static const String fontFamilyRoboto = "roboto";
   static const String fontFamilyInter = "inter";
-  static const String fontFamilyOCR_B = "OCR-B";
+  static const String fontFamilyOcrB = "OCR-B";
 
   // Headline Styles
   static const TextStyle headline1 = TextStyle(

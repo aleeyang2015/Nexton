@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
 
 /// REST API client using Dio
@@ -9,33 +10,36 @@ class ApiClient {
     _setupInterceptors();
   }
 
+  /// Base options every client in the app shares — the authed [ApiClient] and
+  /// the bare Dio the token refresh runs on.
+  static BaseOptions buildBaseOptions() => BaseOptions(
+    baseUrl: '${AppConstants.baseUrl}/${AppConstants.apiVersion}',
+    connectTimeout: AppConstants.connectTimeout,
+    receiveTimeout: AppConstants.receiveTimeout,
+    headers: {
+      AppConstants.acceptHeader: AppConstants.jsonContentType,
+      AppConstants.contentTypeHeader: AppConstants.jsonContentType,
+      AppConstants.userAgentHeader: 'NextOn App ${AppConstants.appVersion}',
+      // Dev-only override on the backend; harmless in production.
+      AppConstants.tenantSlugHeader: AppConstants.tenantSlug,
+    },
+  );
+
   /// Setup Dio interceptors
   void _setupInterceptors() {
-    _dio.options = BaseOptions(
-      baseUrl: '${AppConstants.baseUrl}/${AppConstants.apiVersion}',
-      connectTimeout: AppConstants.connectTimeout,
-      receiveTimeout: AppConstants.receiveTimeout,
-      headers: {
-        AppConstants.acceptHeader: AppConstants.jsonContentType,
-        AppConstants.userAgentHeader: 'NextOn App ${AppConstants.appVersion}',
-      },
-    );
+    _dio.options = buildBaseOptions();
 
-    _dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      logPrint: (object) => print(object),
-    ));
-  }
-
-  /// Add authorization header
-  void setAuthToken(String token) {
-    _dio.options.headers[AppConstants.authorizationHeader] = 'Bearer $token';
-  }
-
-  /// Remove authorization header
-  void clearAuthToken() {
-    _dio.options.headers.remove(AppConstants.authorizationHeader);
+    // Request/response bodies carry tokens and profile data — never log them
+    // outside a debug build.
+    if (kDebugMode) {
+      _dio.interceptors.add(
+        LogInterceptor(
+          requestBody: true,
+          responseBody: true,
+          logPrint: (object) => debugPrint(object.toString()),
+        ),
+      );
+    }
   }
 
   /// GET request

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
-Widget popBack(){
+Widget popBack() {
   return Container(
     height: 50,
     alignment: Alignment.centerLeft,
@@ -11,7 +11,12 @@ Widget popBack(){
   );
 }
 
-Widget underLineTxt(String txt, {double fontSize = 16, Color color = Colors.black, FontWeight fontWeight = FontWeight.w400}){
+Widget underLineTxt(
+  String txt, {
+  double fontSize = 16,
+  Color color = Colors.black,
+  FontWeight fontWeight = FontWeight.w400,
+}) {
   return Text(
     txt,
     style: TextStyle(
@@ -26,48 +31,47 @@ Widget underLineTxt(String txt, {double fontSize = 16, Color color = Colors.blac
 
 /// vertical space
 Widget heightBx({double h = 10}) {
-  return SizedBox(
-    height: h,
-  );
+  return SizedBox(height: h);
 }
 
 /// horizontal space
 Widget widthBx({double w = 10}) {
-  return SizedBox(
-    width: w,
-  );
+  return SizedBox(width: w);
 }
 
 /// divider line
 Widget divider = Divider(color: Colors.grey.withValues(alpha: 4));
 
 /// custom line
-Widget generalLine({Color color = AppColors.gray400, double width = 1}) => Container(
-  alignment: Alignment(0, 0),
-  decoration: BoxDecoration(
-      border: Border(
-        bottom: BorderSide(color: color, width: width),
-      )),
-);
+Widget generalLine({Color color = AppColors.gray400, double width = 1}) =>
+    Container(
+      alignment: Alignment(0, 0),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: color, width: width),
+        ),
+      ),
+    );
 
 /// show img widget
-Widget assetImg(String img,
-    {double width = 60, double height = 60, BoxFit fit = BoxFit.cover}) {
-  return Image.asset(
-    img,
-    width: width,
-    height: height,
-    fit: fit,
-  );
+Widget assetImg(
+  String img, {
+  double width = 60,
+  double height = 60,
+  BoxFit fit = BoxFit.cover,
+}) {
+  return Image.asset(img, width: width, height: height, fit: fit);
 }
 
 /// text label
-Widget customText(String txt,
-    {double fontSize = 16,
-      Color color = Colors.black,
-      FontWeight fontWeight = FontWeight.w400,
-      int maxLine = 1,
-      TextAlign alight = TextAlign.start}) {
+Widget customText(
+  String txt, {
+  double fontSize = 16,
+  Color color = Colors.black,
+  FontWeight fontWeight = FontWeight.w400,
+  int maxLine = 1,
+  TextAlign alight = TextAlign.start,
+}) {
   return Text(
     txt,
     style: TextStyle(fontSize: fontSize, color: color, fontWeight: fontWeight),
@@ -77,7 +81,7 @@ Widget customText(String txt,
   );
 }
 
-InputDecoration inputDecoration(String hintText){
+InputDecoration inputDecoration(String hintText) {
   return InputDecoration(
     hintText: hintText,
     fillColor: Colors.white,
@@ -98,17 +102,24 @@ InputDecoration inputDecoration(String hintText){
   );
 }
 
-Widget button(Function() func, String label, {double height = 56}){
+/// Primary action button. Pass [enabled] `false` to grey it out and block
+/// taps — used while a form is submitting or incomplete.
+Widget button(
+  Function() func,
+  String label, {
+  double height = 56,
+  bool enabled = true,
+}) {
   return SizedBox(
     width: double.infinity,
     height: height,
     child: ElevatedButton(
-      onPressed: func,
+      onPressed: enabled ? func : null,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-        ),
+        disabledBackgroundColor: AppColors.gray400,
+        disabledForegroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         elevation: 0,
       ),
       child: customText(

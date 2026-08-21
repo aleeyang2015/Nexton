@@ -17,12 +17,10 @@ class AppTheme {
         primaryContainer: AppColors.primaryVariant,
         secondary: AppColors.secondary,
         secondaryContainer: AppColors.secondaryVariant,
-        background: AppColors.background,
         surface: AppColors.surface,
         error: AppColors.error,
         onPrimary: AppColors.onPrimary,
         onSecondary: AppColors.onSecondary,
-        onBackground: AppColors.onBackground,
         onSurface: AppColors.onSurface,
         onError: AppColors.onError,
       ),
@@ -42,9 +40,7 @@ class AppTheme {
         color: AppColors.surface,
         elevation: 2,
         shadowColor: AppColors.gray300,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
 
       // Elevated Button Theme
@@ -53,9 +49,7 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
           elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           textStyle: AppTextStyles.button,
         ),
@@ -65,9 +59,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           textStyle: AppTextStyles.button,
         ),
@@ -78,9 +70,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           textStyle: AppTextStyles.button,
         ),
@@ -110,7 +100,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         hintStyle: AppTextStyles.hint,
         labelStyle: AppTextStyles.label,
         errorStyle: AppTextStyles.error,
@@ -134,10 +127,7 @@ class AppTheme {
       ),
 
       // Icon Theme
-      iconTheme: const IconThemeData(
-        color: AppColors.gray700,
-        size: 24,
-      ),
+      iconTheme: const IconThemeData(color: AppColors.gray700, size: 24),
 
       // Divider Theme
       dividerTheme: const DividerThemeData(
@@ -158,12 +148,10 @@ class AppTheme {
         primaryContainer: AppColors.primary,
         secondary: AppColors.secondary,
         secondaryContainer: AppColors.secondaryVariant,
-        background: AppColors.darkBackground,
         surface: AppColors.darkSurface,
         error: AppColors.error,
         onPrimary: AppColors.darkOnPrimary,
         onSecondary: AppColors.onSecondary,
-        onBackground: AppColors.darkOnBackground,
         onSurface: AppColors.darkOnSurface,
         onError: AppColors.onError,
       ),
@@ -183,9 +171,7 @@ class AppTheme {
         color: AppColors.darkSurface,
         elevation: 4,
         shadowColor: Colors.black26,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
 
       // Elevated Button Theme
@@ -194,9 +180,7 @@ class AppTheme {
           backgroundColor: AppColors.darkPrimary,
           foregroundColor: AppColors.darkOnPrimary,
           elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           textStyle: AppTextStyles.button,
         ),
@@ -206,9 +190,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.darkPrimary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           textStyle: AppTextStyles.button,
         ),
@@ -238,7 +220,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         hintStyle: AppTextStyles.hintDark,
         labelStyle: AppTextStyles.labelDark,
         errorStyle: AppTextStyles.error,
@@ -262,10 +247,7 @@ class AppTheme {
       ),
 
       // Icon Theme
-      iconTheme: const IconThemeData(
-        color: AppColors.gray400,
-        size: 24,
-      ),
+      iconTheme: const IconThemeData(color: AppColors.gray400, size: 24),
 
       // Divider Theme
       dividerTheme: const DividerThemeData(

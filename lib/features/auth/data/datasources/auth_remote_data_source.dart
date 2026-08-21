@@ -1,79 +1,78 @@
+import 'package:dio/dio.dart';
+
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_paths.dart';
+import '../../../../core/network/api_response.dart';
+import '../models/login_response_model.dart';
 import '../models/user_model.dart';
 
-/// Remote calls this feature needs. Throws [AppException] on failure —
-/// the repository converts those into a Result.
+/// The three auth calls a screen can trigger. `POST /auth/refresh` is missing
+/// on purpose — it is driven by the 401 interceptor, never by a caller — and
+/// there is no logout endpoint at all.
+///
+/// Throws on failure ([AppException], or a [DioException] carrying a mapped
+/// Failure); the repository converts those into a Result.
 abstract class AuthRemoteDataSource {
-  Future<UserModel> login({
+  Future<LoginResponseModel> login({
     required String email,
     required String password,
   });
 
-  Future<void> logout();
+  /// [timeout] bounds the cold-start probe so a dead network can't hold the
+  /// splash screen open.
+  Future<UserModel> fetchProfile({Duration? timeout});
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
 }
 
-/// Talks to the real backend. Wire this up once the API exists by
-/// swapping the datasource binding in auth_providers.dart.
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final ApiClient _client;
 
   AuthRemoteDataSourceImpl(this._client);
 
   @override
-  Future<UserModel> login({
+  Future<LoginResponseModel> login({
     required String email,
     required String password,
   }) async {
-    final response = await _client.post<Map<String, dynamic>>(
-      '/auth/login',
+    final response = await _client.post<dynamic>(
+      ApiPaths.login,
       data: {'email': email, 'password': password},
     );
 
-    final body = response.data;
-    if (body == null) {
-      throw const ServerException('Empty response from server');
-    }
-
-    return UserModel.fromJson(body['user'] as Map<String, dynamic>);
+    return LoginResponseModel.fromJson(ApiEnvelope.unwrapObject(response.data));
   }
 
   @override
-  Future<void> logout() => _client.post<void>('/auth/logout');
-}
+  Future<UserModel> fetchProfile({Duration? timeout}) async {
+    final response = await _client.get<dynamic>(
+      ApiPaths.me,
+      options: timeout == null
+          ? null
+          : Options(receiveTimeout: timeout, sendTimeout: timeout),
+    );
 
-/// Stand-in until the backend is ready. Accepts any password of a valid
-/// length and echoes the email back as a user.
-class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
-  static const _latency = Duration(milliseconds: 800);
-
-  /// The one credential pair the fake treats as wrong, so the error
-  /// path stays exercisable in the UI.
-  static const rejectedEmail = 'wrong@example.com';
-
-  @override
-  Future<UserModel> login({
-    required String email,
-    required String password,
-  }) async {
-    await Future.delayed(_latency);
-
-    if (email.toLowerCase() == rejectedEmail) {
-      throw const AuthException(
-        'ອີເມວ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ',
-        code: 'INVALID_CREDENTIALS',
-      );
+    final data = ApiEnvelope.unwrapObject(response.data);
+    if (data['id'] is! String) {
+      throw const ServerException('Profile response missing id');
     }
 
-    return UserModel(
-      id: 'mock-user-1',
-      email: email,
-      displayName: 'ໝ່ຳ ຈົກມົກ',
-      avatarUrl: null,
-      jobTitle: 'ນັກພັດທະນາແອັບມືຖື',
+    return UserModel.fromJson(data);
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    // Any 2xx counts; the `{ message }` body carries nothing the app needs.
+    await _client.put<dynamic>(
+      ApiPaths.changePassword,
+      data: {'current_password': currentPassword, 'new_password': newPassword},
     );
   }
-
-  @override
-  Future<void> logout() => Future.delayed(_latency);
 }

@@ -1,5 +1,5 @@
 name: next_on
-description: "A new Flutter project."
+description: "Next On mobile app: Lao HR self-service for attendance, leave and payroll, built feature-first on Riverpod, GoRouter and Dio."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 version: 1.0.0+1
@@ -33,6 +33,8 @@ dependencies:
 
   # Local Storage
   shared_preferences: ^2.2.2
+  # Keychain / Keystore backed store for the session tokens (auth.md)
+  flutter_secure_storage: ^9.2.2
   hive: ^2.2.3
   hive_flutter: ^1.1.0
 

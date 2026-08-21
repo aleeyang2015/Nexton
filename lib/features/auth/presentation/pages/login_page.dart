@@ -5,10 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
+import '../../domain/entities/auth_session.dart';
 import '../providers/login_notifier.dart';
 import '../providers/login_state.dart';
 import '../widgets/login_email_field.dart';
-import '../widgets/login_password_field.dart';
+import '../widgets/auth_password_field.dart';
 import '../widgets/remember_me_checkbox.dart';
 
 /// Login screen. Holds only text controllers — every decision lives in
@@ -33,28 +34,33 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   /// React to the outcome of a submit: navigate on success, surface errors.
   void _onSubmissionChanged(
-    AsyncValue<Object?>? previous,
-    AsyncValue<Object?> next,
+    AsyncValue<AuthSession?>? previous,
+    AsyncValue<AuthSession?> next,
   ) {
-    if (next.hasValue && next.value != null) {
-      context.go('/');
+    final session = next.valueOrNull;
+    if (session != null) {
+      // A session flagged `must_change_password` goes straight to the change
+      // screen; the router redirect enforces the same rule if this is missed.
+      context.go(session.mustChangePassword ? '/change-password' : '/');
       return;
     }
 
     if (next.hasError) {
       final error = next.error;
-      final message =
-          error is Failure ? error.message : 'ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່';
+      final message = error is Failure
+          ? error.message
+          : 'ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່';
 
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: AppColors.error,
-          ),
-        );
+      _showMessage(message, AppColors.error);
     }
+  }
+
+  void _showMessage(String message, Color background) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: background),
+      );
   }
 
   @override
@@ -62,6 +68,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.listen(
       loginNotifierProvider.select((state) => state.submission),
       _onSubmissionChanged,
+    );
+
+    // The notifier decides when a rejected password must be re-typed; the page
+    // only carries that decision to its controller.
+    ref.listen(
+      loginNotifierProvider.select((state) => state.passwordClearTick),
+      (_, __) => _passwordController.clear(),
     );
 
     final state = ref.watch(loginNotifierProvider);
@@ -114,12 +127,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           onChanged: notifier.emailChanged,
         ),
         heightBx(h: 20),
-        LoginPasswordField(
+        AuthPasswordField(
+          label: "ລະຫັດຜ່ານ",
+          hint: "ປ້ອນລະຫັດຜ່ານ",
           controller: _passwordController,
           obscure: state.obscurePassword,
           errorText: state.passwordError,
           onToggleObscure: notifier.togglePasswordVisibility,
           onChanged: notifier.passwordChanged,
+          onSubmitted: (_) => notifier.submit(),
+          trailing: customText(
+            "ລືມລະຫັດຜ່ານ ?",
+            color: Colors.blueAccent,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         heightBx(h: 30),
         RememberMeCheckbox(
