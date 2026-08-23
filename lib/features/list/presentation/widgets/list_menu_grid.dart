@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 
-/// One tappable entry in [HomeMenuGrid]
-class HomeMenuEntry {
+/// One tappable entry in [ListMenuGrid]
+class ListMenuEntry {
   final String label;
   final IconData icon;
   final VoidCallback? onTap;
 
-  const HomeMenuEntry(this.label, this.icon, {this.onTap});
+  const ListMenuEntry(this.label, this.icon, {this.onTap});
 }
 
-/// Responsive grid of home shortcuts: 5 columns on tablets, 4 on phones
-class HomeMenuGrid extends StatelessWidget {
-  final List<HomeMenuEntry> entries;
+/// Responsive grid of list shortcuts: 5 columns on tablets, 4 on phones
+class ListMenuGrid extends StatelessWidget {
+  final List<ListMenuEntry> entries;
 
-  const HomeMenuGrid({super.key, required this.entries});
+  const ListMenuGrid({super.key, required this.entries});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class HomeMenuGrid extends StatelessWidget {
 }
 
 class _MenuItem extends StatelessWidget {
-  final HomeMenuEntry entry;
+  final ListMenuEntry entry;
 
   const _MenuItem({required this.entry});
 

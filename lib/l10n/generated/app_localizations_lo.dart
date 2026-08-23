@@ -74,15 +74,6 @@ class AppLocalizationsLo extends AppLocalizations {
   String get changePasswordSuccess => 'ປ່ຽນລະຫັດຜ່ານສຳເລັດ';
 
   @override
-  String get absent => 'ຂາດວຽກ';
-
-  @override
-  String get lateArrival => 'ມາຊ້າ';
-
-  @override
-  String get overtime => 'ລ່ວງເວລາ';
-
-  @override
   String get clockInOut => 'ເຂົ້າ/ອອກວຽກ';
 
   @override
@@ -107,7 +98,41 @@ class AppLocalizationsLo extends AppLocalizations {
   String get profile => 'ໂປຣໄຟລ໌';
 
   @override
-  String get monitoring => 'ການຕິດຕາມ';
+  String get notCheckedIn => 'ຍັງບໍ່ໄດ້ລົງເວລາເຂົ້າ';
+
+  @override
+  String get checkedInStatus => 'ລົງເວລາເຂົ້າແລ້ວ';
+
+  @override
+  String clockInOpensAt(String time) {
+    return 'ລົງເວລາເຂົ້າໄດ້ເວລາ $time';
+  }
+
+  @override
+  String get timeIn => 'ເວລາເຂົ້າ';
+
+  @override
+  String get timeOut => 'ເວລາອອກ';
+
+  @override
+  String get slideToClockIn => 'ເລື່ອນເພື່ອລົງເວລາເຂົ້າ';
+
+  @override
+  String clockMethodsLabel(String methods) {
+    return 'ວິທີລົງເວລາ: $methods';
+  }
+
+  @override
+  String get methodGps => 'GPS';
+
+  @override
+  String get methodWifi => 'WiFi';
+
+  @override
+  String get methodBiometric => 'ລາຍນິ້ວມື';
+
+  @override
+  String get methodField => 'ວຽກນອກ';
 
   @override
   String get navList => 'ລາຍການ';

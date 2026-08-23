@@ -27,9 +27,6 @@
   "logout": "Sign Out",
   "changePasswordSuccess": "Password changed successfully",
 
-  "absent": "Absent",
-  "lateArrival": "Late",
-  "overtime": "Overtime",
   "clockInOut": "Clock In/Out",
   "activities": "Activities",
   "documents": "Documents",
@@ -38,7 +35,24 @@
   "settings": "Settings",
   "notifications": "Notifications",
   "profile": "Profile",
-  "monitoring": "Monitoring",
+
+  "notCheckedIn": "Not checked in",
+  "checkedInStatus": "Checked in",
+  "clockInOpensAt": "Check-in opens {time}",
+  "@clockInOpensAt": {
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "timeIn": "Time in",
+  "timeOut": "Time out",
+  "slideToClockIn": "Slide to check in",
+  "clockMethodsLabel": "Clock methods: {methods}",
+  "@clockMethodsLabel": {
+    "placeholders": {"methods": {"type": "String"}}
+  },
+  "methodGps": "GPS",
+  "methodWifi": "WiFi",
+  "methodBiometric": "Biometric",
+  "methodField": "Field work",
 
   "navList": "List",
   "navHome": "Home",

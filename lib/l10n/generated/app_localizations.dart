@@ -224,24 +224,6 @@ abstract class AppLocalizations {
   /// **'Password changed successfully'**
   String get changePasswordSuccess;
 
-  /// No description provided for @absent.
-  ///
-  /// In en, this message translates to:
-  /// **'Absent'**
-  String get absent;
-
-  /// No description provided for @lateArrival.
-  ///
-  /// In en, this message translates to:
-  /// **'Late'**
-  String get lateArrival;
-
-  /// No description provided for @overtime.
-  ///
-  /// In en, this message translates to:
-  /// **'Overtime'**
-  String get overtime;
-
   /// No description provided for @clockInOut.
   ///
   /// In en, this message translates to:
@@ -290,11 +272,71 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get profile;
 
-  /// No description provided for @monitoring.
+  /// No description provided for @notCheckedIn.
   ///
   /// In en, this message translates to:
-  /// **'Monitoring'**
-  String get monitoring;
+  /// **'Not checked in'**
+  String get notCheckedIn;
+
+  /// No description provided for @checkedInStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in'**
+  String get checkedInStatus;
+
+  /// No description provided for @clockInOpensAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in opens {time}'**
+  String clockInOpensAt(String time);
+
+  /// No description provided for @timeIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Time in'**
+  String get timeIn;
+
+  /// No description provided for @timeOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Time out'**
+  String get timeOut;
+
+  /// No description provided for @slideToClockIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Slide to check in'**
+  String get slideToClockIn;
+
+  /// No description provided for @clockMethodsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock methods: {methods}'**
+  String clockMethodsLabel(String methods);
+
+  /// No description provided for @methodGps.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS'**
+  String get methodGps;
+
+  /// No description provided for @methodWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'WiFi'**
+  String get methodWifi;
+
+  /// No description provided for @methodBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric'**
+  String get methodBiometric;
+
+  /// No description provided for @methodField.
+  ///
+  /// In en, this message translates to:
+  /// **'Field work'**
+  String get methodField;
 
   /// No description provided for @navList.
   ///

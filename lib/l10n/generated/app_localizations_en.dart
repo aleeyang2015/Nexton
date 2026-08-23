@@ -74,15 +74,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changePasswordSuccess => 'Password changed successfully';
 
   @override
-  String get absent => 'Absent';
-
-  @override
-  String get lateArrival => 'Late';
-
-  @override
-  String get overtime => 'Overtime';
-
-  @override
   String get clockInOut => 'Clock In/Out';
 
   @override
@@ -107,7 +98,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile => 'Profile';
 
   @override
-  String get monitoring => 'Monitoring';
+  String get notCheckedIn => 'Not checked in';
+
+  @override
+  String get checkedInStatus => 'Checked in';
+
+  @override
+  String clockInOpensAt(String time) {
+    return 'Check-in opens $time';
+  }
+
+  @override
+  String get timeIn => 'Time in';
+
+  @override
+  String get timeOut => 'Time out';
+
+  @override
+  String get slideToClockIn => 'Slide to check in';
+
+  @override
+  String clockMethodsLabel(String methods) {
+    return 'Clock methods: $methods';
+  }
+
+  @override
+  String get methodGps => 'GPS';
+
+  @override
+  String get methodWifi => 'WiFi';
+
+  @override
+  String get methodBiometric => 'Biometric';
+
+  @override
+  String get methodField => 'Field work';
 
   @override
   String get navList => 'List';
