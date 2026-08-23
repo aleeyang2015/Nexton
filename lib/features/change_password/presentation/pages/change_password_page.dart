@@ -7,10 +7,10 @@ import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../providers/auth_session_notifier.dart';
+import '../../../auth/presentation/providers/auth_session_notifier.dart';
+import '../../../auth/presentation/widgets/auth_password_field.dart';
 import '../providers/change_password_notifier.dart';
 import '../providers/change_password_state.dart';
-import '../widgets/auth_password_field.dart';
 
 /// Change-password screen. Holds only text controllers and focus nodes —
 /// every decision lives in [ChangePasswordNotifier].
@@ -101,59 +101,27 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       canPop: !forced,
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: SafeArea(
-          child: GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
-            behavior: HitTestBehavior.opaque,
-            child: SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.fromLTRB(20, 30, 20, 60),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _header(forced, l10n),
-                  heightBx(h: 30),
-                  _form(state, notifier, l10n),
-                  heightBx(h: 30),
-                  _submit(state, notifier, l10n),
-                  heightBx(h: 16),
-                  _signOut(state, notifier, l10n),
-                ],
-              ),
+        appBar: AppBar(
+          title: customText("ປ່ຽນລະຫັດຜ່ານ", fontSize: 20, color: Colors.white, fontWeight: FontWeight.w700),
+        ),
+        body: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.opaque,
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(20, 30, 20, 60),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _form(state, notifier, l10n),
+                heightBx(h: 30),
+                _submit(state, notifier, l10n),
+              ],
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _header(bool forced, AppLocalizations l10n) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        assetImg(
-          "assets/images/polygon.png",
-          width: 56,
-          height: 56,
-          fit: BoxFit.contain,
-        ),
-        heightBx(h: 20),
-        customText(
-          l10n.changePassword,
-          fontWeight: FontWeight.w700,
-          color: AppColors.primary,
-          fontSize: 26,
-        ),
-        heightBx(h: 8),
-        customText(
-          forced
-              ? l10n.changePasswordForcedNotice
-              : l10n.changePasswordVoluntaryNotice,
-          color: AppColors.textTertiary,
-          maxLine: 2,
-        ),
-      ],
     );
   }
 
@@ -222,22 +190,5 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
     }
 
     return button(notifier.submit, l10n.savePassword, enabled: state.canSubmit);
-  }
-
-  Widget _signOut(
-    ChangePasswordState state,
-    ChangePasswordNotifier notifier,
-    AppLocalizations l10n,
-  ) {
-    return Center(
-      child: TextButton(
-        onPressed: state.isSubmitting ? null : notifier.signOut,
-        child: underLineTxt(
-          l10n.logout,
-          color: AppColors.textSecondary,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
   }
 }

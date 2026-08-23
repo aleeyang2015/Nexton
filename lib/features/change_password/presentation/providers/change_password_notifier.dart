@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failure.dart';
-import '../../domain/auth_failure_x.dart';
-import '../../domain/usecases/change_password_usecase.dart';
-import 'auth_session_notifier.dart';
+import '../../../auth/domain/auth_failure_x.dart';
+import '../../../auth/domain/usecases/change_password_usecase.dart';
+import '../../../auth/presentation/providers/auth_session_notifier.dart';
 import 'change_password_state.dart';
 
 /// Owns all change-password behaviour. The widget only forwards events here.

@@ -200,6 +200,12 @@ class _MenuCard extends ConsumerWidget {
             onTap: () => _openComingSoon(context, l10n.personal, Icons.person_outline),
           ),
           _menuDivider(),
+          _MenuRow(
+            icon: Icons.lock_outline,
+            label: l10n.changePassword,
+            onTap: () => context.push(AppRoutes.changePassword),
+          ),
+          _menuDivider(),
           // "General" in the reference image — routed to the app's real
           // Settings screen (language switcher today), so it's labeled the
           // same as everywhere else that opens it rather than a new term.

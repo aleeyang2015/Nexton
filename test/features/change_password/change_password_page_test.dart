@@ -6,8 +6,8 @@ import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/auth/auth_providers.dart';
 import 'package:next_on/features/auth/domain/entities/auth_session.dart';
-import 'package:next_on/features/auth/presentation/pages/change_password_page.dart';
 import 'package:next_on/features/auth/presentation/widgets/auth_password_field.dart';
+import 'package:next_on/features/change_password/presentation/pages/change_password_page.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
 import '../../support/auth_test_doubles.dart';
