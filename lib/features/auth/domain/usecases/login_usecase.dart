@@ -1,5 +1,6 @@
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failure.dart';
+import '../../../../core/errors/validation_codes.dart';
 import '../../../../core/utils/base_usecase.dart';
 import '../../../../core/utils/result.dart';
 import '../entities/auth_session.dart';
@@ -28,7 +29,7 @@ class LoginParams extends BaseParams {
     if (trimmedEmail.isEmpty) {
       return Result.failure(
         Failure.validation(
-          message: 'ກະລຸນາປ້ອນອີເມວ',
+          message: ValidationCode.emailRequired,
           field: LoginFields.email,
         ),
       );
@@ -37,7 +38,7 @@ class LoginParams extends BaseParams {
     if (!RegExp(AppConstants.emailRegex).hasMatch(trimmedEmail)) {
       return Result.failure(
         Failure.validation(
-          message: 'ຮູບແບບອີເມວບໍ່ຖືກຕ້ອງ',
+          message: ValidationCode.emailInvalid,
           field: LoginFields.email,
         ),
       );
@@ -46,7 +47,7 @@ class LoginParams extends BaseParams {
     if (password.isEmpty) {
       return Result.failure(
         Failure.validation(
-          message: 'ກະລຸນາປ້ອນລະຫັດຜ່ານ',
+          message: ValidationCode.passwordRequired,
           field: LoginFields.password,
         ),
       );
@@ -55,8 +56,7 @@ class LoginParams extends BaseParams {
     if (password.length < AppConstants.minPasswordLength) {
       return Result.failure(
         Failure.validation(
-          message:
-              'ລະຫັດຜ່ານຕ້ອງມີຢ່າງໜ້ອຍ ${AppConstants.minPasswordLength} ຕົວອັກສອນ',
+          message: ValidationCode.passwordTooShort,
           field: LoginFields.password,
         ),
       );

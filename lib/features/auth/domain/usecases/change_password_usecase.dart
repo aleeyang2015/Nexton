@@ -1,5 +1,6 @@
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failure.dart';
+import '../../../../core/errors/validation_codes.dart';
 import '../../../../core/utils/base_usecase.dart';
 import '../../../../core/utils/result.dart';
 import '../repositories/auth_repository.dart';
@@ -35,7 +36,7 @@ class ChangePasswordParams extends BaseParams {
     if (currentPassword.isEmpty) {
       return Result.failure(
         Failure.validation(
-          message: 'ກະລຸນາປ້ອນລະຫັດຜ່ານປັດຈຸບັນ',
+          message: ValidationCode.currentPasswordRequired,
           field: ChangePasswordFields.current,
         ),
       );
@@ -44,8 +45,7 @@ class ChangePasswordParams extends BaseParams {
     if (newPassword.length < AppConstants.minPasswordLength) {
       return Result.failure(
         Failure.validation(
-          message:
-              'ລະຫັດຜ່ານຕ້ອງມີຢ່າງໜ້ອຍ ${AppConstants.minPasswordLength} ຕົວອັກສອນ',
+          message: ValidationCode.passwordTooShort,
           field: ChangePasswordFields.next,
         ),
       );
@@ -54,7 +54,7 @@ class ChangePasswordParams extends BaseParams {
     if (newPassword == currentPassword) {
       return Result.failure(
         Failure.validation(
-          message: 'ລະຫັດຜ່ານໃໝ່ຕ້ອງບໍ່ຊ້ຳກັບລະຫັດຜ່ານເກົ່າ',
+          message: ValidationCode.newPasswordSameAsCurrent,
           field: ChangePasswordFields.next,
         ),
       );
@@ -63,7 +63,7 @@ class ChangePasswordParams extends BaseParams {
     if (confirmPassword != newPassword) {
       return Result.failure(
         Failure.validation(
-          message: 'ລະຫັດຜ່ານຢືນຢັນບໍ່ຕົງກັນ',
+          message: ValidationCode.confirmPasswordMismatch,
           field: ChangePasswordFields.confirm,
         ),
       );

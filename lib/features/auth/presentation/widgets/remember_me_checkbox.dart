@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// "Remember me" toggle
 class RememberMeCheckbox extends StatelessWidget {
@@ -16,6 +17,8 @@ class RememberMeCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return GestureDetector(
       onTap: onTap,
       child: Row(
@@ -32,7 +35,7 @@ class RememberMeCheckbox extends StatelessWidget {
             child: const Icon(Icons.check, size: 15, color: Colors.white),
           ),
           widthBx(w: 10),
-          customText("ຈື່ອີເມວຂ້ອຍໄວ້"),
+          customText(l10n.rememberMe),
         ],
       ),
     );

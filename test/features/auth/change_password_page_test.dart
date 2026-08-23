@@ -8,6 +8,7 @@ import 'package:next_on/features/auth/auth_providers.dart';
 import 'package:next_on/features/auth/domain/entities/auth_session.dart';
 import 'package:next_on/features/auth/presentation/pages/change_password_page.dart';
 import 'package:next_on/features/auth/presentation/widgets/auth_password_field.dart';
+import 'package:next_on/l10n/generated/app_localizations.dart';
 
 import '../../support/auth_test_doubles.dart';
 import '../../support/test_asset_bundle.dart';
@@ -46,7 +47,14 @@ void main() {
         overrides: [authRepositoryProvider.overrideWithValue(repository)],
         child: DefaultAssetBundle(
           bundle: TestAssetBundle(),
-          child: MaterialApp.router(routerConfig: router),
+          child: MaterialApp.router(
+            routerConfig: router,
+            // Lao is the app default (see core/l10n/locale_provider.dart) —
+            // matched here so the literal Lao strings below still find text.
+            locale: const Locale('lo'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+          ),
         ),
       ),
     );

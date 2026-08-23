@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/failure.dart';
+import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/auth_session_notifier.dart';
 import '../providers/change_password_notifier.dart';
 import '../providers/change_password_state.dart';
@@ -44,8 +46,10 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
 
   /// React to the outcome of a submit: leave on success, surface errors.
   void _onSubmissionChanged(AsyncValue<bool>? previous, AsyncValue<bool> next) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (next.valueOrNull == true) {
-      _showMessage('ປ່ຽນລະຫັດຜ່ານສຳເລັດ', AppColors.success);
+      _showMessage(l10n.changePasswordSuccess, AppColors.success);
       // The session has already dropped the requirement; the redirect would
       // move us anyway, this just makes the intent explicit.
       context.go('/');
@@ -54,9 +58,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
 
     if (next.hasError) {
       final error = next.error;
-      final message = error is Failure
-          ? error.message
-          : 'ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່';
+      final message = error is Failure ? error.localize(l10n) : l10n.genericError;
 
       _showMessage(message, AppColors.error);
     }
@@ -91,6 +93,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
         (session) => session.valueOrNull?.mustChangePassword ?? false,
       ),
     );
+    final l10n = AppLocalizations.of(context)!;
 
     // While the change is mandatory there is no back destination — signing
     // out is the only way off this screen.
@@ -109,13 +112,13 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _header(forced),
+                  _header(forced, l10n),
                   heightBx(h: 30),
-                  _form(state, notifier),
+                  _form(state, notifier, l10n),
                   heightBx(h: 30),
-                  _submit(state, notifier),
+                  _submit(state, notifier, l10n),
                   heightBx(h: 16),
-                  _signOut(state, notifier),
+                  _signOut(state, notifier, l10n),
                 ],
               ),
             ),
@@ -125,7 +128,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
     );
   }
 
-  Widget _header(bool forced) {
+  Widget _header(bool forced, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -137,7 +140,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
         ),
         heightBx(h: 20),
         customText(
-          "ປ່ຽນລະຫັດຜ່ານ",
+          l10n.changePassword,
           fontWeight: FontWeight.w700,
           color: AppColors.primary,
           fontSize: 26,
@@ -145,8 +148,8 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
         heightBx(h: 8),
         customText(
           forced
-              ? "ກະລຸນາຕັ້ງລະຫັດຜ່ານໃໝ່ກ່ອນເຂົ້ານຳໃຊ້ລະບົບ"
-              : "ຕັ້ງລະຫັດຜ່ານໃໝ່ສຳລັບບັນຊີຂອງທ່ານ",
+              ? l10n.changePasswordForcedNotice
+              : l10n.changePasswordVoluntaryNotice,
           color: AppColors.textTertiary,
           maxLine: 2,
         ),
@@ -154,17 +157,21 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
     );
   }
 
-  Widget _form(ChangePasswordState state, ChangePasswordNotifier notifier) {
+  Widget _form(
+    ChangePasswordState state,
+    ChangePasswordNotifier notifier,
+    AppLocalizations l10n,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AuthPasswordField(
-          label: "ລະຫັດຜ່ານປັດຈຸບັນ",
-          hint: "ປ້ອນລະຫັດຜ່ານປັດຈຸບັນ",
+          label: l10n.currentPassword,
+          hint: l10n.currentPasswordHint,
           controller: _currentController,
           focusNode: _currentFocus,
           obscure: state.obscureCurrent,
-          errorText: state.currentError,
+          errorText: localizeFieldError(l10n, state.currentError),
           enabled: !state.isSubmitting,
           textInputAction: TextInputAction.next,
           onToggleObscure: notifier.toggleCurrentVisibility,
@@ -173,12 +180,12 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
         ),
         heightBx(h: 20),
         AuthPasswordField(
-          label: "ລະຫັດຜ່ານໃໝ່",
-          hint: "ຢ່າງໜ້ອຍ 8 ຕົວອັກສອນ",
+          label: l10n.newPassword,
+          hint: l10n.newPasswordHint,
           controller: _newController,
           focusNode: _newFocus,
           obscure: state.obscureNew,
-          errorText: state.newError,
+          errorText: localizeFieldError(l10n, state.newError),
           enabled: !state.isSubmitting,
           textInputAction: TextInputAction.next,
           onToggleObscure: notifier.toggleNewVisibility,
@@ -187,12 +194,12 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
         ),
         heightBx(h: 20),
         AuthPasswordField(
-          label: "ຢືນຢັນລະຫັດຜ່ານໃໝ່",
-          hint: "ປ້ອນລະຫັດຜ່ານໃໝ່ອີກຄັ້ງ",
+          label: l10n.confirmNewPassword,
+          hint: l10n.confirmNewPasswordHint,
           controller: _confirmController,
           focusNode: _confirmFocus,
           obscure: state.obscureConfirm,
-          errorText: state.confirmError,
+          errorText: localizeFieldError(l10n, state.confirmError),
           enabled: !state.isSubmitting,
           onToggleObscure: notifier.toggleConfirmVisibility,
           onChanged: notifier.confirmPasswordChanged,
@@ -202,7 +209,11 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
     );
   }
 
-  Widget _submit(ChangePasswordState state, ChangePasswordNotifier notifier) {
+  Widget _submit(
+    ChangePasswordState state,
+    ChangePasswordNotifier notifier,
+    AppLocalizations l10n,
+  ) {
     if (state.isSubmitting) {
       return const SizedBox(
         height: 56,
@@ -210,15 +221,19 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       );
     }
 
-    return button(notifier.submit, "ບັນທຶກລະຫັດຜ່ານ", enabled: state.canSubmit);
+    return button(notifier.submit, l10n.savePassword, enabled: state.canSubmit);
   }
 
-  Widget _signOut(ChangePasswordState state, ChangePasswordNotifier notifier) {
+  Widget _signOut(
+    ChangePasswordState state,
+    ChangePasswordNotifier notifier,
+    AppLocalizations l10n,
+  ) {
     return Center(
       child: TextButton(
         onPressed: state.isSubmitting ? null : notifier.signOut,
         child: underLineTxt(
-          "ອອກຈາກລະບົບ",
+          l10n.logout,
           color: AppColors.textSecondary,
           fontWeight: FontWeight.w500,
         ),

@@ -5,8 +5,9 @@ import '../../features/auth/domain/entities/auth_session.dart';
 import '../../features/auth/presentation/pages/change_password_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
-import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../core/widgets/error_page.dart';
+import '../widgets/main_shell_page.dart';
 
 /// Route paths, so the redirect rules and the route table can't disagree.
 class AppRoutes {
@@ -15,6 +16,7 @@ class AppRoutes {
   static const String home = '/';
   static const String login = '/login';
   static const String changePassword = '/change-password';
+  static const String settings = '/settings';
   static const String notFound = '/404';
 }
 
@@ -73,7 +75,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.home,
         name: 'home',
-        builder: (context, state) => const HomePage(),
+        builder: (context, state) => const MainShellPage(),
         routes: [
           // Add nested routes here
         ],
@@ -89,6 +91,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.changePassword,
         name: 'changePassword',
         builder: (context, state) => const ChangePasswordPage(),
+      ),
+
+      // Settings
+      GoRoute(
+        path: AppRoutes.settings,
+        name: 'settings',
+        builder: (context, state) => const SettingsPage(),
       ),
 
       // 404 Route

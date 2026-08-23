@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/failure.dart';
+import '../../../../core/l10n/failure_localizer.dart';
+import '../../../../core/l10n/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/auth_session.dart';
 import '../providers/login_notifier.dart';
 import '../providers/login_state.dart';
@@ -46,10 +49,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
 
     if (next.hasError) {
+      final l10n = AppLocalizations.of(context)!;
       final error = next.error;
       final message = error is Failure
-          ? error.message
-          : 'ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່';
+          ? error.localize(l10n)
+          : l10n.genericError;
 
       _showMessage(message, AppColors.error);
     }
@@ -79,6 +83,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     final state = ref.watch(loginNotifierProvider);
     final notifier = ref.read(loginNotifierProvider.notifier);
+    final l10n = AppLocalizations.of(context)!;
+    final locale = ref.watch(localeProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -87,7 +93,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            heightBx(h: 50),
+            Align(
+              alignment: Alignment.topRight,
+              child: _LanguageToggleButton(
+                locale: locale,
+                onTap: () {
+                  final next = locale == AppLocales.lao
+                      ? AppLocales.english
+                      : AppLocales.lao;
+                  ref.read(localeProvider.notifier).setLocale(next);
+                },
+              ),
+            ),
+            heightBx(h: 10),
             assetImg(
               "assets/images/polygon.png",
               width: 80,
@@ -103,41 +121,41 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
             heightBx(h: 40),
             customText(
-              "ເຂົ້າສູ່ລະບົບ",
+              l10n.login,
               fontWeight: FontWeight.w700,
               color: AppColors.textTertiary,
               fontSize: 20,
               alight: TextAlign.center,
             ),
             heightBx(h: 40),
-            _form(state, notifier),
+            _form(state, notifier, l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _form(LoginState state, LoginNotifier notifier) {
+  Widget _form(LoginState state, LoginNotifier notifier, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LoginEmailField(
           controller: _emailController,
-          errorText: state.emailError,
+          errorText: localizeFieldError(l10n, state.emailError),
           onChanged: notifier.emailChanged,
         ),
         heightBx(h: 20),
         AuthPasswordField(
-          label: "ລະຫັດຜ່ານ",
-          hint: "ປ້ອນລະຫັດຜ່ານ",
+          label: l10n.password,
+          hint: l10n.passwordHint,
           controller: _passwordController,
           obscure: state.obscurePassword,
-          errorText: state.passwordError,
+          errorText: localizeFieldError(l10n, state.passwordError),
           onToggleObscure: notifier.togglePasswordVisibility,
           onChanged: notifier.passwordChanged,
           onSubmitted: (_) => notifier.submit(),
           trailing: customText(
-            "ລືມລະຫັດຜ່ານ ?",
+            l10n.forgotPassword,
             color: Colors.blueAccent,
             fontWeight: FontWeight.w500,
           ),
@@ -151,8 +169,44 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         if (state.isSubmitting)
           const Center(child: CircularProgressIndicator())
         else
-          button(notifier.submit, "ເຂົ້າສູ່ລະບົບ"),
+          button(notifier.submit, l10n.login),
       ],
+    );
+  }
+}
+
+/// Switches between Lao and English right from the login screen — the only
+/// screen an unauthenticated user can reach, so it can't wait for Settings.
+/// Labeled with the language it switches *to*, not the current one.
+class _LanguageToggleButton extends StatelessWidget {
+  final Locale locale;
+  final VoidCallback onTap;
+
+  const _LanguageToggleButton({required this.locale, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final targetLabel = locale == AppLocales.lao ? l10n.english : l10n.lao;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.language, size: 18, color: AppColors.primary),
+            widthBx(w: 4),
+            customText(
+              targetLabel,
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

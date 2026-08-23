@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 /// One attendance figure inside [MonitoringCard]
 class MonitoringStat {
@@ -21,6 +22,8 @@ class MonitoringCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       alignment: const Alignment(0, 0),
       padding: const EdgeInsets.all(15),
@@ -33,13 +36,16 @@ class MonitoringCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              customText("ການຕິດຕາມ", color: Colors.white),
+              customText(l10n.monitoring, color: Colors.white),
               assetImg("assets/icon/scan.png", width: 25, height: 25),
             ],
           ),
           heightBx(h: 15),
           customText(
-            DateFormat('EEE, dd MMM yyyy').format(date),
+            DateFormat(
+              'EEE, dd MMM yyyy',
+              Localizations.localeOf(context).toString(),
+            ).format(date),
             color: Colors.white,
             fontSize: 16,
           ),

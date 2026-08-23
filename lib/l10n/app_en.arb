@@ -1,0 +1,92 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Next On",
+  "@appTitle": {"description": "Application name shown as the window/task title"},
+
+  "login": "Login",
+  "@login": {"description": "Login screen heading and submit button"},
+  "email": "Email",
+  "emailHint": "Example@gmail.com",
+  "password": "Password",
+  "passwordHint": "Enter your password",
+  "forgotPassword": "Forgot password?",
+  "rememberMe": "Remember my email",
+  "genericError": "Something went wrong. Please try again.",
+
+  "changePassword": "Change Password",
+  "changePasswordForcedNotice": "Please set a new password before continuing.",
+  "changePasswordVoluntaryNotice": "Set a new password for your account.",
+  "currentPassword": "Current Password",
+  "currentPasswordHint": "Enter your current password",
+  "newPassword": "New Password",
+  "newPasswordHint": "At least 8 characters",
+  "confirmNewPassword": "Confirm New Password",
+  "confirmNewPasswordHint": "Re-enter your new password",
+  "savePassword": "Save Password",
+  "logout": "Sign Out",
+  "changePasswordSuccess": "Password changed successfully",
+
+  "absent": "Absent",
+  "lateArrival": "Late",
+  "overtime": "Overtime",
+  "clockInOut": "Clock In/Out",
+  "activities": "Activities",
+  "documents": "Documents",
+  "reports": "Reports",
+  "departments": "Departments",
+  "settings": "Settings",
+  "notifications": "Notifications",
+  "profile": "Profile",
+  "monitoring": "Monitoring",
+
+  "navList": "List",
+  "navHome": "Home",
+  "navProfile": "Profile",
+  "comingSoon": "Coming soon",
+
+  "workHours": "Work Hours",
+  "leaveDays": "Leave Days",
+  "tasksDone": "Tasks Done",
+  "personal": "Personal",
+  "help": "Help",
+
+  "language": "Language",
+  "lao": "Lao",
+  "english": "English",
+
+  "emailRequired": "Please enter your email",
+  "emailInvalid": "Invalid email format",
+  "passwordRequired": "Please enter your password",
+  "passwordTooShort": "Password must be at least {min} characters",
+  "@passwordTooShort": {
+    "placeholders": {"min": {"type": "int"}}
+  },
+  "currentPasswordRequired": "Please enter your current password",
+  "newPasswordSameAsCurrent": "New password must be different from the current password",
+  "confirmPasswordMismatch": "Passwords do not match",
+
+  "networkError": "Network error occurred. Please try again.",
+  "serverError": "Something went wrong on our end. Please try again later.",
+  "requestTimeout": "Request timed out. Please try again.",
+  "requestCancelled": "Request was cancelled.",
+  "noInternetConnection": "No internet connection.",
+  "invalidCredentials": "Incorrect email or password.",
+  "userInactive": "Your account is inactive. Please contact your administrator.",
+  "tooManyAttempts": "Too many attempts. Please try again later.",
+  "currentPasswordIncorrect": "Current password is incorrect.",
+  "resourceNotFound": "The requested resource was not found.",
+  "sessionExpired": "Your session has expired. Please log in again.",
+  "unauthorized": "Unauthorized. Please log in again.",
+  "accessForbidden": "Access forbidden. You don't have permission.",
+  "badRequest": "Bad request. Please check your input.",
+
+  "pageNotFoundTitle": "Page Not Found",
+  "pageNotFoundHeading": "404 - Page Not Found",
+  "pageNotFoundMessage": "The page you are looking for does not exist.",
+  "goHome": "Go Home",
+  "errorDetailsLabel": "Error: {details}",
+  "@errorDetailsLabel": {
+    "placeholders": {"details": {"type": "String"}}
+  }
+}

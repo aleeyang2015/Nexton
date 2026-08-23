@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
+import 'package:next_on/core/errors/validation_codes.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/auth/domain/usecases/change_password_usecase.dart';
 
@@ -29,7 +30,7 @@ void main() {
       final failure = _validate('current-pass', 'short', 'nope');
 
       expect(failure!.field, ChangePasswordFields.next);
-      expect(failure.message, contains('8'));
+      expect(failure.message, ValidationCode.passwordTooShort);
     });
 
     test('rule 2 outranks rule 4', () {
@@ -47,7 +48,7 @@ void main() {
       );
 
       expect(failure!.field, ChangePasswordFields.next);
-      expect(failure.message, isNot(contains('8')));
+      expect(failure.message, ValidationCode.newPasswordSameAsCurrent);
     });
 
     test('rule 4: the confirmation must match', () {

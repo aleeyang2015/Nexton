@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
+import 'package:next_on/core/errors/validation_codes.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/auth/auth_providers.dart';
 import 'package:next_on/features/auth/domain/entities/auth_session.dart';
@@ -61,7 +62,7 @@ void main() {
     test('a short password is reported on the password field', () async {
       await fillAndSubmit(password: 'short');
 
-      expect(state().passwordError, contains('8'));
+      expect(state().passwordError, ValidationCode.passwordTooShort);
       expect(state().passwordClearTick, 0);
     });
   });

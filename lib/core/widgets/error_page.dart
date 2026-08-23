@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/generated/app_localizations.dart';
+
 /// 404 Not Found Page
 class NotFoundPage extends StatelessWidget {
   final Exception? error;
@@ -9,9 +11,11 @@ class NotFoundPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Page Not Found'),
+        title: Text(l10n.pageNotFoundTitle),
       ),
       body: Center(
         child: Column(
@@ -23,22 +27,22 @@ class NotFoundPage extends StatelessWidget {
               color: Colors.red,
             ),
             const SizedBox(height: 16),
-            const Text(
-              '404 - Page Not Found',
-              style: TextStyle(
+            Text(
+              l10n.pageNotFoundHeading,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'The page you are looking for does not exist.',
+            Text(
+              l10n.pageNotFoundMessage,
               textAlign: TextAlign.center,
             ),
             if (error != null) ...[
               const SizedBox(height: 16),
               Text(
-                'Error: ${error.toString()}',
+                l10n.errorDetailsLabel(error.toString()),
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.red),
               ),
@@ -46,7 +50,7 @@ class NotFoundPage extends StatelessWidget {
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () => context.go('/'),
-              child: const Text('Go Home'),
+              child: Text(l10n.goHome),
             ),
           ],
         ),
