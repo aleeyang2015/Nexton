@@ -338,6 +338,276 @@ abstract class AppLocalizations {
   /// **'Field work'**
   String get methodField;
 
+  /// No description provided for @slideToClockOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Slide to check out'**
+  String get slideToClockOut;
+
+  /// No description provided for @clockingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking you in…'**
+  String get clockingIn;
+
+  /// No description provided for @clockingOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking you out…'**
+  String get clockingOut;
+
+  /// No description provided for @clockInSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in successfully'**
+  String get clockInSuccess;
+
+  /// No description provided for @clockOutSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked out successfully'**
+  String get clockOutSuccess;
+
+  /// No description provided for @clockInSuccessInSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in for {session}'**
+  String clockInSuccessInSession(String session);
+
+  /// No description provided for @clockOutSuccessInSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked out of {session}'**
+  String clockOutSuccessInSession(String session);
+
+  /// No description provided for @punchLateBy.
+  ///
+  /// In en, this message translates to:
+  /// **'You are {minutes} min late'**
+  String punchLateBy(int minutes);
+
+  /// No description provided for @punchNotVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded, but your location could not be verified'**
+  String get punchNotVerified;
+
+  /// No description provided for @punchNotVerifiedBecause.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded, but your location could not be verified: {reason}'**
+  String punchNotVerifiedBecause(String reason);
+
+  /// No description provided for @punchPendingVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded. The location check is still pending'**
+  String get punchPendingVerification;
+
+  /// No description provided for @rejectionOutsideGeofence.
+  ///
+  /// In en, this message translates to:
+  /// **'you are outside the allowed area'**
+  String get rejectionOutsideGeofence;
+
+  /// No description provided for @rejectionMissingCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'no location was sent'**
+  String get rejectionMissingCoordinates;
+
+  /// No description provided for @rejectionUnknownWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'this WiFi network is not recognised'**
+  String get rejectionUnknownWifi;
+
+  /// No description provided for @rejectionMissingBssid.
+  ///
+  /// In en, this message translates to:
+  /// **'no WiFi network was sent'**
+  String get rejectionMissingBssid;
+
+  /// No description provided for @ruleMockLocationDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Fake GPS is on. Please turn it off and try again.'**
+  String get ruleMockLocationDetected;
+
+  /// No description provided for @ruleEmployeeNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is not linked to an employee record. Please contact HR.'**
+  String get ruleEmployeeNotFound;
+
+  /// No description provided for @ruleNoShiftAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'No work shift has been assigned yet. Please contact HR.'**
+  String get ruleNoShiftAssigned;
+
+  /// No description provided for @ruleOutsideShiftHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in has closed for today.'**
+  String get ruleOutsideShiftHours;
+
+  /// No description provided for @ruleOvernightSessionDone.
+  ///
+  /// In en, this message translates to:
+  /// **'You have already completed the overnight shift.'**
+  String get ruleOvernightSessionDone;
+
+  /// No description provided for @ruleSessionAlreadyStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'You have already checked in. Check out instead.'**
+  String get ruleSessionAlreadyStarted;
+
+  /// No description provided for @ruleSessionAlreadyCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'This session already has both a check-in and a check-out.'**
+  String get ruleSessionAlreadyCompleted;
+
+  /// No description provided for @ruleSessionAlreadyCheckedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'You have already checked out of this session.'**
+  String get ruleSessionAlreadyCheckedOut;
+
+  /// No description provided for @ruleSessionNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not checked in for this session yet.'**
+  String get ruleSessionNotStarted;
+
+  /// No description provided for @ruleAfterCheckoutWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'The check-out window has closed.'**
+  String get ruleAfterCheckoutWindow;
+
+  /// No description provided for @ruleEarlyCheckoutRequiresReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking out early needs a reason.'**
+  String get ruleEarlyCheckoutRequiresReason;
+
+  /// No description provided for @earlyCheckoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for leaving early'**
+  String get earlyCheckoutTitle;
+
+  /// No description provided for @earlyCheckoutPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'You are checking out early. Please tell us why.'**
+  String get earlyCheckoutPrompt;
+
+  /// No description provided for @earlyCheckoutPromptBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking out before {time} needs a reason.'**
+  String earlyCheckoutPromptBefore(String time);
+
+  /// No description provided for @earlyCheckoutHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. medical appointment'**
+  String get earlyCheckoutHint;
+
+  /// No description provided for @earlyCheckoutSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get earlyCheckoutSubmit;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @locationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Your location is unavailable. Turn on GPS, allow location access, then try again.'**
+  String get locationUnavailable;
+
+  /// No description provided for @locationServiceDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Services are turned off. Turn them on, then try again.'**
+  String get locationServiceDisabled;
+
+  /// No description provided for @locationPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Next On needs your location to check you in. Please allow location access and try again.'**
+  String get locationPermissionDenied;
+
+  /// No description provided for @locationPermissionDeniedForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Location access is blocked. Open Settings, allow location for Next On, then try again.'**
+  String get locationPermissionDeniedForever;
+
+  /// No description provided for @locationTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not get a location fix. Move somewhere with a clearer view of the sky and try again.'**
+  String get locationTimeout;
+
+  /// No description provided for @wifiUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The WiFi network could not be read. Connect to the office WiFi and try again.'**
+  String get wifiUnavailable;
+
+  /// No description provided for @fieldReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please give a reason for the field work.'**
+  String get fieldReasonRequired;
+
+  /// No description provided for @mockLocationDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Fake GPS is on. Please turn it off and try again.'**
+  String get mockLocationDetected;
+
+  /// No description provided for @clockCooldownActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please wait a moment before trying again.'**
+  String get clockCooldownActive;
+
+  /// No description provided for @attendanceLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load today\'s attendance.'**
+  String get attendanceLoadFailed;
+
+  /// No description provided for @noTimeYet.
+  ///
+  /// In en, this message translates to:
+  /// **'--:--'**
+  String get noTimeYet;
+
   /// No description provided for @navList.
   ///
   /// In en, this message translates to:

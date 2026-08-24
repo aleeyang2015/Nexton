@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/app/app.dart';
 import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/auth/auth_providers.dart';
 import 'package:next_on/features/auth/domain/entities/auth_session.dart';
 import 'package:next_on/features/auth/presentation/pages/login_page.dart';
@@ -12,6 +13,7 @@ import 'package:next_on/features/auth/presentation/widgets/login_email_field.dar
 import 'package:next_on/features/change_password/presentation/pages/change_password_page.dart';
 import 'package:next_on/features/home/presentation/pages/home_page.dart';
 
+import '../support/attendance_test_doubles.dart';
 import '../support/auth_test_doubles.dart';
 import '../support/test_asset_bundle.dart';
 
@@ -24,7 +26,14 @@ void main() {
   setUp(() {
     repository = FakeAuthRepository();
     container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repository),
+        // The home screen loads today's attendance as soon as it is shown;
+        // without this it would reach for the real network stack.
+        attendanceRepositoryProvider.overrideWithValue(
+          FakeAttendanceRepository(),
+        ),
+      ],
     );
   });
 

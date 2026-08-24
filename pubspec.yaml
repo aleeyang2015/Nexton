@@ -44,6 +44,11 @@ dependencies:
   form_validator: ^2.1.1
   flutter_svg: ^2.2.3
 
+  # Device signals for attendance clock-in: position, accuracy, and the
+  # Android mock-provider verdict. Needs the location permissions declared in
+  # AndroidManifest.xml and Info.plist.
+  geolocator: ^14.0.2
+
 dev_dependencies:
   flutter_native_splash: ^2.4.7
 

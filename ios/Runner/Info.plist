@@ -22,6 +22,8 @@
 		<string>????</string>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Next On uses your location to confirm you are at your workplace when you clock in and out.</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>UILaunchStoryboardName</key>

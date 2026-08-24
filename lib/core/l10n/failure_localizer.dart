@@ -55,6 +55,22 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.newPasswordSameAsCurrent;
     case ValidationCode.confirmPasswordMismatch:
       return l10n.confirmPasswordMismatch;
+    case ValidationCode.locationUnavailable:
+      return l10n.locationUnavailable;
+    case ValidationCode.locationServiceDisabled:
+      return l10n.locationServiceDisabled;
+    case ValidationCode.locationPermissionDenied:
+      return l10n.locationPermissionDenied;
+    case ValidationCode.locationPermissionDeniedForever:
+      return l10n.locationPermissionDeniedForever;
+    case ValidationCode.locationTimeout:
+      return l10n.locationTimeout;
+    case ValidationCode.wifiUnavailable:
+      return l10n.wifiUnavailable;
+    case ValidationCode.fieldReasonRequired:
+      return l10n.fieldReasonRequired;
+    case ValidationCode.mockLocationDetected:
+      return l10n.mockLocationDetected;
     default:
       return null;
   }

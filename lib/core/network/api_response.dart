@@ -29,6 +29,45 @@ class ApiEnvelope {
 
     return Map<String, dynamic>.from(body);
   }
+
+  /// Pulls a `data` **array** out of [body] — the shape every paginated list
+  /// endpoint answers with — or accepts a bare top-level array.
+  ///
+  /// An empty list is a legitimate answer (a day with no records), so this
+  /// returns `[]` rather than throwing when `data` is present but empty.
+  static List<Map<String, dynamic>> unwrapList(dynamic body) {
+    if (body is List) {
+      return body.whereType<Map>().map(Map<String, dynamic>.from).toList();
+    }
+
+    if (body is! Map) {
+      throw const FormatException('Expected a JSON list response');
+    }
+
+    if (body.containsKey('error') || body['success'] == false) {
+      throw const FormatException('Response carries an error, not data');
+    }
+
+    final data = body['data'];
+    if (data is List) {
+      return data.whereType<Map>().map(Map<String, dynamic>.from).toList();
+    }
+
+    // Some list endpoints nest the page under `data.items` / `data.data`.
+    if (data is Map) {
+      for (final key in const ['items', 'data', 'records', 'results']) {
+        final nested = data[key];
+        if (nested is List) {
+          return nested
+              .whereType<Map>()
+              .map(Map<String, dynamic>.from)
+              .toList();
+        }
+      }
+    }
+
+    throw const FormatException('Expected a JSON list response');
+  }
 }
 
 /// The `error` object of a failed envelope, plus the Laravel-style 422 fields.

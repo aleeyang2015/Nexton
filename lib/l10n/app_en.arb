@@ -54,6 +54,70 @@
   "methodBiometric": "Biometric",
   "methodField": "Field work",
 
+  "slideToClockOut": "Slide to check out",
+  "clockingIn": "Checking you in…",
+  "clockingOut": "Checking you out…",
+  "clockInSuccess": "Checked in successfully",
+  "clockOutSuccess": "Checked out successfully",
+  "clockInSuccessInSession": "Checked in for {session}",
+  "@clockInSuccessInSession": {
+    "placeholders": {"session": {"type": "String"}}
+  },
+  "clockOutSuccessInSession": "Checked out of {session}",
+  "@clockOutSuccessInSession": {
+    "placeholders": {"session": {"type": "String"}}
+  },
+  "punchLateBy": "You are {minutes} min late",
+  "@punchLateBy": {
+    "placeholders": {"minutes": {"type": "int"}}
+  },
+  "punchNotVerified": "Recorded, but your location could not be verified",
+  "punchNotVerifiedBecause": "Recorded, but your location could not be verified: {reason}",
+  "@punchNotVerifiedBecause": {
+    "placeholders": {"reason": {"type": "String"}}
+  },
+  "punchPendingVerification": "Recorded. The location check is still pending",
+  "rejectionOutsideGeofence": "you are outside the allowed area",
+  "rejectionMissingCoordinates": "no location was sent",
+  "rejectionUnknownWifi": "this WiFi network is not recognised",
+  "rejectionMissingBssid": "no WiFi network was sent",
+
+  "ruleMockLocationDetected": "Fake GPS is on. Please turn it off and try again.",
+  "ruleEmployeeNotFound": "Your account is not linked to an employee record. Please contact HR.",
+  "ruleNoShiftAssigned": "No work shift has been assigned yet. Please contact HR.",
+  "ruleOutsideShiftHours": "Check-in has closed for today.",
+  "ruleOvernightSessionDone": "You have already completed the overnight shift.",
+  "ruleSessionAlreadyStarted": "You have already checked in. Check out instead.",
+  "ruleSessionAlreadyCompleted": "This session already has both a check-in and a check-out.",
+  "ruleSessionAlreadyCheckedOut": "You have already checked out of this session.",
+  "ruleSessionNotStarted": "You have not checked in for this session yet.",
+  "ruleAfterCheckoutWindow": "The check-out window has closed.",
+  "ruleEarlyCheckoutRequiresReason": "Checking out early needs a reason.",
+
+  "earlyCheckoutTitle": "Reason for leaving early",
+  "earlyCheckoutPrompt": "You are checking out early. Please tell us why.",
+  "earlyCheckoutPromptBefore": "Checking out before {time} needs a reason.",
+  "@earlyCheckoutPromptBefore": {
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "earlyCheckoutHint": "e.g. medical appointment",
+  "earlyCheckoutSubmit": "Send",
+  "cancel": "Cancel",
+  "ok": "OK",
+  "retry": "Retry",
+
+  "locationUnavailable": "Your location is unavailable. Turn on GPS, allow location access, then try again.",
+  "locationServiceDisabled": "Location Services are turned off. Turn them on, then try again.",
+  "locationPermissionDenied": "Next On needs your location to check you in. Please allow location access and try again.",
+  "locationPermissionDeniedForever": "Location access is blocked. Open Settings, allow location for Next On, then try again.",
+  "locationTimeout": "Could not get a location fix. Move somewhere with a clearer view of the sky and try again.",
+  "wifiUnavailable": "The WiFi network could not be read. Connect to the office WiFi and try again.",
+  "fieldReasonRequired": "Please give a reason for the field work.",
+  "mockLocationDetected": "Fake GPS is on. Please turn it off and try again.",
+
+  "clockCooldownActive": "Too many attempts. Please wait a moment before trying again.",
+  "attendanceLoadFailed": "Could not load today\u0027s attendance.",
+  "noTimeYet": "--:--",
   "navList": "List",
   "navHome": "Home",
   "navProfile": "Profile",

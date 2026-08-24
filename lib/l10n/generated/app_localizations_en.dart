@@ -135,6 +135,171 @@ class AppLocalizationsEn extends AppLocalizations {
   String get methodField => 'Field work';
 
   @override
+  String get slideToClockOut => 'Slide to check out';
+
+  @override
+  String get clockingIn => 'Checking you in…';
+
+  @override
+  String get clockingOut => 'Checking you out…';
+
+  @override
+  String get clockInSuccess => 'Checked in successfully';
+
+  @override
+  String get clockOutSuccess => 'Checked out successfully';
+
+  @override
+  String clockInSuccessInSession(String session) {
+    return 'Checked in for $session';
+  }
+
+  @override
+  String clockOutSuccessInSession(String session) {
+    return 'Checked out of $session';
+  }
+
+  @override
+  String punchLateBy(int minutes) {
+    return 'You are $minutes min late';
+  }
+
+  @override
+  String get punchNotVerified =>
+      'Recorded, but your location could not be verified';
+
+  @override
+  String punchNotVerifiedBecause(String reason) {
+    return 'Recorded, but your location could not be verified: $reason';
+  }
+
+  @override
+  String get punchPendingVerification =>
+      'Recorded. The location check is still pending';
+
+  @override
+  String get rejectionOutsideGeofence => 'you are outside the allowed area';
+
+  @override
+  String get rejectionMissingCoordinates => 'no location was sent';
+
+  @override
+  String get rejectionUnknownWifi => 'this WiFi network is not recognised';
+
+  @override
+  String get rejectionMissingBssid => 'no WiFi network was sent';
+
+  @override
+  String get ruleMockLocationDetected =>
+      'Fake GPS is on. Please turn it off and try again.';
+
+  @override
+  String get ruleEmployeeNotFound =>
+      'Your account is not linked to an employee record. Please contact HR.';
+
+  @override
+  String get ruleNoShiftAssigned =>
+      'No work shift has been assigned yet. Please contact HR.';
+
+  @override
+  String get ruleOutsideShiftHours => 'Check-in has closed for today.';
+
+  @override
+  String get ruleOvernightSessionDone =>
+      'You have already completed the overnight shift.';
+
+  @override
+  String get ruleSessionAlreadyStarted =>
+      'You have already checked in. Check out instead.';
+
+  @override
+  String get ruleSessionAlreadyCompleted =>
+      'This session already has both a check-in and a check-out.';
+
+  @override
+  String get ruleSessionAlreadyCheckedOut =>
+      'You have already checked out of this session.';
+
+  @override
+  String get ruleSessionNotStarted =>
+      'You have not checked in for this session yet.';
+
+  @override
+  String get ruleAfterCheckoutWindow => 'The check-out window has closed.';
+
+  @override
+  String get ruleEarlyCheckoutRequiresReason =>
+      'Checking out early needs a reason.';
+
+  @override
+  String get earlyCheckoutTitle => 'Reason for leaving early';
+
+  @override
+  String get earlyCheckoutPrompt =>
+      'You are checking out early. Please tell us why.';
+
+  @override
+  String earlyCheckoutPromptBefore(String time) {
+    return 'Checking out before $time needs a reason.';
+  }
+
+  @override
+  String get earlyCheckoutHint => 'e.g. medical appointment';
+
+  @override
+  String get earlyCheckoutSubmit => 'Send';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get locationUnavailable =>
+      'Your location is unavailable. Turn on GPS, allow location access, then try again.';
+
+  @override
+  String get locationServiceDisabled =>
+      'Location Services are turned off. Turn them on, then try again.';
+
+  @override
+  String get locationPermissionDenied =>
+      'Next On needs your location to check you in. Please allow location access and try again.';
+
+  @override
+  String get locationPermissionDeniedForever =>
+      'Location access is blocked. Open Settings, allow location for Next On, then try again.';
+
+  @override
+  String get locationTimeout =>
+      'Could not get a location fix. Move somewhere with a clearer view of the sky and try again.';
+
+  @override
+  String get wifiUnavailable =>
+      'The WiFi network could not be read. Connect to the office WiFi and try again.';
+
+  @override
+  String get fieldReasonRequired => 'Please give a reason for the field work.';
+
+  @override
+  String get mockLocationDetected =>
+      'Fake GPS is on. Please turn it off and try again.';
+
+  @override
+  String get clockCooldownActive =>
+      'Too many attempts. Please wait a moment before trying again.';
+
+  @override
+  String get attendanceLoadFailed => 'Could not load today\'s attendance.';
+
+  @override
+  String get noTimeYet => '--:--';
+
+  @override
   String get navList => 'List';
 
   @override

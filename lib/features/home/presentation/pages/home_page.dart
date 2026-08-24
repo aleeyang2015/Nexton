@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/widgets/global_widgets.dart';
-import '../widgets/attendance_status_card.dart';
+import '../../../attendance/presentation/widgets/attendance_status_card.dart';
 import '../widgets/home_header.dart';
 
-/// Home screen. Placeholder content until the home feature has a
-/// data source — see the note on [_placeholderStatus].
+/// Home screen.
+///
+/// The attendance card owns its own state and talks to the attendance
+/// feature directly, so this page composes rather than coordinates — the
+/// header's profile details are the only placeholder data left here.
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
-
-  /// Hardcoded until an attendance/clock feature exists. Kept here rather
-  /// than in the widget so the swap to a provider touches one place.
-  static const _placeholderStatus = AttendanceStatus(
-    clockedIn: false,
-    clockInTime: "17:00",
-    clockOutTime: "23:00",
-    opensAt: "16:00",
-    methods: ["gps", "wifi", "biometric", "field"],
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +32,7 @@ class HomePage extends StatelessWidget {
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(15, 15, 15, 60),
-                  children: [
-                    const AttendanceStatusCard(status: _placeholderStatus),
-                  ],
+                  children: const [AttendanceStatusCard()],
                 ),
               ),
             ],

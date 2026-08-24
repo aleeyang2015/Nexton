@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Attendance clock-in verifies the employee is inside the site
+         geofence. Foreground only: the app never reads a position
+         except while the user is punching. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
     <application
         android:label="Next on"
         android:name="${applicationName}"

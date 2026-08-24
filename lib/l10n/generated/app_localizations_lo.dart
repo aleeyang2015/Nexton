@@ -135,6 +135,168 @@ class AppLocalizationsLo extends AppLocalizations {
   String get methodField => 'ວຽກນອກ';
 
   @override
+  String get slideToClockOut => 'ເລື່ອນເພື່ອລົງເວລາອອກ';
+
+  @override
+  String get clockingIn => 'ກຳລັງລົງເວລາເຂົ້າ…';
+
+  @override
+  String get clockingOut => 'ກຳລັງລົງເວລາອອກ…';
+
+  @override
+  String get clockInSuccess => 'ລົງເວລາເຂົ້າສຳເລັດ';
+
+  @override
+  String get clockOutSuccess => 'ລົງເວລາອອກສຳເລັດ';
+
+  @override
+  String clockInSuccessInSession(String session) {
+    return 'ລົງເວລາເຂົ້າສຳເລັດ ($session)';
+  }
+
+  @override
+  String clockOutSuccessInSession(String session) {
+    return 'ລົງເວລາອອກສຳເລັດ ($session)';
+  }
+
+  @override
+  String punchLateBy(int minutes) {
+    return 'ທ່ານມາຊ້າ $minutes ນາທີ';
+  }
+
+  @override
+  String get punchNotVerified => 'ບັນທຶກແລ້ວ ແຕ່ບໍ່ສາມາດຢືນຢັນສະຖານທີ່ໄດ້';
+
+  @override
+  String punchNotVerifiedBecause(String reason) {
+    return 'ບັນທຶກແລ້ວ ແຕ່ບໍ່ສາມາດຢືນຢັນສະຖານທີ່ໄດ້: $reason';
+  }
+
+  @override
+  String get punchPendingVerification =>
+      'ບັນທຶກແລ້ວ. ກຳລັງລໍຖ້າການກວດສອບສະຖານທີ່';
+
+  @override
+  String get rejectionOutsideGeofence => 'ທ່ານຢູ່ນອກເຂດທີ່ກຳນົດ';
+
+  @override
+  String get rejectionMissingCoordinates => 'ບໍ່ໄດ້ສົ່ງພິກັດສະຖານທີ່';
+
+  @override
+  String get rejectionUnknownWifi => 'ບໍ່ຮູ້ຈັກເຄືອຂ່າຍ WiFi ນີ້';
+
+  @override
+  String get rejectionMissingBssid => 'ບໍ່ໄດ້ສົ່ງຂໍ້ມູນເຄືອຂ່າຍ WiFi';
+
+  @override
+  String get ruleMockLocationDetected =>
+      'ກຳລັງເປີດ Fake GPS. ກະລຸນາປິດກ່ອນ ແລ້ວລອງໃໝ່.';
+
+  @override
+  String get ruleEmployeeNotFound =>
+      'ບັນຊີຂອງທ່ານຍັງບໍ່ໄດ້ຜູກກັບຂໍ້ມູນພະນັກງານ. ກະລຸນາຕິດຕໍ່ HR.';
+
+  @override
+  String get ruleNoShiftAssigned =>
+      'ຍັງບໍ່ໄດ້ກຳນົດກະການເຮັດວຽກ. ກະລຸນາຕິດຕໍ່ HR.';
+
+  @override
+  String get ruleOutsideShiftHours => 'ໝົດເວລາລົງເວລາເຂົ້າຂອງມື້ນີ້ແລ້ວ.';
+
+  @override
+  String get ruleOvernightSessionDone => 'ທ່ານໄດ້ເຮັດກະຂ້າມຄືນຈົບໄປແລ້ວ.';
+
+  @override
+  String get ruleSessionAlreadyStarted =>
+      'ທ່ານລົງເວລາເຂົ້າໄປແລ້ວ. ກະລຸນາລົງເວລາອອກແທນ.';
+
+  @override
+  String get ruleSessionAlreadyCompleted =>
+      'ຊ່ວງນີ້ມີທັງລົງເວລາເຂົ້າ ແລະ ອອກຄົບແລ້ວ.';
+
+  @override
+  String get ruleSessionAlreadyCheckedOut => 'ທ່ານລົງເວລາອອກຂອງຊ່ວງນີ້ໄປແລ້ວ.';
+
+  @override
+  String get ruleSessionNotStarted =>
+      'ທ່ານຍັງບໍ່ໄດ້ລົງເວລາເຂົ້າຂອງຊ່ວງນີ້ເທື່ອ.';
+
+  @override
+  String get ruleAfterCheckoutWindow => 'ເລີຍເວລາລົງເວລາອອກແລ້ວ.';
+
+  @override
+  String get ruleEarlyCheckoutRequiresReason => 'ການອອກກ່ອນເວລາຕ້ອງລະບຸເຫດຜົນ.';
+
+  @override
+  String get earlyCheckoutTitle => 'ເຫດຜົນທີ່ອອກກ່ອນເວລາ';
+
+  @override
+  String get earlyCheckoutPrompt =>
+      'ທ່ານກຳລັງລົງເວລາອອກກ່ອນເວລາ. ກະລຸນາລະບຸເຫດຜົນ.';
+
+  @override
+  String earlyCheckoutPromptBefore(String time) {
+    return 'ການອອກກ່ອນ $time ຕ້ອງລະບຸເຫດຜົນ.';
+  }
+
+  @override
+  String get earlyCheckoutHint => 'ຕົວຢ່າງ: ໄປພົບແພດ';
+
+  @override
+  String get earlyCheckoutSubmit => 'ສົ່ງ';
+
+  @override
+  String get cancel => 'ຍົກເລີກ';
+
+  @override
+  String get ok => 'ຕົກລົງ';
+
+  @override
+  String get retry => 'ລອງໃໝ່';
+
+  @override
+  String get locationUnavailable =>
+      'ບໍ່ສາມາດອ່ານສະຖານທີ່ໄດ້. ກະລຸນາເປີດ GPS ແລະ ອະນຸຍາດການເຂົ້າເຖິງສະຖານທີ່ ແລ້ວລອງໃໝ່.';
+
+  @override
+  String get locationServiceDisabled =>
+      'ບໍລິການສະຖານທີ່ຖືກປິດຢູ່. ກະລຸນາເປີດກ່ອນ ແລ້ວລອງໃໝ່.';
+
+  @override
+  String get locationPermissionDenied =>
+      'Next On ຕ້ອງການສະຖານທີ່ຂອງທ່ານເພື່ອລົງເວລາ. ກະລຸນາອະນຸຍາດການເຂົ້າເຖິງສະຖານທີ່ ແລ້ວລອງໃໝ່.';
+
+  @override
+  String get locationPermissionDeniedForever =>
+      'ການເຂົ້າເຖິງສະຖານທີ່ຖືກບລັອກ. ກະລຸນາເປີດ ຕັ້ງຄ່າ ແລ້ວອະນຸຍາດສະຖານທີ່ໃຫ້ Next On ແລ້ວລອງໃໝ່.';
+
+  @override
+  String get locationTimeout =>
+      'ບໍ່ສາມາດຫາສັນຍານສະຖານທີ່ໄດ້. ກະລຸນາຍ້າຍໄປບ່ອນທີ່ເຫັນທ້ອງຟ້າຊັດເຈນ ແລ້ວລອງໃໝ່.';
+
+  @override
+  String get wifiUnavailable =>
+      'ບໍ່ສາມາດອ່ານເຄືອຂ່າຍ WiFi ໄດ້. ກະລຸນາເຊື່ອມຕໍ່ WiFi ຂອງຫ້ອງການ ແລ້ວລອງໃໝ່.';
+
+  @override
+  String get fieldReasonRequired => 'ກະລຸນາລະບຸເຫດຜົນຂອງວຽກນອກສະຖານທີ່.';
+
+  @override
+  String get mockLocationDetected =>
+      'ກຳລັງເປີດ Fake GPS. ກະລຸນາປິດກ່ອນ ແລ້ວລອງໃໝ່.';
+
+  @override
+  String get clockCooldownActive =>
+      'ລົງເວລາຖີ່ເກີນໄປ. ກະລຸນາລໍຖ້າສັກຄູ່ກ່ອນລອງໃໝ່.';
+
+  @override
+  String get attendanceLoadFailed =>
+      'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນການລົງເວລາຂອງມື້ນີ້ໄດ້.';
+
+  @override
+  String get noTimeYet => '--:--';
+
+  @override
   String get navList => 'ລາຍການ';
 
   @override

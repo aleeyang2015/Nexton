@@ -14,4 +14,17 @@ class ValidationCode {
   static const String currentPasswordRequired = 'currentPasswordRequired';
   static const String newPasswordSameAsCurrent = 'newPasswordSameAsCurrent';
   static const String confirmPasswordMismatch = 'confirmPasswordMismatch';
+
+  /// Attendance pre-flight checks. The clock-in/out spec asks the client to
+  /// refuse these punches itself rather than spend a round trip earning a
+  /// guaranteed rejection (§7 rules 1 and 2).
+  static const String locationUnavailable = 'locationUnavailable';
+  static const String locationServiceDisabled = 'locationServiceDisabled';
+  static const String locationPermissionDenied = 'locationPermissionDenied';
+  static const String locationPermissionDeniedForever =
+      'locationPermissionDeniedForever';
+  static const String locationTimeout = 'locationTimeout';
+  static const String wifiUnavailable = 'wifiUnavailable';
+  static const String fieldReasonRequired = 'fieldReasonRequired';
+  static const String mockLocationDetected = 'mockLocationDetected';
 }
