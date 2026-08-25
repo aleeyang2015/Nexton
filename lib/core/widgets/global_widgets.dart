@@ -59,8 +59,16 @@ Widget assetImg(
   double width = 60,
   double height = 60,
   BoxFit fit = BoxFit.cover,
+  Color? color,
 }) {
-  return Image.asset(img, width: width, height: height, fit: fit);
+  return Image.asset(
+    img,
+    width: width,
+    height: height,
+    fit: fit,
+    color: color,
+    colorBlendMode: color == null ? null : BlendMode.srcIn,
+  );
 }
 
 /// text label

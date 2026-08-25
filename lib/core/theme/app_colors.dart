@@ -5,8 +5,9 @@ class AppColors {
   AppColors._();
 
   // Primary Colors
-  static const Color primary = Color(0xFF08123A);
-  static const Color primaryVariant = Color(0xFF0E2067);
+  static const Color primary = Color(0xFF325AFB);
+  static const Color primaryVariant = Color(0xFF1E3FCB);
+  static const Color primaryTint = Color(0xFFECF1FD);
   static const Color secondary = Color(0xFF3386FF);
   static const Color secondaryVariant = Color(0xFF5C9DFF);
 
@@ -50,6 +51,11 @@ class AppColors {
   static const Color warning = Color(0xFFFF9800);
   static const Color info = Color(0xFF2196F3);
   static const Color danger = Color(0xFFF44336);
+
+  // Attendance Summary Colors
+  static const Color attendancePresent = Color(0xFF44BB50);
+  static const Color attendanceLate = Color(0xFFE6941C);
+  static const Color attendanceAbsent = Color(0xFFE61C1C);
 
   // Semantic Colors
   static const Color online = Color(0xFF4CAF50);

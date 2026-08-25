@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,12 +9,11 @@ import '../../../../core/widgets/slide_action_button.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/attendance_day.dart';
 import '../providers/attendance_notifier.dart';
-import '../providers/attendance_state.dart';
 import 'attendance_copy.dart';
 import 'punch_flow.dart';
 
-/// Home screen attendance card: today's status, the punches made so far, and
-/// the slide-to-confirm action that makes the next one.
+/// Home screen attendance card: a live clock, today's shift hours, and the
+/// slide-to-confirm action that makes the next punch.
 ///
 /// Everything it shows comes from [attendanceNotifierProvider]; the widget
 /// holds no attendance logic and makes no decisions about what a punch meant
@@ -50,25 +51,9 @@ class AttendanceStatusCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _StatusLine(state: state),
-          heightBx(h: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _TimeColumn(
-                  label: l10n.timeIn,
-                  time: AttendanceCopy.clockTime(l10n, day.firstClockIn),
-                ),
-              ),
-              const Icon(Icons.chevron_right, color: AppColors.gray400),
-              Expanded(
-                child: _TimeColumn(
-                  label: l10n.timeOut,
-                  time: AttendanceCopy.clockTime(l10n, day.lastClockOut),
-                ),
-              ),
-            ],
-          ),
+          const _CardHeader(),
+          const _LiveClock(),
+          customText(l10n.shiftHoursPlaceholder, fontSize: 14),
           heightBx(h: 20),
           SlideActionButton(
             label: day.nextAction == ClockAction.clockIn
@@ -90,75 +75,89 @@ class AttendanceStatusCard extends ConsumerWidget {
   }
 }
 
-/// The coloured dot and the line beside it: whether a session is open, which
-/// one, and whether today's record could be read at all.
-class _StatusLine extends ConsumerWidget {
-  final AttendanceState state;
-
-  const _StatusLine({required this.state});
+/// The clock icon, "current time" label, and the regular-shift badge above
+/// the live clock.
+class _CardHeader extends StatelessWidget {
+  const _CardHeader();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final failedToLoad = state.today.hasError;
 
-    final color = failedToLoad
-        ? AppColors.danger
-        : (state.isClockedIn ? AppColors.success : AppColors.warning);
-
-    final label = failedToLoad
-        ? l10n.attendanceLoadFailed
-        : (state.isClockedIn ? l10n.checkedInStatus : l10n.notCheckedIn);
-
-    // Which block of a split shift is open, when the backend labels them.
-    final sessionLabel = state.day.openSession?.label;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Row(
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-            widthBx(w: 8),
-            Expanded(
-              child: customText(
-                label,
-                color: color,
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-              ),
-            ),
-            if (state.isLoadingToday)
-              const SizedBox(
-                width: 14,
-                height: 14,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.gray400,
-                ),
-              )
-            else if (failedToLoad)
-              InkWell(
-                onTap: () =>
-                    ref.read(attendanceNotifierProvider.notifier).loadToday(),
-                child: customText(
-                  l10n.retry,
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-          ],
+        Container(
+          height: 35,
+          width: 35,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            color: AppColors.primaryTint,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.access_time,
+            color: AppColors.primary,
+            size: 25,
+          ),
         ),
-        if (sessionLabel != null) ...[
-          heightBx(h: 4),
-          customText(sessionLabel, color: AppColors.secondary, fontSize: 13),
-        ],
+        widthBx(),
+        Expanded(
+          child: customText(l10n.currentTimeLabel, fontWeight: FontWeight.w700),
+        ),
+        widthBx(),
+        Container(
+          padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
+          decoration: BoxDecoration(
+            color: AppColors.attendancePresent,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: customText(
+            l10n.regularTimeBadge,
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ],
+    );
+  }
+}
+
+/// A `HH:mm:ss` clock that ticks once a second, purely for display — no
+/// attendance state flows through it.
+class _LiveClock extends StatefulWidget {
+  const _LiveClock();
+
+  @override
+  State<_LiveClock> createState() => _LiveClockState();
+}
+
+class _LiveClockState extends State<_LiveClock> {
+  DateTime _now = DateTime.now();
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => setState(() => _now = DateTime.now()),
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return customText(
+      AttendanceCopy.hourMinuteSecond(_now),
+      fontWeight: FontWeight.w700,
+      fontSize: 30,
+      color: AppColors.textPrimary,
     );
   }
 }
@@ -213,24 +212,5 @@ class _MethodsRow extends StatelessWidget {
           }
         })
         .toList(growable: false);
-  }
-}
-
-class _TimeColumn extends StatelessWidget {
-  final String label;
-  final String time;
-
-  const _TimeColumn({required this.label, required this.time});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        customText(label, color: AppColors.subTitle, fontSize: 13),
-        heightBx(h: 4),
-        customText(time, fontWeight: FontWeight.w700, fontSize: 30),
-      ],
-    );
   }
 }

@@ -44,6 +44,12 @@
   },
   "timeIn": "Time in",
   "timeOut": "Time out",
+  "currentTimeLabel": "Current time",
+  "regularTimeBadge": "REG - Regular Time",
+  "shiftHoursPlaceholder": "Morning: 08:00 - 12:00 | Afternoon: 13:00 - 17:00",
+  "@shiftHoursPlaceholder": {
+    "description": "Static for now, like AttendanceStatusCard.methods: the API has no endpoint reporting shift hours yet."
+  },
   "slideToClockIn": "Slide to check in",
   "clockMethodsLabel": "Clock methods: {methods}",
   "@clockMethodsLabel": {
@@ -128,6 +134,12 @@
   "tasksDone": "Tasks Done",
   "personal": "Personal",
   "help": "Help",
+
+  "attendanceHistoryTitle": "Attendance History",
+  "viewAll": "View all",
+  "daysPresent": "Days present",
+  "daysLate": "Days late",
+  "daysAbsent": "Days absent",
 
   "language": "Language",
   "lao": "Lao",

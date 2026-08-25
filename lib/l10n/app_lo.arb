@@ -39,6 +39,9 @@
   "clockInOpensAt": "ລົງເວລາເຂົ້າໄດ້ເວລາ {time}",
   "timeIn": "ເວລາເຂົ້າ",
   "timeOut": "ເວລາອອກ",
+  "currentTimeLabel": "ເວລາປັດຈຸບັນ",
+  "regularTimeBadge": "REG - ເວລາປົກກະຕິ",
+  "shiftHoursPlaceholder": "ກະເຊົ້າ: 08:00 - 12:00 | ກະແລງ: 13:00 - 17:00",
   "slideToClockIn": "ເລື່ອນເພື່ອລົງເວລາເຂົ້າ",
   "clockMethodsLabel": "ວິທີລົງເວລາ: {methods}",
   "methodGps": "GPS",
@@ -105,6 +108,12 @@
   "tasksDone": "ວຽກສຳເລັດ",
   "personal": "ຂໍ້ມູນສ່ວນຕົວ",
   "help": "ຊ່ວຍເຫຼືອ",
+
+  "attendanceHistoryTitle": "ປະຫວັດການເຂົ້າວຽກ",
+  "viewAll": "ເບິ່ງທັງໝົດ",
+  "daysPresent": "ມື້ມາວຽກ",
+  "daysLate": "ມາວຽກຊ້າ",
+  "daysAbsent": "ຂາດວຽກ",
 
   "language": "ພາສາ",
   "lao": "ລາວ",

@@ -302,6 +302,24 @@ abstract class AppLocalizations {
   /// **'Time out'**
   String get timeOut;
 
+  /// No description provided for @currentTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current time'**
+  String get currentTimeLabel;
+
+  /// No description provided for @regularTimeBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'REG - Regular Time'**
+  String get regularTimeBadge;
+
+  /// Static for now, like AttendanceStatusCard.methods: the API has no endpoint reporting shift hours yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning: 08:00 - 12:00 | Afternoon: 13:00 - 17:00'**
+  String get shiftHoursPlaceholder;
+
   /// No description provided for @slideToClockIn.
   ///
   /// In en, this message translates to:
@@ -661,6 +679,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Help'**
   String get help;
+
+  /// No description provided for @attendanceHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance History'**
+  String get attendanceHistoryTitle;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get viewAll;
+
+  /// No description provided for @daysPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Days present'**
+  String get daysPresent;
+
+  /// No description provided for @daysLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Days late'**
+  String get daysLate;
+
+  /// No description provided for @daysAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Days absent'**
+  String get daysAbsent;
 
   /// No description provided for @language.
   ///

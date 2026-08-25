@@ -4,22 +4,27 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/coming_soon_page.dart';
 import '../../../../core/widgets/global_widgets.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../providers/profile_notifier.dart';
 
 /// "ໂປຣຟາຍ" tab. Profile summary + a settings-style menu.
 ///
-/// The identity, photo and stats are placeholder until this feature has a
-/// real data source — same convention as [HomePage]'s `_placeholderStats`,
-/// and deliberately the same dummy person shown there.
+/// Identity and photo come from [profileNotifierProvider]. The stats row is
+/// still placeholder — no endpoint reports it yet.
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final profile = ref.watch(profileNotifierProvider);
+    final loading = profile.isLoading && !profile.hasValue;
+    final data = profile.valueOrNull;
 
     return Container(
       color: Colors.white,
@@ -37,20 +42,26 @@ class ProfilePage extends ConsumerWidget {
                 alight: TextAlign.center,
               ),
               heightBx(h: 24),
-              const Center(child: _Avatar()),
+              Center(child: _Avatar(avatarUrl: data?.avatarUrl)),
               heightBx(h: 16),
-              customText(
-                "ໝ່ຳ ຈົກມົກ",
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                alight: TextAlign.center,
-              ),
+              if (loading)
+                const Center(child: ShimmerBox(width: 140, height: 20))
+              else
+                customText(
+                  data?.fullName ?? '',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  alight: TextAlign.center,
+                ),
               heightBx(h: 4),
-              customText(
-                "mang.jokmok@nexton.la",
-                color: AppColors.subTitle,
-                alight: TextAlign.center,
-              ),
+              if (loading)
+                const Center(child: ShimmerBox(width: 180, height: 14))
+              else
+                customText(
+                  data?.email ?? '',
+                  color: AppColors.subTitle,
+                  alight: TextAlign.center,
+                ),
               heightBx(h: 24),
               _StatsRow(l10n: l10n),
               heightBx(h: 24),
@@ -64,7 +75,9 @@ class ProfilePage extends ConsumerWidget {
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar();
+  final String? avatarUrl;
+
+  const _Avatar({required this.avatarUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -81,13 +94,7 @@ class _Avatar extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.border, width: 1),
             ),
-            child: ClipOval(
-              child: assetImg(
-                "assets/images/mum_jokmok.jpeg",
-                width: 112,
-                height: 112,
-              ),
-            ),
+            child: appAvatar(url: avatarUrl, size: 112),
           ),
           Positioned(
             right: 0,

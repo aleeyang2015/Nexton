@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../attendance/presentation/widgets/attendance_status_card.dart';
+import '../widgets/attendance_history_summary.dart';
 import '../widgets/home_header.dart';
 
 /// Home screen.
@@ -15,24 +17,24 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: AppColors.background,
       child: SafeArea(
         bottom: false,
         child: Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.background,
           body: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               heightBx(),
-              const HomeHeader(
-                name: "ໝ່ຳ ຈົກມົກ",
-                jobTitle: "ນັກພັດທະນາແອັບມືຖື",
-                avatarAsset: "assets/images/mum_jokmok.jpeg",
-              ),
+              const HomeHeader(),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(15, 15, 15, 60),
-                  children: const [AttendanceStatusCard()],
+                  children: [
+                    const AttendanceStatusCard(),
+                    heightBx(h: 20),
+                    const AttendanceHistorySummary(),
+                  ],
                 ),
               ),
             ],

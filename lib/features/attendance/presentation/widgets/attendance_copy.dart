@@ -129,4 +129,11 @@ class AttendanceCopy {
     final minute = at.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
   }
+
+  /// `HH:mm:ss` for the card's live clock, hand-formatted for the same
+  /// reason as [hourMinute].
+  static String hourMinuteSecond(DateTime at) {
+    final second = at.second.toString().padLeft(2, '0');
+    return '${hourMinute(at)}:$second';
+  }
 }

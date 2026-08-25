@@ -115,6 +115,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timeOut => 'Time out';
 
   @override
+  String get currentTimeLabel => 'Current time';
+
+  @override
+  String get regularTimeBadge => 'REG - Regular Time';
+
+  @override
+  String get shiftHoursPlaceholder =>
+      'Morning: 08:00 - 12:00 | Afternoon: 13:00 - 17:00';
+
+  @override
   String get slideToClockIn => 'Slide to check in';
 
   @override
@@ -325,6 +335,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get help => 'Help';
+
+  @override
+  String get attendanceHistoryTitle => 'Attendance History';
+
+  @override
+  String get viewAll => 'View all';
+
+  @override
+  String get daysPresent => 'Days present';
+
+  @override
+  String get daysLate => 'Days late';
+
+  @override
+  String get daysAbsent => 'Days absent';
 
   @override
   String get language => 'Language';

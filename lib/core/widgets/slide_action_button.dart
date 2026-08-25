@@ -119,10 +119,7 @@ class _SlideActionButtonState extends State<SlideActionButton>
           height: _height,
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: AppColors.secondary.withValues(alpha: 0.08),
-            border: Border.all(
-              color: AppColors.secondary.withValues(alpha: 0.35),
-            ),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(_height / 2),
           ),
           child: AnimatedBuilder(
@@ -148,7 +145,7 @@ class _SlideActionButtonState extends State<SlideActionButton>
                     child: IgnorePointer(
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          color: AppColors.secondary.withValues(alpha: 0.16),
+                          color: Colors.white.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(_height / 2),
                         ),
                       ),
@@ -167,8 +164,8 @@ class _SlideActionButtonState extends State<SlideActionButton>
                             (i) => Icon(
                               Icons.chevron_right,
                               size: 18,
-                              color: AppColors.secondary.withValues(
-                                alpha: 0.25 + (i * 0.25),
+                              color: Colors.white.withValues(
+                                alpha: 0.35 + (i * 0.25),
                               ),
                             ),
                           ),
@@ -191,7 +188,7 @@ class _SlideActionButtonState extends State<SlideActionButton>
                               Icon(
                                 widget.icon,
                                 size: 17,
-                                color: AppColors.secondary,
+                                color: Colors.white,
                               ),
                               const SizedBox(width: 8),
                               Flexible(
@@ -201,7 +198,7 @@ class _SlideActionButtonState extends State<SlideActionButton>
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w600,
-                                    color: AppColors.secondary,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
@@ -234,10 +231,6 @@ class _SlideActionButtonState extends State<SlideActionButton>
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.secondary,
-                              width: 3,
-                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.12),
@@ -248,7 +241,7 @@ class _SlideActionButtonState extends State<SlideActionButton>
                           ),
                           child: const Icon(
                             Icons.chevron_right,
-                            color: AppColors.secondary,
+                            color: AppColors.primary,
                           ),
                         ),
                       ),

@@ -115,6 +115,16 @@ class AppLocalizationsLo extends AppLocalizations {
   String get timeOut => 'ເວລາອອກ';
 
   @override
+  String get currentTimeLabel => 'ເວລາປັດຈຸບັນ';
+
+  @override
+  String get regularTimeBadge => 'REG - ເວລາປົກກະຕິ';
+
+  @override
+  String get shiftHoursPlaceholder =>
+      'ກະເຊົ້າ: 08:00 - 12:00 | ກະແລງ: 13:00 - 17:00';
+
+  @override
   String get slideToClockIn => 'ເລື່ອນເພື່ອລົງເວລາເຂົ້າ';
 
   @override
@@ -322,6 +332,21 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get help => 'ຊ່ວຍເຫຼືອ';
+
+  @override
+  String get attendanceHistoryTitle => 'ປະຫວັດການເຂົ້າວຽກ';
+
+  @override
+  String get viewAll => 'ເບິ່ງທັງໝົດ';
+
+  @override
+  String get daysPresent => 'ມື້ມາວຽກ';
+
+  @override
+  String get daysLate => 'ມາວຽກຊ້າ';
+
+  @override
+  String get daysAbsent => 'ຂາດວຽກ';
 
   @override
   String get language => 'ພາສາ';
