@@ -17,12 +17,12 @@ void main() {
       authRedirect(session: session, location: location);
 
   group('cold start', () {
-    test('holds on the login screen until the session resolves', () {
-      expect(redirect(bootstrapping, AppRoutes.login), isNull);
-      expect(redirect(bootstrapping, AppRoutes.home), AppRoutes.login);
+    test('holds on home until the session resolves', () {
+      expect(redirect(bootstrapping, AppRoutes.home), isNull);
+      expect(redirect(bootstrapping, AppRoutes.login), AppRoutes.home);
       expect(
         redirect(bootstrapping, AppRoutes.changePassword),
-        AppRoutes.login,
+        AppRoutes.home,
       );
     });
   });
@@ -86,7 +86,9 @@ void main() {
   group('full flow', () {
     test('login → change password → home', () {
       // Fresh launch.
-      expect(redirect(bootstrapping, AppRoutes.home), AppRoutes.login);
+      expect(redirect(bootstrapping, AppRoutes.home), isNull);
+      // The session resolves signed out.
+      expect(redirect(signedOut, AppRoutes.home), AppRoutes.login);
       // Logged in, but the backend wants a new password.
       expect(redirect(owesPassword, AppRoutes.login), AppRoutes.changePassword);
       // Tries to escape to home mid-way.

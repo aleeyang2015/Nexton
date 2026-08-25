@@ -24,8 +24,9 @@ class AppRoutes {
 /// tested without a widget tree.
 ///
 /// Order matters:
-/// 1. a cold start that hasn't resolved yet parks on the login screen rather
-///    than flashing a shell it may have to take away;
+/// 1. a cold start that hasn't resolved yet parks on home rather than the
+///    login screen — [MainShellPage] paints its own shimmer for this status,
+///    so an already-signed-in user never sees the login form flash by;
 /// 2. no session → login;
 /// 3. a pending password change outranks everything else, so no deep link,
 ///    route restoration or manual navigation can walk around it;
@@ -35,10 +36,15 @@ class AppRoutes {
 ///    session drops `mustChangePassword` on success and the page navigates
 ///    home itself.
 String? authRedirect({required AuthSession session, required String location}) {
+  final atHome = location == AppRoutes.home;
   final atLogin = location == AppRoutes.login;
   final atChangePassword = location == AppRoutes.changePassword;
 
-  if (session.status == AuthStatus.bootstrapping || !session.hasSession) {
+  if (session.status == AuthStatus.bootstrapping) {
+    return atHome ? null : AppRoutes.home;
+  }
+
+  if (!session.hasSession) {
     return atLogin ? null : AppRoutes.login;
   }
 
@@ -65,7 +71,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 
   return GoRouter(
-    initialLocation: AppRoutes.login,
+    initialLocation: AppRoutes.home,
     debugLogDiagnostics: true,
     refreshListenable: session,
     redirect: (context, state) =>

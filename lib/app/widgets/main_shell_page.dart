@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/home/presentation/widgets/home_shimmer.dart';
 import '../../features/list/presentation/pages/list_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -9,20 +12,31 @@ import '../../l10n/generated/app_localizations.dart';
 /// Hosts the three bottom-nav tabs — ລາຍການ / ໜ້າຫຼັກ / ໂປຣຟາຍ — around the
 /// existing [HomePage]. Home is the tab a session lands on, raised as a
 /// floating circular button between the two flat side tabs.
-class MainShellPage extends StatefulWidget {
+///
+/// This is also the route the router parks a cold start on while the stored
+/// session is still resolving (see `authRedirect`), so until a session with
+/// data is in hand it paints [HomeShimmer] instead of the tabs — the router
+/// redirects away to `/login` or `/change-password` the moment resolution
+/// says this isn't a signed-in user, so that never has to render for real.
+class MainShellPage extends ConsumerStatefulWidget {
   const MainShellPage({super.key});
 
   @override
-  State<MainShellPage> createState() => _MainShellPageState();
+  ConsumerState<MainShellPage> createState() => _MainShellPageState();
 }
 
-class _MainShellPageState extends State<MainShellPage> {
+class _MainShellPageState extends ConsumerState<MainShellPage> {
   static const _homeTabIndex = 1;
 
   int _index = _homeTabIndex;
 
   @override
   Widget build(BuildContext context) {
+    final session = ref.watch(authSessionProvider).valueOrNull;
+    if (session == null || !session.hasSession) {
+      return const Scaffold(body: HomeShimmer());
+    }
+
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
