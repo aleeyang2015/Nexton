@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/attendance/presentation/pages/attendance_history_page.dart';
 import '../../features/auth/domain/entities/auth_session.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
@@ -17,6 +18,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String changePassword = '/change-password';
   static const String settings = '/settings';
+  static const String attendanceHistory = '/attendance-history';
   static const String notFound = '/404';
 }
 
@@ -104,6 +106,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.settings,
         name: 'settings',
         builder: (context, state) => const SettingsPage(),
+      ),
+
+      // Attendance
+      GoRoute(
+        path: AppRoutes.attendanceHistory,
+        name: 'attendanceHistory',
+        builder: (context, state) => const AttendanceHistoryPage(),
       ),
 
       // 404 Route

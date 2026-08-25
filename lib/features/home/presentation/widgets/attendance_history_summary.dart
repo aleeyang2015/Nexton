@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../attendance/presentation/providers/attendance_month_summary_notifier.dart';
 
-/// Card of attendance stats under the home screen's clock card: days
-/// present/late/absent and total hours worked this period.
-///
-/// Static for now, like `AttendanceStatusCard.methods`: the API has no
-/// endpoint that reports these totals yet.
-class AttendanceHistorySummary extends StatelessWidget {
+/// Card of attendance stats under the home screen's clock card: this
+/// month's present/late/absent days and total hours worked, from
+/// [attendanceMonthSummaryNotifierProvider]. "View all" opens
+/// [AttendanceHistoryPage], which covers the same data with a month picker.
+class AttendanceHistorySummary extends ConsumerWidget {
   const AttendanceHistorySummary({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final summary = ref.watch(attendanceMonthSummaryNotifierProvider);
+    final loading = summary.isLoading && !summary.hasValue;
+    final failed = summary.hasError;
+    final data = summary.valueOrNull;
 
     return Container(
       padding: const EdgeInsets.all(10),
@@ -41,11 +49,7 @@ class AttendanceHistorySummary extends StatelessWidget {
                 ),
               ),
               InkWell(
-                onTap: () {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(SnackBar(content: Text(l10n.comingSoon)));
-                },
+                onTap: () => context.push(AppRoutes.attendanceHistory),
                 child: Row(
                   children: [
                     customText(
@@ -65,35 +69,69 @@ class AttendanceHistorySummary extends StatelessWidget {
             ],
           ),
           heightBx(h: 20),
-          _SummaryRow(
-            color: AppColors.attendancePresent,
-            label: l10n.daysPresent,
-            value: "18",
-            icon: Icons.check,
-          ),
-          heightBx(),
-          generalLine(),
-          heightBx(),
-          _SummaryRow(
-            color: AppColors.attendanceLate,
-            label: l10n.daysLate,
-            value: "3",
-            icon: Icons.watch_later_outlined,
-          ),
-          heightBx(),
-          _SummaryRow(
-            color: AppColors.attendanceAbsent,
-            label: l10n.daysAbsent,
-            value: "1",
-            icon: Icons.close,
-          ),
-          heightBx(),
-          _SummaryRow(
-            color: AppColors.primary,
-            label: l10n.workHours,
-            value: "140",
-            icon: Icons.work_outline,
-          ),
+          if (loading) ...[
+            const ShimmerBox(width: double.infinity, height: 25),
+            heightBx(),
+            generalLine(),
+            heightBx(),
+            const ShimmerBox(width: double.infinity, height: 25),
+            heightBx(),
+            const ShimmerBox(width: double.infinity, height: 25),
+            heightBx(),
+            const ShimmerBox(width: double.infinity, height: 25),
+          ] else if (failed) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: customText(
+                    l10n.attendanceLoadFailed,
+                    color: AppColors.subTitle,
+                    fontSize: 13,
+                  ),
+                ),
+                InkWell(
+                  onTap: () => ref
+                      .read(attendanceMonthSummaryNotifierProvider.notifier)
+                      .refresh(),
+                  child: customText(
+                    l10n.retry,
+                    color: AppColors.secondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            _SummaryRow(
+              color: AppColors.attendancePresent,
+              label: l10n.daysPresent,
+              value: '${data?.presentDays ?? 0}',
+              icon: Icons.check,
+            ),
+            heightBx(),
+            generalLine(),
+            heightBx(),
+            _SummaryRow(
+              color: AppColors.attendanceLate,
+              label: l10n.daysLate,
+              value: '${data?.lateDays ?? 0}',
+              icon: Icons.watch_later_outlined,
+            ),
+            heightBx(),
+            _SummaryRow(
+              color: AppColors.attendanceAbsent,
+              label: l10n.daysAbsent,
+              value: '${data?.absentDays ?? 0}',
+              icon: Icons.close,
+            ),
+            heightBx(),
+            _SummaryRow(
+              color: AppColors.primary,
+              label: l10n.workHours,
+              value: (data?.totalWorkHours ?? 0).toStringAsFixed(1),
+              icon: Icons.work_outline,
+            ),
+          ],
         ],
       ),
     );

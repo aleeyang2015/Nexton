@@ -314,7 +314,7 @@ abstract class AppLocalizations {
   /// **'REG - Regular Time'**
   String get regularTimeBadge;
 
-  /// Static for now, like AttendanceStatusCard.methods: the API has no endpoint reporting shift hours yet.
+  /// Fallback only, shown by AttendanceCopy.shiftHoursLine before today's first punch — records/my has no sessions yet at that point, so there is nothing real to show.
   ///
   /// In en, this message translates to:
   /// **'Morning: 08:00 - 12:00 | Afternoon: 13:00 - 17:00'**
@@ -709,6 +709,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Days absent'**
   String get daysAbsent;
+
+  /// No description provided for @attendanceHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No records this month'**
+  String get attendanceHistoryEmpty;
+
+  /// No description provided for @attendancePresentStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Present'**
+  String get attendancePresentStatus;
+
+  /// No description provided for @attendanceLateStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get attendanceLateStatus;
+
+  /// No description provided for @attendanceLateByMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Late by {minutes} min'**
+  String attendanceLateByMinutes(int minutes);
+
+  /// No description provided for @attendanceEarlyExitStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Left early'**
+  String get attendanceEarlyExitStatus;
+
+  /// No description provided for @attendanceEarlyExitByMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Left {minutes} min early'**
+  String attendanceEarlyExitByMinutes(int minutes);
+
+  /// No description provided for @attendanceOvertimeHours.
+  ///
+  /// In en, this message translates to:
+  /// **'OT {hours}h'**
+  String attendanceOvertimeHours(String hours);
+
+  /// No description provided for @hoursUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get hoursUnit;
+
+  /// No description provided for @shiftMorningLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get shiftMorningLabel;
+
+  /// No description provided for @shiftAfternoonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon'**
+  String get shiftAfternoonLabel;
 
   /// No description provided for @language.
   ///

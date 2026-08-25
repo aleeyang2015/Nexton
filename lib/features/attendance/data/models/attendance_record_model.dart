@@ -33,8 +33,18 @@ class AttendanceRecordModel {
       clockOut: _dateTime(json['clock_out'] ?? json['clock_out_at']),
       isLate: json['is_late'] == true,
       isEarlyExit: json['is_early_exit'] == true,
+      lateMinutes: _int(json['late_minutes']),
+      earlyExitMinutes: _int(
+        json['early_exit_minutes'] ?? json['early_leave_minutes'],
+      ),
       workHours: _double(json['work_hours']),
       status: _nonEmpty(_string(json['status'])),
+      method: _nonEmpty(_string(json['method'] ?? json['clock_method'])),
+      locationLabel: _nonEmpty(
+        _string(
+          json['location_name'] ?? json['site_name'] ?? json['location_label'],
+        ),
+      ),
     );
   }
 

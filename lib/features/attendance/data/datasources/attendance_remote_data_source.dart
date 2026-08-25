@@ -3,9 +3,12 @@ import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_response.dart';
 import '../../domain/entities/attendance_day.dart';
+import '../../domain/entities/attendance_summary.dart';
+import '../../domain/entities/date_range.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../../domain/entities/punch_request.dart';
 import '../models/attendance_record_model.dart';
+import '../models/attendance_summary_model.dart';
 import '../models/clock_request_model.dart';
 import '../models/punch_receipt_model.dart';
 import 'attendance_api_paths.dart';
@@ -24,6 +27,12 @@ abstract class AttendanceRemoteDataSource {
 
   /// Today's record, or [AttendanceDay.empty] when nothing is punched yet.
   Future<AttendanceDay> todayRecord();
+
+  /// The history page's daily list over [range], newest first.
+  Future<List<AttendanceDay>> records(DateRange range);
+
+  /// The history page's stat cards over [range].
+  Future<AttendanceSummary> summary(DateRange range);
 }
 
 class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
@@ -61,6 +70,49 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     if (records.isEmpty) return AttendanceDay.empty;
 
     return AttendanceRecordModel.fromJson(records.first);
+  }
+
+  @override
+  Future<List<AttendanceDay>> records(DateRange range) async {
+    final response = await _client.get<dynamic>(
+      AttendancePaths.myRecords,
+      queryParameters: {
+        'start_date': _isoDate(range.start),
+        'end_date': _isoDate(range.end),
+        'page': 1,
+        // Max per the spec (§6.2) — a calendar month never has more days
+        // than this, so one page is always the whole range.
+        'per_page': 100,
+      },
+    );
+
+    final days = ApiEnvelope.unwrapList(
+      response.data,
+    ).map(AttendanceRecordModel.fromJson).toList();
+
+    days.sort((a, b) {
+      final aDate = a.date;
+      final bDate = b.date;
+      if (aDate == null || bDate == null) return 0;
+      return bDate.compareTo(aDate);
+    });
+
+    return days;
+  }
+
+  @override
+  Future<AttendanceSummary> summary(DateRange range) async {
+    final response = await _client.get<dynamic>(
+      AttendancePaths.mySummary,
+      queryParameters: {
+        'start_date': _isoDate(range.start),
+        'end_date': _isoDate(range.end),
+      },
+    );
+
+    return AttendanceSummaryModel.fromJson(
+      ApiEnvelope.unwrapObject(response.data),
+    );
   }
 
   /// A 200 here still needs its body read: §3 warns that `status` — not the

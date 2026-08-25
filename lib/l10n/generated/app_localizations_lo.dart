@@ -349,6 +349,42 @@ class AppLocalizationsLo extends AppLocalizations {
   String get daysAbsent => 'ຂາດວຽກ';
 
   @override
+  String get attendanceHistoryEmpty => 'ບໍ່ມີບັນທຶກໃນເດືອນນີ້';
+
+  @override
+  String get attendancePresentStatus => 'ມາເຮັດວຽກ';
+
+  @override
+  String get attendanceLateStatus => 'ມາຊ້າ';
+
+  @override
+  String attendanceLateByMinutes(int minutes) {
+    return 'ມາຊ້າ $minutes ນາທີ';
+  }
+
+  @override
+  String get attendanceEarlyExitStatus => 'ອອກກ່ອນເວລາ';
+
+  @override
+  String attendanceEarlyExitByMinutes(int minutes) {
+    return 'ອອກກ່ອນ $minutes ນາທີ';
+  }
+
+  @override
+  String attendanceOvertimeHours(String hours) {
+    return 'ໂອທີ $hours ຊົ່ວໂມງ';
+  }
+
+  @override
+  String get hoursUnit => 'ຊົ່ວໂມງ';
+
+  @override
+  String get shiftMorningLabel => 'ກະເຊົ້າ';
+
+  @override
+  String get shiftAfternoonLabel => 'ກະແລງ';
+
+  @override
   String get language => 'ພາສາ';
 
   @override

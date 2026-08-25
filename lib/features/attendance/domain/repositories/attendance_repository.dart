@@ -1,5 +1,7 @@
 import '../../../../core/utils/result.dart';
 import '../entities/attendance_day.dart';
+import '../entities/attendance_summary.dart';
+import '../entities/date_range.dart';
 import '../entities/punch_outcome.dart';
 import '../entities/punch_request.dart';
 
@@ -23,4 +25,12 @@ abstract class AttendanceRepository {
   ///
   /// A day with no punches yet is [AttendanceDay.empty], not a failure.
   FutureResult<AttendanceDay> todayRecord();
+
+  /// `GET /attendance/records/my` over [range], newest first — the history
+  /// page's daily list (§6.2).
+  FutureResult<List<AttendanceDay>> records(DateRange range);
+
+  /// `GET /attendance/records/summary/my` over [range] — the history page's
+  /// stat cards (§6.3).
+  FutureResult<AttendanceSummary> summary(DateRange range);
 }

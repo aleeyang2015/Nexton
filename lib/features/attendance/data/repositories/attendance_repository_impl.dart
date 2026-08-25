@@ -1,6 +1,8 @@
 import '../../../../core/utils/base_repository.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/attendance_day.dart';
+import '../../domain/entities/attendance_summary.dart';
+import '../../domain/entities/date_range.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../../domain/entities/punch_request.dart';
 import '../../domain/repositories/attendance_repository.dart';
@@ -31,4 +33,12 @@ class AttendanceRepositoryImpl extends BaseRepository
   @override
   FutureResult<AttendanceDay> todayRecord() =>
       guard(() => _remote.todayRecord());
+
+  @override
+  FutureResult<List<AttendanceDay>> records(DateRange range) =>
+      guard(() => _remote.records(range));
+
+  @override
+  FutureResult<AttendanceSummary> summary(DateRange range) =>
+      guard(() => _remote.summary(range));
 }

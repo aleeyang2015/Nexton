@@ -2,7 +2,9 @@ import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/domain/datasources/punch_location_source.dart';
 import 'package:next_on/features/attendance/domain/entities/attendance_day.dart';
+import 'package:next_on/features/attendance/domain/entities/attendance_summary.dart';
 import 'package:next_on/features/attendance/domain/entities/clock_method.dart';
+import 'package:next_on/features/attendance/domain/entities/date_range.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_outcome.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_request.dart';
 import 'package:next_on/features/attendance/domain/repositories/attendance_repository.dart';
@@ -16,6 +18,9 @@ import 'package:next_on/features/attendance/domain/repositories/attendance_repos
 /// sight and would otherwise reach for the real network stack.
 class FakeAttendanceRepository implements AttendanceRepository {
   Result<AttendanceDay> today = const Result.success(AttendanceDay.empty);
+  Result<List<AttendanceDay>> monthRecords = const Result.success([]);
+  Result<AttendanceSummary> monthSummary =
+      const Result.success(AttendanceSummary.empty);
 
   Result<PunchOutcome>? clockInResult;
   Result<PunchOutcome>? clockOutResult;
@@ -23,11 +28,25 @@ class FakeAttendanceRepository implements AttendanceRepository {
   int todayCalls = 0;
   final List<PunchRequest> clockInRequests = [];
   final List<PunchRequest> clockOutRequests = [];
+  final List<DateRange> recordsRanges = [];
+  final List<DateRange> summaryRanges = [];
 
   @override
   FutureResult<AttendanceDay> todayRecord() async {
     todayCalls++;
     return today;
+  }
+
+  @override
+  FutureResult<List<AttendanceDay>> records(DateRange range) async {
+    recordsRanges.add(range);
+    return monthRecords;
+  }
+
+  @override
+  FutureResult<AttendanceSummary> summary(DateRange range) async {
+    summaryRanges.add(range);
+    return monthSummary;
   }
 
   @override

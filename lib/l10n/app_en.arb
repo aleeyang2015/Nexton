@@ -48,7 +48,7 @@
   "regularTimeBadge": "REG - Regular Time",
   "shiftHoursPlaceholder": "Morning: 08:00 - 12:00 | Afternoon: 13:00 - 17:00",
   "@shiftHoursPlaceholder": {
-    "description": "Static for now, like AttendanceStatusCard.methods: the API has no endpoint reporting shift hours yet."
+    "description": "Fallback only, shown by AttendanceCopy.shiftHoursLine before today's first punch — records/my has no sessions yet at that point, so there is nothing real to show."
   },
   "slideToClockIn": "Slide to check in",
   "clockMethodsLabel": "Clock methods: {methods}",
@@ -140,6 +140,25 @@
   "daysPresent": "Days present",
   "daysLate": "Days late",
   "daysAbsent": "Days absent",
+  "attendanceHistoryEmpty": "No records this month",
+  "attendancePresentStatus": "Present",
+  "attendanceLateStatus": "Late",
+  "attendanceLateByMinutes": "Late by {minutes} min",
+  "@attendanceLateByMinutes": {
+    "placeholders": {"minutes": {"type": "int"}}
+  },
+  "attendanceEarlyExitStatus": "Left early",
+  "attendanceEarlyExitByMinutes": "Left {minutes} min early",
+  "@attendanceEarlyExitByMinutes": {
+    "placeholders": {"minutes": {"type": "int"}}
+  },
+  "attendanceOvertimeHours": "OT {hours}h",
+  "@attendanceOvertimeHours": {
+    "placeholders": {"hours": {"type": "String"}}
+  },
+  "hoursUnit": "h",
+  "shiftMorningLabel": "Morning",
+  "shiftAfternoonLabel": "Afternoon",
 
   "language": "Language",
   "lao": "Lao",

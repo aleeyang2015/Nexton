@@ -8,6 +8,8 @@ import 'domain/datasources/punch_location_source.dart';
 import 'domain/repositories/attendance_repository.dart';
 import 'domain/usecases/clock_in_usecase.dart';
 import 'domain/usecases/clock_out_usecase.dart';
+import 'domain/usecases/get_monthly_records_usecase.dart';
+import 'domain/usecases/get_monthly_summary_usecase.dart';
 import 'domain/usecases/get_today_attendance_usecase.dart';
 import 'domain/usecases/prepare_punch_usecase.dart';
 
@@ -51,4 +53,16 @@ final getTodayAttendanceUseCaseProvider = Provider<GetTodayAttendanceUseCase>((
   ref,
 ) {
   return GetTodayAttendanceUseCase(ref.watch(attendanceRepositoryProvider));
+});
+
+final getMonthlyRecordsUseCaseProvider = Provider<GetMonthlyRecordsUseCase>((
+  ref,
+) {
+  return GetMonthlyRecordsUseCase(ref.watch(attendanceRepositoryProvider));
+});
+
+final getMonthlySummaryUseCaseProvider = Provider<GetMonthlySummaryUseCase>((
+  ref,
+) {
+  return GetMonthlySummaryUseCase(ref.watch(attendanceRepositoryProvider));
 });

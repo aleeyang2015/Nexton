@@ -352,6 +352,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get daysAbsent => 'Days absent';
 
   @override
+  String get attendanceHistoryEmpty => 'No records this month';
+
+  @override
+  String get attendancePresentStatus => 'Present';
+
+  @override
+  String get attendanceLateStatus => 'Late';
+
+  @override
+  String attendanceLateByMinutes(int minutes) {
+    return 'Late by $minutes min';
+  }
+
+  @override
+  String get attendanceEarlyExitStatus => 'Left early';
+
+  @override
+  String attendanceEarlyExitByMinutes(int minutes) {
+    return 'Left $minutes min early';
+  }
+
+  @override
+  String attendanceOvertimeHours(String hours) {
+    return 'OT ${hours}h';
+  }
+
+  @override
+  String get hoursUnit => 'h';
+
+  @override
+  String get shiftMorningLabel => 'Morning';
+
+  @override
+  String get shiftAfternoonLabel => 'Afternoon';
+
+  @override
   String get language => 'Language';
 
   @override

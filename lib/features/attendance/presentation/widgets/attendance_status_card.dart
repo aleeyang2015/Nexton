@@ -51,9 +51,12 @@ class AttendanceStatusCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _CardHeader(),
+          _CardHeader(day: day),
           const _LiveClock(),
-          customText(l10n.shiftHoursPlaceholder, fontSize: 14),
+          customText(
+            AttendanceCopy.shiftHoursLine(l10n, day.sessions),
+            fontSize: 14,
+          ),
           heightBx(h: 20),
           SlideActionButton(
             label: day.nextAction == ClockAction.clockIn
@@ -75,14 +78,17 @@ class AttendanceStatusCard extends ConsumerWidget {
   }
 }
 
-/// The clock icon, "current time" label, and the regular-shift badge above
-/// the live clock.
+/// The clock icon, "current time" label, and the REG/late badge above the
+/// live clock.
 class _CardHeader extends StatelessWidget {
-  const _CardHeader();
+  final AttendanceDay day;
+
+  const _CardHeader({required this.day});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final badge = AttendanceCopy.statusBadge(l10n, day);
 
     return Row(
       children: [
@@ -108,11 +114,11 @@ class _CardHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
           decoration: BoxDecoration(
-            color: AppColors.attendancePresent,
+            color: badge.color,
             borderRadius: BorderRadius.circular(15),
           ),
           child: customText(
-            l10n.regularTimeBadge,
+            badge.label,
             color: Colors.white,
             fontSize: 14,
             fontWeight: FontWeight.w700,
@@ -197,20 +203,7 @@ class _MethodsRow extends StatelessWidget {
 
   List<String> _labels(AppLocalizations l10n) {
     return methods
-        .map((method) {
-          switch (method) {
-            case 'gps':
-              return l10n.methodGps;
-            case 'wifi':
-              return l10n.methodWifi;
-            case 'biometric':
-              return l10n.methodBiometric;
-            case 'field':
-              return l10n.methodField;
-            default:
-              return method;
-          }
-        })
+        .map((method) => AttendanceCopy.methodLabel(l10n, method))
         .toList(growable: false);
   }
 }

@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/attendance_day.dart';
 import '../../domain/entities/punch_outcome.dart';
@@ -111,6 +114,61 @@ class AttendanceCopy {
   static String clockTime(AppLocalizations l10n, DateTime? at) {
     if (at == null) return l10n.noTimeYet;
     return hourMinute(at);
+  }
+
+  /// The card header's REG/late badge, from the real `is_late` flag
+  /// `records/my` reports on today's sessions.
+  ///
+  /// `attendance_status` (`present`/`late`/`absent`) would be the more
+  /// direct source, but the spec is explicit that it's clock-in-only —
+  /// `records/my` never carries it (§6.2/§3's field table) — so `is_late`
+  /// is the closest real signal available for a day that's already loaded.
+  static ({String label, Color color}) statusBadge(
+    AppLocalizations l10n,
+    AttendanceDay day,
+  ) {
+    if (day.isLate) {
+      return (
+        label: l10n.attendanceLateStatus,
+        color: AppColors.attendanceLate,
+      );
+    }
+    return (label: l10n.regularTimeBadge, color: AppColors.attendancePresent);
+  }
+
+  /// Today's shift-hours line for the card, from the real `session_label`s
+  /// `records/my` returns (§6.2's note recommends showing this rather than
+  /// the raw session order).
+  ///
+  /// Falls back to [AppLocalizations.shiftHoursPlaceholder] only when the
+  /// day has no sessions at all yet — there is no endpoint that reports a
+  /// shift assignment ahead of the first punch, so before that the app
+  /// genuinely doesn't know the hours.
+  static String shiftHoursLine(
+    AppLocalizations l10n,
+    List<AttendanceSession> sessions,
+  ) {
+    final labels = sessions
+        .map((s) => s.label)
+        .whereType<String>()
+        .where((label) => label.isNotEmpty)
+        .toList(growable: false);
+
+    return labels.isEmpty ? l10n.shiftHoursPlaceholder : labels.join(' | ');
+  }
+
+  /// A clock method code (`"gps"`, `"wifi"`, …) in the user's language, for
+  /// the methods row and the history list's per-session chip. Unrecognised
+  /// codes pass through as-is, so a method the backend adds later still
+  /// shows something rather than vanishing.
+  static String methodLabel(AppLocalizations l10n, String method) {
+    return switch (method) {
+      'gps' => l10n.methodGps,
+      'wifi' => l10n.methodWifi,
+      'biometric' => l10n.methodBiometric,
+      'field' => l10n.methodField,
+      _ => method,
+    };
   }
 
   /// A `details` value rendered for display: an RFC3339 stamp becomes a local

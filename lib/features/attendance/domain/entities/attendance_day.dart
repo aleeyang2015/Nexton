@@ -23,8 +23,22 @@ class AttendanceSession extends Equatable {
 
   final bool isLate;
   final bool isEarlyExit;
+
+  /// Minutes late / minutes left early, when the backend reports them.
+  /// `late_minutes` is the confirmed wire key — `PunchReceiptModel` already
+  /// reads it off the clock-in response; the history list is the same
+  /// number, just from a different endpoint.
+  final int? lateMinutes;
+  final int? earlyExitMinutes;
+
   final double? workHours;
   final String? status;
+
+  /// How the punch was made (`gps`, `wifi`, …) and where, when the backend
+  /// reports them on the record — the history list's "GPS · Office Center"
+  /// line. Either can be null; the row hides what it doesn't have.
+  final String? method;
+  final String? locationLabel;
 
   const AttendanceSession({
     this.order,
@@ -33,8 +47,12 @@ class AttendanceSession extends Equatable {
     this.clockOut,
     this.isLate = false,
     this.isEarlyExit = false,
+    this.lateMinutes,
+    this.earlyExitMinutes,
     this.workHours,
     this.status,
+    this.method,
+    this.locationLabel,
   });
 
   /// Punched in and not yet out — the session a clock-out would close.
@@ -50,8 +68,12 @@ class AttendanceSession extends Equatable {
     clockOut,
     isLate,
     isEarlyExit,
+    lateMinutes,
+    earlyExitMinutes,
     workHours,
     status,
+    method,
+    locationLabel,
   ];
 }
 
@@ -117,6 +139,34 @@ class AttendanceDay extends Equatable {
 
   /// True when nothing has been punched today.
   bool get isUntouched => firstClockIn == null && lastClockOut == null;
+
+  /// Day-level rollups for the history list, where a day shows one status
+  /// even though it can hold several sessions.
+  bool get isLate => sessions.any((s) => s.isLate);
+
+  bool get isEarlyExit => sessions.any((s) => s.isEarlyExit);
+
+  /// The first late session's minutes — a day is "late" from whichever
+  /// session opened it late, typically the morning one.
+  int? get lateMinutes {
+    for (final session in sessions) {
+      if (session.isLate && session.lateMinutes != null) {
+        return session.lateMinutes;
+      }
+    }
+    return null;
+  }
+
+  /// The last early-exit session's minutes — early exit is a closing-time
+  /// concern, so the latest session that left early wins.
+  int? get earlyExitMinutes {
+    for (final session in sessions.reversed) {
+      if (session.isEarlyExit && session.earlyExitMinutes != null) {
+        return session.earlyExitMinutes;
+      }
+    }
+    return null;
+  }
 
   AttendanceDay copyWith({
     DateTime? date,
