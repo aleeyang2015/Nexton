@@ -481,4 +481,162 @@ class AppLocalizationsEn extends AppLocalizations {
   String errorDetailsLabel(String details) {
     return 'Error: $details';
   }
+
+  @override
+  String get timeOffHistoryTab => 'Leave History';
+
+  @override
+  String get timeOffRequestTab => 'Request Leave';
+
+  @override
+  String get leaveFilterAll => 'All';
+
+  @override
+  String get leaveCategorySick => 'Sick Leave';
+
+  @override
+  String get leaveCategoryPersonal => 'Personal Leave';
+
+  @override
+  String get leaveCategoryAnnual => 'Annual Leave';
+
+  @override
+  String get leaveCategoryRest => 'Rest Leave';
+
+  @override
+  String get leaveDateFrom => 'From date';
+
+  @override
+  String get leaveDateTo => 'To date';
+
+  @override
+  String get daysCountUnit => 'days';
+
+  @override
+  String get leaveStatusPending => 'In progress';
+
+  @override
+  String get leaveStatusApproved => 'Approved';
+
+  @override
+  String get leaveStatusRejected => 'Not approved';
+
+  @override
+  String get leaveStepSubmitted => 'Submitted';
+
+  @override
+  String get leaveStepManagerReview => 'Manager review';
+
+  @override
+  String get leaveStepManagerWaiting => 'Awaiting manager review';
+
+  @override
+  String get leaveStepHrApproval => 'HR approval';
+
+  @override
+  String get leaveReviewerCommentLabel => 'Comment';
+
+  @override
+  String get leaveHistoryLoadFailed => 'Could not load your leave history.';
+
+  @override
+  String get leaveHistoryEmpty => 'No leave requests found';
+
+  @override
+  String leaveDaysSuffix(int days) {
+    return '$days days';
+  }
+
+  @override
+  String leaveTotalDaysSuffix(int days) {
+    return '$days days total';
+  }
+
+  @override
+  String get leaveRequestCategoryLabel => 'Leave type';
+
+  @override
+  String get leaveRequestReasonLabel => 'Reason';
+
+  @override
+  String get leaveRequestReasonHint => 'Describe the reason for your leave';
+
+  @override
+  String get leaveRequestSubmit => 'Submit';
+
+  @override
+  String get leaveRequestSubmitSuccess => 'Leave request submitted';
+
+  @override
+  String get selectDate => 'Select date';
+
+  @override
+  String get leaveBalanceRemainingLabel => 'Leave days remaining';
+
+  @override
+  String leaveBalanceUsedLabel(int days) {
+    return 'Used $days days';
+  }
+
+  @override
+  String leaveYearLabel(int year) {
+    return 'Year $year';
+  }
+
+  @override
+  String get leaveSelectDatesLabel => 'Select leave dates';
+
+  @override
+  String get leaveDatesTotalPrefix => 'Total:';
+
+  @override
+  String get leaveNoDatesSelected => 'No dates selected yet';
+
+  @override
+  String get leaveReturnToWorkLabel => 'Return-to-work date';
+
+  @override
+  String get leaveSelectButtonLabel => 'Select';
+
+  @override
+  String get leaveAttachFileLabel => 'Attach file';
+
+  @override
+  String get leaveOptionalBadge => 'Optional';
+
+  @override
+  String get leaveChooseFileButton => 'Choose file';
+
+  @override
+  String get timeOffApprovalsTab => 'Team Approvals';
+
+  @override
+  String leaveApprovalsPendingHeader(int count) {
+    return 'Needs your approval ($count)';
+  }
+
+  @override
+  String get leaveApprovalsHistoryHeader => 'Approval history';
+
+  @override
+  String get leaveApprovalNewBadge => 'New';
+
+  @override
+  String get leaveApprovalApproveAction => 'Approve';
+
+  @override
+  String get leaveApprovalRejectAction => 'Reject';
+
+  @override
+  String get leaveApprovalsLoadFailed => 'Could not load the approval data.';
+
+  @override
+  String get leaveApprovalsPendingEmpty => 'Nothing needs your approval';
+
+  @override
+  String get leaveApprovalsHistoryEmpty => 'No approval history yet';
+
+  @override
+  String get leaveApprovalDecideFailed =>
+      'That didn\'t go through. Please try again.';
 }

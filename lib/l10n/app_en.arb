@@ -197,5 +197,70 @@
   "errorDetailsLabel": "Error: {details}",
   "@errorDetailsLabel": {
     "placeholders": {"details": {"type": "String"}}
-  }
+  },
+
+  "timeOffHistoryTab": "Leave History",
+  "timeOffRequestTab": "Request Leave",
+  "leaveFilterAll": "All",
+  "leaveCategorySick": "Sick Leave",
+  "leaveCategoryPersonal": "Personal Leave",
+  "leaveCategoryAnnual": "Annual Leave",
+  "leaveCategoryRest": "Rest Leave",
+  "leaveDateFrom": "From date",
+  "leaveDateTo": "To date",
+  "daysCountUnit": "days",
+  "leaveStatusPending": "In progress",
+  "leaveStatusApproved": "Approved",
+  "leaveStatusRejected": "Not approved",
+  "leaveStepSubmitted": "Submitted",
+  "leaveStepManagerReview": "Manager review",
+  "leaveStepManagerWaiting": "Awaiting manager review",
+  "leaveStepHrApproval": "HR approval",
+  "leaveReviewerCommentLabel": "Comment",
+  "leaveHistoryLoadFailed": "Could not load your leave history.",
+  "leaveHistoryEmpty": "No leave requests found",
+  "leaveDaysSuffix": "{days} days",
+  "@leaveDaysSuffix": {
+    "placeholders": {"days": {"type": "int"}}
+  },
+  "leaveTotalDaysSuffix": "{days} days total",
+  "@leaveTotalDaysSuffix": {
+    "placeholders": {"days": {"type": "int"}}
+  },
+  "leaveRequestCategoryLabel": "Leave type",
+  "leaveRequestReasonLabel": "Reason",
+  "leaveRequestReasonHint": "Describe the reason for your leave",
+  "leaveRequestSubmit": "Submit",
+  "leaveRequestSubmitSuccess": "Leave request submitted",
+  "selectDate": "Select date",
+  "leaveBalanceRemainingLabel": "Leave days remaining",
+  "leaveBalanceUsedLabel": "Used {days} days",
+  "@leaveBalanceUsedLabel": {
+    "placeholders": {"days": {"type": "int"}}
+  },
+  "leaveYearLabel": "Year {year}",
+  "@leaveYearLabel": {
+    "placeholders": {"year": {"type": "int"}}
+  },
+  "leaveSelectDatesLabel": "Select leave dates",
+  "leaveDatesTotalPrefix": "Total:",
+  "leaveNoDatesSelected": "No dates selected yet",
+  "leaveReturnToWorkLabel": "Return-to-work date",
+  "leaveSelectButtonLabel": "Select",
+  "leaveAttachFileLabel": "Attach file",
+  "leaveOptionalBadge": "Optional",
+  "leaveChooseFileButton": "Choose file",
+  "timeOffApprovalsTab": "Team Approvals",
+  "leaveApprovalsPendingHeader": "Needs your approval ({count})",
+  "@leaveApprovalsPendingHeader": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "leaveApprovalsHistoryHeader": "Approval history",
+  "leaveApprovalNewBadge": "New",
+  "leaveApprovalApproveAction": "Approve",
+  "leaveApprovalRejectAction": "Reject",
+  "leaveApprovalsLoadFailed": "Could not load the approval data.",
+  "leaveApprovalsPendingEmpty": "Nothing needs your approval",
+  "leaveApprovalsHistoryEmpty": "No approval history yet",
+  "leaveApprovalDecideFailed": "That didn't go through. Please try again."
 }

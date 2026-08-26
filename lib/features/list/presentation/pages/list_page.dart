@@ -9,10 +9,13 @@ import '../widgets/list_menu_grid.dart';
 /// "ລາຍການ" tab.
 class ListPage extends StatelessWidget {
   const ListPage({super.key});
-
   List<ListMenuEntry> _menuEntries(BuildContext context, AppLocalizations l10n) => [
     ListMenuEntry(l10n.clockInOut, Icons.history),
-    ListMenuEntry(l10n.activities, Icons.directions_run),
+    ListMenuEntry(
+      l10n.timeOffRequestTab,
+      Icons.edit_calendar_outlined,
+      onTap: () => context.push(AppRoutes.timeOff),
+    ),
     ListMenuEntry(l10n.documents, Icons.description),
     ListMenuEntry(l10n.reports, Icons.assessment),
     ListMenuEntry(l10n.departments, Icons.people),

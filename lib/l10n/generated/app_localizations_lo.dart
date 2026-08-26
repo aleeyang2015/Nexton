@@ -476,4 +476,161 @@ class AppLocalizationsLo extends AppLocalizations {
   String errorDetailsLabel(String details) {
     return 'ຂໍ້ຜິດພາດ: $details';
   }
+
+  @override
+  String get timeOffHistoryTab => 'ປະຫວັດການລາພັກ';
+
+  @override
+  String get timeOffRequestTab => 'ຂໍລາພັກ';
+
+  @override
+  String get leaveFilterAll => 'ທັງໝົດ';
+
+  @override
+  String get leaveCategorySick => 'ລາປ່ວຍ';
+
+  @override
+  String get leaveCategoryPersonal => 'ລາກິດ';
+
+  @override
+  String get leaveCategoryAnnual => 'ລາພັກປະຈຳປີ';
+
+  @override
+  String get leaveCategoryRest => 'ລາພັກຜ່ອນ';
+
+  @override
+  String get leaveDateFrom => 'ຈາກວັນທີ';
+
+  @override
+  String get leaveDateTo => 'ຫາວັນທີ';
+
+  @override
+  String get daysCountUnit => 'ວັນ';
+
+  @override
+  String get leaveStatusPending => 'ກຳລັງດຳເນີນການ';
+
+  @override
+  String get leaveStatusApproved => 'ອະນຸມັດແລ້ວ';
+
+  @override
+  String get leaveStatusRejected => 'ບໍ່ອະນຸມັດ';
+
+  @override
+  String get leaveStepSubmitted => 'ສົ່ງຄຳຂໍ';
+
+  @override
+  String get leaveStepManagerReview => 'ຫົວໜ້າພິຈາລະນາ';
+
+  @override
+  String get leaveStepManagerWaiting => 'ລໍຖ້າຫົວໜ້າພິຈາລະນາ';
+
+  @override
+  String get leaveStepHrApproval => 'HR ອະນຸມັດ';
+
+  @override
+  String get leaveReviewerCommentLabel => 'ຄວາມຄິດເຫັນ';
+
+  @override
+  String get leaveHistoryLoadFailed => 'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນການລາພັກໄດ້.';
+
+  @override
+  String get leaveHistoryEmpty => 'ບໍ່ມີຂໍ້ມູນການລາພັກ';
+
+  @override
+  String leaveDaysSuffix(int days) {
+    return '$days ວັນ';
+  }
+
+  @override
+  String leaveTotalDaysSuffix(int days) {
+    return 'ທັງໝົດ $days ວັນ';
+  }
+
+  @override
+  String get leaveRequestCategoryLabel => 'ປະເພດການລາ';
+
+  @override
+  String get leaveRequestReasonLabel => 'ເຫດຜົນ';
+
+  @override
+  String get leaveRequestReasonHint => 'ອະທິບາຍເຫດຜົນການລາ';
+
+  @override
+  String get leaveRequestSubmit => 'ສົ່ງຄຳຂໍ';
+
+  @override
+  String get leaveRequestSubmitSuccess => 'ສົ່ງຄຳຂໍລາພັກສຳເລັດ';
+
+  @override
+  String get selectDate => 'ເລືອກວັນທີ';
+
+  @override
+  String get leaveBalanceRemainingLabel => 'ວັນລາພັກຍັງເຫຼືອ';
+
+  @override
+  String leaveBalanceUsedLabel(int days) {
+    return 'ໃຊ້ໄປແລ້ວ $days ວັນ';
+  }
+
+  @override
+  String leaveYearLabel(int year) {
+    return 'ປີ $year';
+  }
+
+  @override
+  String get leaveSelectDatesLabel => 'ເລືອກວັນທີ່ລາພັກ';
+
+  @override
+  String get leaveDatesTotalPrefix => 'ລວມທັງໝົດ:';
+
+  @override
+  String get leaveNoDatesSelected => 'ຍັງບໍ່ໄດ້ເລືອກວັນທີ';
+
+  @override
+  String get leaveReturnToWorkLabel => 'ວັນທີ່ກັບມາເລີ່ມວຽກ';
+
+  @override
+  String get leaveSelectButtonLabel => 'ເລືອກ';
+
+  @override
+  String get leaveAttachFileLabel => 'ແນບໄຟລ໌';
+
+  @override
+  String get leaveOptionalBadge => 'ທາງເລືອກ';
+
+  @override
+  String get leaveChooseFileButton => 'ເລືອກໄຟລ໌';
+
+  @override
+  String get timeOffApprovalsTab => 'ອະນຸມັດຈາກສາຍງານ';
+
+  @override
+  String leaveApprovalsPendingHeader(int count) {
+    return 'ລາຍການທີ່ຕ້ອງອະນຸມັດ ($count)';
+  }
+
+  @override
+  String get leaveApprovalsHistoryHeader => 'ປະຫວັດການອະນຸມັດ';
+
+  @override
+  String get leaveApprovalNewBadge => 'ໃໝ່';
+
+  @override
+  String get leaveApprovalApproveAction => 'ອະນຸມັດ';
+
+  @override
+  String get leaveApprovalRejectAction => 'ປະຕິເສດ';
+
+  @override
+  String get leaveApprovalsLoadFailed => 'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນອະນຸມັດໄດ້.';
+
+  @override
+  String get leaveApprovalsPendingEmpty => 'ບໍ່ມີລາຍການທີ່ຕ້ອງອະນຸມັດ';
+
+  @override
+  String get leaveApprovalsHistoryEmpty => 'ບໍ່ມີປະຫວັດການອະນຸມັດ';
+
+  @override
+  String get leaveApprovalDecideFailed => 'ດຳເນີນການບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່';
 }

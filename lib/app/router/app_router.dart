@@ -7,6 +7,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/change_password/presentation/pages/change_password_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/time_off/presentation/pages/time_off_page.dart';
 import '../../core/widgets/error_page.dart';
 import '../widgets/main_shell_page.dart';
 
@@ -19,6 +20,7 @@ class AppRoutes {
   static const String changePassword = '/change-password';
   static const String settings = '/settings';
   static const String attendanceHistory = '/attendance-history';
+  static const String timeOff = '/time-off';
   static const String notFound = '/404';
 }
 
@@ -113,6 +115,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.attendanceHistory,
         name: 'attendanceHistory',
         builder: (context, state) => const AttendanceHistoryPage(),
+      ),
+
+      // Time off
+      GoRoute(
+        path: AppRoutes.timeOff,
+        name: 'timeOff',
+        builder: (context, state) => const TimeOffPage(),
       ),
 
       // 404 Route

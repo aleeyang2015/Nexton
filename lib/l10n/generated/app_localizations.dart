@@ -943,6 +943,300 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error: {details}'**
   String errorDetailsLabel(String details);
+
+  /// No description provided for @timeOffHistoryTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave History'**
+  String get timeOffHistoryTab;
+
+  /// No description provided for @timeOffRequestTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Leave'**
+  String get timeOffRequestTab;
+
+  /// No description provided for @leaveFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get leaveFilterAll;
+
+  /// No description provided for @leaveCategorySick.
+  ///
+  /// In en, this message translates to:
+  /// **'Sick Leave'**
+  String get leaveCategorySick;
+
+  /// No description provided for @leaveCategoryPersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Leave'**
+  String get leaveCategoryPersonal;
+
+  /// No description provided for @leaveCategoryAnnual.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual Leave'**
+  String get leaveCategoryAnnual;
+
+  /// No description provided for @leaveCategoryRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest Leave'**
+  String get leaveCategoryRest;
+
+  /// No description provided for @leaveDateFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From date'**
+  String get leaveDateFrom;
+
+  /// No description provided for @leaveDateTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To date'**
+  String get leaveDateTo;
+
+  /// No description provided for @daysCountUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get daysCountUnit;
+
+  /// No description provided for @leaveStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get leaveStatusPending;
+
+  /// No description provided for @leaveStatusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get leaveStatusApproved;
+
+  /// No description provided for @leaveStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not approved'**
+  String get leaveStatusRejected;
+
+  /// No description provided for @leaveStepSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get leaveStepSubmitted;
+
+  /// No description provided for @leaveStepManagerReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager review'**
+  String get leaveStepManagerReview;
+
+  /// No description provided for @leaveStepManagerWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting manager review'**
+  String get leaveStepManagerWaiting;
+
+  /// No description provided for @leaveStepHrApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'HR approval'**
+  String get leaveStepHrApproval;
+
+  /// No description provided for @leaveReviewerCommentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment'**
+  String get leaveReviewerCommentLabel;
+
+  /// No description provided for @leaveHistoryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your leave history.'**
+  String get leaveHistoryLoadFailed;
+
+  /// No description provided for @leaveHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No leave requests found'**
+  String get leaveHistoryEmpty;
+
+  /// No description provided for @leaveDaysSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String leaveDaysSuffix(int days);
+
+  /// No description provided for @leaveTotalDaysSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days total'**
+  String leaveTotalDaysSuffix(int days);
+
+  /// No description provided for @leaveRequestCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave type'**
+  String get leaveRequestCategoryLabel;
+
+  /// No description provided for @leaveRequestReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get leaveRequestReasonLabel;
+
+  /// No description provided for @leaveRequestReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the reason for your leave'**
+  String get leaveRequestReasonHint;
+
+  /// No description provided for @leaveRequestSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get leaveRequestSubmit;
+
+  /// No description provided for @leaveRequestSubmitSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave request submitted'**
+  String get leaveRequestSubmitSuccess;
+
+  /// No description provided for @selectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date'**
+  String get selectDate;
+
+  /// No description provided for @leaveBalanceRemainingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave days remaining'**
+  String get leaveBalanceRemainingLabel;
+
+  /// No description provided for @leaveBalanceUsedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Used {days} days'**
+  String leaveBalanceUsedLabel(int days);
+
+  /// No description provided for @leaveYearLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Year {year}'**
+  String leaveYearLabel(int year);
+
+  /// No description provided for @leaveSelectDatesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select leave dates'**
+  String get leaveSelectDatesLabel;
+
+  /// No description provided for @leaveDatesTotalPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Total:'**
+  String get leaveDatesTotalPrefix;
+
+  /// No description provided for @leaveNoDatesSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No dates selected yet'**
+  String get leaveNoDatesSelected;
+
+  /// No description provided for @leaveReturnToWorkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Return-to-work date'**
+  String get leaveReturnToWorkLabel;
+
+  /// No description provided for @leaveSelectButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get leaveSelectButtonLabel;
+
+  /// No description provided for @leaveAttachFileLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach file'**
+  String get leaveAttachFileLabel;
+
+  /// No description provided for @leaveOptionalBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get leaveOptionalBadge;
+
+  /// No description provided for @leaveChooseFileButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose file'**
+  String get leaveChooseFileButton;
+
+  /// No description provided for @timeOffApprovalsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Team Approvals'**
+  String get timeOffApprovalsTab;
+
+  /// No description provided for @leaveApprovalsPendingHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs your approval ({count})'**
+  String leaveApprovalsPendingHeader(int count);
+
+  /// No description provided for @leaveApprovalsHistoryHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval history'**
+  String get leaveApprovalsHistoryHeader;
+
+  /// No description provided for @leaveApprovalNewBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get leaveApprovalNewBadge;
+
+  /// No description provided for @leaveApprovalApproveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get leaveApprovalApproveAction;
+
+  /// No description provided for @leaveApprovalRejectAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get leaveApprovalRejectAction;
+
+  /// No description provided for @leaveApprovalsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the approval data.'**
+  String get leaveApprovalsLoadFailed;
+
+  /// No description provided for @leaveApprovalsPendingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needs your approval'**
+  String get leaveApprovalsPendingEmpty;
+
+  /// No description provided for @leaveApprovalsHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No approval history yet'**
+  String get leaveApprovalsHistoryEmpty;
+
+  /// No description provided for @leaveApprovalDecideFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t go through. Please try again.'**
+  String get leaveApprovalDecideFailed;
 }
 
 class _AppLocalizationsDelegate
