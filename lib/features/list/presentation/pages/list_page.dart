@@ -10,22 +10,35 @@ import '../widgets/list_menu_grid.dart';
 class ListPage extends StatelessWidget {
   const ListPage({super.key});
   List<ListMenuEntry> _menuEntries(BuildContext context, AppLocalizations l10n) => [
-    ListMenuEntry(l10n.clockInOut, Icons.history),
+    ListMenuEntry(l10n.clockInOut, Icons.punch_clock_outlined),
     ListMenuEntry(
-      l10n.timeOffRequestTab,
+      l10n.attendanceHistoryMenu,
+      Icons.history,
+      onTap: () => context.push(AppRoutes.attendanceHistory),
+    ),
+    ListMenuEntry(
+      l10n.leaveMenu,
       Icons.edit_calendar_outlined,
       onTap: () => context.push(AppRoutes.timeOff),
     ),
-    ListMenuEntry(l10n.documents, Icons.description),
-    ListMenuEntry(l10n.reports, Icons.assessment),
-    ListMenuEntry(l10n.departments, Icons.people),
     ListMenuEntry(
-      l10n.settings,
-      Icons.settings,
-      onTap: () => context.push(AppRoutes.settings),
+      l10n.leaveHistoryMenu,
+      Icons.event_available_outlined,
+      onTap: () => context.push(AppRoutes.timeOff),
     ),
-    ListMenuEntry(l10n.notifications, Icons.notifications),
+    ListMenuEntry(l10n.delegateTaskMenu, Icons.assignment_ind_outlined),
+    ListMenuEntry(l10n.delegateTaskHistoryMenu, Icons.assignment_turned_in_outlined),
+    ListMenuEntry(
+      l10n.salaryHistoryMenu,
+      Icons.payments_outlined,
+      onTap: () => context.push(AppRoutes.salaryHistory),
+    ),
     ListMenuEntry(l10n.profile, Icons.person),
+    ListMenuEntry(
+      l10n.changePassword,
+      Icons.lock_reset,
+      onTap: () => context.push(AppRoutes.changePassword),
+    ),
   ];
 
   @override

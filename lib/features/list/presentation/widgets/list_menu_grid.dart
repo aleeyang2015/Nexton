@@ -11,7 +11,7 @@ class ListMenuEntry {
   const ListMenuEntry(this.label, this.icon, {this.onTap});
 }
 
-/// Responsive grid of list shortcuts: 5 columns on tablets, 4 on phones
+/// Grid of list shortcuts: 3 columns per row, sized to fit its entries.
 class ListMenuGrid extends StatelessWidget {
   final List<ListMenuEntry> entries;
 
@@ -19,21 +19,18 @@ class ListMenuGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width > 600;
-
-    return SizedBox(
-      height: 300,
-      child: GridView.builder(
-        padding: EdgeInsets.zero,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: isWide ? 5 : 4,
-          crossAxisSpacing: 15,
-          mainAxisSpacing: 15,
-          childAspectRatio: 1,
-        ),
-        itemCount: entries.length,
-        itemBuilder: (context, index) => _MenuItem(entry: entries[index]),
+    return GridView.builder(
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 15,
+        mainAxisSpacing: 15,
+        childAspectRatio: 1,
       ),
+      itemCount: entries.length,
+      itemBuilder: (context, index) => _MenuItem(entry: entries[index]),
     );
   }
 }
@@ -53,14 +50,14 @@ class _MenuItem extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            height: 50,
-            width: 50,
+            height: 64,
+            width: 64,
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.border, width: 1.5),
             ),
-            child: Icon(entry.icon, size: 24, color: AppColors.primary),
+            child: Icon(entry.icon, size: 32, color: AppColors.primary),
           ),
           const SizedBox(height: 4),
           Flexible(

@@ -77,6 +77,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clockInOut => 'Clock In/Out';
 
   @override
+  String get attendanceHistoryMenu => 'Attendance History';
+
+  @override
+  String get leaveMenu => 'Leave';
+
+  @override
+  String get leaveHistoryMenu => 'Leave History';
+
+  @override
+  String get delegateTaskMenu => 'Delegate Task';
+
+  @override
+  String get delegateTaskHistoryMenu => 'Delegation History';
+
+  @override
+  String get salaryHistoryMenu => 'Salary History';
+
+  @override
   String get activities => 'Activities';
 
   @override
@@ -386,6 +404,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shiftAfternoonLabel => 'Afternoon';
+
+  @override
+  String get salaryHistoryTitle => 'Salary';
+
+  @override
+  String get salaryFilterAll => 'All';
+
+  @override
+  String get salaryFilterPaid => 'Paid';
+
+  @override
+  String get salaryFilterPending => 'Pending';
+
+  @override
+  String get salaryNetSalaryLabel => 'Net Salary';
+
+  @override
+  String get salaryPaidOnLabel => 'Paid on';
+
+  @override
+  String get salaryIncomeSection => 'Income';
+
+  @override
+  String get salaryDeductionsSection => 'Deductions';
+
+  @override
+  String get salaryBaseSalary => 'Base Salary';
+
+  @override
+  String get salaryAllowance => 'Allowance / Others';
+
+  @override
+  String get salarySocialSecurity => 'Social Security';
+
+  @override
+  String get salaryIncomeTax => 'Income Tax';
+
+  @override
+  String get salaryOtherDeductions => 'Other Deductions';
+
+  @override
+  String get salaryWorkingDaysLabel => 'Working Days';
+
+  @override
+  String get salaryOvertimeLabel => 'OT Hours';
+
+  @override
+  String get salaryPaidLeaveLabel => 'Paid Leave';
+
+  @override
+  String get salaryDownloadPdf => 'Download Payslip (PDF)';
+
+  @override
+  String get salaryHistoryEmpty => 'No salary records';
+
+  @override
+  String get salaryHistoryLoadFailed => 'Unable to load salary records.';
 
   @override
   String get language => 'Language';

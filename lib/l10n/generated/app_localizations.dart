@@ -230,6 +230,42 @@ abstract class AppLocalizations {
   /// **'Clock In/Out'**
   String get clockInOut;
 
+  /// No description provided for @attendanceHistoryMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance History'**
+  String get attendanceHistoryMenu;
+
+  /// No description provided for @leaveMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get leaveMenu;
+
+  /// No description provided for @leaveHistoryMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave History'**
+  String get leaveHistoryMenu;
+
+  /// No description provided for @delegateTaskMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Delegate Task'**
+  String get delegateTaskMenu;
+
+  /// No description provided for @delegateTaskHistoryMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Delegation History'**
+  String get delegateTaskHistoryMenu;
+
+  /// No description provided for @salaryHistoryMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary History'**
+  String get salaryHistoryMenu;
+
   /// No description provided for @activities.
   ///
   /// In en, this message translates to:
@@ -769,6 +805,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Afternoon'**
   String get shiftAfternoonLabel;
+
+  /// No description provided for @salaryHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Salary'**
+  String get salaryHistoryTitle;
+
+  /// No description provided for @salaryFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get salaryFilterAll;
+
+  /// No description provided for @salaryFilterPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get salaryFilterPaid;
+
+  /// No description provided for @salaryFilterPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get salaryFilterPending;
+
+  /// No description provided for @salaryNetSalaryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Salary'**
+  String get salaryNetSalaryLabel;
+
+  /// No description provided for @salaryPaidOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid on'**
+  String get salaryPaidOnLabel;
+
+  /// No description provided for @salaryIncomeSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get salaryIncomeSection;
+
+  /// No description provided for @salaryDeductionsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Deductions'**
+  String get salaryDeductionsSection;
+
+  /// No description provided for @salaryBaseSalary.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Salary'**
+  String get salaryBaseSalary;
+
+  /// No description provided for @salaryAllowance.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowance / Others'**
+  String get salaryAllowance;
+
+  /// No description provided for @salarySocialSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Security'**
+  String get salarySocialSecurity;
+
+  /// No description provided for @salaryIncomeTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Income Tax'**
+  String get salaryIncomeTax;
+
+  /// No description provided for @salaryOtherDeductions.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Deductions'**
+  String get salaryOtherDeductions;
+
+  /// No description provided for @salaryWorkingDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Working Days'**
+  String get salaryWorkingDaysLabel;
+
+  /// No description provided for @salaryOvertimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'OT Hours'**
+  String get salaryOvertimeLabel;
+
+  /// No description provided for @salaryPaidLeaveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid Leave'**
+  String get salaryPaidLeaveLabel;
+
+  /// No description provided for @salaryDownloadPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Payslip (PDF)'**
+  String get salaryDownloadPdf;
+
+  /// No description provided for @salaryHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No salary records'**
+  String get salaryHistoryEmpty;
+
+  /// No description provided for @salaryHistoryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load salary records.'**
+  String get salaryHistoryLoadFailed;
 
   /// No description provided for @language.
   ///

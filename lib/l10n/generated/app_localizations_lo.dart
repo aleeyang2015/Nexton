@@ -77,6 +77,24 @@ class AppLocalizationsLo extends AppLocalizations {
   String get clockInOut => 'ເຂົ້າ/ອອກວຽກ';
 
   @override
+  String get attendanceHistoryMenu => 'ປະຫວັດເຂົ້າອອກວຽກ';
+
+  @override
+  String get leaveMenu => 'ລາພັກ';
+
+  @override
+  String get leaveHistoryMenu => 'ປະຫວັດລາພັກ';
+
+  @override
+  String get delegateTaskMenu => 'ມອບວຽກ';
+
+  @override
+  String get delegateTaskHistoryMenu => 'ປະຫວັດມອບວຽກ';
+
+  @override
+  String get salaryHistoryMenu => 'ປະຫວັດເງິນເດືອນ';
+
+  @override
   String get activities => 'ການເຄື່ອນໄຫວ';
 
   @override
@@ -95,7 +113,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get notifications => 'ແຈ້ງເຕືອນ';
 
   @override
-  String get profile => 'ໂປຣໄຟລ໌';
+  String get profile => 'ໂປຣຟາຍ';
 
   @override
   String get notCheckedIn => 'ຍັງບໍ່ໄດ້ລົງເວລາເຂົ້າ';
@@ -383,6 +401,63 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get shiftAfternoonLabel => 'ກະແລງ';
+
+  @override
+  String get salaryHistoryTitle => 'ເງິນເດືອນ';
+
+  @override
+  String get salaryFilterAll => 'ທັງໝົດ';
+
+  @override
+  String get salaryFilterPaid => 'ຈ່າຍແລ້ວ';
+
+  @override
+  String get salaryFilterPending => 'ລໍຖ້າ';
+
+  @override
+  String get salaryNetSalaryLabel => 'ເງິນເດືອນສຸດທິ';
+
+  @override
+  String get salaryPaidOnLabel => 'ຈ່າຍວັນທີ';
+
+  @override
+  String get salaryIncomeSection => 'ລາຍຮັບ';
+
+  @override
+  String get salaryDeductionsSection => 'ລາຍການຫັກ';
+
+  @override
+  String get salaryBaseSalary => 'ເງິນເດືອນພື້ນຖານ';
+
+  @override
+  String get salaryAllowance => 'ເບ້ຍລ້ຽງ / ອື່ນໆ';
+
+  @override
+  String get salarySocialSecurity => 'ປະກັນສັງຄົມ';
+
+  @override
+  String get salaryIncomeTax => 'ອາກອນເງິນເດືອນ';
+
+  @override
+  String get salaryOtherDeductions => 'ຫັກອື່ນໆ';
+
+  @override
+  String get salaryWorkingDaysLabel => 'ມື້ເຮັດວຽກ';
+
+  @override
+  String get salaryOvertimeLabel => 'ຊົ່ວໂມງໂອທີ';
+
+  @override
+  String get salaryPaidLeaveLabel => 'ລາພັກຮັບເງິນ';
+
+  @override
+  String get salaryDownloadPdf => 'ດາວໂຫລດໃບເງິນເດືອນ (PDF)';
+
+  @override
+  String get salaryHistoryEmpty => 'ບໍ່ມີຂໍ້ມູນເງິນເດືອນ';
+
+  @override
+  String get salaryHistoryLoadFailed => 'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນເງິນເດືອນໄດ້.';
 
   @override
   String get language => 'ພາສາ';

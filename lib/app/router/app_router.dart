@@ -6,6 +6,7 @@ import '../../features/auth/domain/entities/auth_session.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/change_password/presentation/pages/change_password_page.dart';
+import '../../features/salary_history/presentation/pages/salary_history_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/time_off/presentation/pages/time_off_page.dart';
 import '../../core/widgets/error_page.dart';
@@ -21,6 +22,7 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String attendanceHistory = '/attendance-history';
   static const String timeOff = '/time-off';
+  static const String salaryHistory = '/salary-history';
   static const String notFound = '/404';
 }
 
@@ -122,6 +124,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.timeOff,
         name: 'timeOff',
         builder: (context, state) => const TimeOffPage(),
+      ),
+
+      // Salary history
+      GoRoute(
+        path: AppRoutes.salaryHistory,
+        name: 'salaryHistory',
+        builder: (context, state) => const SalaryHistoryPage(),
       ),
 
       // 404 Route
