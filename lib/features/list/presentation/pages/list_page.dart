@@ -1,16 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
+import '../../../../app/widgets/main_shell_tab_provider.dart';
 import '../../../../core/widgets/global_widgets.dart';
+import '../../../time_off/presentation/pages/time_off_page.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../widgets/list_menu_grid.dart';
 
 /// "ລາຍການ" tab.
-class ListPage extends StatelessWidget {
+class ListPage extends ConsumerWidget {
   const ListPage({super.key});
-  List<ListMenuEntry> _menuEntries(BuildContext context, AppLocalizations l10n) => [
-    ListMenuEntry(l10n.clockInOut, Icons.punch_clock_outlined),
+  List<ListMenuEntry> _menuEntries(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) => [
+    ListMenuEntry(
+      l10n.clockInOut,
+      Icons.punch_clock_outlined,
+      onTap: () =>
+          ref.read(mainShellTabProvider.notifier).select(MainShellTab.home),
+    ),
     ListMenuEntry(
       l10n.attendanceHistoryMenu,
       Icons.history,
@@ -19,7 +31,7 @@ class ListPage extends StatelessWidget {
     ListMenuEntry(
       l10n.leaveMenu,
       Icons.edit_calendar_outlined,
-      onTap: () => context.push(AppRoutes.timeOff),
+      onTap: () => context.push(AppRoutes.timeOff, extra: TimeOffTab.request),
     ),
     ListMenuEntry(
       l10n.leaveHistoryMenu,
@@ -33,7 +45,12 @@ class ListPage extends StatelessWidget {
       Icons.payments_outlined,
       onTap: () => context.push(AppRoutes.salaryHistory),
     ),
-    ListMenuEntry(l10n.profile, Icons.person),
+    ListMenuEntry(
+      l10n.profile,
+      Icons.person,
+      onTap: () =>
+          ref.read(mainShellTabProvider.notifier).select(MainShellTab.profile),
+    ),
     ListMenuEntry(
       l10n.changePassword,
       Icons.lock_reset,
@@ -42,7 +59,7 @@ class ListPage extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
@@ -58,7 +75,7 @@ class ListPage extends StatelessWidget {
           ),
           body: Padding(
             padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
-            child: ListMenuGrid(entries: _menuEntries(context, l10n)),
+            child: ListMenuGrid(entries: _menuEntries(context, ref, l10n)),
           ),
         ),
       ),

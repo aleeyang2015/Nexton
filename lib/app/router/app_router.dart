@@ -126,7 +126,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.timeOff,
         name: 'timeOff',
-        builder: (context, state) => const TimeOffPage(),
+        builder: (context, state) => TimeOffPage(
+          initialTab: state.extra is TimeOffTab
+              ? state.extra as TimeOffTab
+              : TimeOffTab.history,
+        ),
       ),
 
       // Salary history

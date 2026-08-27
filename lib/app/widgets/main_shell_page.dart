@@ -8,6 +8,7 @@ import '../../features/home/presentation/widgets/home_shimmer.dart';
 import '../../features/list/presentation/pages/list_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../l10n/generated/app_localizations.dart';
+import 'main_shell_tab_provider.dart';
 
 /// Hosts the three bottom-nav tabs — ລາຍການ / ໜ້າຫຼັກ / ໂປຣຟາຍ — around the
 /// existing [HomePage]. Home is the tab a session lands on, raised as a
@@ -18,35 +19,29 @@ import '../../l10n/generated/app_localizations.dart';
 /// data is in hand it paints [HomeShimmer] instead of the tabs — the router
 /// redirects away to `/login` or `/change-password` the moment resolution
 /// says this isn't a signed-in user, so that never has to render for real.
-class MainShellPage extends ConsumerStatefulWidget {
+class MainShellPage extends ConsumerWidget {
   const MainShellPage({super.key});
 
   @override
-  ConsumerState<MainShellPage> createState() => _MainShellPageState();
-}
-
-class _MainShellPageState extends ConsumerState<MainShellPage> {
-  static const _homeTabIndex = 1;
-
-  int _index = _homeTabIndex;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(authSessionProvider).valueOrNull;
     if (session == null || !session.hasSession) {
       return const Scaffold(body: HomeShimmer());
     }
 
     final l10n = AppLocalizations.of(context)!;
+    final index = ref.watch(mainShellTabProvider).index;
 
     return Scaffold(
       body: IndexedStack(
-        index: _index,
+        index: index,
         children: const [ListPage(), HomePage(), ProfilePage()],
       ),
       bottomNavigationBar: _BottomNavBar(
-        currentIndex: _index,
-        onTap: (index) => setState(() => _index = index),
+        currentIndex: index,
+        onTap: (i) => ref
+            .read(mainShellTabProvider.notifier)
+            .select(MainShellTab.values[i]),
         items: [
           _NavItem(icon: Icons.list_alt, label: l10n.navList),
           _NavItem(icon: Icons.home, label: l10n.navHome),

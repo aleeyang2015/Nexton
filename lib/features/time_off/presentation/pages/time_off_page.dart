@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
@@ -7,11 +8,19 @@ import '../widgets/leave_approvals_tab.dart';
 import '../widgets/leave_history_tab.dart';
 import '../widgets/leave_request_tab.dart';
 
+/// Which tab [TimeOffPage] should open on. The order matches the [TabBar]
+/// below, so `.index` doubles as the tab index.
+enum TimeOffTab { history, request, approvals }
+
 /// The "ຂໍລາພັກ" destination behind the list page's menu button: a 3-tab
 /// screen for the leave history, the request-leave form and the
-/// team-approvals list, opening on the history tab.
+/// team-approvals list. Opens on the history tab unless [initialTab] says
+/// otherwise — the list page's "ລາພັກ" menu points it straight at the
+/// request-leave tab.
 class TimeOffPage extends StatefulWidget {
-  const TimeOffPage({super.key});
+  const TimeOffPage({super.key, this.initialTab = TimeOffTab.history});
+
+  final TimeOffTab initialTab;
 
   @override
   State<TimeOffPage> createState() => _TimeOffPageState();
@@ -24,7 +33,11 @@ class _TimeOffPageState extends State<TimeOffPage>
   @override
   void initState() {
     super.initState();
-    _controller = TabController(length: 3, vsync: this)
+    _controller = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: widget.initialTab.index,
+    )
       ..addListener(() {
         if (!_controller.indexIsChanging) setState(() {});
       });
@@ -57,8 +70,28 @@ class _TimeOffPageState extends State<TimeOffPage>
             title: customText(
               titles[_controller.index],
               fontWeight: FontWeight.w700,
-              fontSize: 18,
+              color: AppColors.primary,
+              fontSize: 20,
             ),
+            leading: GestureDetector(
+              onTap: () => context.pop(),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Icon(
+                  Icons.arrow_back_ios,
+                  color: AppColors.primary,
+                ),
+              ),
+          ),
+          // AppBar(
+          //   backgroundColor: Colors.white,
+          //   elevation: 0,
+          //   centerTitle: true,
+          //   title: customText(
+          //     titles[_controller.index],
+          //     fontWeight: FontWeight.w700,
+          //     fontSize: 18,
+          //   ),
             bottom: TabBar(
               controller: _controller,
               labelColor: AppColors.primary,
