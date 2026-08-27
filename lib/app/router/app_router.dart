@@ -6,6 +6,8 @@ import '../../features/auth/domain/entities/auth_session.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/change_password/presentation/pages/change_password_page.dart';
+import '../../features/salary_history/domain/entities/payslip.dart';
+import '../../features/salary_history/presentation/pages/payslip_detail_page.dart';
 import '../../features/salary_history/presentation/pages/salary_history_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/time_off/presentation/pages/time_off_page.dart';
@@ -23,6 +25,7 @@ class AppRoutes {
   static const String attendanceHistory = '/attendance-history';
   static const String timeOff = '/time-off';
   static const String salaryHistory = '/salary-history';
+  static const String payslipDetail = '/salary-history/payslip';
   static const String notFound = '/404';
 }
 
@@ -131,6 +134,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.salaryHistory,
         name: 'salaryHistory',
         builder: (context, state) => const SalaryHistoryPage(),
+      ),
+
+      // Payslip detail — reached by tapping a month's card; the payslip
+      // rides along as `extra`, so a direct hit with nothing to show falls
+      // through to the 404 page.
+      GoRoute(
+        path: AppRoutes.payslipDetail,
+        name: 'payslipDetail',
+        builder: (context, state) {
+          final payslip = state.extra;
+          if (payslip is! Payslip) return const NotFoundPage();
+          return PayslipDetailPage(payslip: payslip);
+        },
       ),
 
       // 404 Route

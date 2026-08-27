@@ -32,6 +32,9 @@ class SalaryHistoryCopy {
 
   static final _amountFormat = NumberFormat('#,##0', 'en');
 
+  /// "7,426,674" — the bare grouped number, no currency mark.
+  static String amount(num value) => _amountFormat.format(value);
+
   /// "₭ 7,426,674".
   static String currency(num amount) => '₭ ${_amountFormat.format(amount)}';
 

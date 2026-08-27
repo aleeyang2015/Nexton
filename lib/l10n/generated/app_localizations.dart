@@ -908,6 +908,54 @@ abstract class AppLocalizations {
   /// **'Download Payslip (PDF)'**
   String get salaryDownloadPdf;
 
+  /// No description provided for @payslipDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payslip'**
+  String get payslipDetailTitle;
+
+  /// No description provided for @salaryGrossLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross'**
+  String get salaryGrossLabel;
+
+  /// No description provided for @salaryTotalDeductionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Deductions'**
+  String get salaryTotalDeductionsLabel;
+
+  /// No description provided for @salaryAllowancesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Welfare / Allowances'**
+  String get salaryAllowancesSection;
+
+  /// No description provided for @salaryAttendanceDeductionsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Deductions — Attendance'**
+  String get salaryAttendanceDeductionsSection;
+
+  /// No description provided for @salaryStatutoryDeductionsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Deductions — Statutory / Other'**
+  String get salaryStatutoryDeductionsSection;
+
+  /// No description provided for @salaryTaxableIncomeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxable income'**
+  String get salaryTaxableIncomeLabel;
+
+  /// No description provided for @salarySocialSecurityBaseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Social security base'**
+  String get salarySocialSecurityBaseLabel;
+
   /// No description provided for @salaryHistoryEmpty.
   ///
   /// In en, this message translates to:

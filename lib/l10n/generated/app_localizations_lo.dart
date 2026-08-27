@@ -454,6 +454,31 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryDownloadPdf => 'ດາວໂຫລດໃບເງິນເດືອນ (PDF)';
 
   @override
+  String get payslipDetailTitle => 'ໃບເງິນເດືອນ';
+
+  @override
+  String get salaryGrossLabel => 'ລາຍຮັບລວມ';
+
+  @override
+  String get salaryTotalDeductionsLabel => 'ຫັກລວມ';
+
+  @override
+  String get salaryAllowancesSection => 'ສະຫວັດດີການ / ເບ້ຍລ້ຽງ';
+
+  @override
+  String get salaryAttendanceDeductionsSection => 'ລາຍການຫัก — ການເຂົ້າວຽກ';
+
+  @override
+  String get salaryStatutoryDeductionsSection =>
+      'ລາຍການຫัก — ຕາມກົດໝາຍ / ອື່ນໆ';
+
+  @override
+  String get salaryTaxableIncomeLabel => 'ລາຍໄດ້ຄິດອາກອນ (taxable income)';
+
+  @override
+  String get salarySocialSecurityBaseLabel => 'ຖານປະກັນສັງຄົມ (SS base)';
+
+  @override
   String get salaryHistoryEmpty => 'ບໍ່ມີຂໍ້ມູນເງິນເດືອນ';
 
   @override

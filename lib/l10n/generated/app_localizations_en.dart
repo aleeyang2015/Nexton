@@ -457,6 +457,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryDownloadPdf => 'Download Payslip (PDF)';
 
   @override
+  String get payslipDetailTitle => 'Payslip';
+
+  @override
+  String get salaryGrossLabel => 'Gross';
+
+  @override
+  String get salaryTotalDeductionsLabel => 'Deductions';
+
+  @override
+  String get salaryAllowancesSection => 'Welfare / Allowances';
+
+  @override
+  String get salaryAttendanceDeductionsSection => 'Deductions — Attendance';
+
+  @override
+  String get salaryStatutoryDeductionsSection =>
+      'Deductions — Statutory / Other';
+
+  @override
+  String get salaryTaxableIncomeLabel => 'Taxable income';
+
+  @override
+  String get salarySocialSecurityBaseLabel => 'Social security base';
+
+  @override
   String get salaryHistoryEmpty => 'No salary records';
 
   @override

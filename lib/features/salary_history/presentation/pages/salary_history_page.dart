@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
@@ -399,9 +400,10 @@ class _PayslipCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InkWell(
-            onTap: () => ref
-                .read(salaryHistoryNotifierProvider.notifier)
-                .toggleExpanded(index),
+            // Tapping the card body opens the full payslip; the expand
+            // chevron below keeps its own tap for the inline breakdown.
+            onTap: () =>
+                context.push(AppRoutes.payslipDetail, extra: payslip),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -444,9 +446,15 @@ class _PayslipCard extends ConsumerWidget {
                           label: SalaryHistoryCopy.statusLabel(l10n, payslip.status),
                           color: status,
                         ),
-                        Icon(
-                          expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                          color: AppColors.gray500,
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => ref
+                              .read(salaryHistoryNotifierProvider.notifier)
+                              .toggleExpanded(index),
+                          child: Icon(
+                            expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                            color: AppColors.gray500,
+                          ),
                         ),
                       ],
                     ),
