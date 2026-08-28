@@ -27,10 +27,10 @@ class ProfilePage extends ConsumerWidget {
     final data = profile.valueOrNull;
 
     return Container(
-      color: Colors.white,
+      color: AppColors.homeBackground,
       child: SafeArea(
         child: Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.homeBackground,
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
             children: [
@@ -91,10 +91,12 @@ class _Avatar extends StatelessWidget {
             width: 112,
             height: 112,
             decoration: BoxDecoration(
+              color: AppColors.primaryTint,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.border, width: 1),
+              border: Border.all(color: Colors.white, width: 3),
+              boxShadow: _softShadow,
             ),
-            child: appAvatar(url: avatarUrl, size: 112),
+            child: Center(child: appAvatar(url: avatarUrl, size: 92)),
           ),
           Positioned(
             right: 0,
@@ -126,32 +128,53 @@ class _StatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _StatItem(
-            icon: Icons.access_time,
-            value: "2h 30m",
-            label: l10n.workHours,
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: _softShadow,
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: _StatItem(
+                icon: Icons.access_time,
+                value: "2h 30m",
+                label: l10n.workHours,
+              ),
+            ),
+            const _StatDivider(),
+            Expanded(
+              child: _StatItem(
+                icon: Icons.beach_access_outlined,
+                value: "2",
+                label: l10n.leaveDays,
+              ),
+            ),
+            const _StatDivider(),
+            Expanded(
+              child: _StatItem(
+                icon: Icons.task_alt,
+                value: "12",
+                label: l10n.tasksDone,
+              ),
+            ),
+          ],
         ),
-        Expanded(
-          child: _StatItem(
-            icon: Icons.beach_access_outlined,
-            value: "2",
-            label: l10n.leaveDays,
-          ),
-        ),
-        Expanded(
-          child: _StatItem(
-            icon: Icons.task_alt,
-            value: "12",
-            label: l10n.tasksDone,
-          ),
-        ),
-      ],
+      ),
     );
   }
+}
+
+class _StatDivider extends StatelessWidget {
+  const _StatDivider();
+
+  @override
+  Widget build(BuildContext context) =>
+      const VerticalDivider(width: 1, thickness: 1, color: AppColors.border);
 }
 
 class _StatItem extends StatelessWidget {
@@ -173,7 +196,7 @@ class _StatItem extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: const BoxDecoration(
-            color: AppColors.gray100,
+            color: AppColors.primaryTint,
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: AppColors.primary, size: 20),
@@ -196,9 +219,11 @@ class _MenuCard extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.gray100,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
+        boxShadow: _softShadow,
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
           _MenuRow(
@@ -270,10 +295,18 @@ class _MenuRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            Icon(icon, color: tint, size: 22),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: tint.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: tint, size: 20),
+            ),
             widthBx(w: 14),
             Expanded(
               child: customText(label, fontWeight: FontWeight.w600, color: tint),
@@ -288,7 +321,16 @@ class _MenuRow extends StatelessWidget {
 }
 
 Widget _menuDivider() =>
-    const Divider(height: 1, color: AppColors.border, indent: 20, endIndent: 20);
+    const Divider(height: 1, color: AppColors.gray200, indent: 70, endIndent: 16);
+
+/// Soft ambient shadow shared by the profile cards.
+const List<BoxShadow> _softShadow = [
+  BoxShadow(
+    color: Color(0x0F1E3FCB),
+    blurRadius: 20,
+    offset: Offset(0, 8),
+  ),
+];
 
 void _showComingSoon(BuildContext context) {
   final l10n = AppLocalizations.of(context)!;

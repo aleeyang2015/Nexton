@@ -23,9 +23,9 @@ Widget _avatarFallback(double size) {
     width: size,
     height: size,
     decoration: const BoxDecoration(
-      color: AppColors.gray200,
+      color: Color(0xffeef3fe),
       shape: BoxShape.circle,
     ),
-    child: Icon(Icons.person, size: size * 0.55, color: AppColors.gray500),
+    child: Icon(Icons.person, size: size * 0.55, color: Color(0xff8598f8)),
   );
 }
