@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The bottom-nav tabs [MainShellPage] hosts, in bar order — `.index` is the
 /// [IndexedStack] slot.
-enum MainShellTab { list, home, profile }
+enum MainShellTab { home, list, profile }
 
 /// Which shell tab is showing. Exposed as a provider so a screen living
 /// inside one tab — e.g. the list page's "ເຂົ້າ/ອອກວຽກ" menu jumping to

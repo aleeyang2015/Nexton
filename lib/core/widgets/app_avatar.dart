@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
-
 /// Circular profile photo for [url], falling back to a plain person icon
 /// while there is no photo yet, or the image fails to load.
 Widget appAvatar({required String? url, required double size}) {
