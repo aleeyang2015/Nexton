@@ -4,10 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../app/widgets/main_shell_tab_provider.dart';
-import '../../../../core/widgets/global_widgets.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../time_off/presentation/pages/time_off_page.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../widgets/list_menu_grid.dart';
+import '../widgets/list_page_header.dart';
 
 /// "ລາຍການ" tab.
 class ListPage extends ConsumerWidget {
@@ -63,19 +64,20 @@ class ListPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
-      color: Colors.white,
+      color: AppColors.homeBackground,
       child: SafeArea(
         child: Scaffold(
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            title: customText(l10n.navList, fontWeight: FontWeight.w700, fontSize: 18),
-            centerTitle: true,
-          ),
-          body: Padding(
-            padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
-            child: ListMenuGrid(entries: _menuEntries(context, ref, l10n)),
+          backgroundColor: AppColors.homeBackground,
+          body: Column(
+            children: [
+              ListPageHeader(title: l10n.navList),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(15, 8, 15, 15),
+                  child: ListMenuGrid(entries: _menuEntries(context, ref, l10n)),
+                ),
+              ),
+            ],
           ),
         ),
       ),
