@@ -13,6 +13,9 @@ class AppColors {
 
   // Neutral Colors
   static const Color background = Color(0xFFF5F5F5);
+
+  /// Cool, near-white blue tint used behind the home screen.
+  static const Color homeBackground = Color(0xFFF2F7FE);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color error = Color(0xFFB00020);
   static const Color onPrimary = Color(0xFFFFFFFF);

@@ -17,11 +17,11 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.background,
+      color: AppColors.homeBackground,
       child: SafeArea(
         bottom: false,
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: AppColors.homeBackground,
           body: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
