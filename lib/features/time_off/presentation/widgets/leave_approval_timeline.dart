@@ -3,64 +3,48 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../domain/entities/leave_status.dart';
+import '../../domain/entities/leave_approval_step.dart';
+import 'leave_copy.dart';
 
-enum _StepVisual { done, current, rejected, upcoming }
+enum _DotVisual { done, current, rejected, upcoming }
 
-/// The submit → manager review → HR approval progress tracker shown on each
-/// history card.
+/// The submit → step-by-step approval progress tracker shown on each history
+/// / detail card, driven by the request's real `steps[]`
+/// (leave-request-flutter.md §3.6).
 ///
-/// A rejection is assumed to always happen at the manager-review step — the
-/// only rejection case the product has specified so far — so HR approval
-/// stays "upcoming" (never reached) whenever a request is rejected.
+/// A leading "Submitted" node is always complete; then one node per approval
+/// step, coloured by that step's own status. A rejected step shows the ✕ and
+/// every later step stays upcoming.
 class LeaveApprovalTimeline extends StatelessWidget {
-  final LeaveStatus status;
+  final List<LeaveApprovalStep> steps;
 
-  const LeaveApprovalTimeline({super.key, required this.status});
-
-  List<_StepVisual> get _steps => switch (status) {
-    LeaveStatus.pending => const [
-      _StepVisual.done,
-      _StepVisual.current,
-      _StepVisual.upcoming,
-    ],
-    LeaveStatus.approved => const [
-      _StepVisual.done,
-      _StepVisual.done,
-      _StepVisual.done,
-    ],
-    LeaveStatus.rejected => const [
-      _StepVisual.done,
-      _StepVisual.rejected,
-      _StepVisual.upcoming,
-    ],
-  };
+  const LeaveApprovalTimeline({super.key, required this.steps});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final steps = _steps;
-    final labels = [
-      l10n.leaveStepSubmitted,
-      switch (steps[1]) {
-        _StepVisual.rejected => l10n.leaveStatusRejected,
-        _StepVisual.current => l10n.leaveStepManagerWaiting,
-        _ => l10n.leaveStepManagerReview,
-      },
-      l10n.leaveStepHrApproval,
+
+    final ordered = [...steps]..sort((a, b) => a.stepNo.compareTo(b.stepNo));
+    final nodes = <({String label, _DotVisual visual})>[
+      (label: l10n.leaveStepSubmitted, visual: _DotVisual.done),
+      for (final step in ordered)
+        (
+          label: LeaveCopy.stepRoleLabel(l10n, step.role),
+          visual: _visualFor(step.status),
+        ),
     ];
 
     return Column(
       children: [
         Row(
           children: [
-            for (var i = 0; i < steps.length; i++) ...[
-              _StepDot(index: i, state: steps[i]),
-              if (i < steps.length - 1)
+            for (var i = 0; i < nodes.length; i++) ...[
+              _Dot(index: i, visual: nodes[i].visual),
+              if (i < nodes.length - 1)
                 Expanded(
                   child: Container(
                     height: 2,
-                    color: steps[i] == _StepVisual.done
+                    color: nodes[i].visual == _DotVisual.done
                         ? AppColors.primary
                         : AppColors.gray300,
                   ),
@@ -71,35 +55,43 @@ class LeaveApprovalTimeline extends StatelessWidget {
         heightBx(h: 6),
         Row(
           children: [
-            SizedBox(
-              width: 72,
-              child: _StepLabel(text: labels[0], state: steps[0], align: TextAlign.left),
-            ),
-            Expanded(
-              child: _StepLabel(text: labels[1], state: steps[1], align: TextAlign.center),
-            ),
-            SizedBox(
-              width: 72,
-              child: _StepLabel(text: labels[2], state: steps[2], align: TextAlign.right),
-            ),
+            for (var i = 0; i < nodes.length; i++)
+              Expanded(
+                child: _Label(
+                  text: nodes[i].label,
+                  visual: nodes[i].visual,
+                  align: i == 0
+                      ? TextAlign.left
+                      : (i == nodes.length - 1
+                            ? TextAlign.right
+                            : TextAlign.center),
+                ),
+              ),
           ],
         ),
       ],
     );
   }
+
+  _DotVisual _visualFor(LeaveStepStatus status) => switch (status) {
+    LeaveStepStatus.approved => _DotVisual.done,
+    LeaveStepStatus.pending => _DotVisual.current,
+    LeaveStepStatus.rejected => _DotVisual.rejected,
+    LeaveStepStatus.waiting => _DotVisual.upcoming,
+  };
 }
 
-class _StepDot extends StatelessWidget {
+class _Dot extends StatelessWidget {
   final int index;
-  final _StepVisual state;
+  final _DotVisual visual;
 
-  const _StepDot({required this.index, required this.state});
+  const _Dot({required this.index, required this.visual});
 
   @override
   Widget build(BuildContext context) {
     const size = 32.0;
 
-    if (state == _StepVisual.upcoming) {
+    if (visual == _DotVisual.upcoming) {
       return Container(
         width: size,
         height: size,
@@ -118,10 +110,11 @@ class _StepDot extends StatelessWidget {
       );
     }
 
-    final (color, icon) = switch (state) {
-      _StepVisual.done => (AppColors.primary, Icons.check),
-      _StepVisual.current => (AppColors.primary, Icons.more_horiz),
-      _StepVisual.rejected || _StepVisual.upcoming => (AppColors.danger, Icons.close),
+    final (color, icon) = switch (visual) {
+      _DotVisual.done => (AppColors.primary, Icons.check),
+      _DotVisual.current => (AppColors.primary, Icons.more_horiz),
+      _DotVisual.rejected ||
+      _DotVisual.upcoming => (AppColors.danger, Icons.close),
     };
 
     return Container(
@@ -134,19 +127,19 @@ class _StepDot extends StatelessWidget {
   }
 }
 
-class _StepLabel extends StatelessWidget {
+class _Label extends StatelessWidget {
   final String text;
-  final _StepVisual state;
+  final _DotVisual visual;
   final TextAlign align;
 
-  const _StepLabel({required this.text, required this.state, required this.align});
+  const _Label({required this.text, required this.visual, required this.align});
 
   @override
   Widget build(BuildContext context) {
-    final color = switch (state) {
-      _StepVisual.done || _StepVisual.current => AppColors.primary,
-      _StepVisual.rejected => AppColors.danger,
-      _StepVisual.upcoming => AppColors.gray500,
+    final color = switch (visual) {
+      _DotVisual.done || _DotVisual.current => AppColors.primary,
+      _DotVisual.rejected => AppColors.danger,
+      _DotVisual.upcoming => AppColors.gray500,
     };
 
     return Text(

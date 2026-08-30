@@ -733,4 +733,115 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get leaveApprovalDecideFailed => 'ດຳເນີນການບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່';
+
+  @override
+  String get leaveTypeLoadFailed => 'ບໍ່ສາມາດໂຫຼດປະເພດການລາໄດ້.';
+
+  @override
+  String get leaveStatusCancelled => 'ຍົກເລີກແລ້ວ';
+
+  @override
+  String get leaveStepDeptHead => 'ຫົວໜ້າ';
+
+  @override
+  String get leaveStepHr => 'ຝ່າຍບຸກຄະລາກອນ';
+
+  @override
+  String get leaveDurationLabel => 'ຊ່ວງເວລາ';
+
+  @override
+  String get leaveDurationFullDay => 'ເຕັມມື້';
+
+  @override
+  String get leaveDurationFirstHalf => 'ຕອນເຊົ້າ';
+
+  @override
+  String get leaveDurationSecondHalf => 'ຕອນບ່າຍ';
+
+  @override
+  String get leaveHalfDayLabel => 'ເຄິ່ງມື້ (0.5)';
+
+  @override
+  String get leaveRequiredBadge => 'ຈຳເປັນ';
+
+  @override
+  String get leaveRequiresAttachmentBlocked =>
+      'ການລາປະເພດນີ້ຕ້ອງມີເອກະສານປະກອບ ເຊິ່ງຍັງບໍ່ຮອງຮັບການແນບໄຟລ໌ໃນແອັບ — ກະລຸນາຍື່ນຄຳຮ້ອງນີ້ຜ່ານເວັບ.';
+
+  @override
+  String get leaveInsufficientBalanceHint =>
+      'ວັນລາຄົງເຫຼືອບໍ່ພຽງພໍສຳລັບວັນທີ່ເລືອກ.';
+
+  @override
+  String leaveMaxDaysHint(int days) {
+    return 'ການລາປະເພດນີ້ຂໍໄດ້ສູງສຸດ $days ວັນຕໍ່ຄັ້ງ.';
+  }
+
+  @override
+  String get leaveEditAction => 'ແກ້ໄຂຄຳຮ້ອງ';
+
+  @override
+  String get leaveCancelAction => 'ຍົກເລີກຄຳຮ້ອງ';
+
+  @override
+  String get leaveCancelConfirm =>
+      'ຍົກເລີກຄຳຮ້ອງລານີ້ບໍ? ວັນທີ່ຈອງໄວ້ຈະຖືກຄືນສູ່ຍອດຄົງເຫຼືອ.';
+
+  @override
+  String get leaveRequestUpdated => 'ອັບເດດຄຳຮ້ອງລາແລ້ວ';
+
+  @override
+  String get leaveRequestCancelled => 'ຍົກເລີກຄຳຮ້ອງລາແລ້ວ';
+
+  @override
+  String get leaveRequestCancelFailed => 'ບໍ່ສາມາດຍົກເລີກຄຳຮ້ອງໄດ້.';
+
+  @override
+  String get leaveRejectReasonTitle => 'ເຫດຜົນການປະຕິເສດ';
+
+  @override
+  String get leaveRejectReasonHint => 'ແຈ້ງໃຫ້ພະນັກງານຮູ້ເຫດຜົນ';
+
+  @override
+  String get leaveRejectReasonSubmit => 'ປະຕິເສດ';
+
+  @override
+  String get leaveStepRefreshed =>
+      'ມີຄົນອື່ນຫາກໍ່ດຳເນີນການກັບຄຳຮ້ອງນີ້ — ກະລຸນາກວດຄືນ.';
+
+  @override
+  String get leaveDetailTitle => 'ລາຍລະອຽດການລາ';
+
+  @override
+  String get leaveApprovalChainLabel => 'ຄວາມຄືບໜ້າການອະນຸມັດ';
+
+  @override
+  String get leaveApproverNoteLabel => 'ໝາຍເຫດ';
+
+  @override
+  String get leaveAttachmentsLabel => 'ໄຟລ໌ແນບ';
+
+  @override
+  String get leavePendingRequestExists =>
+      'ທ່ານມີຄຳຮ້ອງລາທີ່ລໍຖ້າອະນຸມັດຢູ່ແລ້ວ ກະລຸນາລໍຖ້າໃຫ້ແລ້ວກ່ອນ.';
+
+  @override
+  String get leaveOverlapping => 'ວັນທີ່ເລືອກຊ້ອນກັບຄຳຮ້ອງລາອື່ນ.';
+
+  @override
+  String get leaveInsufficientBalance =>
+      'ວັນລາຄົງເຫຼືອບໍ່ພຽງພໍສຳລັບວັນທີ່ເລືອກ.';
+
+  @override
+  String get leaveStepChanged => 'ຄຳຮ້ອງນີ້ຫາກໍ່ຖືກອັບເດດ — ກະລຸນາກວດຄືນ.';
+
+  @override
+  String get leaveNotApprover => 'ທ່ານບໍ່ມີສິດອະນຸມັດຂັ້ນຕອນນີ້.';
+
+  @override
+  String get leaveInvalidStatus => 'ຄຳຮ້ອງນີ້ບໍ່ສາມາດປ່ຽນແປງໄດ້ອີກຕໍ່ໄປ.';
+
+  @override
+  String get leaveEmployeeNotFound =>
+      'ບັນຊີຂອງທ່ານຍັງບໍ່ໄດ້ເຊື່ອມກັບຂໍ້ມູນພະນັກງານ.';
 }

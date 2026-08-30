@@ -10,6 +10,9 @@ import '../../features/salary_history/domain/entities/payslip.dart';
 import '../../features/salary_history/presentation/pages/payslip_detail_page.dart';
 import '../../features/salary_history/presentation/pages/salary_history_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/time_off/domain/entities/leave_request.dart';
+import '../../features/time_off/presentation/pages/leave_request_detail_page.dart';
+import '../../features/time_off/presentation/pages/leave_request_edit_page.dart';
 import '../../features/time_off/presentation/pages/time_off_page.dart';
 import '../../core/widgets/error_page.dart';
 import '../widgets/main_shell_page.dart';
@@ -24,6 +27,8 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String attendanceHistory = '/attendance-history';
   static const String timeOff = '/time-off';
+  static const String timeOffRequestDetail = '/time-off/request';
+  static const String timeOffRequestEdit = '/time-off/request/edit';
   static const String salaryHistory = '/salary-history';
   static const String payslipDetail = '/salary-history/payslip';
   static const String notFound = '/404';
@@ -131,6 +136,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ? state.extra as TimeOffTab
               : TimeOffTab.history,
         ),
+      ),
+
+      // Leave request detail / edit — reached by tapping a history card; the
+      // request rides along as `extra`, so a direct hit with nothing to show
+      // falls through to the 404 page (same pattern as payslipDetail).
+      GoRoute(
+        path: AppRoutes.timeOffRequestDetail,
+        name: 'timeOffRequestDetail',
+        builder: (context, state) {
+          final request = state.extra;
+          if (request is! LeaveRequest) return const NotFoundPage();
+          return LeaveRequestDetailPage(request: request);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.timeOffRequestEdit,
+        name: 'timeOffRequestEdit',
+        builder: (context, state) {
+          final request = state.extra;
+          if (request is! LeaveRequest) return const NotFoundPage();
+          return LeaveRequestEditPage(request: request);
+        },
       ),
 
       // Salary history

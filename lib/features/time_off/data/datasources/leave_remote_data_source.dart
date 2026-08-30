@@ -1,214 +1,210 @@
-import '../../../../core/utils/result.dart';
-import '../../domain/entities/leave_approval.dart';
-import '../../domain/entities/leave_category.dart';
+import 'package:dio/dio.dart';
+
+import '../../../../core/errors/failure.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_response.dart';
+import '../../domain/entities/leave_balance.dart';
 import '../../domain/entities/leave_history_query.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_request_draft.dart';
 import '../../domain/entities/leave_status.dart';
-import '../../domain/entities/leave_summary.dart';
+import '../../domain/entities/leave_type.dart';
+import '../models/leave_balance_model.dart';
+import '../models/leave_draft_body.dart';
+import '../models/leave_request_model.dart';
+import '../models/leave_type_model.dart';
+import 'leave_api_paths.dart';
+import 'leave_error_code.dart';
 
+/// The leave calls the time-off screen can make (leave-request-flutter.md §3).
 abstract class LeaveRemoteDataSource {
-  Future<List<LeaveRequest>> history(LeaveHistoryQuery query);
-  Future<LeaveSummary> summary(int year);
-  Future<Unit> submit(LeaveRequestDraft draft);
-  Future<List<LeaveApproval>> pendingApprovals();
-  Future<List<LeaveApproval>> approvalHistory();
-  Future<Unit> decideApproval({required String requestId, required bool approve});
+  Future<List<LeaveType>> types();
+  Future<List<LeaveBalance>> balances(int year);
+  Future<List<LeaveRequest>> myRequests(LeaveHistoryQuery query);
+  Future<LeaveRequest> requestDetail(String id);
+  Future<LeaveRequest> submit(LeaveRequestDraft draft);
+  Future<LeaveRequest> update(String id, LeaveRequestDraft draft);
+  Future<LeaveRequest> cancel(String id);
+  Future<List<LeaveRequest>> myApprovals({LeaveStatus? status});
+  Future<LeaveRequest> approve({
+    required String id,
+    String? stepId,
+    String? note,
+  });
+  Future<LeaveRequest> reject({
+    required String id,
+    required String reason,
+    String? stepId,
+    String? note,
+  });
 }
 
-/// Stand-in for the leave endpoints, which don't exist yet — returns fixed
-/// sample data after a short delay so the UI has something real to render.
-/// Swap the bodies below for Dio calls once the API is available; the
-/// repository and everything above it never has to change.
 class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
-  static final _requests = <LeaveRequest>[
-    LeaveRequest(
-      id: '1',
-      category: LeaveCategory.annual,
-      startDate: DateTime(2026, 8, 25),
-      endDate: DateTime(2026, 8, 27),
-      totalDays: 3,
-      status: LeaveStatus.pending,
-    ),
-    LeaveRequest(
-      id: '2',
-      category: LeaveCategory.sick,
-      startDate: DateTime(2026, 8, 10),
-      endDate: DateTime(2026, 8, 10),
-      totalDays: 1,
-      status: LeaveStatus.approved,
-    ),
-    LeaveRequest(
-      id: '3',
-      category: LeaveCategory.personal,
-      startDate: DateTime(2026, 8, 3),
-      endDate: DateTime(2026, 8, 3),
-      totalDays: 1,
-      status: LeaveStatus.rejected,
-      reviewerComment: 'ມີປະຊຸມສຳຄັນໃນວັນດັ່ງກ່າວ',
-    ),
-  ];
+  /// A calendar month of leave never has more rows than this, so one page is
+  /// always the whole answer — same choice as `AttendanceRemoteDataSourceImpl`.
+  static const int _pageSize = 100;
+
+  final ApiClient _client;
+
+  LeaveRemoteDataSourceImpl(this._client);
 
   @override
-  Future<List<LeaveRequest>> history(LeaveHistoryQuery query) async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return _requests
-        .where((r) => query.category == null || r.category == query.category)
-        .where(
-          (r) =>
-              !r.endDate.isBefore(query.from) && !r.startDate.isAfter(query.to),
-        )
-        .toList();
+  Future<List<LeaveType>> types() async {
+    final response = await _client.get<dynamic>(LeavePaths.types);
+    return ApiEnvelope.unwrapList(
+      response.data,
+    ).map(LeaveTypeModel.fromJson).toList();
   }
 
   @override
-  Future<LeaveSummary> summary(int year) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return LeaveSummary(
-      year: year,
-      balances: const [
-        LeaveCategoryBalance(
-          category: LeaveCategory.annual,
-          entitledDays: 15,
-          usedDays: 3,
-        ),
-        LeaveCategoryBalance(
-          category: LeaveCategory.sick,
-          entitledDays: 30,
-          usedDays: 1,
-        ),
-        LeaveCategoryBalance(
-          category: LeaveCategory.personal,
-          entitledDays: 5,
-          usedDays: 1,
-        ),
-        LeaveCategoryBalance(
-          category: LeaveCategory.rest,
-          entitledDays: 5,
-          usedDays: 0,
-        ),
-      ],
+  Future<List<LeaveBalance>> balances(int year) async {
+    final response = await _client.get<dynamic>(
+      LeavePaths.balancesMy,
+      queryParameters: {'year': year},
     );
+    return ApiEnvelope.unwrapList(
+      response.data,
+    ).map(LeaveBalanceModel.fromJson).toList();
   }
 
   @override
-  Future<Unit> submit(LeaveRequestDraft draft) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    final sorted = [...draft.dates]..sort();
-    _requests.insert(
-      0,
-      LeaveRequest(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        category: draft.category,
-        startDate: sorted.first,
-        endDate: sorted.last,
-        totalDays: sorted.length,
-        status: LeaveStatus.pending,
-      ),
+  Future<List<LeaveRequest>> myRequests(LeaveHistoryQuery query) async {
+    final response = await _client.get<dynamic>(
+      LeavePaths.requestsMy,
+      queryParameters: {
+        'start_date': _isoDate(query.from),
+        'end_date': _isoDate(query.to),
+        if (query.leaveTypeId != null) 'leave_type_id': query.leaveTypeId,
+        if (query.status != null) 'status': query.status!.name,
+        'page': 1,
+        'per_page': _pageSize,
+      },
     );
-    return Unit.instance;
-  }
-
-  // "Alex Vang"'s entries mirror `_requests` above — this stands in for the
-  // approver's view of the same employee's submissions plus a couple of
-  // colleagues', so the two mock lists read as one coherent team.
-  static final _approvals = <LeaveApproval>[
-    LeaveApproval(
-      id: 'a1',
-      requesterName: 'Alex Vang',
-      category: LeaveCategory.annual,
-      startDate: DateTime(2026, 8, 25),
-      endDate: DateTime(2026, 8, 27),
-      totalDays: 3,
-      reason: 'ພັກຜ່ອນກັບຄອບຄົວ',
-      status: LeaveStatus.pending,
-      isNew: true,
-    ),
-    LeaveApproval(
-      id: 'a2',
-      requesterName: 'Kham Souvanna',
-      category: LeaveCategory.personal,
-      startDate: DateTime(2026, 8, 24),
-      endDate: DateTime(2026, 8, 24),
-      totalDays: 1,
-      reason: 'ໄປທຸລະກິດສ່ວນຕົວ',
-      status: LeaveStatus.pending,
-      isNew: true,
-    ),
-    LeaveApproval(
-      id: 'a3',
-      requesterName: 'Noy Phommachanh',
-      category: LeaveCategory.sick,
-      startDate: DateTime(2026, 8, 23),
-      endDate: DateTime(2026, 8, 23),
-      totalDays: 1,
-      reason: 'ບໍ່ສະບາຍ',
-      status: LeaveStatus.approved,
-    ),
-    LeaveApproval(
-      id: 'a4',
-      requesterName: 'Alex Vang',
-      category: LeaveCategory.sick,
-      startDate: DateTime(2026, 8, 10),
-      endDate: DateTime(2026, 8, 10),
-      totalDays: 1,
-      reason: 'ບໍ່ສະບາຍ',
-      status: LeaveStatus.approved,
-    ),
-    LeaveApproval(
-      id: 'a5',
-      requesterName: 'Alex Vang',
-      category: LeaveCategory.personal,
-      startDate: DateTime(2026, 8, 3),
-      endDate: DateTime(2026, 8, 3),
-      totalDays: 1,
-      reason: 'ມີປະຊຸມສຳຄັນໃນວັນດັ່ງກ່າວ',
-      status: LeaveStatus.rejected,
-    ),
-    LeaveApproval(
-      id: 'a6',
-      requesterName: 'Kham Souvanna',
-      category: LeaveCategory.annual,
-      startDate: DateTime(2026, 8, 5),
-      endDate: DateTime(2026, 8, 6),
-      totalDays: 2,
-      reason: 'ໄປວຽກບ້ານ',
-      status: LeaveStatus.approved,
-    ),
-  ];
-
-  @override
-  Future<List<LeaveApproval>> pendingApprovals() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return _approvals.where((a) => a.status == LeaveStatus.pending).toList();
+    return _parseList(response.data);
   }
 
   @override
-  Future<List<LeaveApproval>> approvalHistory() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return _approvals.where((a) => a.status != LeaveStatus.pending).toList();
+  Future<LeaveRequest> requestDetail(String id) async {
+    final response = await _client.get<dynamic>(LeavePaths.request(id));
+    return LeaveRequestModel.fromJson(ApiEnvelope.unwrapObject(response.data));
   }
 
   @override
-  Future<Unit> decideApproval({
-    required String requestId,
-    required bool approve,
-  }) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    final index = _approvals.indexWhere((a) => a.id == requestId);
-    if (index == -1) return Unit.instance;
+  Future<LeaveRequest> submit(LeaveRequestDraft draft) {
+    return _business(() async {
+      final response = await _client.post<dynamic>(
+        LeavePaths.requests,
+        data: LeaveDraftBody.from(draft),
+      );
+      return LeaveRequestModel.fromJson(
+        ApiEnvelope.unwrapObject(response.data),
+      );
+    });
+  }
 
-    final current = _approvals[index];
-    _approvals[index] = LeaveApproval(
-      id: current.id,
-      requesterName: current.requesterName,
-      category: current.category,
-      startDate: current.startDate,
-      endDate: current.endDate,
-      totalDays: current.totalDays,
-      reason: current.reason,
-      status: approve ? LeaveStatus.approved : LeaveStatus.rejected,
+  @override
+  Future<LeaveRequest> update(String id, LeaveRequestDraft draft) {
+    return _business(() async {
+      final response = await _client.put<dynamic>(
+        LeavePaths.request(id),
+        data: LeaveDraftBody.from(draft),
+      );
+      return LeaveRequestModel.fromJson(
+        ApiEnvelope.unwrapObject(response.data),
+      );
+    });
+  }
+
+  @override
+  Future<LeaveRequest> cancel(String id) {
+    return _business(() async {
+      final response = await _client.put<dynamic>(LeavePaths.cancel(id));
+      return LeaveRequestModel.fromJson(
+        ApiEnvelope.unwrapObject(response.data),
+      );
+    });
+  }
+
+  @override
+  Future<List<LeaveRequest>> myApprovals({LeaveStatus? status}) async {
+    final response = await _client.get<dynamic>(
+      LeavePaths.myApprovals,
+      queryParameters: {
+        if (status != null) 'status': status.name,
+        'page': 1,
+        'per_page': _pageSize,
+      },
     );
-    return Unit.instance;
+    return _parseList(response.data);
+  }
+
+  @override
+  Future<LeaveRequest> approve({
+    required String id,
+    String? stepId,
+    String? note,
+  }) {
+    return _business(() async {
+      final response = await _client.put<dynamic>(
+        LeavePaths.approve(id),
+        data: {
+          if (stepId != null) 'step_id': stepId,
+          if (note != null && note.trim().isNotEmpty)
+            'approver_note': note.trim(),
+        },
+      );
+      return LeaveRequestModel.fromJson(
+        ApiEnvelope.unwrapObject(response.data),
+      );
+    });
+  }
+
+  @override
+  Future<LeaveRequest> reject({
+    required String id,
+    required String reason,
+    String? stepId,
+    String? note,
+  }) {
+    return _business(() async {
+      final response = await _client.put<dynamic>(
+        LeavePaths.reject(id),
+        data: {
+          'reason': reason.trim(),
+          if (stepId != null) 'step_id': stepId,
+          if (note != null && note.trim().isNotEmpty)
+            'approver_note': note.trim(),
+        },
+      );
+      return LeaveRequestModel.fromJson(
+        ApiEnvelope.unwrapObject(response.data),
+      );
+    });
+  }
+
+  List<LeaveRequest> _parseList(dynamic body) =>
+      ApiEnvelope.unwrapList(body).map(LeaveRequestModel.fromJson).toList();
+
+  /// Turns a documented business refusal (§4) into a
+  /// `Failure.validation(message: <token>)` the localizer can translate;
+  /// everything else rethrows for `BaseRepository.toFailure`. Same pattern as
+  /// `AttendanceRemoteDataSourceImpl._asBlocked`.
+  Future<T> _business<T>(Future<T> Function() call) async {
+    try {
+      return await call();
+    } on DioException catch (error) {
+      final code = ApiError.tryParse(error.response?.data)?.code;
+      final token = LeaveErrorCode.tokenByWire[code];
+      if (token != null) {
+        throw Failure.validation(message: token);
+      }
+      rethrow;
+    }
+  }
+
+  static String _isoDate(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$month-$day';
   }
 }

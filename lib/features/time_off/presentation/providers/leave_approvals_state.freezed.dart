@@ -12,13 +12,14 @@ part of 'leave_approvals_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$LeaveApprovalsState {
-  AsyncValue<List<LeaveApproval>> get pending =>
+  AsyncValue<List<LeaveRequest>> get pending =>
       throw _privateConstructorUsedError;
-  AsyncValue<List<LeaveApproval>> get history =>
+  AsyncValue<List<LeaveRequest>> get history =>
       throw _privateConstructorUsedError;
   Set<String> get decidingIds => throw _privateConstructorUsedError;
 
@@ -30,13 +31,15 @@ mixin _$LeaveApprovalsState {
 /// @nodoc
 abstract class $LeaveApprovalsStateCopyWith<$Res> {
   factory $LeaveApprovalsStateCopyWith(
-          LeaveApprovalsState value, $Res Function(LeaveApprovalsState) then) =
-      _$LeaveApprovalsStateCopyWithImpl<$Res, LeaveApprovalsState>;
+    LeaveApprovalsState value,
+    $Res Function(LeaveApprovalsState) then,
+  ) = _$LeaveApprovalsStateCopyWithImpl<$Res, LeaveApprovalsState>;
   @useResult
-  $Res call(
-      {AsyncValue<List<LeaveApproval>> pending,
-      AsyncValue<List<LeaveApproval>> history,
-      Set<String> decidingIds});
+  $Res call({
+    AsyncValue<List<LeaveRequest>> pending,
+    AsyncValue<List<LeaveRequest>> history,
+    Set<String> decidingIds,
+  });
 }
 
 /// @nodoc
@@ -56,44 +59,50 @@ class _$LeaveApprovalsStateCopyWithImpl<$Res, $Val extends LeaveApprovalsState>
     Object? history = null,
     Object? decidingIds = null,
   }) {
-    return _then(_value.copyWith(
-      pending: null == pending
-          ? _value.pending
-          : pending // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<List<LeaveApproval>>,
-      history: null == history
-          ? _value.history
-          : history // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<List<LeaveApproval>>,
-      decidingIds: null == decidingIds
-          ? _value.decidingIds
-          : decidingIds // ignore: cast_nullable_to_non_nullable
-              as Set<String>,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            pending: null == pending
+                ? _value.pending
+                : pending // ignore: cast_nullable_to_non_nullable
+                      as AsyncValue<List<LeaveRequest>>,
+            history: null == history
+                ? _value.history
+                : history // ignore: cast_nullable_to_non_nullable
+                      as AsyncValue<List<LeaveRequest>>,
+            decidingIds: null == decidingIds
+                ? _value.decidingIds
+                : decidingIds // ignore: cast_nullable_to_non_nullable
+                      as Set<String>,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$LeaveApprovalsStateImplCopyWith<$Res>
     implements $LeaveApprovalsStateCopyWith<$Res> {
-  factory _$$LeaveApprovalsStateImplCopyWith(_$LeaveApprovalsStateImpl value,
-          $Res Function(_$LeaveApprovalsStateImpl) then) =
-      __$$LeaveApprovalsStateImplCopyWithImpl<$Res>;
+  factory _$$LeaveApprovalsStateImplCopyWith(
+    _$LeaveApprovalsStateImpl value,
+    $Res Function(_$LeaveApprovalsStateImpl) then,
+  ) = __$$LeaveApprovalsStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {AsyncValue<List<LeaveApproval>> pending,
-      AsyncValue<List<LeaveApproval>> history,
-      Set<String> decidingIds});
+  $Res call({
+    AsyncValue<List<LeaveRequest>> pending,
+    AsyncValue<List<LeaveRequest>> history,
+    Set<String> decidingIds,
+  });
 }
 
 /// @nodoc
 class __$$LeaveApprovalsStateImplCopyWithImpl<$Res>
     extends _$LeaveApprovalsStateCopyWithImpl<$Res, _$LeaveApprovalsStateImpl>
     implements _$$LeaveApprovalsStateImplCopyWith<$Res> {
-  __$$LeaveApprovalsStateImplCopyWithImpl(_$LeaveApprovalsStateImpl _value,
-      $Res Function(_$LeaveApprovalsStateImpl) _then)
-      : super(_value, _then);
+  __$$LeaveApprovalsStateImplCopyWithImpl(
+    _$LeaveApprovalsStateImpl _value,
+    $Res Function(_$LeaveApprovalsStateImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -102,38 +111,40 @@ class __$$LeaveApprovalsStateImplCopyWithImpl<$Res>
     Object? history = null,
     Object? decidingIds = null,
   }) {
-    return _then(_$LeaveApprovalsStateImpl(
-      pending: null == pending
-          ? _value.pending
-          : pending // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<List<LeaveApproval>>,
-      history: null == history
-          ? _value.history
-          : history // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<List<LeaveApproval>>,
-      decidingIds: null == decidingIds
-          ? _value._decidingIds
-          : decidingIds // ignore: cast_nullable_to_non_nullable
-              as Set<String>,
-    ));
+    return _then(
+      _$LeaveApprovalsStateImpl(
+        pending: null == pending
+            ? _value.pending
+            : pending // ignore: cast_nullable_to_non_nullable
+                  as AsyncValue<List<LeaveRequest>>,
+        history: null == history
+            ? _value.history
+            : history // ignore: cast_nullable_to_non_nullable
+                  as AsyncValue<List<LeaveRequest>>,
+        decidingIds: null == decidingIds
+            ? _value._decidingIds
+            : decidingIds // ignore: cast_nullable_to_non_nullable
+                  as Set<String>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$LeaveApprovalsStateImpl implements _LeaveApprovalsState {
-  const _$LeaveApprovalsStateImpl(
-      {this.pending = const AsyncValue<List<LeaveApproval>>.loading(),
-      this.history = const AsyncValue<List<LeaveApproval>>.loading(),
-      final Set<String> decidingIds = const <String>{}})
-      : _decidingIds = decidingIds;
+  const _$LeaveApprovalsStateImpl({
+    this.pending = const AsyncValue<List<LeaveRequest>>.loading(),
+    this.history = const AsyncValue<List<LeaveRequest>>.loading(),
+    final Set<String> decidingIds = const <String>{},
+  }) : _decidingIds = decidingIds;
 
   @override
   @JsonKey()
-  final AsyncValue<List<LeaveApproval>> pending;
+  final AsyncValue<List<LeaveRequest>> pending;
   @override
   @JsonKey()
-  final AsyncValue<List<LeaveApproval>> history;
+  final AsyncValue<List<LeaveRequest>> history;
   final Set<String> _decidingIds;
   @override
   @JsonKey()
@@ -155,32 +166,41 @@ class _$LeaveApprovalsStateImpl implements _LeaveApprovalsState {
             other is _$LeaveApprovalsStateImpl &&
             (identical(other.pending, pending) || other.pending == pending) &&
             (identical(other.history, history) || other.history == history) &&
-            const DeepCollectionEquality()
-                .equals(other._decidingIds, _decidingIds));
+            const DeepCollectionEquality().equals(
+              other._decidingIds,
+              _decidingIds,
+            ));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, pending, history,
-      const DeepCollectionEquality().hash(_decidingIds));
+  int get hashCode => Object.hash(
+    runtimeType,
+    pending,
+    history,
+    const DeepCollectionEquality().hash(_decidingIds),
+  );
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$LeaveApprovalsStateImplCopyWith<_$LeaveApprovalsStateImpl> get copyWith =>
       __$$LeaveApprovalsStateImplCopyWithImpl<_$LeaveApprovalsStateImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 }
 
 abstract class _LeaveApprovalsState implements LeaveApprovalsState {
-  const factory _LeaveApprovalsState(
-      {final AsyncValue<List<LeaveApproval>> pending,
-      final AsyncValue<List<LeaveApproval>> history,
-      final Set<String> decidingIds}) = _$LeaveApprovalsStateImpl;
+  const factory _LeaveApprovalsState({
+    final AsyncValue<List<LeaveRequest>> pending,
+    final AsyncValue<List<LeaveRequest>> history,
+    final Set<String> decidingIds,
+  }) = _$LeaveApprovalsStateImpl;
 
   @override
-  AsyncValue<List<LeaveApproval>> get pending;
+  AsyncValue<List<LeaveRequest>> get pending;
   @override
-  AsyncValue<List<LeaveApproval>> get history;
+  AsyncValue<List<LeaveRequest>> get history;
   @override
   Set<String> get decidingIds;
   @override

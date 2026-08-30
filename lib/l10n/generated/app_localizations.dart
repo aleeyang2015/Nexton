@@ -1435,6 +1435,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That didn\'t go through. Please try again.'**
   String get leaveApprovalDecideFailed;
+
+  /// No description provided for @leaveTypeLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load leave types.'**
+  String get leaveTypeLoadFailed;
+
+  /// No description provided for @leaveStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get leaveStatusCancelled;
+
+  /// No description provided for @leaveStepDeptHead.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager'**
+  String get leaveStepDeptHead;
+
+  /// No description provided for @leaveStepHr.
+  ///
+  /// In en, this message translates to:
+  /// **'HR'**
+  String get leaveStepHr;
+
+  /// No description provided for @leaveDurationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Day part'**
+  String get leaveDurationLabel;
+
+  /// No description provided for @leaveDurationFullDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Full day'**
+  String get leaveDurationFullDay;
+
+  /// No description provided for @leaveDurationFirstHalf.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get leaveDurationFirstHalf;
+
+  /// No description provided for @leaveDurationSecondHalf.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon'**
+  String get leaveDurationSecondHalf;
+
+  /// No description provided for @leaveHalfDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Half day (0.5)'**
+  String get leaveHalfDayLabel;
+
+  /// No description provided for @leaveRequiredBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get leaveRequiredBadge;
+
+  /// No description provided for @leaveRequiresAttachmentBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave type needs a supporting document. Attaching files isn\'t available in the app yet — please submit this request on the web.'**
+  String get leaveRequiresAttachmentBlocked;
+
+  /// No description provided for @leaveInsufficientBalanceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough leave balance for the days selected.'**
+  String get leaveInsufficientBalanceHint;
+
+  /// No description provided for @leaveMaxDaysHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave type allows at most {days} days per request.'**
+  String leaveMaxDaysHint(int days);
+
+  /// No description provided for @leaveEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit request'**
+  String get leaveEditAction;
+
+  /// No description provided for @leaveCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel request'**
+  String get leaveCancelAction;
+
+  /// No description provided for @leaveCancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this leave request? The reserved days go back to your balance.'**
+  String get leaveCancelConfirm;
+
+  /// No description provided for @leaveRequestUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave request updated'**
+  String get leaveRequestUpdated;
+
+  /// No description provided for @leaveRequestCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave request cancelled'**
+  String get leaveRequestCancelled;
+
+  /// No description provided for @leaveRequestCancelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t cancel the request.'**
+  String get leaveRequestCancelFailed;
+
+  /// No description provided for @leaveRejectReasonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for rejection'**
+  String get leaveRejectReasonTitle;
+
+  /// No description provided for @leaveRejectReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Let the employee know why'**
+  String get leaveRejectReasonHint;
+
+  /// No description provided for @leaveRejectReasonSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get leaveRejectReasonSubmit;
+
+  /// No description provided for @leaveStepRefreshed.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone else just acted on this request — please review it again.'**
+  String get leaveStepRefreshed;
+
+  /// No description provided for @leaveDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave details'**
+  String get leaveDetailTitle;
+
+  /// No description provided for @leaveApprovalChainLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval progress'**
+  String get leaveApprovalChainLabel;
+
+  /// No description provided for @leaveApproverNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get leaveApproverNoteLabel;
+
+  /// No description provided for @leaveAttachmentsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get leaveAttachmentsLabel;
+
+  /// No description provided for @leavePendingRequestExists.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have a leave request awaiting approval. Wait for it to be resolved first.'**
+  String get leavePendingRequestExists;
+
+  /// No description provided for @leaveOverlapping.
+  ///
+  /// In en, this message translates to:
+  /// **'Those dates overlap with another leave request.'**
+  String get leaveOverlapping;
+
+  /// No description provided for @leaveInsufficientBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have enough leave balance for those dates.'**
+  String get leaveInsufficientBalance;
+
+  /// No description provided for @leaveStepChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'This request was just updated — please review it again.'**
+  String get leaveStepChanged;
+
+  /// No description provided for @leaveNotApprover.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t approve this step.'**
+  String get leaveNotApprover;
+
+  /// No description provided for @leaveInvalidStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'This request can no longer be changed.'**
+  String get leaveInvalidStatus;
+
+  /// No description provided for @leaveEmployeeNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account isn\'t linked to an employee record.'**
+  String get leaveEmployeeNotFound;
 }
 
 class _AppLocalizationsDelegate

@@ -12,16 +12,18 @@ part of 'leave_history_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$LeaveHistoryState {
-  /// `null` means "all categories".
-  LeaveCategory? get category => throw _privateConstructorUsedError;
+  /// `null` means "all leave types".
+  String? get leaveTypeId => throw _privateConstructorUsedError;
   DateTime get from => throw _privateConstructorUsedError;
   DateTime get to => throw _privateConstructorUsedError;
   AsyncValue<List<LeaveRequest>> get requests =>
       throw _privateConstructorUsedError;
+  Set<String> get cancellingIds => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $LeaveHistoryStateCopyWith<LeaveHistoryState> get copyWith =>
@@ -31,14 +33,17 @@ mixin _$LeaveHistoryState {
 /// @nodoc
 abstract class $LeaveHistoryStateCopyWith<$Res> {
   factory $LeaveHistoryStateCopyWith(
-          LeaveHistoryState value, $Res Function(LeaveHistoryState) then) =
-      _$LeaveHistoryStateCopyWithImpl<$Res, LeaveHistoryState>;
+    LeaveHistoryState value,
+    $Res Function(LeaveHistoryState) then,
+  ) = _$LeaveHistoryStateCopyWithImpl<$Res, LeaveHistoryState>;
   @useResult
-  $Res call(
-      {LeaveCategory? category,
-      DateTime from,
-      DateTime to,
-      AsyncValue<List<LeaveRequest>> requests});
+  $Res call({
+    String? leaveTypeId,
+    DateTime from,
+    DateTime to,
+    AsyncValue<List<LeaveRequest>> requests,
+    Set<String> cancellingIds,
+  });
 }
 
 /// @nodoc
@@ -54,96 +59,117 @@ class _$LeaveHistoryStateCopyWithImpl<$Res, $Val extends LeaveHistoryState>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? category = freezed,
+    Object? leaveTypeId = freezed,
     Object? from = null,
     Object? to = null,
     Object? requests = null,
+    Object? cancellingIds = null,
   }) {
-    return _then(_value.copyWith(
-      category: freezed == category
-          ? _value.category
-          : category // ignore: cast_nullable_to_non_nullable
-              as LeaveCategory?,
-      from: null == from
-          ? _value.from
-          : from // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      to: null == to
-          ? _value.to
-          : to // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      requests: null == requests
-          ? _value.requests
-          : requests // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<List<LeaveRequest>>,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            leaveTypeId: freezed == leaveTypeId
+                ? _value.leaveTypeId
+                : leaveTypeId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            from: null == from
+                ? _value.from
+                : from // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+            to: null == to
+                ? _value.to
+                : to // ignore: cast_nullable_to_non_nullable
+                      as DateTime,
+            requests: null == requests
+                ? _value.requests
+                : requests // ignore: cast_nullable_to_non_nullable
+                      as AsyncValue<List<LeaveRequest>>,
+            cancellingIds: null == cancellingIds
+                ? _value.cancellingIds
+                : cancellingIds // ignore: cast_nullable_to_non_nullable
+                      as Set<String>,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$LeaveHistoryStateImplCopyWith<$Res>
     implements $LeaveHistoryStateCopyWith<$Res> {
-  factory _$$LeaveHistoryStateImplCopyWith(_$LeaveHistoryStateImpl value,
-          $Res Function(_$LeaveHistoryStateImpl) then) =
-      __$$LeaveHistoryStateImplCopyWithImpl<$Res>;
+  factory _$$LeaveHistoryStateImplCopyWith(
+    _$LeaveHistoryStateImpl value,
+    $Res Function(_$LeaveHistoryStateImpl) then,
+  ) = __$$LeaveHistoryStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {LeaveCategory? category,
-      DateTime from,
-      DateTime to,
-      AsyncValue<List<LeaveRequest>> requests});
+  $Res call({
+    String? leaveTypeId,
+    DateTime from,
+    DateTime to,
+    AsyncValue<List<LeaveRequest>> requests,
+    Set<String> cancellingIds,
+  });
 }
 
 /// @nodoc
 class __$$LeaveHistoryStateImplCopyWithImpl<$Res>
     extends _$LeaveHistoryStateCopyWithImpl<$Res, _$LeaveHistoryStateImpl>
     implements _$$LeaveHistoryStateImplCopyWith<$Res> {
-  __$$LeaveHistoryStateImplCopyWithImpl(_$LeaveHistoryStateImpl _value,
-      $Res Function(_$LeaveHistoryStateImpl) _then)
-      : super(_value, _then);
+  __$$LeaveHistoryStateImplCopyWithImpl(
+    _$LeaveHistoryStateImpl _value,
+    $Res Function(_$LeaveHistoryStateImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? category = freezed,
+    Object? leaveTypeId = freezed,
     Object? from = null,
     Object? to = null,
     Object? requests = null,
+    Object? cancellingIds = null,
   }) {
-    return _then(_$LeaveHistoryStateImpl(
-      category: freezed == category
-          ? _value.category
-          : category // ignore: cast_nullable_to_non_nullable
-              as LeaveCategory?,
-      from: null == from
-          ? _value.from
-          : from // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      to: null == to
-          ? _value.to
-          : to // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      requests: null == requests
-          ? _value.requests
-          : requests // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<List<LeaveRequest>>,
-    ));
+    return _then(
+      _$LeaveHistoryStateImpl(
+        leaveTypeId: freezed == leaveTypeId
+            ? _value.leaveTypeId
+            : leaveTypeId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        from: null == from
+            ? _value.from
+            : from // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+        to: null == to
+            ? _value.to
+            : to // ignore: cast_nullable_to_non_nullable
+                  as DateTime,
+        requests: null == requests
+            ? _value.requests
+            : requests // ignore: cast_nullable_to_non_nullable
+                  as AsyncValue<List<LeaveRequest>>,
+        cancellingIds: null == cancellingIds
+            ? _value._cancellingIds
+            : cancellingIds // ignore: cast_nullable_to_non_nullable
+                  as Set<String>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$LeaveHistoryStateImpl implements _LeaveHistoryState {
-  const _$LeaveHistoryStateImpl(
-      {this.category,
-      required this.from,
-      required this.to,
-      this.requests = const AsyncValue<List<LeaveRequest>>.loading()});
+  const _$LeaveHistoryStateImpl({
+    this.leaveTypeId,
+    required this.from,
+    required this.to,
+    this.requests = const AsyncValue<List<LeaveRequest>>.loading(),
+    final Set<String> cancellingIds = const <String>{},
+  }) : _cancellingIds = cancellingIds;
 
-  /// `null` means "all categories".
+  /// `null` means "all leave types".
   @override
-  final LeaveCategory? category;
+  final String? leaveTypeId;
   @override
   final DateTime from;
   @override
@@ -151,10 +177,18 @@ class _$LeaveHistoryStateImpl implements _LeaveHistoryState {
   @override
   @JsonKey()
   final AsyncValue<List<LeaveRequest>> requests;
+  final Set<String> _cancellingIds;
+  @override
+  @JsonKey()
+  Set<String> get cancellingIds {
+    if (_cancellingIds is EqualUnmodifiableSetView) return _cancellingIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableSetView(_cancellingIds);
+  }
 
   @override
   String toString() {
-    return 'LeaveHistoryState(category: $category, from: $from, to: $to, requests: $requests)';
+    return 'LeaveHistoryState(leaveTypeId: $leaveTypeId, from: $from, to: $to, requests: $requests, cancellingIds: $cancellingIds)';
   }
 
   @override
@@ -162,42 +196,58 @@ class _$LeaveHistoryStateImpl implements _LeaveHistoryState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$LeaveHistoryStateImpl &&
-            (identical(other.category, category) ||
-                other.category == category) &&
+            (identical(other.leaveTypeId, leaveTypeId) ||
+                other.leaveTypeId == leaveTypeId) &&
             (identical(other.from, from) || other.from == from) &&
             (identical(other.to, to) || other.to == to) &&
             (identical(other.requests, requests) ||
-                other.requests == requests));
+                other.requests == requests) &&
+            const DeepCollectionEquality().equals(
+              other._cancellingIds,
+              _cancellingIds,
+            ));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, category, from, to, requests);
+  int get hashCode => Object.hash(
+    runtimeType,
+    leaveTypeId,
+    from,
+    to,
+    requests,
+    const DeepCollectionEquality().hash(_cancellingIds),
+  );
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$LeaveHistoryStateImplCopyWith<_$LeaveHistoryStateImpl> get copyWith =>
       __$$LeaveHistoryStateImplCopyWithImpl<_$LeaveHistoryStateImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 }
 
 abstract class _LeaveHistoryState implements LeaveHistoryState {
-  const factory _LeaveHistoryState(
-      {final LeaveCategory? category,
-      required final DateTime from,
-      required final DateTime to,
-      final AsyncValue<List<LeaveRequest>> requests}) = _$LeaveHistoryStateImpl;
+  const factory _LeaveHistoryState({
+    final String? leaveTypeId,
+    required final DateTime from,
+    required final DateTime to,
+    final AsyncValue<List<LeaveRequest>> requests,
+    final Set<String> cancellingIds,
+  }) = _$LeaveHistoryStateImpl;
 
   @override
-
-  /// `null` means "all categories".
-  LeaveCategory? get category;
+  /// `null` means "all leave types".
+  String? get leaveTypeId;
   @override
   DateTime get from;
   @override
   DateTime get to;
   @override
   AsyncValue<List<LeaveRequest>> get requests;
+  @override
+  Set<String> get cancellingIds;
   @override
   @JsonKey(ignore: true)
   _$$LeaveHistoryStateImplCopyWith<_$LeaveHistoryStateImpl> get copyWith =>

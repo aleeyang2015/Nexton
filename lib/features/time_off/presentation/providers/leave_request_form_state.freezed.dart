@@ -12,15 +12,20 @@ part of 'leave_request_form_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$LeaveRequestFormState {
-  LeaveCategory get category => throw _privateConstructorUsedError;
+  /// Non-null once [LeaveRequestFormNotifier.seed] has run — i.e. edit mode.
+  String? get editingRequestId => throw _privateConstructorUsedError;
+  String? get leaveTypeId => throw _privateConstructorUsedError;
   List<DateTime> get dates => throw _privateConstructorUsedError;
+  LeaveDurationType get durationType => throw _privateConstructorUsedError;
   DateTime? get returnToWorkOverride => throw _privateConstructorUsedError;
   String get reason => throw _privateConstructorUsedError;
-  AsyncValue<Unit> get submission => throw _privateConstructorUsedError;
+  AsyncValue<LeaveRequest?> get submission =>
+      throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $LeaveRequestFormStateCopyWith<LeaveRequestFormState> get copyWith =>
@@ -29,21 +34,27 @@ mixin _$LeaveRequestFormState {
 
 /// @nodoc
 abstract class $LeaveRequestFormStateCopyWith<$Res> {
-  factory $LeaveRequestFormStateCopyWith(LeaveRequestFormState value,
-          $Res Function(LeaveRequestFormState) then) =
-      _$LeaveRequestFormStateCopyWithImpl<$Res, LeaveRequestFormState>;
+  factory $LeaveRequestFormStateCopyWith(
+    LeaveRequestFormState value,
+    $Res Function(LeaveRequestFormState) then,
+  ) = _$LeaveRequestFormStateCopyWithImpl<$Res, LeaveRequestFormState>;
   @useResult
-  $Res call(
-      {LeaveCategory category,
-      List<DateTime> dates,
-      DateTime? returnToWorkOverride,
-      String reason,
-      AsyncValue<Unit> submission});
+  $Res call({
+    String? editingRequestId,
+    String? leaveTypeId,
+    List<DateTime> dates,
+    LeaveDurationType durationType,
+    DateTime? returnToWorkOverride,
+    String reason,
+    AsyncValue<LeaveRequest?> submission,
+  });
 }
 
 /// @nodoc
-class _$LeaveRequestFormStateCopyWithImpl<$Res,
-        $Val extends LeaveRequestFormState>
+class _$LeaveRequestFormStateCopyWithImpl<
+  $Res,
+  $Val extends LeaveRequestFormState
+>
     implements $LeaveRequestFormStateCopyWith<$Res> {
   _$LeaveRequestFormStateCopyWithImpl(this._value, this._then);
 
@@ -55,34 +66,47 @@ class _$LeaveRequestFormStateCopyWithImpl<$Res,
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? category = null,
+    Object? editingRequestId = freezed,
+    Object? leaveTypeId = freezed,
     Object? dates = null,
+    Object? durationType = null,
     Object? returnToWorkOverride = freezed,
     Object? reason = null,
     Object? submission = null,
   }) {
-    return _then(_value.copyWith(
-      category: null == category
-          ? _value.category
-          : category // ignore: cast_nullable_to_non_nullable
-              as LeaveCategory,
-      dates: null == dates
-          ? _value.dates
-          : dates // ignore: cast_nullable_to_non_nullable
-              as List<DateTime>,
-      returnToWorkOverride: freezed == returnToWorkOverride
-          ? _value.returnToWorkOverride
-          : returnToWorkOverride // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      reason: null == reason
-          ? _value.reason
-          : reason // ignore: cast_nullable_to_non_nullable
-              as String,
-      submission: null == submission
-          ? _value.submission
-          : submission // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<Unit>,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            editingRequestId: freezed == editingRequestId
+                ? _value.editingRequestId
+                : editingRequestId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            leaveTypeId: freezed == leaveTypeId
+                ? _value.leaveTypeId
+                : leaveTypeId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            dates: null == dates
+                ? _value.dates
+                : dates // ignore: cast_nullable_to_non_nullable
+                      as List<DateTime>,
+            durationType: null == durationType
+                ? _value.durationType
+                : durationType // ignore: cast_nullable_to_non_nullable
+                      as LeaveDurationType,
+            returnToWorkOverride: freezed == returnToWorkOverride
+                ? _value.returnToWorkOverride
+                : returnToWorkOverride // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            reason: null == reason
+                ? _value.reason
+                : reason // ignore: cast_nullable_to_non_nullable
+                      as String,
+            submission: null == submission
+                ? _value.submission
+                : submission // ignore: cast_nullable_to_non_nullable
+                      as AsyncValue<LeaveRequest?>,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -90,77 +114,97 @@ class _$LeaveRequestFormStateCopyWithImpl<$Res,
 abstract class _$$LeaveRequestFormStateImplCopyWith<$Res>
     implements $LeaveRequestFormStateCopyWith<$Res> {
   factory _$$LeaveRequestFormStateImplCopyWith(
-          _$LeaveRequestFormStateImpl value,
-          $Res Function(_$LeaveRequestFormStateImpl) then) =
-      __$$LeaveRequestFormStateImplCopyWithImpl<$Res>;
+    _$LeaveRequestFormStateImpl value,
+    $Res Function(_$LeaveRequestFormStateImpl) then,
+  ) = __$$LeaveRequestFormStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {LeaveCategory category,
-      List<DateTime> dates,
-      DateTime? returnToWorkOverride,
-      String reason,
-      AsyncValue<Unit> submission});
+  $Res call({
+    String? editingRequestId,
+    String? leaveTypeId,
+    List<DateTime> dates,
+    LeaveDurationType durationType,
+    DateTime? returnToWorkOverride,
+    String reason,
+    AsyncValue<LeaveRequest?> submission,
+  });
 }
 
 /// @nodoc
 class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
-    extends _$LeaveRequestFormStateCopyWithImpl<$Res,
-        _$LeaveRequestFormStateImpl>
+    extends
+        _$LeaveRequestFormStateCopyWithImpl<$Res, _$LeaveRequestFormStateImpl>
     implements _$$LeaveRequestFormStateImplCopyWith<$Res> {
-  __$$LeaveRequestFormStateImplCopyWithImpl(_$LeaveRequestFormStateImpl _value,
-      $Res Function(_$LeaveRequestFormStateImpl) _then)
-      : super(_value, _then);
+  __$$LeaveRequestFormStateImplCopyWithImpl(
+    _$LeaveRequestFormStateImpl _value,
+    $Res Function(_$LeaveRequestFormStateImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? category = null,
+    Object? editingRequestId = freezed,
+    Object? leaveTypeId = freezed,
     Object? dates = null,
+    Object? durationType = null,
     Object? returnToWorkOverride = freezed,
     Object? reason = null,
     Object? submission = null,
   }) {
-    return _then(_$LeaveRequestFormStateImpl(
-      category: null == category
-          ? _value.category
-          : category // ignore: cast_nullable_to_non_nullable
-              as LeaveCategory,
-      dates: null == dates
-          ? _value._dates
-          : dates // ignore: cast_nullable_to_non_nullable
-              as List<DateTime>,
-      returnToWorkOverride: freezed == returnToWorkOverride
-          ? _value.returnToWorkOverride
-          : returnToWorkOverride // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      reason: null == reason
-          ? _value.reason
-          : reason // ignore: cast_nullable_to_non_nullable
-              as String,
-      submission: null == submission
-          ? _value.submission
-          : submission // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<Unit>,
-    ));
+    return _then(
+      _$LeaveRequestFormStateImpl(
+        editingRequestId: freezed == editingRequestId
+            ? _value.editingRequestId
+            : editingRequestId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        leaveTypeId: freezed == leaveTypeId
+            ? _value.leaveTypeId
+            : leaveTypeId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        dates: null == dates
+            ? _value._dates
+            : dates // ignore: cast_nullable_to_non_nullable
+                  as List<DateTime>,
+        durationType: null == durationType
+            ? _value.durationType
+            : durationType // ignore: cast_nullable_to_non_nullable
+                  as LeaveDurationType,
+        returnToWorkOverride: freezed == returnToWorkOverride
+            ? _value.returnToWorkOverride
+            : returnToWorkOverride // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        reason: null == reason
+            ? _value.reason
+            : reason // ignore: cast_nullable_to_non_nullable
+                  as String,
+        submission: null == submission
+            ? _value.submission
+            : submission // ignore: cast_nullable_to_non_nullable
+                  as AsyncValue<LeaveRequest?>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
-  const _$LeaveRequestFormStateImpl(
-      {this.category = LeaveCategory.annual,
-      final List<DateTime> dates = const <DateTime>[],
-      this.returnToWorkOverride,
-      this.reason = '',
-      this.submission = const AsyncValue<Unit>.data(Unit.instance)})
-      : _dates = dates,
-        super._();
+  const _$LeaveRequestFormStateImpl({
+    this.editingRequestId,
+    this.leaveTypeId,
+    final List<DateTime> dates = const <DateTime>[],
+    this.durationType = LeaveDurationType.fullDay,
+    this.returnToWorkOverride,
+    this.reason = '',
+    this.submission = const AsyncValue<LeaveRequest?>.data(null),
+  }) : _dates = dates,
+       super._();
 
+  /// Non-null once [LeaveRequestFormNotifier.seed] has run — i.e. edit mode.
   @override
-  @JsonKey()
-  final LeaveCategory category;
+  final String? editingRequestId;
+  @override
+  final String? leaveTypeId;
   final List<DateTime> _dates;
   @override
   @JsonKey()
@@ -171,17 +215,20 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   }
 
   @override
+  @JsonKey()
+  final LeaveDurationType durationType;
+  @override
   final DateTime? returnToWorkOverride;
   @override
   @JsonKey()
   final String reason;
   @override
   @JsonKey()
-  final AsyncValue<Unit> submission;
+  final AsyncValue<LeaveRequest?> submission;
 
   @override
   String toString() {
-    return 'LeaveRequestFormState(category: $category, dates: $dates, returnToWorkOverride: $returnToWorkOverride, reason: $reason, submission: $submission)';
+    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, dates: $dates, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, submission: $submission)';
   }
 
   @override
@@ -189,9 +236,13 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$LeaveRequestFormStateImpl &&
-            (identical(other.category, category) ||
-                other.category == category) &&
+            (identical(other.editingRequestId, editingRequestId) ||
+                other.editingRequestId == editingRequestId) &&
+            (identical(other.leaveTypeId, leaveTypeId) ||
+                other.leaveTypeId == leaveTypeId) &&
             const DeepCollectionEquality().equals(other._dates, _dates) &&
+            (identical(other.durationType, durationType) ||
+                other.durationType == durationType) &&
             (identical(other.returnToWorkOverride, returnToWorkOverride) ||
                 other.returnToWorkOverride == returnToWorkOverride) &&
             (identical(other.reason, reason) || other.reason == reason) &&
@@ -201,42 +252,56 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
 
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      category,
-      const DeepCollectionEquality().hash(_dates),
-      returnToWorkOverride,
-      reason,
-      submission);
+    runtimeType,
+    editingRequestId,
+    leaveTypeId,
+    const DeepCollectionEquality().hash(_dates),
+    durationType,
+    returnToWorkOverride,
+    reason,
+    submission,
+  );
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$LeaveRequestFormStateImplCopyWith<_$LeaveRequestFormStateImpl>
-      get copyWith => __$$LeaveRequestFormStateImplCopyWithImpl<
-          _$LeaveRequestFormStateImpl>(this, _$identity);
+  get copyWith =>
+      __$$LeaveRequestFormStateImplCopyWithImpl<_$LeaveRequestFormStateImpl>(
+        this,
+        _$identity,
+      );
 }
 
 abstract class _LeaveRequestFormState extends LeaveRequestFormState {
-  const factory _LeaveRequestFormState(
-      {final LeaveCategory category,
-      final List<DateTime> dates,
-      final DateTime? returnToWorkOverride,
-      final String reason,
-      final AsyncValue<Unit> submission}) = _$LeaveRequestFormStateImpl;
+  const factory _LeaveRequestFormState({
+    final String? editingRequestId,
+    final String? leaveTypeId,
+    final List<DateTime> dates,
+    final LeaveDurationType durationType,
+    final DateTime? returnToWorkOverride,
+    final String reason,
+    final AsyncValue<LeaveRequest?> submission,
+  }) = _$LeaveRequestFormStateImpl;
   const _LeaveRequestFormState._() : super._();
 
   @override
-  LeaveCategory get category;
+  /// Non-null once [LeaveRequestFormNotifier.seed] has run — i.e. edit mode.
+  String? get editingRequestId;
+  @override
+  String? get leaveTypeId;
   @override
   List<DateTime> get dates;
+  @override
+  LeaveDurationType get durationType;
   @override
   DateTime? get returnToWorkOverride;
   @override
   String get reason;
   @override
-  AsyncValue<Unit> get submission;
+  AsyncValue<LeaveRequest?> get submission;
   @override
   @JsonKey(ignore: true)
   _$$LeaveRequestFormStateImplCopyWith<_$LeaveRequestFormStateImpl>
-      get copyWith => throw _privateConstructorUsedError;
+  get copyWith => throw _privateConstructorUsedError;
 }

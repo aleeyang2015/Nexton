@@ -33,14 +33,14 @@ class _TimeOffPageState extends State<TimeOffPage>
   @override
   void initState() {
     super.initState();
-    _controller = TabController(
-      length: 3,
-      vsync: this,
-      initialIndex: widget.initialTab.index,
-    )
-      ..addListener(() {
-        if (!_controller.indexIsChanging) setState(() {});
-      });
+    _controller =
+        TabController(
+          length: 3,
+          vsync: this,
+          initialIndex: widget.initialTab.index,
+        )..addListener(() {
+          if (!_controller.indexIsChanging) setState(() {});
+        });
   }
 
   @override
@@ -77,34 +77,40 @@ class _TimeOffPageState extends State<TimeOffPage>
               onTap: () => context.pop(),
               child: Padding(
                 padding: const EdgeInsets.only(left: 10),
-                child: Icon(
-                  Icons.arrow_back_ios,
-                  color: AppColors.primary,
-                ),
+                child: Icon(Icons.arrow_back_ios, color: AppColors.primary),
               ),
-          ),
-          // AppBar(
-          //   backgroundColor: Colors.white,
-          //   elevation: 0,
-          //   centerTitle: true,
-          //   title: customText(
-          //     titles[_controller.index],
-          //     fontWeight: FontWeight.w700,
-          //     fontSize: 18,
-          //   ),
+            ),
+            // AppBar(
+            //   backgroundColor: Colors.white,
+            //   elevation: 0,
+            //   centerTitle: true,
+            //   title: customText(
+            //     titles[_controller.index],
+            //     fontWeight: FontWeight.w700,
+            //     fontSize: 18,
+            //   ),
             bottom: TabBar(
               controller: _controller,
               labelColor: AppColors.primary,
               unselectedLabelColor: AppColors.subTitle,
               indicatorColor: AppColors.primary,
-              labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              labelStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
               tabs: [
-                Tab(icon: const Icon(Icons.history), text: l10n.timeOffHistoryTab),
+                Tab(
+                  icon: const Icon(Icons.history),
+                  text: l10n.timeOffHistoryTab,
+                ),
                 Tab(
                   icon: const Icon(Icons.note_add_outlined),
                   text: l10n.timeOffRequestTab,
                 ),
-                Tab(icon: const Icon(Icons.approval), text: l10n.timeOffApprovalsTab),
+                Tab(
+                  icon: const Icon(Icons.approval),
+                  text: l10n.timeOffApprovalsTab,
+                ),
               ],
             ),
           ),

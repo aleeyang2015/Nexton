@@ -1,32 +1,53 @@
 import '../../../../core/utils/result.dart';
-import '../entities/leave_approval.dart';
+import '../entities/leave_balance.dart';
 import '../entities/leave_history_query.dart';
 import '../entities/leave_request.dart';
 import '../entities/leave_request_draft.dart';
-import '../entities/leave_summary.dart';
+import '../entities/leave_status.dart';
+import '../entities/leave_type.dart';
 
 /// Contract the presentation layer depends on. The implementation lives in
-/// data/repositories.
+/// data/repositories and talks to `/api/v1/core_hr/leave/*`
+/// (leave-request-flutter.md).
 abstract class LeaveRepository {
-  /// The history tab's list, filtered by [LeaveHistoryQuery].
-  FutureResult<List<LeaveRequest>> history(LeaveHistoryQuery query);
+  /// `GET /leave/types` — the dropdown of leave categories.
+  FutureResult<List<LeaveType>> leaveTypes();
 
-  /// The annual summary tab's entitlement/used/remaining rollup for [year].
-  FutureResult<LeaveSummary> summary(int year);
+  /// `GET /leave/balances/my` — the per-type quota rollup for [year].
+  FutureResult<List<LeaveBalance>> balances(int year);
 
-  /// Submits the request-leave form.
-  FutureResult<Unit> submit(LeaveRequestDraft draft);
+  /// `GET /leave/requests/my` — the history tab's list.
+  FutureResult<List<LeaveRequest>> myRequests(LeaveHistoryQuery query);
 
-  /// The approvals tab's "needs your decision" list — subordinates' leave
-  /// requests still awaiting a manager decision.
-  FutureResult<List<LeaveApproval>> pendingApprovals();
+  /// `GET /leave/requests/:id` — the detail page.
+  FutureResult<LeaveRequest> requestDetail(String id);
 
-  /// The approvals tab's "already decided" list.
-  FutureResult<List<LeaveApproval>> approvalHistory();
+  /// `POST /leave/requests` — submits the request-leave form.
+  FutureResult<LeaveRequest> submit(LeaveRequestDraft draft);
 
-  /// Approves or rejects one subordinate's request.
-  FutureResult<Unit> decideApproval({
-    required String requestId,
-    required bool approve,
+  /// `PUT /leave/requests/:id` — edits a still-pending request.
+  FutureResult<LeaveRequest> update(String id, LeaveRequestDraft draft);
+
+  /// `PUT /leave/requests/:id/cancel` — cancels a pending/approved request.
+  FutureResult<LeaveRequest> cancel(String id);
+
+  /// `GET /leave/requests/my-approvals` — the approvals tab's list, scoped to
+  /// the caller's role. [status] filters by the whole request's status.
+  FutureResult<List<LeaveRequest>> myApprovals({LeaveStatus? status});
+
+  /// `PUT /leave/requests/:id/approve` — approves the current step.
+  FutureResult<LeaveRequest> approve({
+    required String id,
+    String? stepId,
+    String? note,
+  });
+
+  /// `PUT /leave/requests/:id/reject` — rejects at the current step; [reason]
+  /// is required by the backend.
+  FutureResult<LeaveRequest> reject({
+    required String id,
+    required String reason,
+    String? stepId,
+    String? note,
   });
 }

@@ -5,19 +5,20 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../domain/entities/leave_approval.dart';
+import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_status.dart';
 import '../providers/leave_approvals_notifier.dart';
+import '../providers/leave_approvals_state.dart';
 import 'leave_copy.dart';
+import 'leave_reject_reason_dialog.dart';
 
-/// "ອະນຸມັດຈາກສາຍງານ" — subordinates' leave requests still awaiting a
-/// decision, each approvable/rejectable inline, followed by everything
-/// already decided. Everything comes from [leaveApprovalsNotifierProvider];
-/// the tab holds no fetching logic of its own.
+/// "ອະນຸມັດຈາກສາຍງານ" — the requests awaiting the signed-in approver's
+/// decision (`my-approvals?status=pending`), each approvable / rejectable
+/// inline, followed by everything already decided. Everything comes from
+/// [leaveApprovalsNotifierProvider].
 ///
-/// There is no role check here yet — the app has no manager/employee
-/// distinction to gate on, so this tab shows for every account until one
-/// exists.
+/// The endpoint scopes to the caller's role, so a non-approver simply sees an
+/// empty pending list — there is no role gate here.
 class LeaveApprovalsTab extends ConsumerWidget {
   const LeaveApprovalsTab({super.key});
 
@@ -41,9 +42,9 @@ class LeaveApprovalsTab extends ConsumerWidget {
           _ApprovalList(
             value: state.pending,
             emptyMessage: l10n.leaveApprovalsPendingEmpty,
-            itemBuilder: (approval) => _PendingApprovalCard(
-              approval: approval,
-              deciding: state.decidingIds.contains(approval.id),
+            itemBuilder: (request) => _PendingApprovalCard(
+              request: request,
+              deciding: state.decidingIds.contains(request.id),
             ),
           ),
           heightBx(h: 24),
@@ -56,7 +57,7 @@ class LeaveApprovalsTab extends ConsumerWidget {
           _ApprovalList(
             value: state.history,
             emptyMessage: l10n.leaveApprovalsHistoryEmpty,
-            itemBuilder: (approval) => _HistoryApprovalRow(approval: approval),
+            itemBuilder: (request) => _HistoryApprovalRow(request: request),
           ),
         ],
       ),
@@ -65,9 +66,9 @@ class LeaveApprovalsTab extends ConsumerWidget {
 }
 
 class _ApprovalList extends ConsumerWidget {
-  final AsyncValue<List<LeaveApproval>> value;
+  final AsyncValue<List<LeaveRequest>> value;
   final String emptyMessage;
-  final Widget Function(LeaveApproval) itemBuilder;
+  final Widget Function(LeaveRequest) itemBuilder;
 
   const _ApprovalList({
     required this.value,
@@ -95,7 +96,8 @@ class _ApprovalList extends ConsumerWidget {
     if (value.hasError) {
       return _ErrorBlock(
         message: l10n.leaveApprovalsLoadFailed,
-        onRetry: () => ref.read(leaveApprovalsNotifierProvider.notifier).retry(),
+        onRetry: () =>
+            ref.read(leaveApprovalsNotifierProvider.notifier).retry(),
       );
     }
 
@@ -103,11 +105,15 @@ class _ApprovalList extends ConsumerWidget {
     if (items.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: customText(emptyMessage, color: AppColors.subTitle, fontSize: 13),
+        child: customText(
+          emptyMessage,
+          color: AppColors.subTitle,
+          fontSize: 13,
+        ),
       );
     }
 
-    return Column(children: [for (final a in items) itemBuilder(a)]);
+    return Column(children: [for (final r in items) itemBuilder(r)]);
   }
 }
 
@@ -128,7 +134,11 @@ class _ErrorBlock extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, color: AppColors.danger, size: 28),
             heightBx(h: 8),
-            customText(message, color: AppColors.subTitle, alight: TextAlign.center),
+            customText(
+              message,
+              color: AppColors.subTitle,
+              alight: TextAlign.center,
+            ),
             heightBx(h: 8),
             InkWell(
               onTap: onRetry,
@@ -171,19 +181,23 @@ class _Avatar extends StatelessWidget {
 
   static String _initials(String name) {
     final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty);
+    if (parts.isEmpty) return '?';
     return parts.take(2).map((p) => p[0].toUpperCase()).join();
   }
 }
 
 class _PendingApprovalCard extends ConsumerWidget {
-  final LeaveApproval approval;
+  final LeaveRequest request;
   final bool deciding;
 
-  const _PendingApprovalCard({required this.approval, required this.deciding});
+  const _PendingApprovalCard({required this.request, required this.deciding});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final stepLabel = request.currentStep == null
+        ? null
+        : LeaveCopy.stepRoleLabel(l10n, request.currentStep!.role);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -199,50 +213,49 @@ class _PendingApprovalCard extends ConsumerWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _Avatar(name: approval.requesterName),
+              _Avatar(name: request.employeeName),
               widthBx(w: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     customText(
-                      approval.requesterName,
+                      request.employeeName,
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
                     ),
                     heightBx(h: 2),
                     customText(
-                      '${LeaveCopy.categoryLabel(l10n, approval.category)} • '
-                      '${LeaveCopy.dateLine(
-                        l10n,
-                        startDate: approval.startDate,
-                        endDate: approval.endDate,
-                        totalDays: approval.totalDays,
-                      )}',
+                      '${LeaveCopy.leaveTypeLabel(l10n, request.leaveType)} • '
+                      '${LeaveCopy.dateLine(l10n, startDate: request.startDate, endDate: request.endDate, totalDays: request.totalDays)}',
                       fontSize: 12,
                       color: AppColors.subTitle,
+                      maxLine: 2,
                     ),
                   ],
                 ),
               ),
-              if (approval.isNew) _NewBadge(label: l10n.leaveApprovalNewBadge),
+              if (stepLabel != null) _StepChip(label: stepLabel),
             ],
           ),
-          heightBx(h: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.border),
+          if (request.reason.isNotEmpty) ...[
+            heightBx(h: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: customText(
+                '"${request.reason}"',
+                fontSize: 13,
+                color: AppColors.textPrimary,
+                maxLine: 4,
+              ),
             ),
-            child: customText(
-              '"${approval.reason}"',
-              fontSize: 13,
-              color: AppColors.textPrimary,
-            ),
-          ),
+          ],
           heightBx(h: 12),
           Row(
             children: [
@@ -252,7 +265,7 @@ class _PendingApprovalCard extends ConsumerWidget {
                   icon: Icons.check,
                   color: AppColors.primary,
                   enabled: !deciding,
-                  onTap: () => _decide(context, ref, approve: true),
+                  onTap: () => _approve(context, ref),
                 ),
               ),
               widthBx(w: 12),
@@ -262,7 +275,7 @@ class _PendingApprovalCard extends ConsumerWidget {
                   icon: Icons.close,
                   color: AppColors.danger,
                   enabled: !deciding,
-                  onTap: () => _decide(context, ref, approve: false),
+                  onTap: () => _reject(context, ref),
                 ),
               ),
             ],
@@ -272,47 +285,54 @@ class _PendingApprovalCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _decide(
-    BuildContext context,
-    WidgetRef ref, {
-    required bool approve,
-  }) async {
-    final l10n = AppLocalizations.of(context)!;
-    final ok = await ref
+  Future<void> _approve(BuildContext context, WidgetRef ref) async {
+    final outcome = await ref
         .read(leaveApprovalsNotifierProvider.notifier)
-        .decide(approval.id, approve: approve);
-    if (!context.mounted || ok) return;
+        .approve(request);
+    if (context.mounted) _report(context, outcome);
+  }
+
+  Future<void> _reject(BuildContext context, WidgetRef ref) async {
+    final reason = await LeaveRejectReasonDialog.show(context);
+    if (reason == null || !context.mounted) return;
+    final outcome = await ref
+        .read(leaveApprovalsNotifierProvider.notifier)
+        .reject(request, reason);
+    if (context.mounted) _report(context, outcome);
+  }
+
+  void _report(BuildContext context, LeaveDecisionOutcome outcome) {
+    final l10n = AppLocalizations.of(context)!;
+    final message = switch (outcome) {
+      LeaveDecisionOutcome.success => null,
+      LeaveDecisionOutcome.stepChanged => l10n.leaveStepRefreshed,
+      LeaveDecisionOutcome.failed => l10n.leaveApprovalDecideFailed,
+    };
+    if (message == null) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(l10n.leaveApprovalDecideFailed)));
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
-class _NewBadge extends StatelessWidget {
+class _StepChip extends StatelessWidget {
   final String label;
 
-  const _NewBadge({required this.label});
+  const _StepChip({required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.primaryTint,
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          customText(
-            label,
-            color: AppColors.warning,
-            fontWeight: FontWeight.w700,
-            fontSize: 11,
-          ),
-          widthBx(w: 4),
-          const Icon(Icons.notifications, size: 13, color: AppColors.warning),
-        ],
+      child: customText(
+        label,
+        color: AppColors.primary,
+        fontWeight: FontWeight.w700,
+        fontSize: 10,
       ),
     );
   }
@@ -354,14 +374,14 @@ class _DecisionButton extends StatelessWidget {
 }
 
 class _HistoryApprovalRow extends StatelessWidget {
-  final LeaveApproval approval;
+  final LeaveRequest request;
 
-  const _HistoryApprovalRow({required this.approval});
+  const _HistoryApprovalRow({required this.request});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final pill = LeaveCopy.statusPill(l10n, approval.status);
+    final pill = LeaveCopy.statusPill(l10n, request.status);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -373,15 +393,15 @@ class _HistoryApprovalRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _Avatar(name: approval.requesterName),
+          _Avatar(name: request.employeeName),
           widthBx(w: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 customText(
-                  '${approval.requesterName} • '
-                  '${LeaveCopy.categoryLabel(l10n, approval.category)}',
+                  '${request.employeeName} • '
+                  '${LeaveCopy.leaveTypeLabel(l10n, request.leaveType)}',
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
                 ),
@@ -389,9 +409,9 @@ class _HistoryApprovalRow extends StatelessWidget {
                 customText(
                   LeaveCopy.dateLine(
                     l10n,
-                    startDate: approval.startDate,
-                    endDate: approval.endDate,
-                    totalDays: approval.totalDays,
+                    startDate: request.startDate,
+                    endDate: request.endDate,
+                    totalDays: request.totalDays,
                   ),
                   fontSize: 12,
                   color: AppColors.subTitle,
@@ -410,7 +430,7 @@ class _HistoryApprovalRow extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  approval.status == LeaveStatus.rejected
+                  request.status == LeaveStatus.rejected
                       ? Icons.close
                       : Icons.check,
                   size: 13,

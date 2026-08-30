@@ -1,19 +1,24 @@
 import 'package:equatable/equatable.dart';
 
-import 'leave_category.dart';
+import 'leave_status.dart';
 
-/// Filter for the history tab's list — a `null` [category] means "all".
+/// Filter for `GET /leave/requests/my` (leave-request-flutter.md §3.6).
+///
+/// A `null` [leaveTypeId] or [status] means "all"; [from]/[to] map to the
+/// endpoint's `start_date` / `end_date` query params.
 class LeaveHistoryQuery extends Equatable {
-  final LeaveCategory? category;
+  final String? leaveTypeId;
+  final LeaveStatus? status;
   final DateTime from;
   final DateTime to;
 
   const LeaveHistoryQuery({
-    this.category,
+    this.leaveTypeId,
+    this.status,
     required this.from,
     required this.to,
   });
 
   @override
-  List<Object?> get props => [category, from, to];
+  List<Object?> get props => [leaveTypeId, status, from, to];
 }

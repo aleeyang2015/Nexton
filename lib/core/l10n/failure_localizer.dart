@@ -13,19 +13,19 @@ import '../../l10n/generated/app_localizations.dart';
 /// no code to look up), so nothing is ever hidden from the user.
 extension FailureLocalization on Failure {
   String localize(AppLocalizations l10n) => when(
-        network: (message, statusCode, errorCode) =>
-            _byErrorCode(l10n, errorCode) ??
-            _byStatusCode(l10n, statusCode) ??
-            message,
-        server: (message, statusCode, errorCode) =>
-            _byErrorCode(l10n, errorCode) ??
-            _byStatusCode(l10n, statusCode) ??
-            message,
-        validation: (message, _) => _byValidationCode(l10n, message) ?? message,
-        cache: (message, _) => message,
-        auth: (message, code) => _byErrorCode(l10n, code) ?? message,
-        unknown: (message, _) => message,
-      );
+    network: (message, statusCode, errorCode) =>
+        _byErrorCode(l10n, errorCode) ??
+        _byStatusCode(l10n, statusCode) ??
+        message,
+    server: (message, statusCode, errorCode) =>
+        _byErrorCode(l10n, errorCode) ??
+        _byStatusCode(l10n, statusCode) ??
+        message,
+    validation: (message, _) => _byValidationCode(l10n, message) ?? message,
+    cache: (message, _) => message,
+    auth: (message, code) => _byErrorCode(l10n, code) ?? message,
+    unknown: (message, _) => message,
+  );
 }
 
 /// Localizes a bare field-error string held directly in a form's state
@@ -71,6 +71,23 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.fieldReasonRequired;
     case ValidationCode.mockLocationDetected:
       return l10n.mockLocationDetected;
+    // Leave (time-off) business rules — the leave datasource encodes a
+    // recognised `error.code` as one of these tokens
+    // (see `time_off/data/datasources/leave_error_code.dart`).
+    case 'leavePendingRequestExists':
+      return l10n.leavePendingRequestExists;
+    case 'leaveOverlapping':
+      return l10n.leaveOverlapping;
+    case 'leaveInsufficientBalance':
+      return l10n.leaveInsufficientBalance;
+    case 'leaveStepChanged':
+      return l10n.leaveStepChanged;
+    case 'leaveNotApprover':
+      return l10n.leaveNotApprover;
+    case 'leaveInvalidStatus':
+      return l10n.leaveInvalidStatus;
+    case 'leaveEmployeeNotFound':
+      return l10n.leaveEmployeeNotFound;
     default:
       return null;
   }

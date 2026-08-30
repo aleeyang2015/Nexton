@@ -739,4 +739,117 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get leaveApprovalDecideFailed =>
       'That didn\'t go through. Please try again.';
+
+  @override
+  String get leaveTypeLoadFailed => 'Couldn\'t load leave types.';
+
+  @override
+  String get leaveStatusCancelled => 'Cancelled';
+
+  @override
+  String get leaveStepDeptHead => 'Manager';
+
+  @override
+  String get leaveStepHr => 'HR';
+
+  @override
+  String get leaveDurationLabel => 'Day part';
+
+  @override
+  String get leaveDurationFullDay => 'Full day';
+
+  @override
+  String get leaveDurationFirstHalf => 'Morning';
+
+  @override
+  String get leaveDurationSecondHalf => 'Afternoon';
+
+  @override
+  String get leaveHalfDayLabel => 'Half day (0.5)';
+
+  @override
+  String get leaveRequiredBadge => 'Required';
+
+  @override
+  String get leaveRequiresAttachmentBlocked =>
+      'This leave type needs a supporting document. Attaching files isn\'t available in the app yet — please submit this request on the web.';
+
+  @override
+  String get leaveInsufficientBalanceHint =>
+      'Not enough leave balance for the days selected.';
+
+  @override
+  String leaveMaxDaysHint(int days) {
+    return 'This leave type allows at most $days days per request.';
+  }
+
+  @override
+  String get leaveEditAction => 'Edit request';
+
+  @override
+  String get leaveCancelAction => 'Cancel request';
+
+  @override
+  String get leaveCancelConfirm =>
+      'Cancel this leave request? The reserved days go back to your balance.';
+
+  @override
+  String get leaveRequestUpdated => 'Leave request updated';
+
+  @override
+  String get leaveRequestCancelled => 'Leave request cancelled';
+
+  @override
+  String get leaveRequestCancelFailed => 'Couldn\'t cancel the request.';
+
+  @override
+  String get leaveRejectReasonTitle => 'Reason for rejection';
+
+  @override
+  String get leaveRejectReasonHint => 'Let the employee know why';
+
+  @override
+  String get leaveRejectReasonSubmit => 'Reject';
+
+  @override
+  String get leaveStepRefreshed =>
+      'Someone else just acted on this request — please review it again.';
+
+  @override
+  String get leaveDetailTitle => 'Leave details';
+
+  @override
+  String get leaveApprovalChainLabel => 'Approval progress';
+
+  @override
+  String get leaveApproverNoteLabel => 'Note';
+
+  @override
+  String get leaveAttachmentsLabel => 'Attachments';
+
+  @override
+  String get leavePendingRequestExists =>
+      'You already have a leave request awaiting approval. Wait for it to be resolved first.';
+
+  @override
+  String get leaveOverlapping =>
+      'Those dates overlap with another leave request.';
+
+  @override
+  String get leaveInsufficientBalance =>
+      'You don\'t have enough leave balance for those dates.';
+
+  @override
+  String get leaveStepChanged =>
+      'This request was just updated — please review it again.';
+
+  @override
+  String get leaveNotApprover => 'You can\'t approve this step.';
+
+  @override
+  String get leaveInvalidStatus => 'This request can no longer be changed.';
+
+  @override
+  String get leaveEmployeeNotFound =>
+      'Your account isn\'t linked to an employee record.';
 }

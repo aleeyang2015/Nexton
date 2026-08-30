@@ -1,10 +1,11 @@
 import '../../../../core/utils/base_repository.dart';
 import '../../../../core/utils/result.dart';
-import '../../domain/entities/leave_approval.dart';
+import '../../domain/entities/leave_balance.dart';
 import '../../domain/entities/leave_history_query.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_request_draft.dart';
-import '../../domain/entities/leave_summary.dart';
+import '../../domain/entities/leave_status.dart';
+import '../../domain/entities/leave_type.dart';
 import '../../domain/repositories/leave_repository.dart';
 import '../datasources/leave_remote_data_source.dart';
 
@@ -16,30 +17,50 @@ class LeaveRepositoryImpl extends BaseRepository implements LeaveRepository {
     : _remote = remote;
 
   @override
-  FutureResult<List<LeaveRequest>> history(LeaveHistoryQuery query) =>
-      guard(() => _remote.history(query));
+  FutureResult<List<LeaveType>> leaveTypes() => guard(_remote.types);
 
   @override
-  FutureResult<LeaveSummary> summary(int year) =>
-      guard(() => _remote.summary(year));
+  FutureResult<List<LeaveBalance>> balances(int year) =>
+      guard(() => _remote.balances(year));
 
   @override
-  FutureResult<Unit> submit(LeaveRequestDraft draft) =>
+  FutureResult<List<LeaveRequest>> myRequests(LeaveHistoryQuery query) =>
+      guard(() => _remote.myRequests(query));
+
+  @override
+  FutureResult<LeaveRequest> requestDetail(String id) =>
+      guard(() => _remote.requestDetail(id));
+
+  @override
+  FutureResult<LeaveRequest> submit(LeaveRequestDraft draft) =>
       guard(() => _remote.submit(draft));
 
   @override
-  FutureResult<List<LeaveApproval>> pendingApprovals() =>
-      guard(() => _remote.pendingApprovals());
+  FutureResult<LeaveRequest> update(String id, LeaveRequestDraft draft) =>
+      guard(() => _remote.update(id, draft));
 
   @override
-  FutureResult<List<LeaveApproval>> approvalHistory() =>
-      guard(() => _remote.approvalHistory());
+  FutureResult<LeaveRequest> cancel(String id) =>
+      guard(() => _remote.cancel(id));
 
   @override
-  FutureResult<Unit> decideApproval({
-    required String requestId,
-    required bool approve,
+  FutureResult<List<LeaveRequest>> myApprovals({LeaveStatus? status}) =>
+      guard(() => _remote.myApprovals(status: status));
+
+  @override
+  FutureResult<LeaveRequest> approve({
+    required String id,
+    String? stepId,
+    String? note,
+  }) => guard(() => _remote.approve(id: id, stepId: stepId, note: note));
+
+  @override
+  FutureResult<LeaveRequest> reject({
+    required String id,
+    required String reason,
+    String? stepId,
+    String? note,
   }) => guard(
-    () => _remote.decideApproval(requestId: requestId, approve: approve),
+    () => _remote.reject(id: id, reason: reason, stepId: stepId, note: note),
   );
 }

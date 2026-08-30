@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../domain/entities/leave_category.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_status.dart';
 import '../providers/leave_history_notifier.dart';
+import '../providers/leave_types_notifier.dart';
 import 'leave_approval_timeline.dart';
 import 'leave_copy.dart';
 import 'leave_filter_chip.dart';
 
-/// "ປະຫວັດການລາພັກ" — filter chips, a from/to date range and the fetched
-/// list of leave requests, each with its approval-chain timeline. Everything
-/// comes from [leaveHistoryNotifierProvider]; the tab holds no fetching
-/// logic of its own.
+/// "ປະຫວັດການລາພັກ" — leave-type filter chips, a from/to date range and the
+/// fetched list of leave requests, each with its real approval-chain timeline
+/// and a tap-through to the detail page. Everything comes from
+/// [leaveHistoryNotifierProvider].
 class LeaveHistoryTab extends ConsumerWidget {
   const LeaveHistoryTab({super.key});
 
@@ -29,7 +31,7 @@ class LeaveHistoryTab extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(15, 15, 15, 40),
         children: [
-          _CategoryFilterRow(selected: state.category),
+          _LeaveTypeFilterRow(selectedId: state.leaveTypeId),
           heightBx(h: 16),
           _DateRangeRow(from: state.from, to: state.to),
           heightBx(h: 20),
@@ -40,18 +42,20 @@ class LeaveHistoryTab extends ConsumerWidget {
   }
 }
 
-class _CategoryFilterRow extends ConsumerWidget {
-  final LeaveCategory? selected;
+class _LeaveTypeFilterRow extends ConsumerWidget {
+  final String? selectedId;
 
-  const _CategoryFilterRow({required this.selected});
+  const _LeaveTypeFilterRow({required this.selectedId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final notifier = ref.read(leaveHistoryNotifierProvider.notifier);
-    final chips = <(String, LeaveCategory?)>[
+    final types = ref.watch(leaveTypesNotifierProvider).valueOrNull ?? const [];
+
+    final chips = <(String, String?)>[
       (l10n.leaveFilterAll, null),
-      for (final c in LeaveCategory.values) (LeaveCopy.categoryLabel(l10n, c), c),
+      for (final t in types) (LeaveCopy.leaveTypeLabel(l10n, t), t.id),
     ];
 
     return SizedBox(
@@ -61,11 +65,11 @@ class _CategoryFilterRow extends ConsumerWidget {
         itemCount: chips.length,
         separatorBuilder: (_, _) => widthBx(w: 8),
         itemBuilder: (context, i) {
-          final (label, category) = chips[i];
+          final (label, id) = chips[i];
           return LeaveFilterChip(
             label: label,
-            selected: category == selected,
-            onTap: () => notifier.filterByCategory(category),
+            selected: id == selectedId,
+            onTap: () => notifier.filterByLeaveType(id),
           );
         },
       ),
@@ -221,9 +225,7 @@ class _RequestsList extends ConsumerWidget {
       );
     }
 
-    return Column(
-      children: [for (final r in list) _LeaveCard(request: r)],
-    );
+    return Column(children: [for (final r in list) _LeaveCard(request: r)]);
   }
 }
 
@@ -244,7 +246,11 @@ class _ErrorBlock extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, color: AppColors.danger, size: 32),
             heightBx(h: 8),
-            customText(message, color: AppColors.subTitle, alight: TextAlign.center),
+            customText(
+              message,
+              color: AppColors.subTitle,
+              alight: TextAlign.center,
+            ),
             heightBx(h: 12),
             InkWell(
               onTap: onRetry,
@@ -270,100 +276,104 @@ class _LeaveCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final pill = LeaveCopy.statusPill(l10n, request.status);
-    final comment = request.reviewerComment;
-    final showComment =
-        request.status == LeaveStatus.rejected && (comment ?? '').isNotEmpty;
+    final note = request.rejectionNote;
+    final showNote =
+        request.status == LeaveStatus.rejected && (note ?? '').isNotEmpty;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: customText(
-                  LeaveCopy.categoryLabel(l10n, request.category),
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
-              _StatusPill(label: pill.label, color: pill.color),
-            ],
-          ),
-          heightBx(h: 6),
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_today_outlined,
-                size: 14,
-                color: AppColors.subTitle,
-              ),
-              widthBx(w: 6),
-              Expanded(
-                child: customText(
-                  LeaveCopy.dateLine(
-                    l10n,
-                    startDate: request.startDate,
-                    endDate: request.endDate,
-                    totalDays: request.totalDays,
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => context.push(AppRoutes.timeOffRequestDetail, extra: request),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: customText(
+                    LeaveCopy.leaveTypeLabel(l10n, request.leaveType),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
                   ),
-                  fontSize: 12,
+                ),
+                _StatusPill(label: pill.label, color: pill.color),
+              ],
+            ),
+            heightBx(h: 6),
+            Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 14,
                   color: AppColors.subTitle,
                 ),
-              ),
-            ],
-          ),
-          heightBx(h: 18),
-          LeaveApprovalTimeline(status: request.status),
-          if (showComment) ...[
-            heightBx(h: 12),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.chat_bubble_outline,
-                    size: 16,
-                    color: AppColors.primary,
+                widthBx(w: 6),
+                Expanded(
+                  child: customText(
+                    LeaveCopy.dateLine(
+                      l10n,
+                      startDate: request.startDate,
+                      endDate: request.endDate,
+                      totalDays: request.totalDays,
+                    ),
+                    fontSize: 12,
+                    color: AppColors.subTitle,
                   ),
-                  widthBx(w: 8),
-                  Expanded(
-                    child: RichText(
-                      text: TextSpan(
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textPrimary,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: '${l10n.leaveReviewerCommentLabel}: ',
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
+                ),
+              ],
+            ),
+            heightBx(h: 18),
+            LeaveApprovalTimeline(steps: request.steps),
+            if (showNote) ...[
+              heightBx(h: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.chat_bubble_outline,
+                      size: 16,
+                      color: AppColors.primary,
+                    ),
+                    widthBx(w: 8),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textPrimary,
                           ),
-                          TextSpan(text: comment),
-                        ],
+                          children: [
+                            TextSpan(
+                              text: '${l10n.leaveReviewerCommentLabel}: ',
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            TextSpan(text: note),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

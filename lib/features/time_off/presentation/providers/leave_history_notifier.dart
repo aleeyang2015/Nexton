@@ -1,15 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/result.dart';
-import '../../domain/entities/leave_category.dart';
 import '../../domain/entities/leave_history_query.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../time_off_providers.dart';
+import 'leave_balances_notifier.dart';
 import 'leave_history_state.dart';
 
-/// Owns the history tab's filter, date range and fetched list. The tab
-/// renders what comes back and forwards taps here; it holds no fetching
-/// logic of its own.
+/// Owns the history tab's filter, date range and fetched list, plus the
+/// cancel action reachable from the detail page. The tab renders what comes
+/// back and forwards taps here; it holds no fetching logic of its own.
 class LeaveHistoryNotifier extends Notifier<LeaveHistoryState> {
   bool _disposed = false;
 
@@ -26,8 +26,8 @@ class LeaveHistoryNotifier extends Notifier<LeaveHistoryState> {
     return LeaveHistoryState(from: from, to: to);
   }
 
-  void filterByCategory(LeaveCategory? category) {
-    state = state.copyWith(category: category);
+  void filterByLeaveType(String? leaveTypeId) {
+    state = state.copyWith(leaveTypeId: leaveTypeId);
     _load();
   }
 
@@ -40,9 +40,28 @@ class LeaveHistoryNotifier extends Notifier<LeaveHistoryState> {
   /// failed load.
   void retry() => _load();
 
+  /// Cancels [requestId] (`PUT /leave/requests/:id/cancel`). Returns whether
+  /// it succeeded; on success the list and the balances refetch.
+  Future<bool> cancel(String requestId) async {
+    state = state.copyWith(cancellingIds: {...state.cancellingIds, requestId});
+
+    final result = await ref.read(cancelLeaveRequestUseCaseProvider)(requestId);
+    if (_disposed) return result.isSuccess;
+
+    state = state.copyWith(
+      cancellingIds: {...state.cancellingIds}..remove(requestId),
+    );
+
+    if (result.isSuccess) {
+      ref.invalidate(leaveBalancesNotifierProvider);
+      await _load();
+    }
+    return result.isSuccess;
+  }
+
   Future<void> _load() async {
     final query = LeaveHistoryQuery(
-      category: state.category,
+      leaveTypeId: state.leaveTypeId,
       from: state.from,
       to: state.to,
     );
@@ -50,7 +69,7 @@ class LeaveHistoryNotifier extends Notifier<LeaveHistoryState> {
 
     final result = await ref.read(getLeaveHistoryUseCaseProvider)(query);
     if (_disposed ||
-        state.category != query.category ||
+        state.leaveTypeId != query.leaveTypeId ||
         state.from != query.from ||
         state.to != query.to) {
       return;
