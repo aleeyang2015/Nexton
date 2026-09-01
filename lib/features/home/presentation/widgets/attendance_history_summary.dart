@@ -69,17 +69,9 @@ class AttendanceHistorySummary extends ConsumerWidget {
             ],
           ),
           heightBx(h: 20),
-          if (loading) ...[
-            const ShimmerBox(width: double.infinity, height: 25),
-            heightBx(),
-            generalLine(),
-            heightBx(),
-            const ShimmerBox(width: double.infinity, height: 25),
-            heightBx(),
-            const ShimmerBox(width: double.infinity, height: 25),
-            heightBx(),
-            const ShimmerBox(width: double.infinity, height: 25),
-          ] else if (failed) ...[
+          if (loading)
+            const _SummaryLoading()
+          else if (failed) ...[
             Row(
               children: [
                 Expanded(
@@ -132,6 +124,33 @@ class AttendanceHistorySummary extends ConsumerWidget {
               icon: Icons.work_outline,
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Sweeping placeholder for the four stat rows while the month summary
+/// loads — wrapped in [Shimmer] so it animates like the rest of the home
+/// screen's loading state instead of sitting as flat grey bars.
+class _SummaryLoading extends StatelessWidget {
+  const _SummaryLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const ShimmerBox(width: double.infinity, height: 25),
+          heightBx(),
+          generalLine(),
+          heightBx(),
+          const ShimmerBox(width: double.infinity, height: 25),
+          heightBx(),
+          const ShimmerBox(width: double.infinity, height: 25),
+          heightBx(),
+          const ShimmerBox(width: double.infinity, height: 25),
         ],
       ),
     );

@@ -43,7 +43,7 @@ class HomeHeader extends ConsumerWidget {
             children: [
               heightBx(h: 6),
               if (loading)
-                const ShimmerBox(width: 120, height: 16)
+                const _HeaderLoading()
               else if (failed)
                 InkWell(
                   onTap: () =>
@@ -76,6 +76,28 @@ class HomeHeader extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Sweeping placeholder for the name/role lines while the profile loads —
+/// same silhouette as [HomeShimmer]'s header so the cold-start handoff to
+/// this widget doesn't jump.
+class _HeaderLoading extends StatelessWidget {
+  const _HeaderLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const ShimmerBox(width: 120, height: 16),
+          heightBx(h: 8),
+          const ShimmerBox(width: 90, height: 14),
+        ],
+      ),
     );
   }
 }
