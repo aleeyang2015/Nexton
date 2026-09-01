@@ -72,19 +72,19 @@ dev_dependencies:
 flutter_launcher_icons:
   android:
     adaptive_icon_background: "#08123A"
-    adaptive_icon_foreground: "assets/images/next_on.png"
-    icon: "assets/images/next_on.png"
+    adaptive_icon_foreground: "assets/images/next_on_launcher_icon.png"
+    icon: "assets/images/next_on_launcher_icon.png"
   ios: true
-  image_path: "assets/images/next_on.png"
+  image_path: "assets/images/next_on_launcher_icon.png"
   remove_alpha_ios: true
   web:
     generate: true
     background_color: "#08123A"
-    image_path: "assets/images/next_on.png"
+    image_path: "assets/images/next_on_launcher_icon.png"
 
 flutter_native_splash:
   color: "#FFFFFF"
-  image: assets/images/next_on_splash.png
+  image: assets/images/next_on_splash_screen_icon2.png
   android: true
   ios: true
   web: false
@@ -92,10 +92,10 @@ flutter_native_splash:
   # The following parameter is only for Android 12+ splash screens
   android_12:
     color: "#FFFFFF"
-    image: assets/images/next_on_splash.png
+    image: assets/images/next_on_splash_screen_icon2.png
     # Control the icon size for Android 12+
     icon_background_color: "#FFFFFF"
-    image_dark: assets/images/next_on_splash.png
+    image_dark: assets/images/next_on_splash_screen_icon2.png
 
 
 flutter:
