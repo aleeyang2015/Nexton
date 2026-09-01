@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/network_providers.dart';
 import 'data/datasources/attendance_remote_data_source.dart';
+import 'data/datasources/fixed_punch_location_source.dart';
 import 'data/datasources/geolocator_punch_location_source.dart';
 import 'data/repositories/attendance_repository_impl.dart';
 import 'domain/datasources/punch_location_source.dart';
@@ -22,7 +24,13 @@ import 'domain/usecases/prepare_punch_usecase.dart';
 /// Backed by geolocator, so a `gps` punch sends a real position, its accuracy
 /// and — on Android — the mock-provider verdict. `wifi` punches still have no
 /// source for a BSSID and are refused before they are sent.
+///
+/// In debug builds this is swapped for [FixedPunchLocationSource]: an emulator
+/// reports its position as a mock provider, which `PunchRequest.validate`
+/// refuses before the punch is sent, making the flow impossible to test on
+/// one. Release builds always use the real geolocator source.
 final punchLocationSourceProvider = Provider<PunchLocationSource>((ref) {
+  if (kDebugMode) return FixedPunchLocationSource.fromEnvironment();
   return GeolocatorPunchLocationSource();
 });
 

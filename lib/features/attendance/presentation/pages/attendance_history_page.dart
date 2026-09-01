@@ -121,16 +121,15 @@ class _MonthSwitcher extends ConsumerWidget {
   }
 }
 
-class _SummaryRow extends StatelessWidget {
+class _SummaryRow extends ConsumerWidget {
   final AsyncValue<AttendanceSummary> summary;
 
   const _SummaryRow({required this.summary});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final loading = summary.isLoading && !summary.hasValue;
-    final data = summary.valueOrNull;
 
     if (loading) {
       return const Row(
@@ -143,6 +142,18 @@ class _SummaryRow extends StatelessWidget {
         ],
       );
     }
+
+    // A failed summary used to fall through to "0 / 0 / 0.0", which read as
+    // real data. Surface the failure instead, with the same retry the records
+    // list offers (both reload together).
+    if (summary.hasError) {
+      return _SummaryError(
+        onRetry: () =>
+            ref.read(attendanceHistoryNotifierProvider.notifier).retry(),
+      );
+    }
+
+    final data = summary.valueOrNull;
 
     return Row(
       children: [
@@ -272,6 +283,52 @@ class _RecordsList extends ConsumerWidget {
       children: [
         for (var i = 0; i < days.length; i++) _DayCard(index: i, day: days[i]),
       ],
+    );
+  }
+}
+
+/// The compact failure state for the stat cards — a single bordered strip that
+/// keeps the daily records list below it visible and usable.
+class _SummaryError extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _SummaryError({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: AppColors.danger, size: 20),
+          widthBx(w: 10),
+          Expanded(
+            child: customText(
+              l10n.attendanceLoadFailed,
+              color: AppColors.subTitle,
+              fontSize: 13,
+              maxLine: 2,
+            ),
+          ),
+          widthBx(w: 10),
+          InkWell(
+            onTap: onRetry,
+            child: customText(
+              l10n.retry,
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
