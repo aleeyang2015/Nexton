@@ -779,6 +779,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Not enough leave balance for the days selected.';
 
   @override
+  String get leaveReturnDateHint =>
+      'The return-to-work date must be after your last leave day.';
+
+  @override
   String leaveMaxDaysHint(int days) {
     return 'This leave type allows at most $days days per request.';
   }
@@ -852,4 +856,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get leaveEmployeeNotFound =>
       'Your account isn\'t linked to an employee record.';
+
+  @override
+  String get leaveTypePickerTitle => 'Select leave type';
+
+  @override
+  String get leaveTypeSearchHint => 'Search';
+
+  @override
+  String get leaveTypeSearchEmpty => 'No matching leave types';
 }

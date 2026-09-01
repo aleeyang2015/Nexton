@@ -13,6 +13,7 @@ import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/time_off/domain/entities/leave_request.dart';
 import '../../features/time_off/presentation/pages/leave_request_detail_page.dart';
 import '../../features/time_off/presentation/pages/leave_request_edit_page.dart';
+import '../../features/time_off/presentation/pages/leave_type_picker_page.dart';
 import '../../features/time_off/presentation/pages/time_off_page.dart';
 import '../../core/widgets/error_page.dart';
 import '../widgets/main_shell_page.dart';
@@ -29,6 +30,7 @@ class AppRoutes {
   static const String timeOff = '/time-off';
   static const String timeOffRequestDetail = '/time-off/request';
   static const String timeOffRequestEdit = '/time-off/request/edit';
+  static const String timeOffLeaveTypePicker = '/time-off/leave-type';
   static const String salaryHistory = '/salary-history';
   static const String payslipDetail = '/salary-history/payslip';
   static const String notFound = '/404';
@@ -158,6 +160,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           if (request is! LeaveRequest) return const NotFoundPage();
           return LeaveRequestEditPage(request: request);
         },
+      ),
+
+      // Leave-type chooser — pushed from the request form's "Leave type" card
+      // and popped with the selected `leave_type_id`. The currently-selected id
+      // rides along as `extra` so the list can tick it; a direct hit with
+      // nothing selected is fine and just shows the list untouched.
+      GoRoute(
+        path: AppRoutes.timeOffLeaveTypePicker,
+        name: 'timeOffLeaveTypePicker',
+        builder: (context, state) => LeaveTypePickerPage(
+          selectedTypeId: state.extra is String ? state.extra as String : null,
+        ),
       ),
 
       // Salary history

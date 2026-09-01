@@ -27,9 +27,15 @@ class _LeaveRequestEditPageState extends ConsumerState<LeaveRequestEditPage> {
   @override
   void initState() {
     super.initState();
-    ref
-        .read(leaveRequestFormNotifierProvider(widget.request.id).notifier)
-        .seed(widget.request);
+    // Seeding writes to the form provider, which Riverpod forbids during a
+    // widget life-cycle. Defer it to just after this frame; `seed` is a no-op
+    // once the form is already in edit mode, so the extra call is harmless.
+    Future.microtask(() {
+      if (!mounted) return;
+      ref
+          .read(leaveRequestFormNotifierProvider(widget.request.id).notifier)
+          .seed(widget.request);
+    });
   }
 
   @override

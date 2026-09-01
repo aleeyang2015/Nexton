@@ -10,7 +10,9 @@ part 'leave_request_form_state.freezed.dart';
 /// the "new request" tab uses the `null` family key, an edit page uses the
 /// request's id.
 ///
-/// Leave days are picked individually via [dates] (not a start/end range).
+/// Leave days are held in [dates] as individual days (not a start/end range),
+/// chosen together in the multi-select calendar dialog and replaced wholesale
+/// via [LeaveRequestFormNotifier.setDates].
 /// A half-day [durationType] forces exactly one date. The return-to-work date
 /// defaults to the day after the latest selected date until the user
 /// overrides it.
@@ -35,11 +37,32 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
   double get totalDays =>
       durationType.isHalfDay ? 0.5 : dates.length.toDouble();
 
+  /// The latest picked leave day (normalized to midnight), or null when none
+  /// are picked.
+  DateTime? get lastLeaveDate {
+    if (dates.isEmpty) return null;
+    final last = ([...dates]..sort()).last;
+    return DateTime(last.year, last.month, last.day);
+  }
+
+  /// The earliest date the return-to-work picker may offer: the day after the
+  /// last leave day. Null when no leave days are picked yet.
+  DateTime? get earliestReturnToWorkDate =>
+      lastLeaveDate?.add(const Duration(days: 1));
+
   DateTime? get returnToWorkDate {
     if (returnToWorkOverride != null) return returnToWorkOverride;
-    if (dates.isEmpty) return null;
-    final sorted = [...dates]..sort();
-    return sorted.last.add(const Duration(days: 1));
+    return earliestReturnToWorkDate;
+  }
+
+  /// The return-to-work date must fall strictly after the last leave day — you
+  /// can't already be back at work on a day you're still on leave. Vacuously
+  /// true until leave days and a date exist.
+  bool get hasValidReturnToWorkDate {
+    final rtw = returnToWorkDate;
+    final earliest = earliestReturnToWorkDate;
+    if (rtw == null || earliest == null) return true;
+    return !DateTime(rtw.year, rtw.month, rtw.day).isBefore(earliest);
   }
 
   /// The form-intrinsic checks. The balance / attachment gate lives in the
@@ -48,5 +71,6 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
       leaveTypeId != null &&
       dates.isNotEmpty &&
       (!durationType.isHalfDay || dates.length == 1) &&
+      hasValidReturnToWorkDate &&
       !submission.isLoading;
 }

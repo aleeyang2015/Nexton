@@ -1508,6 +1508,12 @@ abstract class AppLocalizations {
   /// **'Not enough leave balance for the days selected.'**
   String get leaveInsufficientBalanceHint;
 
+  /// No description provided for @leaveReturnDateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The return-to-work date must be after your last leave day.'**
+  String get leaveReturnDateHint;
+
   /// No description provided for @leaveMaxDaysHint.
   ///
   /// In en, this message translates to:
@@ -1639,6 +1645,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your account isn\'t linked to an employee record.'**
   String get leaveEmployeeNotFound;
+
+  /// No description provided for @leaveTypePickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select leave type'**
+  String get leaveTypePickerTitle;
+
+  /// No description provided for @leaveTypeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get leaveTypeSearchHint;
+
+  /// No description provided for @leaveTypeSearchEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching leave types'**
+  String get leaveTypeSearchEmpty;
 }
 
 class _AppLocalizationsDelegate

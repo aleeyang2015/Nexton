@@ -253,6 +253,7 @@
   "leaveRequiredBadge": "ຈຳເປັນ",
   "leaveRequiresAttachmentBlocked": "ການລາປະເພດນີ້ຕ້ອງມີເອກະສານປະກອບ ເຊິ່ງຍັງບໍ່ຮອງຮັບການແນບໄຟລ໌ໃນແອັບ — ກະລຸນາຍື່ນຄຳຮ້ອງນີ້ຜ່ານເວັບ.",
   "leaveInsufficientBalanceHint": "ວັນລາຄົງເຫຼືອບໍ່ພຽງພໍສຳລັບວັນທີ່ເລືອກ.",
+  "leaveReturnDateHint": "ວັນທີ່ກັບມາເລີ່ມວຽກຕ້ອງຢູ່ຫຼັງວັນລາພັກສຸດທ້າຍ.",
   "leaveMaxDaysHint": "ການລາປະເພດນີ້ຂໍໄດ້ສູງສຸດ {days} ວັນຕໍ່ຄັ້ງ.",
   "@leaveMaxDaysHint": {
     "placeholders": {"days": {"type": "int"}}
@@ -277,5 +278,8 @@
   "leaveStepChanged": "ຄຳຮ້ອງນີ້ຫາກໍ່ຖືກອັບເດດ — ກະລຸນາກວດຄືນ.",
   "leaveNotApprover": "ທ່ານບໍ່ມີສິດອະນຸມັດຂັ້ນຕອນນີ້.",
   "leaveInvalidStatus": "ຄຳຮ້ອງນີ້ບໍ່ສາມາດປ່ຽນແປງໄດ້ອີກຕໍ່ໄປ.",
-  "leaveEmployeeNotFound": "ບັນຊີຂອງທ່ານຍັງບໍ່ໄດ້ເຊື່ອມກັບຂໍ້ມູນພະນັກງານ."
+  "leaveEmployeeNotFound": "ບັນຊີຂອງທ່ານຍັງບໍ່ໄດ້ເຊື່ອມກັບຂໍ້ມູນພະນັກງານ.",
+  "leaveTypePickerTitle": "ເລືອກປະເພດການລາ",
+  "leaveTypeSearchHint": "ຄົ້ນຫາ",
+  "leaveTypeSearchEmpty": "ບໍ່ພົບປະເພດການລາທີ່ກົງກັນ"
 }

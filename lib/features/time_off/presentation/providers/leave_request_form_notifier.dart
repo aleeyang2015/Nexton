@@ -34,15 +34,17 @@ class LeaveRequestFormNotifier
   void setLeaveType(String leaveTypeId) =>
       state = state.copyWith(leaveTypeId: leaveTypeId);
 
-  /// Adds one leave day, ignoring a date already picked. A half-day request
+  /// Replaces the picked leave days with [dates] (from the calendar dialog),
+  /// each normalized to midnight, de-duplicated and sorted. A half-day request
   /// keeps only the earliest date.
-  void addDate(DateTime date) {
-    final normalized = DateTime(date.year, date.month, date.day);
-    if (state.dates.contains(normalized)) return;
-    var updated = [...state.dates, normalized]..sort();
-    if (state.durationType.isHalfDay && updated.length > 1) {
-      updated = [updated.first];
-    }
+  void setDates(Iterable<DateTime> dates) {
+    final normalized =
+        <DateTime>{for (final d in dates) DateTime(d.year, d.month, d.day)}
+            .toList()
+          ..sort();
+    final updated = state.durationType.isHalfDay && normalized.length > 1
+        ? [normalized.first]
+        : normalized;
     state = state.copyWith(dates: updated);
   }
 
@@ -70,7 +72,11 @@ class LeaveRequestFormNotifier
   /// invalidate the history and balance lists so the reserved days refresh.
   Future<bool> submit() async {
     final leaveTypeId = state.leaveTypeId;
-    if (leaveTypeId == null || state.dates.isEmpty) return false;
+    if (leaveTypeId == null ||
+        state.dates.isEmpty ||
+        !state.hasValidReturnToWorkDate) {
+      return false;
+    }
 
     state = state.copyWith(submission: const AsyncValue.loading());
     final draft = LeaveRequestDraft(

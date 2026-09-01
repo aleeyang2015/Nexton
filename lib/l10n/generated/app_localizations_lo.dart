@@ -773,6 +773,10 @@ class AppLocalizationsLo extends AppLocalizations {
       'ວັນລາຄົງເຫຼືອບໍ່ພຽງພໍສຳລັບວັນທີ່ເລືອກ.';
 
   @override
+  String get leaveReturnDateHint =>
+      'ວັນທີ່ກັບມາເລີ່ມວຽກຕ້ອງຢູ່ຫຼັງວັນລາພັກສຸດທ້າຍ.';
+
+  @override
   String leaveMaxDaysHint(int days) {
     return 'ການລາປະເພດນີ້ຂໍໄດ້ສູງສຸດ $days ວັນຕໍ່ຄັ້ງ.';
   }
@@ -844,4 +848,13 @@ class AppLocalizationsLo extends AppLocalizations {
   @override
   String get leaveEmployeeNotFound =>
       'ບັນຊີຂອງທ່ານຍັງບໍ່ໄດ້ເຊື່ອມກັບຂໍ້ມູນພະນັກງານ.';
+
+  @override
+  String get leaveTypePickerTitle => 'ເລືອກປະເພດການລາ';
+
+  @override
+  String get leaveTypeSearchHint => 'ຄົ້ນຫາ';
+
+  @override
+  String get leaveTypeSearchEmpty => 'ບໍ່ພົບປະເພດການລາທີ່ກົງກັນ';
 }

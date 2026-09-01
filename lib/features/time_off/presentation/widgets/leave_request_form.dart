@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -14,10 +16,11 @@ import '../providers/leave_request_form_notifier.dart';
 import '../providers/leave_request_form_state.dart';
 import '../providers/leave_types_notifier.dart';
 import 'leave_copy.dart';
+import 'leave_dates_calendar_dialog.dart';
 import 'leave_filter_chip.dart';
 
 /// The shared request-leave form: balance card, leave-type picker, day-part
-/// selector, individually-picked dates, return-to-work date, an (unsupported)
+/// selector, a multi-select date calendar, return-to-work date, an (unsupported)
 /// attachment slot and a reason field. State and submission live in
 /// [leaveRequestFormNotifierProvider]; this widget only renders it.
 ///
@@ -46,6 +49,31 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     super.dispose();
   }
 
+  /// Opens the full-screen leave-type chooser and applies whatever it returns.
+  /// A back-out returns null and leaves the current selection alone.
+  Future<void> _openLeaveTypePicker() async {
+    final key = widget.requestId;
+    final current = ref.read(leaveRequestFormNotifierProvider(key)).leaveTypeId;
+    final picked = await context.push<String>(
+      AppRoutes.timeOffLeaveTypePicker,
+      extra: current,
+    );
+    if (picked != null && picked.isNotEmpty) _notifier.setLeaveType(picked);
+  }
+
+  /// Opens the multi-select date calendar seeded with the current selection,
+  /// and replaces the picked days with whatever it returns. A back-out leaves
+  /// the selection alone.
+  Future<void> _openDatesCalendar() async {
+    final current = ref.read(leaveRequestFormNotifierProvider(widget.requestId));
+    final picked = await LeaveDatesCalendarDialog.show(
+      context,
+      initialDates: current.dates,
+      halfDay: current.durationType.isHalfDay,
+    );
+    if (picked != null) _notifier.setDates(picked);
+  }
+
   LeaveType? _selectedType(List<LeaveType> types, String? id) {
     for (final type in types) {
       if (type.id == id) return type;
@@ -60,6 +88,10 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     LeaveType? type,
     LeaveBalance? balance,
   ) {
+    // Independent of the leave type: the return-to-work date can't land on or
+    // before the last leave day.
+    if (!state.hasValidReturnToWorkDate) return l10n.leaveReturnDateHint;
+
     if (type == null) return null;
     if (type.requiresAttachment) return l10n.leaveRequiresAttachmentBlocked;
 
@@ -116,6 +148,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
           heightBx(h: 16),
           _SectionCard(
             title: l10n.leaveRequestCategoryLabel,
+            titleTrailing: _LeaveTypeExpandButton(onTap: _openLeaveTypePicker),
             child: _LeaveTypePicker(
               types: types,
               loading: typesAsync.isLoading,
@@ -137,25 +170,26 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
           heightBx(h: 16),
           _SectionCard(
             title: l10n.leaveSelectDatesLabel,
-            titleTrailing: _AddDateButton(
-              dates: state.dates,
-              // A half-day request is a single date.
-              enabled:
-                  !(state.durationType.isHalfDay && state.dates.isNotEmpty),
-              onPick: _notifier.addDate,
-            ),
-            child: _DatesList(
-              dates: state.dates,
-              totalDays: state.totalDays,
-              onRemove: _notifier.removeDate,
+            titleTrailing: _PickDatesButton(onTap: _openDatesCalendar),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12, right: 12),
+              child: _DatesList(
+                dates: state.dates,
+                totalDays: state.totalDays,
+                onRemove: _notifier.removeDate,
+              ),
             ),
           ),
           heightBx(h: 16),
           _SectionCard(
             title: l10n.leaveReturnToWorkLabel,
-            child: _ReturnToWorkRow(
-              date: state.returnToWorkDate,
-              onPick: _notifier.setReturnToWorkDate,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12, right: 12),
+              child: _ReturnToWorkRow(
+                date: state.returnToWorkDate,
+                earliest: state.earliestReturnToWorkDate,
+                onPick: _notifier.setReturnToWorkDate,
+              ),
             ),
           ),
           heightBx(h: 16),
@@ -173,11 +207,14 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
           heightBx(h: 16),
           _SectionCard(
             title: l10n.leaveRequestReasonLabel,
-            child: TextField(
-              controller: _reasonController,
-              maxLines: 4,
-              onChanged: _notifier.setReason,
-              decoration: inputDecoration(l10n.leaveRequestReasonHint),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12, right: 12),
+              child: TextField(
+                controller: _reasonController,
+                maxLines: 4,
+                onChanged: _notifier.setReason,
+                decoration: inputDecoration(l10n.leaveRequestReasonHint),
+              ),
             ),
           ),
           if (blockMessage != null && state.dates.isNotEmpty) ...[
@@ -342,7 +379,7 @@ class _SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(2, 12, 2, 15),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -357,10 +394,13 @@ class _SectionCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Flexible(
-                      child: customText(
-                        title,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 12),
+                        child: customText(
+                          title,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                     if (titleBadge != null) ...[
@@ -385,10 +425,41 @@ class _SectionCard extends StatelessWidget {
                 ),
               ),
               if (titleTrailing != null) ...[widthBx(w: 8), titleTrailing!],
+              widthBx(),
             ],
           ),
           if (child != null) ...[heightBx(h: 12), child!],
         ],
+      ),
+    );
+  }
+}
+
+/// The arrow-down affordance on the "Leave type" card. Opens the full-screen
+/// searchable chooser; the horizontal chip row stays as the quick picker.
+class _LeaveTypeExpandButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _LeaveTypeExpandButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          color: AppColors.primaryTint,
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.keyboard_arrow_down,
+          color: AppColors.primary,
+          size: 22,
+        ),
       ),
     );
   }
@@ -429,6 +500,7 @@ class _LeaveTypePicker extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: types.length,
+        padding: EdgeInsets.only(left: 12, right: 12),
         separatorBuilder: (_, _) => widthBx(w: 8),
         itemBuilder: (context, i) {
           final type = types[i];
@@ -453,59 +525,89 @@ class _DurationSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (final type in LeaveDurationType.values)
-          LeaveFilterChip(
-            label: LeaveCopy.durationLabel(l10n, type),
-            selected: type == selected,
-            onTap: () => onSelect(type),
-          ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(left: 12, right: 12),
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 4,
+        children: [
+          for (final type in LeaveDurationType.values)
+            _DurationRadioTile(
+              label: LeaveCopy.durationLabel(l10n, type),
+              selected: type == selected,
+              onTap: () => onSelect(type),
+            ),
+        ],
+      ),
     );
   }
 }
 
-class _AddDateButton extends StatelessWidget {
-  final List<DateTime> dates;
-  final bool enabled;
-  final ValueChanged<DateTime> onPick;
+/// One option of the day-part radio group: a circular indicator and its label,
+/// the whole item tappable. Sized to its content so the group can be laid out
+/// horizontally.
+class _DurationRadioTile extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
 
-  const _AddDateButton({
-    required this.dates,
-    required this.enabled,
-    required this.onPick,
+  const _DurationRadioTile({
+    required this.label,
+    required this.selected,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              selected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+              size: 20,
+              color: selected ? AppColors.primary : AppColors.gray400,
+            ),
+            widthBx(w: 6),
+            customText(
+              label,
+              fontSize: 14,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? AppColors.primary : AppColors.textPrimary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Opens the multi-select date calendar for the "Select leave dates" card.
+class _PickDatesButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _PickDatesButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
       borderRadius: BorderRadius.circular(20),
-      onTap: enabled
-          ? () async {
-              final now = DateTime.now();
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: dates.isEmpty
-                    ? now
-                    : dates.last.add(const Duration(days: 1)),
-                firstDate: now.subtract(const Duration(days: 365)),
-                lastDate: now.add(const Duration(days: 365)),
-              );
-              if (picked != null) onPick(picked);
-            }
-          : null,
+      onTap: onTap,
       child: Container(
         width: 36,
         height: 36,
         alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: enabled ? AppColors.primary : AppColors.gray300,
+        decoration: const BoxDecoration(
+          color: AppColors.primary,
           shape: BoxShape.circle,
         ),
-        child: const Icon(Icons.add, color: Colors.white, size: 20),
+        child: const Icon(Icons.edit_calendar, color: Colors.white, size: 18),
       ),
     );
   }
@@ -601,9 +703,18 @@ class _DatesList extends StatelessWidget {
 
 class _ReturnToWorkRow extends StatelessWidget {
   final DateTime? date;
+
+  /// The earliest date the picker may offer — the day after the last leave
+  /// day. Null until leave days are picked, in which case the picker falls
+  /// back to a year ago.
+  final DateTime? earliest;
   final ValueChanged<DateTime> onPick;
 
-  const _ReturnToWorkRow({required this.date, required this.onPick});
+  const _ReturnToWorkRow({
+    required this.date,
+    required this.earliest,
+    required this.onPick,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -623,11 +734,20 @@ class _ReturnToWorkRow extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: () async {
             final now = DateTime.now();
+            final firstDate =
+                earliest ?? now.subtract(const Duration(days: 365));
+            final lastDate = now.add(const Duration(days: 365));
             final picked = await showDatePicker(
               context: context,
-              initialDate: value ?? now,
-              firstDate: now.subtract(const Duration(days: 365)),
-              lastDate: now.add(const Duration(days: 365)),
+              initialDate: value != null && !value.isBefore(firstDate)
+                  ? value
+                  : firstDate,
+              firstDate: firstDate,
+              // Guard the picker's own assert: the last leave day can sit
+              // beyond the usual one-year horizon.
+              lastDate: lastDate.isAfter(firstDate)
+                  ? lastDate
+                  : firstDate.add(const Duration(days: 365)),
             );
             if (picked != null) onPick(picked);
           },

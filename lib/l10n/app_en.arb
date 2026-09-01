@@ -309,6 +309,7 @@
   "leaveRequiredBadge": "Required",
   "leaveRequiresAttachmentBlocked": "This leave type needs a supporting document. Attaching files isn't available in the app yet — please submit this request on the web.",
   "leaveInsufficientBalanceHint": "Not enough leave balance for the days selected.",
+  "leaveReturnDateHint": "The return-to-work date must be after your last leave day.",
   "leaveMaxDaysHint": "This leave type allows at most {days} days per request.",
   "@leaveMaxDaysHint": {
     "placeholders": {"days": {"type": "int"}}
@@ -333,5 +334,8 @@
   "leaveStepChanged": "This request was just updated — please review it again.",
   "leaveNotApprover": "You can't approve this step.",
   "leaveInvalidStatus": "This request can no longer be changed.",
-  "leaveEmployeeNotFound": "Your account isn't linked to an employee record."
+  "leaveEmployeeNotFound": "Your account isn't linked to an employee record.",
+  "leaveTypePickerTitle": "Select leave type",
+  "leaveTypeSearchHint": "Search",
+  "leaveTypeSearchEmpty": "No matching leave types"
 }

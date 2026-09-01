@@ -42,6 +42,20 @@ class LeaveCopy {
     'Dec',
   ];
 
+  /// Sunday-first weekday initials for a calendar header, matching
+  /// `DateTime.weekday % 7`.
+  static const _weekdayInitialsLo = [
+    'ອາ',
+    'ຈ',
+    'ອ',
+    'ພ',
+    'ພຫ',
+    'ສຸ',
+    'ສ',
+  ];
+
+  static const _weekdayInitialsEn = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
   static bool _isLao(AppLocalizations l10n) => l10n.localeName.startsWith('lo');
 
   /// "25 ສ.ຫ. 2026" / "25 Aug 2026".
@@ -51,6 +65,16 @@ class LeaveCopy {
         : _monthsShortEn)[date.month - 1];
     return '${date.day} $month ${date.year}';
   }
+
+  /// "ສ.ຫ. 2026" / "Sep 2026" — the leave calendar's month heading.
+  static String monthYearShort(AppLocalizations l10n, DateTime month) {
+    final names = _isLao(l10n) ? _monthsShortLo : _monthsShortEn;
+    return '${names[month.month - 1]} ${month.year}';
+  }
+
+  /// Sunday-first weekday initials for the leave calendar's header row.
+  static List<String> weekdayInitials(AppLocalizations l10n) =>
+      _isLao(l10n) ? _weekdayInitialsLo : _weekdayInitialsEn;
 
   /// The Lao name when the UI is in Lao and one exists, otherwise the default.
   static String leaveTypeLabel(AppLocalizations l10n, LeaveType type) {
