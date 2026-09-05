@@ -6,6 +6,7 @@ import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/l10n/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/auth_session.dart';
@@ -55,16 +56,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ? error.localize(l10n)
           : l10n.genericError;
 
-      _showMessage(message, AppColors.error);
+      AppToast.error(message);
     }
-  }
-
-  void _showMessage(String message, Color background) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: background),
-      );
   }
 
   @override

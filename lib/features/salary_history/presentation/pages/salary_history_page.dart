@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -685,11 +686,7 @@ class _DownloadButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
-        onPressed: () {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(l10n.comingSoon)));
-        },
+        onPressed: () => AppToast.info(l10n.comingSoon),
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14),
           side: const BorderSide(color: AppColors.primary),

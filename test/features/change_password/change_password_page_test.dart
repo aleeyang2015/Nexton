@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/features/auth/auth_providers.dart';
 import 'package:next_on/features/auth/domain/entities/auth_session.dart';
 import 'package:next_on/features/auth/presentation/widgets/auth_password_field.dart';
@@ -48,6 +49,8 @@ void main() {
         child: DefaultAssetBundle(
           bundle: TestAssetBundle(),
           child: MaterialApp.router(
+            // AppToast resolves its messenger through this key.
+            scaffoldMessengerKey: rootScaffoldMessengerKey,
             routerConfig: router,
             // Lao is the app default (see core/l10n/locale_provider.dart) —
             // matched here so the literal Lao strings below still find text.
@@ -200,7 +203,7 @@ void main() {
     expect(find.byType(ChangePasswordPage), findsOneWidget);
   });
 
-  testWidgets('a transport failure surfaces as a snack bar', (tester) async {
+  testWidgets('a transport failure surfaces as a toast', (tester) async {
     repository.changePasswordResult = const Result.failure(
       Failure.network(message: 'No internet connection'),
     );

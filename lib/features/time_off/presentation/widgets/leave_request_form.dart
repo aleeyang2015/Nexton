@@ -6,6 +6,7 @@ import '../../../../app/router/app_router.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_balance.dart';
@@ -199,9 +200,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
                 ? l10n.leaveRequiredBadge
                 : l10n.leaveOptionalBadge,
             titleTrailing: _AttachFileButton(
-              onTap: () => ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(l10n.comingSoon))),
+              onTap: () => AppToast.info(l10n.comingSoon),
             ),
           ),
           heightBx(h: 16),
@@ -234,7 +233,6 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
 
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
     final wasEditing = ref
         .read(leaveRequestFormNotifierProvider(widget.requestId))
         .isEditing;
@@ -244,14 +242,8 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
 
     if (ok) {
       _reasonController.clear();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            wasEditing
-                ? l10n.leaveRequestUpdated
-                : l10n.leaveRequestSubmitSuccess,
-          ),
-        ),
+      AppToast.success(
+        wasEditing ? l10n.leaveRequestUpdated : l10n.leaveRequestSubmitSuccess,
       );
       widget.onSubmitted?.call();
       return;
@@ -261,12 +253,8 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
         .read(leaveRequestFormNotifierProvider(widget.requestId))
         .submission
         .error;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          error is Failure ? error.localize(l10n) : l10n.genericError,
-        ),
-      ),
+    AppToast.error(
+      error is Failure ? error.localize(l10n) : l10n.genericError,
     );
   }
 }

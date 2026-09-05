@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_dialog.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_approval_step.dart';
@@ -223,7 +224,6 @@ class LeaveRequestDetailPage extends ConsumerWidget {
 
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
     final confirmed = await AppDialog.ask(
       context,
       title: l10n.leaveCancelAction,
@@ -238,14 +238,10 @@ class LeaveRequestDetailPage extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (ok) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.leaveRequestCancelled)),
-      );
+      AppToast.success(l10n.leaveRequestCancelled);
       context.pop();
     } else {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.leaveRequestCancelFailed)),
-      );
+      AppToast.error(l10n.leaveRequestCancelFailed);
     }
   }
 }

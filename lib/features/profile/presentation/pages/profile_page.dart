@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_avatar.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/coming_soon_page.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
@@ -333,10 +334,7 @@ const List<BoxShadow> _softShadow = [
 ];
 
 void _showComingSoon(BuildContext context) {
-  final l10n = AppLocalizations.of(context)!;
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(l10n.comingSoon)));
+  AppToast.info(AppLocalizations.of(context)!.comingSoon);
 }
 
 void _openComingSoon(BuildContext context, String title, IconData icon) {

@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/result.dart';
 import '../../../../core/widgets/app_dialog.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/attendance_failure_x.dart';
 import '../../domain/entities/attendance_day.dart';
@@ -19,7 +19,7 @@ import 'punch_progress_dialog.dart';
 ///
 /// This is presentation routing, not business logic: every decision below is
 /// about *which surface* an answer belongs on — a blocking dialog for
-/// something the user must fix, a snackbar for something they only need to
+/// something the user must fix, a toast for something they only need to
 /// know — following the error→UX table in §7. What the answer *is* was
 /// decided in the domain and arrives here as a [PunchOutcome] or a [Failure].
 class PunchFlow {
@@ -33,7 +33,7 @@ class PunchFlow {
     // A cooldown from an earlier 429 is still running. Say so rather than
     // letting the control feel broken (§7 rule 10).
     if (state.isCoolingDown) {
-      _snack(context, AppLocalizations.of(context)!.clockCooldownActive);
+      AppToast.info(AppLocalizations.of(context)!.clockCooldownActive);
       return;
     }
 
@@ -74,12 +74,11 @@ class PunchFlow {
 
     switch (outcome) {
       case PunchRecorded(:final receipt):
-        _snack(
-          context,
-          AttendanceCopy.receipt(l10n, receipt, action),
-          // Stored-but-unverified is amber, never green (§7 rule 5).
-          color: receipt.isVerified ? AppColors.success : AppColors.warning,
-        );
+        final message = AttendanceCopy.receipt(l10n, receipt, action);
+        // Stored-but-unverified is amber, never green (§7 rule 5).
+        receipt.isVerified
+            ? AppToast.success(message)
+            : AppToast.warning(message);
 
       case PunchBlocked():
         await _handleBlocked(context, ref, outcome, action, l10n, allowRetry);
@@ -125,7 +124,7 @@ class PunchFlow {
       return AppDialog.warning(context, message: message);
     }
 
-    _snack(context, message, color: AppColors.warning);
+    AppToast.warning(message);
   }
 
   static Future<void> _handleFailure(
@@ -147,19 +146,12 @@ class PunchFlow {
       return AppDialog.warning(context, message: message);
     }
 
-    _snack(
-      context,
+    // A throttle is not retryable — the cooldown exists precisely to stop
+    // another attempt (§7 rule 10).
+    AppToast.error(
       message,
-      color: AppColors.danger,
-      // A throttle is not retryable — the cooldown exists precisely to stop
-      // another attempt (§7 rule 10).
-      action: failure.isRetryable
-          ? SnackBarAction(
-              label: l10n.retry,
-              textColor: Colors.white,
-              onPressed: () => start(context, ref),
-            )
-          : null,
+      actionLabel: failure.isRetryable ? l10n.retry : null,
+      onAction: failure.isRetryable ? () => start(context, ref) : null,
     );
   }
 
@@ -171,25 +163,4 @@ class PunchFlow {
     AttendanceRule.noShiftAssigned,
   };
 
-  static void _snack(
-    BuildContext context,
-    String message, {
-    Color color = AppColors.gray800,
-    SnackBarAction? action,
-  }) {
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null) return;
-
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: color,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-          action: action,
-        ),
-      );
-  }
 }

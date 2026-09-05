@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_session_notifier.dart';
@@ -49,7 +49,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
     final l10n = AppLocalizations.of(context)!;
 
     if (next.valueOrNull == true) {
-      _showMessage(l10n.changePasswordSuccess, AppColors.success);
+      AppToast.success(l10n.changePasswordSuccess);
       // The session has already dropped the requirement; the redirect would
       // move us anyway, this just makes the intent explicit.
       context.go('/');
@@ -60,16 +60,8 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
       final error = next.error;
       final message = error is Failure ? error.localize(l10n) : l10n.genericError;
 
-      _showMessage(message, AppColors.error);
+      AppToast.error(message);
     }
-  }
-
-  void _showMessage(String message, Color background) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: background),
-      );
   }
 
   @override

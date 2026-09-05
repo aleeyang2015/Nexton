@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -303,15 +304,14 @@ class _PendingApprovalCard extends ConsumerWidget {
 
   void _report(BuildContext context, LeaveDecisionOutcome outcome) {
     final l10n = AppLocalizations.of(context)!;
-    final message = switch (outcome) {
-      LeaveDecisionOutcome.success => null,
-      LeaveDecisionOutcome.stepChanged => l10n.leaveStepRefreshed,
-      LeaveDecisionOutcome.failed => l10n.leaveApprovalDecideFailed,
-    };
-    if (message == null) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    switch (outcome) {
+      case LeaveDecisionOutcome.success:
+        break;
+      case LeaveDecisionOutcome.stepChanged:
+        AppToast.info(l10n.leaveStepRefreshed);
+      case LeaveDecisionOutcome.failed:
+        AppToast.error(l10n.leaveApprovalDecideFailed);
+    }
   }
 }
 

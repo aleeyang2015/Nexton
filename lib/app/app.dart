@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/l10n/locale_provider.dart';
 import '../core/theme/app_theme.dart';
+import '../core/widgets/app_toast.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'router/app_router.dart';
 
@@ -17,6 +18,10 @@ class App extends ConsumerWidget {
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       debugShowCheckedModeBanner: false,
+
+      // Lets [AppToast] reach a messenger from anywhere, with no Scaffold
+      // context in hand.
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
 
       // Localization Configuration — Lao is the app default; see
       // core/l10n/locale_provider.dart.
