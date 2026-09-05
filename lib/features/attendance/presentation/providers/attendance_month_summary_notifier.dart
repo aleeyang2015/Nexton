@@ -21,7 +21,8 @@ import '../../domain/entities/date_range.dart';
 /// at-a-glance card with a "view all" straight into that same page. A slow
 /// or failing summary here degrades to zeros instead of parking the home
 /// screen behind a spinner or an error row.
-class AttendanceMonthSummaryNotifier extends AsyncNotifier<AttendanceSummary> {
+class AttendanceMonthSummaryNotifier
+    extends AutoDisposeAsyncNotifier<AttendanceSummary> {
   /// Bounds the wait below Dio's own `receiveTimeout` (§core/constants):
   /// this endpoint has been observed to hang past that with no response and
   /// no `DioException` ever thrown, so this is a second, independent backstop
@@ -68,6 +69,7 @@ class AttendanceMonthSummaryNotifier extends AsyncNotifier<AttendanceSummary> {
 }
 
 final attendanceMonthSummaryNotifierProvider =
-    AsyncNotifierProvider<AttendanceMonthSummaryNotifier, AttendanceSummary>(
-      AttendanceMonthSummaryNotifier.new,
-    );
+    AsyncNotifierProvider.autoDispose<
+      AttendanceMonthSummaryNotifier,
+      AttendanceSummary
+    >(AttendanceMonthSummaryNotifier.new);

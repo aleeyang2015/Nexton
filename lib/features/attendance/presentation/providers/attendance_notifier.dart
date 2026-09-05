@@ -16,7 +16,7 @@ import 'attendance_state.dart';
 /// Owns every attendance behaviour the home screen can trigger. The card and
 /// the page forward events here and render what comes back; neither holds
 /// attendance logic of its own.
-class AttendanceNotifier extends Notifier<AttendanceState> {
+class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
   /// How long the slide action stays inert after a 429.
   ///
   /// The backend's own window isn't published, and `Retry-After` is gone by
@@ -239,6 +239,6 @@ class AttendanceNotifier extends Notifier<AttendanceState> {
 }
 
 final attendanceNotifierProvider =
-    NotifierProvider<AttendanceNotifier, AttendanceState>(
+    NotifierProvider.autoDispose<AttendanceNotifier, AttendanceState>(
       AttendanceNotifier.new,
     );

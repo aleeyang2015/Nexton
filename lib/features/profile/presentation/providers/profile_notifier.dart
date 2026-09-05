@@ -9,7 +9,7 @@ import '../../profile_providers.dart';
 ///
 /// Fetched independently of the auth session on purpose: a slow or failing
 /// Core HR lookup must never hold up sign-in or block the home shell.
-class ProfileNotifier extends AsyncNotifier<EmployeeProfile> {
+class ProfileNotifier extends AutoDisposeAsyncNotifier<EmployeeProfile> {
   @override
   Future<EmployeeProfile> build() => _load();
 
@@ -29,6 +29,6 @@ class ProfileNotifier extends AsyncNotifier<EmployeeProfile> {
 }
 
 final profileNotifierProvider =
-    AsyncNotifierProvider<ProfileNotifier, EmployeeProfile>(
+    AsyncNotifierProvider.autoDispose<ProfileNotifier, EmployeeProfile>(
       ProfileNotifier.new,
     );

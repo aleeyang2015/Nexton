@@ -8,7 +8,8 @@ import 'attendance_history_state.dart';
 /// Owns the history page's month, its records and summary, and which rows
 /// are expanded. The page renders what comes back and forwards taps here;
 /// it holds no fetching logic of its own.
-class AttendanceHistoryNotifier extends Notifier<AttendanceHistoryState> {
+class AttendanceHistoryNotifier
+    extends AutoDisposeNotifier<AttendanceHistoryState> {
   bool _disposed = false;
 
   @override
@@ -69,6 +70,7 @@ class AttendanceHistoryNotifier extends Notifier<AttendanceHistoryState> {
 }
 
 final attendanceHistoryNotifierProvider =
-    NotifierProvider<AttendanceHistoryNotifier, AttendanceHistoryState>(
-      AttendanceHistoryNotifier.new,
-    );
+    NotifierProvider.autoDispose<
+      AttendanceHistoryNotifier,
+      AttendanceHistoryState
+    >(AttendanceHistoryNotifier.new);

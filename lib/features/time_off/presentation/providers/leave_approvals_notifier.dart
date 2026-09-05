@@ -11,7 +11,7 @@ import 'leave_approvals_state.dart';
 /// Owns the approvals tab's pending / decided lists and each decision's
 /// in-flight status. The tab renders what comes back and forwards taps here;
 /// it holds no fetching logic of its own.
-class LeaveApprovalsNotifier extends Notifier<LeaveApprovalsState> {
+class LeaveApprovalsNotifier extends AutoDisposeNotifier<LeaveApprovalsState> {
   bool _disposed = false;
 
   @override
@@ -123,6 +123,6 @@ class LeaveApprovalsNotifier extends Notifier<LeaveApprovalsState> {
 }
 
 final leaveApprovalsNotifierProvider =
-    NotifierProvider<LeaveApprovalsNotifier, LeaveApprovalsState>(
+    NotifierProvider.autoDispose<LeaveApprovalsNotifier, LeaveApprovalsState>(
       LeaveApprovalsNotifier.new,
     );

@@ -6,7 +6,8 @@ import '../../time_off_providers.dart';
 /// The per-type quota rollup (`GET /leave/balances/my`) for the current year,
 /// shown on the request form's balance card. Invalidated after a submit /
 /// edit / cancel so the reserved days stay accurate.
-class LeaveBalancesNotifier extends AsyncNotifier<List<LeaveBalance>> {
+class LeaveBalancesNotifier
+    extends AutoDisposeAsyncNotifier<List<LeaveBalance>> {
   @override
   Future<List<LeaveBalance>> build() => _load();
 
@@ -24,9 +25,10 @@ class LeaveBalancesNotifier extends AsyncNotifier<List<LeaveBalance>> {
 }
 
 final leaveBalancesNotifierProvider =
-    AsyncNotifierProvider<LeaveBalancesNotifier, List<LeaveBalance>>(
-      LeaveBalancesNotifier.new,
-    );
+    AsyncNotifierProvider.autoDispose<
+      LeaveBalancesNotifier,
+      List<LeaveBalance>
+    >(LeaveBalancesNotifier.new);
 
 /// The balance for one leave type, or null while the list is loading / absent.
 LeaveBalance? leaveBalanceFor(

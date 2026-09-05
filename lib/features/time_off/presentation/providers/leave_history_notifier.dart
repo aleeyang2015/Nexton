@@ -10,7 +10,7 @@ import 'leave_history_state.dart';
 /// Owns the history tab's filter, date range and fetched list, plus the
 /// cancel action reachable from the detail page. The tab renders what comes
 /// back and forwards taps here; it holds no fetching logic of its own.
-class LeaveHistoryNotifier extends Notifier<LeaveHistoryState> {
+class LeaveHistoryNotifier extends AutoDisposeNotifier<LeaveHistoryState> {
   bool _disposed = false;
 
   @override
@@ -85,6 +85,6 @@ class LeaveHistoryNotifier extends Notifier<LeaveHistoryState> {
 }
 
 final leaveHistoryNotifierProvider =
-    NotifierProvider<LeaveHistoryNotifier, LeaveHistoryState>(
+    NotifierProvider.autoDispose<LeaveHistoryNotifier, LeaveHistoryState>(
       LeaveHistoryNotifier.new,
     );

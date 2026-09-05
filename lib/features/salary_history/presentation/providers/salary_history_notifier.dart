@@ -7,7 +7,7 @@ import 'salary_history_state.dart';
 /// Owns the history page's year, its payslips, the active filter and which
 /// rows are expanded. The page renders what comes back and forwards taps
 /// here; it holds no fetching logic of its own.
-class SalaryHistoryNotifier extends Notifier<SalaryHistoryState> {
+class SalaryHistoryNotifier extends AutoDisposeNotifier<SalaryHistoryState> {
   bool _disposed = false;
 
   @override
@@ -59,6 +59,6 @@ class SalaryHistoryNotifier extends Notifier<SalaryHistoryState> {
 }
 
 final salaryHistoryNotifierProvider =
-    NotifierProvider<SalaryHistoryNotifier, SalaryHistoryState>(
+    NotifierProvider.autoDispose<SalaryHistoryNotifier, SalaryHistoryState>(
       SalaryHistoryNotifier.new,
     );

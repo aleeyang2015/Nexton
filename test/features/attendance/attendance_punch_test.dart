@@ -122,6 +122,12 @@ void main() {
 
     /// Reads the notifier and lets its deferred first load finish.
     Future<AttendanceNotifier> ready() async {
+      // The provider is `autoDispose`; a bare `container.read` leaves it with
+      // no listener, so Riverpod tears it down again before the test can act
+      // on it. A no-op listen, same as a widget's `ref.watch`, keeps it alive
+      // — done here rather than in `setUp` so it still builds after each
+      // test has finished configuring the fake repository's response.
+      container.listen(attendanceNotifierProvider, (_, _) {});
       final notifier = container.read(attendanceNotifierProvider.notifier);
       await Future<void>.delayed(Duration.zero);
       return notifier;
@@ -282,6 +288,11 @@ void main() {
         // Not `ready()`: testWidgets runs the body in a fake-async zone, so
         // the microtask-deferred first load needs a pump to flush, not a
         // real delay.
+        //
+        // The provider is `autoDispose`, so it needs a listener to survive
+        // past this line the same way a widget's `ref.watch` would keep it
+        // alive.
+        localContainer.listen(attendanceNotifierProvider, (_, _) {});
         localContainer.read(attendanceNotifierProvider.notifier);
         await tester.pump();
         expect(repository.todayCalls, 1);

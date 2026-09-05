@@ -245,6 +245,12 @@ void main() {
     tearDown(() => container.dispose());
 
     Future<AttendanceHistoryNotifier> ready() async {
+      // The provider is `autoDispose`; a bare `container.read` leaves it with
+      // no listener, so Riverpod tears it down again before the test can act
+      // on it. A no-op listen, same as a widget's `ref.watch`, keeps it alive
+      // — done here rather than in `setUp` so it still builds after each
+      // test has finished configuring the fake repository's response.
+      container.listen(attendanceHistoryNotifierProvider, (_, _) {});
       final notifier = container.read(attendanceHistoryNotifierProvider.notifier);
       await Future<void>.delayed(Duration.zero);
       return notifier;

@@ -95,6 +95,14 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
 
   /// User-initiated sign-out. There is no logout endpoint; this is local
   /// teardown only.
+  ///
+  /// Every feature's session-scoped provider (profile, attendance, leave,
+  /// salary — see their `.autoDispose` declarations) is watched only by
+  /// widgets under the signed-in shell. The moment this state flips
+  /// unauthenticated, the router tears that whole shell down, each provider
+  /// loses its last watcher, and Riverpod disposes it on its own — so the
+  /// next sign-in rebuilds every one of them from scratch, same as a cold
+  /// app start. Nothing here needs to invalidate them by hand.
   Future<void> logout() async {
     await ref.read(logoutUseCaseProvider)();
     state = const AsyncValue.data(AuthSession.unauthenticated());

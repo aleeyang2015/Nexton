@@ -7,13 +7,19 @@ enum MainShellTab { home, list, profile }
 /// Which shell tab is showing. Exposed as a provider so a screen living
 /// inside one tab — e.g. the list page's "ເຂົ້າ/ອອກວຽກ" menu jumping to
 /// Home — can move the shell without a chain of callbacks.
-class MainShellTabNotifier extends Notifier<MainShellTab> {
+///
+/// `autoDispose`: [MainShellPage] is its only watcher, so signing out (which
+/// unmounts the whole shell) drops this back to [MainShellTab.home] — the
+/// next sign-in, by the same or a different account, always lands on Home
+/// rather than reopening whichever tab was showing before.
+class MainShellTabNotifier extends AutoDisposeNotifier<MainShellTab> {
   @override
   MainShellTab build() => MainShellTab.home;
 
   void select(MainShellTab tab) => state = tab;
 }
 
-final mainShellTabProvider = NotifierProvider<MainShellTabNotifier, MainShellTab>(
-  MainShellTabNotifier.new,
-);
+final mainShellTabProvider =
+    NotifierProvider.autoDispose<MainShellTabNotifier, MainShellTab>(
+      MainShellTabNotifier.new,
+    );

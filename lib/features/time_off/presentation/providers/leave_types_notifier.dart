@@ -5,7 +5,7 @@ import '../../time_off_providers.dart';
 
 /// The leave-type list (`GET /leave/types`) shared by the history filter and
 /// the request form. Cached for the session — the list rarely changes.
-class LeaveTypesNotifier extends AsyncNotifier<List<LeaveType>> {
+class LeaveTypesNotifier extends AutoDisposeAsyncNotifier<List<LeaveType>> {
   @override
   Future<List<LeaveType>> build() => _load();
 
@@ -21,6 +21,6 @@ class LeaveTypesNotifier extends AsyncNotifier<List<LeaveType>> {
 }
 
 final leaveTypesNotifierProvider =
-    AsyncNotifierProvider<LeaveTypesNotifier, List<LeaveType>>(
+    AsyncNotifierProvider.autoDispose<LeaveTypesNotifier, List<LeaveType>>(
       LeaveTypesNotifier.new,
     );
