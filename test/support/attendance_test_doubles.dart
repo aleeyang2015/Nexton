@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/domain/datasources/punch_location_source.dart';
@@ -22,6 +24,12 @@ class FakeAttendanceRepository implements AttendanceRepository {
   Result<AttendanceSummary> monthSummary =
       const Result.success(AttendanceSummary.empty);
 
+  /// Reproduces the real backend's observed behaviour on `records/summary/
+  /// my`: the request never resolves into a response or a `DioException` —
+  /// so `summary()` never completes at all, rather than answering
+  /// [monthSummary].
+  bool hangSummary = false;
+
   Result<PunchOutcome>? clockInResult;
   Result<PunchOutcome>? clockOutResult;
 
@@ -44,9 +52,10 @@ class FakeAttendanceRepository implements AttendanceRepository {
   }
 
   @override
-  FutureResult<AttendanceSummary> summary(DateRange range) async {
+  FutureResult<AttendanceSummary> summary(DateRange range) {
     summaryRanges.add(range);
-    return monthSummary;
+    if (hangSummary) return Completer<Result<AttendanceSummary>>().future;
+    return Future.value(monthSummary);
   }
 
   @override

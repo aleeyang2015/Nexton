@@ -75,24 +75,36 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a failed load offers a retry that recovers', (tester) async {
-    repository.monthSummary = const Result.failure(
-      Failure.network(message: 'offline'),
-    );
+  testWidgets(
+    'a failed load falls back to zeros rather than showing a retry — this '
+    'small at-a-glance card degrades quietly, unlike the full history page',
+    (tester) async {
+      repository.monthSummary = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
 
-    await pumpCard(tester);
-    await tester.pump();
+      await pumpCard(tester);
+      await tester.pump();
 
-    expect(find.text('Retry'), findsOneWidget);
+      expect(find.text('Retry'), findsNothing);
+      expect(find.text('0'), findsNWidgets(3)); // present/late/absent days
+      expect(find.text('0.0'), findsOneWidget); // work hours
+    },
+  );
 
-    repository.monthSummary = const Result.success(
-      AttendanceSummary(presentDays: 4),
-    );
-    await tester.tap(find.text('Retry'));
-    await tester.pump();
+  testWidgets(
+    'falls back to zeros rather than hanging when the backend never answers',
+    (tester) async {
+      repository.hangSummary = true;
 
-    expect(find.text('4'), findsOneWidget);
-  });
+      await pumpCard(tester);
+      await tester.pump(const Duration(seconds: 16));
+
+      expect(find.text('Retry'), findsNothing);
+      expect(find.text('0'), findsNWidgets(3));
+      expect(find.text('0.0'), findsOneWidget);
+    },
+  );
 
   testWidgets('tapping view all navigates to the history page', (
     tester,
