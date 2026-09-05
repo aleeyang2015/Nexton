@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/slide_action_button.dart';
+import '../../../../features/profile/presentation/providers/profile_notifier.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/attendance_day.dart';
 import '../providers/attendance_notifier.dart';
@@ -31,8 +33,19 @@ class AttendanceStatusCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final locale = ref.watch(localeProvider);
     final state = ref.watch(attendanceNotifierProvider);
     final day = state.day;
+    // Only read for its shift, so a slow or failing profile lookup just
+    // means the placeholder line and badge fall back to generic copy until
+    // it resolves — never a blocker.
+    final profile = ref.watch(profileNotifierProvider).valueOrNull;
+    final shiftDetails = profile?.shiftDetails ?? const [];
+    final shiftName = AttendanceCopy.employeeShiftName(
+      locale,
+      profile?.shiftName,
+      profile?.shiftNameLo,
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -51,10 +64,15 @@ class AttendanceStatusCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CardHeader(day: day),
+          _CardHeader(day: day, shiftName: shiftName),
           const _LiveClock(),
           customText(
-            AttendanceCopy.shiftHoursLine(l10n, day.sessions),
+            AttendanceCopy.shiftHoursLine(
+              l10n,
+              locale,
+              day.sessions,
+              shiftDetails,
+            ),
             fontSize: 14,
           ),
           heightBx(h: 20),
@@ -78,17 +96,21 @@ class AttendanceStatusCard extends ConsumerWidget {
   }
 }
 
-/// The clock icon, "current time" label, and the REG/late badge above the
-/// live clock.
+/// The clock icon, "current time" label, and the shift-name/late badge above
+/// the live clock.
 class _CardHeader extends StatelessWidget {
   final AttendanceDay day;
 
-  const _CardHeader({required this.day});
+  /// The employee's assigned shift name, already resolved to the app's
+  /// language — null shows [AppLocalizations.regularTimeBadge] instead.
+  final String? shiftName;
+
+  const _CardHeader({required this.day, this.shiftName});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final badge = AttendanceCopy.statusBadge(l10n, day);
+    final badge = AttendanceCopy.statusBadge(l10n, day, shiftName: shiftName);
 
     return Row(
       children: [

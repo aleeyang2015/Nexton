@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/l10n/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
+import '../../../../features/profile/domain/entities/shift_detail.dart';
+import '../../../../features/profile/presentation/providers/profile_notifier.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/attendance_day.dart';
 import '../../domain/entities/attendance_summary.dart';
@@ -376,6 +379,7 @@ class _DayCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final locale = ref.watch(localeProvider);
     final expanded = ref.watch(
       attendanceHistoryNotifierProvider.select(
         (s) => s.expandedIndexes.contains(index),
@@ -383,6 +387,11 @@ class _DayCard extends ConsumerWidget {
     );
     final date = day.date;
     final status = AttendanceHistoryCopy.status(l10n, day);
+    // Only read for its shift, so a slow or failing profile lookup just
+    // means the generic "Morning"/"Afternoon" fallback shows instead.
+    final shiftDetails =
+        ref.watch(profileNotifierProvider).valueOrNull?.shiftDetails ??
+        const [];
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -446,7 +455,12 @@ class _DayCard extends ConsumerWidget {
             const Divider(height: 1, color: AppColors.border),
             heightBx(h: 8),
             for (var i = 0; i < day.sessions.length; i++)
-              _SessionRow(index: i, session: day.sessions[i]),
+              _SessionRow(
+                index: i,
+                session: day.sessions[i],
+                locale: locale,
+                shiftDetails: shiftDetails,
+              ),
           ],
         ],
       ),
@@ -536,16 +550,21 @@ class _StatusPill extends StatelessWidget {
 class _SessionRow extends StatelessWidget {
   final int index;
   final AttendanceSession session;
+  final Locale locale;
+  final List<ShiftDetail> shiftDetails;
 
-  const _SessionRow({required this.index, required this.session});
+  const _SessionRow({
+    required this.index,
+    required this.session,
+    required this.locale,
+    required this.shiftDetails,
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isMorning = index == 0;
-    final label =
-        session.label ??
-        (isMorning ? l10n.shiftMorningLabel : l10n.shiftAfternoonLabel);
+    final label = session.label ?? _fallbackLabel(l10n, isMorning);
 
     final inAt = session.clockIn;
     final outAt = session.clockOut;
@@ -600,5 +619,17 @@ class _SessionRow extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// The employee's real shift-segment name (`shift.shift_details[index]`)
+  /// when there is one at that position, else the generic "Morning"/
+  /// "Afternoon" copy — for a session `records/my` sent with no
+  /// `session_label` of its own.
+  String _fallbackLabel(AppLocalizations l10n, bool isMorning) {
+    if (index < shiftDetails.length) {
+      final name = AttendanceCopy.shiftDetailName(locale, shiftDetails[index]);
+      if (name.isNotEmpty) return name;
+    }
+    return isMorning ? l10n.shiftMorningLabel : l10n.shiftAfternoonLabel;
   }
 }

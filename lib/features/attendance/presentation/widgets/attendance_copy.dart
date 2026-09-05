@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../features/profile/domain/entities/shift_detail.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/attendance_day.dart';
 import '../../domain/entities/punch_outcome.dart';
@@ -116,37 +117,63 @@ class AttendanceCopy {
     return hourMinute(at);
   }
 
-  /// The card header's REG/late badge, from the real `is_late` flag
-  /// `records/my` reports on today's sessions.
+  /// The card header's badge, from the real `is_late` flag `records/my`
+  /// reports on today's sessions.
   ///
   /// `attendance_status` (`present`/`late`/`absent`) would be the more
   /// direct source, but the spec is explicit that it's clock-in-only —
   /// `records/my` never carries it (§6.2/§3's field table) — so `is_late`
   /// is the closest real signal available for a day that's already loaded.
+  ///
+  /// On time, the badge names the employee's actual assigned shift
+  /// (`/core_hr/employees/me`'s `shift.name`/`shift.name_lo`) rather than a
+  /// generic "on time" label — [AppLocalizations.regularTimeBadge] is only
+  /// the fallback for when that hasn't loaded or no shift is assigned.
   static ({String label, Color color}) statusBadge(
     AppLocalizations l10n,
-    AttendanceDay day,
-  ) {
+    AttendanceDay day, {
+    String? shiftName,
+  }) {
     if (day.isLate) {
       return (
         label: l10n.attendanceLateStatus,
         color: AppColors.attendanceLate,
       );
     }
-    return (label: l10n.regularTimeBadge, color: AppColors.attendancePresent);
+
+    final label = (shiftName != null && shiftName.isNotEmpty)
+        ? shiftName
+        : l10n.regularTimeBadge;
+    return (label: label, color: AppColors.attendancePresent);
+  }
+
+  /// The assigned shift's own name (`shift.name`/`shift.name_lo`) in the
+  /// user's language, or null when the employee has no shift on file (yet,
+  /// or ever).
+  static String? employeeShiftName(
+    Locale locale,
+    String? name,
+    String? nameLo,
+  ) {
+    final picked = _pickLocalized(locale, name, nameLo);
+    return picked.isEmpty ? null : picked;
   }
 
   /// Today's shift-hours line for the card, from the real `session_label`s
   /// `records/my` returns (§6.2's note recommends showing this rather than
   /// the raw session order).
   ///
-  /// Falls back to [AppLocalizations.shiftHoursPlaceholder] only when the
-  /// day has no sessions at all yet — there is no endpoint that reports a
-  /// shift assignment ahead of the first punch, so before that the app
-  /// genuinely doesn't know the hours.
+  /// Before the first punch of the day there are no sessions to read a label
+  /// from, so this falls back to the employee's assigned shift
+  /// (`/core_hr/employees/me`'s `shift.shift_details[]`) — the real "ກະເຊົ້າ
+  /// 08:00-12:00 | ກະແລງ 13:00-17:00" for *this* employee, not a canned
+  /// example. [AppLocalizations.shiftHoursPlaceholder] is the last resort,
+  /// for when even that hasn't loaded.
   static String shiftHoursLine(
     AppLocalizations l10n,
+    Locale locale,
     List<AttendanceSession> sessions,
+    List<ShiftDetail> shiftDetails,
   ) {
     final labels = sessions
         .map((s) => s.label)
@@ -154,7 +181,60 @@ class AttendanceCopy {
         .where((label) => label.isNotEmpty)
         .toList(growable: false);
 
-    return labels.isEmpty ? l10n.shiftHoursPlaceholder : labels.join(' | ');
+    if (labels.isNotEmpty) return labels.join(' | ');
+
+    final shiftLines = shiftDetails
+        .map((detail) => shiftDetailLine(locale, detail))
+        .where((line) => line.isNotEmpty)
+        .toList(growable: false);
+
+    return shiftLines.isEmpty
+        ? l10n.shiftHoursPlaceholder
+        : shiftLines.join(' | ');
+  }
+
+  /// One shift segment as shown on screen — its localized name, plus its
+  /// scheduled hours when the backend sent them (e.g. `"ກະເຊົ້າ: 08:00 -
+  /// 12:00"`).
+  static String shiftDetailLine(Locale locale, ShiftDetail detail) {
+    final name = shiftDetailName(locale, detail);
+    final start = _shiftClockTime(detail.startTime);
+    final end = _shiftClockTime(detail.endTime);
+    final range = [
+      if (start != null) start,
+      if (end != null) end,
+    ].join(' - ');
+
+    if (name.isEmpty) return range;
+    return range.isEmpty ? name : '$name: $range';
+  }
+
+  /// `name` or `name_lo`, following the app's language — Lao prefers
+  /// `name_lo`, everything else prefers `name`, each falling back to
+  /// whichever of the two the backend actually sent.
+  static String shiftDetailName(Locale locale, ShiftDetail detail) {
+    return _pickLocalized(locale, detail.name, detail.nameLo);
+  }
+
+  /// `name` or `name_lo` by locale — Lao prefers `name_lo`, everything else
+  /// prefers `name` — falling back to whichever of the two is actually set.
+  /// Shared by every "name or name_lo" field the API sends (a shift's own
+  /// name, a shift segment's name, …).
+  static String _pickLocalized(Locale locale, String? name, String? nameLo) {
+    final preferred = locale.languageCode == 'lo' ? nameLo : name;
+    if (preferred != null && preferred.isNotEmpty) return preferred;
+
+    final fallback = locale.languageCode == 'lo' ? name : nameLo;
+    return fallback ?? '';
+  }
+
+  /// A shift's raw `HH:mm[:ss]` schedule string as `HH:mm`, hand-trimmed for
+  /// the same reason [hourMinute] is hand-formatted rather than parsed
+  /// through `DateTime` — it isn't one, it's a time-of-day with no date.
+  static String? _shiftClockTime(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    final match = RegExp(r'^(\d{2}:\d{2})').firstMatch(raw);
+    return match?.group(1) ?? raw;
   }
 
   /// A clock method code (`"gps"`, `"wifi"`, …) in the user's language, for
