@@ -129,26 +129,29 @@ class _CardHeader extends StatelessWidget {
   }
 }
 
-/// A `HH:mm:ss` clock that ticks once a second, purely for display — no
-/// attendance state flows through it.
-class _LiveClock extends StatefulWidget {
+/// A `HH:mm:ss` clock that ticks once a second, purely for display.
+///
+/// The tick doubles as the attendance notifier's cue to notice a day has
+/// rolled over (see [AttendanceNotifier.refreshIfNewDay]) — no attendance
+/// state flows through the clock itself, it just forwards the tick.
+class _LiveClock extends ConsumerStatefulWidget {
   const _LiveClock();
 
   @override
-  State<_LiveClock> createState() => _LiveClockState();
+  ConsumerState<_LiveClock> createState() => _LiveClockState();
 }
 
-class _LiveClockState extends State<_LiveClock> {
+class _LiveClockState extends ConsumerState<_LiveClock> {
   DateTime _now = DateTime.now();
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => setState(() => _now = DateTime.now()),
-    );
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      setState(() => _now = DateTime.now());
+      ref.read(attendanceNotifierProvider.notifier).refreshIfNewDay();
+    });
   }
 
   @override

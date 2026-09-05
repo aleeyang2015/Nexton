@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
@@ -257,5 +258,59 @@ void main() {
         expect(await notifier.retryWithReason('x'), isNull);
       },
     );
+
+    // Regression test: a session left open by a missed clock-out used to
+    // stay on screen indefinitely because nothing re-read `today` once the
+    // provider was built — neither on resume, nor when the calendar day
+    // quietly rolled over underneath a foregrounded app.
+    testWidgets(
+      're-reads today when the app resumes from the background',
+      (tester) async {
+        repository.today = Result.success(_openDay());
+
+        // A container of its own, disposed before this body returns: the
+        // shared `container`/`tearDown` pair disposes *after* Flutter's
+        // pending-timer check for this test already ran, which would catch
+        // the still-armed midnight timer as a leak.
+        final localContainer = ProviderContainer(
+          overrides: [
+            attendanceRepositoryProvider.overrideWithValue(repository),
+            punchLocationSourceProvider.overrideWithValue(location),
+          ],
+        );
+
+        // Not `ready()`: testWidgets runs the body in a fake-async zone, so
+        // the microtask-deferred first load needs a pump to flush, not a
+        // real delay.
+        localContainer.read(attendanceNotifierProvider.notifier);
+        await tester.pump();
+        expect(repository.todayCalls, 1);
+
+        // A real backgrounding is resumed -> inactive -> ... -> paused, then
+        // back out the same way; only the round trip through a non-resumed
+        // state counts as a resume.
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.inactive,
+        );
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        await tester.pump();
+
+        expect(repository.todayCalls, 2);
+
+        localContainer.dispose();
+      },
+    );
+
+    test('refreshIfNewDay does nothing on the day it already loaded', () async {
+      repository.today = Result.success(_openDay());
+      final notifier = await ready();
+
+      notifier.refreshIfNewDay();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.todayCalls, 1);
+    });
   });
 }
