@@ -77,7 +77,7 @@ class AttendanceStatusCard extends ConsumerWidget {
           ),
           heightBx(h: 20),
           SlideActionButton(
-            label: day.nextAction == ClockAction.clockIn
+            label: state.nextAction == ClockAction.clockIn
                 ? l10n.slideToClockIn
                 : l10n.slideToClockOut,
             // Inert while a punch is in flight, while a 429 cooldown runs,

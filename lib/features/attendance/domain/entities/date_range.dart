@@ -1,7 +1,9 @@
 import 'package:equatable/equatable.dart';
 
-/// An inclusive `start`–`end` date span, for the endpoints that take
-/// `start_date`/`end_date` query params (§6.2, §6.3).
+/// An inclusive `start`–`end` date span. `records/my` (§6.2) reads it as
+/// `start_date`/`end_date`; `records/summary/my` (§6.3) reads it as a single
+/// `month` (`start`'s year and month — every caller builds this via
+/// [DateRange.month], so a whole calendar month is always what's in it).
 class DateRange extends Equatable {
   final DateTime start;
   final DateTime end;

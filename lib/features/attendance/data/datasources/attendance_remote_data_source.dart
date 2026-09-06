@@ -104,10 +104,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   Future<AttendanceSummary> summary(DateRange range) async {
     final response = await _client.get<dynamic>(
       AttendancePaths.mySummary,
-      queryParameters: {
-        'start_date': _isoDate(range.start),
-        'end_date': _isoDate(range.end),
-      },
+      queryParameters: {'month': _isoMonth(range.start)},
     );
 
     return AttendanceSummaryModel.fromJson(
@@ -223,4 +220,8 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     final day = date.day.toString().padLeft(2, '0');
     return '${date.year}-$month-$day';
   }
+
+  /// `YYYY-MM`, for the summary endpoint's `month` query param.
+  static String _isoMonth(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}';
 }

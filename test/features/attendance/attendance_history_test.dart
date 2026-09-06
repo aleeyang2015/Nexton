@@ -160,7 +160,11 @@ void main() {
 
       final summary = await source.summary(range);
 
-      expect(adapter.lastRequest!.path, contains('/attendance/records/summary/my'));
+      expect(
+        adapter.lastRequest!.path,
+        contains('/attendance/records/summary/my'),
+      );
+      expect(adapter.lastRequest!.queryParameters, {'month': '2026-06'});
       expect(summary.presentDays, 15);
       expect(summary.lateDays, 2);
       expect(summary.totalWorkHours, 121.5);
@@ -172,8 +176,14 @@ void main() {
     final lo = lookupAppLocalizations(const Locale('lo'));
 
     test('monthYear names the month in each language', () {
-      expect(AttendanceHistoryCopy.monthYear(en, DateTime(2026, 6)), 'June 2026');
-      expect(AttendanceHistoryCopy.monthYear(lo, DateTime(2026, 6)), 'ມິຖຸນາ 2026');
+      expect(
+        AttendanceHistoryCopy.monthYear(en, DateTime(2026, 6)),
+        'June 2026',
+      );
+      expect(
+        AttendanceHistoryCopy.monthYear(lo, DateTime(2026, 6)),
+        'ມິຖຸນາ 2026',
+      );
     });
 
     test('dayTitle combines the weekday, day and short month', () {
@@ -251,7 +261,9 @@ void main() {
       // — done here rather than in `setUp` so it still builds after each
       // test has finished configuring the fake repository's response.
       container.listen(attendanceHistoryNotifierProvider, (_, _) {});
-      final notifier = container.read(attendanceHistoryNotifierProvider.notifier);
+      final notifier = container.read(
+        attendanceHistoryNotifierProvider.notifier,
+      );
       await Future<void>.delayed(Duration.zero);
       return notifier;
     }
@@ -291,7 +303,10 @@ void main() {
 
       // Still just the one load from build().
       expect(repository.recordsRanges, hasLength(1));
-      expect(container.read(attendanceHistoryNotifierProvider).canGoNext, isFalse);
+      expect(
+        container.read(attendanceHistoryNotifierProvider).canGoNext,
+        isFalse,
+      );
     });
 
     test('toggleExpanded flips one row without touching the rest', () async {
@@ -363,7 +378,11 @@ void main() {
     setUp(() {
       repository = FakeAttendanceRepository()
         ..monthSummary = const Result.success(
-          AttendanceSummary(presentDays: 15, lateDays: 2, totalWorkHours: 121.5),
+          AttendanceSummary(
+            presentDays: 15,
+            lateDays: 2,
+            totalWorkHours: 121.5,
+          ),
         )
         ..monthRecords = Result.success([
           AttendanceDay(
@@ -404,7 +423,9 @@ void main() {
     Future<void> pumpPage(WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [attendanceRepositoryProvider.overrideWithValue(repository)],
+          overrides: [
+            attendanceRepositoryProvider.overrideWithValue(repository),
+          ],
           child: DefaultAssetBundle(
             bundle: TestAssetBundle(),
             child: MaterialApp(
