@@ -77,8 +77,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     final response = await _client.get<dynamic>(
       AttendancePaths.myRecords,
       queryParameters: {
-        'start_date': _isoDate(range.start),
-        'end_date': _isoDate(range.end),
+        'month': _isoMonth(range.start),
         'page': 1,
         // Max per the spec (§6.2) — a calendar month never has more days
         // than this, so one page is always the whole range.
@@ -221,7 +220,8 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     return '${date.year}-$month-$day';
   }
 
-  /// `YYYY-MM`, for the summary endpoint's `month` query param.
+  /// `YYYY-MM`, for the `month` query param on the records and summary
+  /// endpoints.
   static String _isoMonth(DateTime date) =>
       '${date.year}-${date.month.toString().padLeft(2, '0')}';
 }

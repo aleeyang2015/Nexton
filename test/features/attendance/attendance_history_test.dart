@@ -123,12 +123,11 @@ void main() {
       final days = await source.records(range);
 
       expect(adapter.lastRequest!.path, contains('/attendance/records/my'));
-      expect(adapter.lastRequest!.queryParameters['start_date'], '2026-06-01');
-      expect(adapter.lastRequest!.queryParameters['end_date'], '2026-06-30');
+      expect(adapter.lastRequest!.queryParameters['month'], '2026-06');
       // ASCII digits regardless of the active locale.
       expect(
-        adapter.lastRequest!.queryParameters['start_date'],
-        matches(r'^\d{4}-\d{2}-\d{2}$'),
+        adapter.lastRequest!.queryParameters['month'],
+        matches(r'^\d{4}-\d{2}$'),
       );
 
       expect(days, hasLength(2));
