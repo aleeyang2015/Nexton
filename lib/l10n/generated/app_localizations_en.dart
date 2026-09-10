@@ -708,6 +708,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveChooseFileButton => 'Choose file';
 
   @override
+  String get leaveAttachNoFiles => 'No file attached yet';
+
+  @override
+  String get leaveAttachUploading => 'Uploading…';
+
+  @override
+  String get leaveAttachUploaded => 'File uploaded';
+
+  @override
+  String get leaveAttachUploadFailed =>
+      'Couldn\'t upload the file. Please try again.';
+
+  @override
   String get timeOffApprovalsTab => 'Team Approvals';
 
   @override

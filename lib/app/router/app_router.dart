@@ -163,15 +163,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
 
       // Leave-type chooser — pushed from the request form's "Leave type" card
-      // and popped with the selected `leave_type_id`. The currently-selected id
-      // rides along as `extra` so the list can tick it; a direct hit with
-      // nothing selected is fine and just shows the list untouched.
+      // and the history tab's filter, popped with the selected `leave_type_id`
+      // (or `''` from the filter's "All" row). `extra` is a
+      // [LeaveTypePickerArgs] record; a bare String or nothing is still
+      // accepted and just ticks that id with no "All" row.
       GoRoute(
         path: AppRoutes.timeOffLeaveTypePicker,
         name: 'timeOffLeaveTypePicker',
-        builder: (context, state) => LeaveTypePickerPage(
-          selectedTypeId: state.extra is String ? state.extra as String : null,
-        ),
+        builder: (context, state) {
+          final extra = state.extra;
+          return LeaveTypePickerPage(
+            selectedTypeId: switch (extra) {
+              LeaveTypePickerArgs(:final selectedTypeId) => selectedTypeId,
+              final String id => id,
+              _ => null,
+            },
+            allowClear: extra is LeaveTypePickerArgs && extra.allowClear,
+          );
+        },
       ),
 
       // Salary history

@@ -1376,6 +1376,30 @@ abstract class AppLocalizations {
   /// **'Choose file'**
   String get leaveChooseFileButton;
 
+  /// No description provided for @leaveAttachNoFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'No file attached yet'**
+  String get leaveAttachNoFiles;
+
+  /// No description provided for @leaveAttachUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading…'**
+  String get leaveAttachUploading;
+
+  /// No description provided for @leaveAttachUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'File uploaded'**
+  String get leaveAttachUploaded;
+
+  /// No description provided for @leaveAttachUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t upload the file. Please try again.'**
+  String get leaveAttachUploadFailed;
+
   /// No description provided for @timeOffApprovalsTab.
   ///
   /// In en, this message translates to:

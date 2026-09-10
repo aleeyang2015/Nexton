@@ -49,6 +49,10 @@ dependencies:
   # AndroidManifest.xml and Info.plist.
   geolocator: ^14.0.2
 
+  # System file/gallery chooser for leave-request attachments. Ships its own
+  # native picker UI; no extra Android/iOS permissions required.
+  file_picker: ^11.0.3
+
 dev_dependencies:
   flutter_native_splash: ^2.4.7
 

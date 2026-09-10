@@ -284,6 +284,10 @@
   "leaveAttachFileLabel": "Attach file",
   "leaveOptionalBadge": "Optional",
   "leaveChooseFileButton": "Choose file",
+  "leaveAttachNoFiles": "No file attached yet",
+  "leaveAttachUploading": "Uploading…",
+  "leaveAttachUploaded": "File uploaded",
+  "leaveAttachUploadFailed": "Couldn't upload the file. Please try again.",
   "timeOffApprovalsTab": "Team Approvals",
   "leaveApprovalsPendingHeader": "Needs your approval ({count})",
   "@leaveApprovalsPendingHeader": {

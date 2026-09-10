@@ -703,6 +703,18 @@ class AppLocalizationsLo extends AppLocalizations {
   String get leaveChooseFileButton => 'ເລືອກໄຟລ໌';
 
   @override
+  String get leaveAttachNoFiles => 'ຍັງບໍ່ໄດ້ແນບໄຟລ໌';
+
+  @override
+  String get leaveAttachUploading => 'ກຳລັງອັບໂຫລດ…';
+
+  @override
+  String get leaveAttachUploaded => 'ອັບໂຫລດໄຟລ໌ແລ້ວ';
+
+  @override
+  String get leaveAttachUploadFailed => 'ອັບໂຫລດໄຟລ໌ບໍ່ສຳເລັດ. ກະລຸນາລອງໃໝ່.';
+
+  @override
   String get timeOffApprovalsTab => 'ອະນຸມັດຈາກສາຍງານ';
 
   @override

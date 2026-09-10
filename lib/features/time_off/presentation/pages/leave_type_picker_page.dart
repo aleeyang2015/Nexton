@@ -9,20 +9,33 @@ import '../../domain/entities/leave_type.dart';
 import '../providers/leave_types_notifier.dart';
 import '../widgets/leave_copy.dart';
 
+/// What the route accepts as `extra`: the id to tick, and whether to offer an
+/// "All" row that clears the selection (the history filter wants it, the
+/// request form does not).
+typedef LeaveTypePickerArgs = ({String? selectedTypeId, bool allowClear});
+
 /// Full-screen leave-type chooser opened from the request form's "Leave type"
-/// card. Renders the session-cached `GET /leave/types` list
-/// ([leaveTypesNotifierProvider]) with a client-side search box, and pops with
-/// the chosen [LeaveType.id]; backing out pops with nothing and leaves the
-/// form's current selection untouched.
+/// card and the history tab's filter. Renders the session-cached
+/// `GET /leave/types` list ([leaveTypesNotifierProvider]) with a client-side
+/// search box, and pops with the chosen [LeaveType.id] — or an empty string
+/// from the "All" row when [allowClear] is set. Backing out pops with nothing
+/// and leaves the caller's current selection untouched.
 ///
 /// The filtering here is pure presentation — trimming an already-loaded list —
 /// so it stays in the page rather than the notifier.
 class LeaveTypePickerPage extends ConsumerStatefulWidget {
-  const LeaveTypePickerPage({super.key, this.selectedTypeId});
+  const LeaveTypePickerPage({
+    super.key,
+    this.selectedTypeId,
+    this.allowClear = false,
+  });
 
-  /// The type currently chosen in the form, ticked in the list. `null` when
+  /// The type currently chosen by the caller, ticked in the list. `null` when
   /// nothing is selected yet.
   final String? selectedTypeId;
+
+  /// When true, an "All" row sits above the list and pops with `''`.
+  final bool allowClear;
 
   @override
   ConsumerState<LeaveTypePickerPage> createState() =>
@@ -110,7 +123,7 @@ class _LeaveTypePickerPageState extends ConsumerState<LeaveTypePickerPage> {
                   ),
                   data: (types) {
                     final filtered = _filter(types);
-                    if (filtered.isEmpty) {
+                    if (filtered.isEmpty && !widget.allowClear) {
                       return Center(
                         child: customText(
                           l10n.leaveTypeSearchEmpty,
@@ -119,19 +132,41 @@ class _LeaveTypePickerPageState extends ConsumerState<LeaveTypePickerPage> {
                         ),
                       );
                     }
-                    return ListView.separated(
+                    return ListView(
                       padding: const EdgeInsets.fromLTRB(15, 4, 15, 24),
-                      itemCount: filtered.length,
-                      separatorBuilder: (_, _) =>
+                      children: [
+                        if (widget.allowClear) ...[
+                          _LeaveTypeRow(
+                            label: l10n.leaveFilterAll,
+                            selected: widget.selectedTypeId == null,
+                            onTap: () => context.pop(''),
+                          ),
                           const Divider(height: 1, color: AppColors.border),
-                      itemBuilder: (context, i) {
-                        final type = filtered[i];
-                        return _LeaveTypeRow(
-                          label: LeaveCopy.leaveTypeLabel(l10n, type),
-                          selected: type.id == widget.selectedTypeId,
-                          onTap: () => context.pop(type.id),
-                        );
-                      },
+                        ],
+                        if (filtered.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: customText(
+                              l10n.leaveTypeSearchEmpty,
+                              color: AppColors.subTitle,
+                              fontSize: 13,
+                              alight: TextAlign.center,
+                            ),
+                          )
+                        else
+                          for (var i = 0; i < filtered.length; i++) ...[
+                            if (i > 0)
+                              const Divider(
+                                height: 1,
+                                color: AppColors.border,
+                              ),
+                            _LeaveTypeRow(
+                              label: LeaveCopy.leaveTypeLabel(l10n, filtered[i]),
+                              selected: filtered[i].id == widget.selectedTypeId,
+                              onTap: () => context.pop(filtered[i].id),
+                            ),
+                          ],
+                      ],
                     );
                   },
                 ),

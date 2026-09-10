@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'leave_duration_type.dart';
+import 'uploaded_attachment.dart';
 
 /// What the request-leave form submits (`POST`/`PUT /leave/requests`,
 /// leave-request-flutter.md §3.3/§3.4).
@@ -15,12 +16,18 @@ class LeaveRequestDraft extends Equatable {
   final DateTime? returnDate;
   final String reason;
 
+  /// The file uploaded via the form's attachment slot, or null. Only emitted
+  /// on the wire when non-null — on edit, omitting the key keeps the existing
+  /// attachment (§3.4).
+  final UploadedAttachment? attachment;
+
   const LeaveRequestDraft({
     required this.leaveTypeId,
     required this.dates,
     this.durationType = LeaveDurationType.fullDay,
     this.returnDate,
     this.reason = '',
+    this.attachment,
   });
 
   double get totalDays =>
@@ -33,5 +40,6 @@ class LeaveRequestDraft extends Equatable {
     durationType,
     returnDate,
     reason,
+    attachment,
   ];
 }

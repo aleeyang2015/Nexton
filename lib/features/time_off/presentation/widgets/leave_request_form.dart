@@ -10,8 +10,8 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_balance.dart';
-import '../../domain/entities/leave_duration_type.dart';
 import '../../domain/entities/leave_type.dart';
+import '../providers/leave_attachment_notifier.dart';
 import '../providers/leave_balances_notifier.dart';
 import '../providers/leave_request_form_notifier.dart';
 import '../providers/leave_request_form_state.dart';
@@ -21,9 +21,11 @@ import 'leave_dates_calendar_dialog.dart';
 import 'leave_filter_chip.dart';
 
 /// The shared request-leave form: balance card, leave-type picker, day-part
-/// selector, a multi-select date calendar, return-to-work date, an (unsupported)
-/// attachment slot and a reason field. State and submission live in
-/// [leaveRequestFormNotifierProvider]; this widget only renders it.
+/// selector, a multi-select date calendar, return-to-work date, an attachment
+/// slot (file pick → `POST /uploads`, held in [leaveAttachmentNotifierProvider]
+/// and folded into the submit body's `attachments`) and a reason field. Form
+/// fields and submission live in [leaveRequestFormNotifierProvider]; this
+/// widget only renders them.
 ///
 /// [requestId] is the family key — `null` for a new request, the request's id
 /// on the edit page. [onSubmitted] fires after a successful submit/update.
@@ -57,7 +59,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     final current = ref.read(leaveRequestFormNotifierProvider(key)).leaveTypeId;
     final picked = await context.push<String>(
       AppRoutes.timeOffLeaveTypePicker,
-      extra: current,
+      extra: (selectedTypeId: current, allowClear: false),
     );
     if (picked != null && picked.isNotEmpty) _notifier.setLeaveType(picked);
   }
@@ -115,6 +117,20 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     final typesAsync = ref.watch(leaveTypesNotifierProvider);
     final balances = ref.watch(leaveBalancesNotifierProvider).valueOrNull;
 
+    // Surface the outcome of an attachment upload; the file itself is rendered
+    // inside the "attach file" section card.
+    ref.listen(leaveAttachmentNotifierProvider(key), (previous, next) {
+      if (next.isLoading) return;
+      if (next.hasError) {
+        final error = next.error;
+        AppToast.error(
+          error is Failure ? error.localize(l10n) : l10n.leaveAttachUploadFailed,
+        );
+      } else if ((previous?.valueOrNull) == null && next.valueOrNull != null) {
+        AppToast.success(l10n.leaveAttachUploaded);
+      }
+    });
+
     final types = typesAsync.valueOrNull ?? const <LeaveType>[];
     final selectedType = _selectedType(types, state.leaveTypeId);
     final balance = leaveBalanceFor(balances, state.leaveTypeId);
@@ -158,16 +174,23 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
               onSelect: _notifier.setLeaveType,
             ),
           ),
-          if (selectedType?.allowHalfDay ?? false) ...[
-            heightBx(h: 16),
-            _SectionCard(
-              title: l10n.leaveDurationLabel,
-              child: _DurationSelector(
-                selected: state.durationType,
-                onSelect: _notifier.setDurationType,
-              ),
-            ),
-          ],
+          // The day-part card ("ຊ່ວງເວລາ": full day / first half / second half)
+          // is hidden for now — every request goes in as a full day.
+          // `LeaveRequestFormState.durationType` already defaults to
+          // `LeaveDurationType.fullDay` and nothing here changes it, so the
+          // half-day branches downstream stay dormant. To bring the picker
+          // back, un-comment this block and `_DurationSelector` /
+          // `_DurationRadioTile` below.
+          // if (selectedType?.allowHalfDay ?? false) ...[
+          //   heightBx(h: 16),
+          //   _SectionCard(
+          //     title: l10n.leaveDurationLabel,
+          //     child: _DurationSelector(
+          //       selected: state.durationType,
+          //       onSelect: _notifier.setDurationType,
+          //     ),
+          //   ),
+          // ],
           heightBx(h: 16),
           _SectionCard(
             title: l10n.leaveSelectDatesLabel,
@@ -200,7 +223,13 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
                 ? l10n.leaveRequiredBadge
                 : l10n.leaveOptionalBadge,
             titleTrailing: _AttachFileButton(
-              onTap: () => AppToast.info(l10n.comingSoon),
+              onTap: ref
+                  .read(leaveAttachmentNotifierProvider(key).notifier)
+                  .pickAndUpload,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12, right: 12),
+              child: _AttachmentRow(requestId: key),
             ),
           ),
           heightBx(h: 16),
@@ -503,6 +532,10 @@ class _LeaveTypePicker extends StatelessWidget {
   }
 }
 
+// Day-part picker — temporarily unused (see the commented block in `build`).
+// Requests are full-day only for now; restore both classes and that block
+// together.
+/*
 class _DurationSelector extends StatelessWidget {
   final LeaveDurationType selected;
   final ValueChanged<LeaveDurationType> onSelect;
@@ -575,6 +608,7 @@ class _DurationRadioTile extends StatelessWidget {
     );
   }
 }
+*/
 
 /// Opens the multi-select date calendar for the "Select leave dates" card.
 class _PickDatesButton extends StatelessWidget {
@@ -790,6 +824,85 @@ class _AttachFileButton extends StatelessWidget {
         fontWeight: FontWeight.w600,
         fontSize: 12,
       ),
+    );
+  }
+}
+
+/// Renders the file uploaded from the attachment slot, or a placeholder / an
+/// in-flight spinner. Reads [leaveAttachmentNotifierProvider]; the pick + upload
+/// itself is triggered by [_AttachFileButton].
+class _AttachmentRow extends ConsumerWidget {
+  final String? requestId;
+
+  const _AttachmentRow({required this.requestId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final upload = ref.watch(leaveAttachmentNotifierProvider(requestId));
+    final file = upload.valueOrNull;
+
+    if (upload.isLoading) {
+      return _hint(const _UploadSpinner(), l10n.leaveAttachUploading);
+    }
+    if (file == null) {
+      return _hint(null, l10n.leaveAttachNoFiles);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.insert_drive_file_outlined,
+            size: 18,
+            color: AppColors.primary,
+          ),
+          widthBx(w: 10),
+          Expanded(
+            child: customText(
+              file.originalName,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          InkWell(
+            onTap: ref
+                .read(leaveAttachmentNotifierProvider(requestId).notifier)
+                .clear,
+            child: const Icon(
+              Icons.delete_outline,
+              size: 20,
+              color: AppColors.danger,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _hint(Widget? leading, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          if (leading != null) ...[leading, widthBx(w: 8)],
+          customText(text, color: AppColors.subTitle, fontSize: 13),
+        ],
+      ),
+    );
+  }
+}
+
+class _UploadSpinner extends StatelessWidget {
+  const _UploadSpinner();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 14,
+      height: 14,
+      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
     );
   }
 }
