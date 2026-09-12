@@ -11,47 +11,14 @@ void main() {
   const lo = Locale('lo');
 
   group('AttendanceCopy.statusBadge', () {
-    test('reads REG - Regular Time from an on-time day', () {
-      const day = AttendanceDay(
-        sessions: [AttendanceSession(isLate: false)],
-      );
-
-      expect(AttendanceCopy.statusBadge(l10n, day).label, 'REG - Regular Time');
-    });
-
-    test('reads Late when any session today was late', () {
-      const day = AttendanceDay(
-        sessions: [
-          AttendanceSession(isLate: false),
-          AttendanceSession(isLate: true),
-        ],
-      );
-
-      expect(AttendanceCopy.statusBadge(l10n, day).label, 'Late');
-    });
-
-    test('a day with no sessions yet defaults to Regular Time', () {
-      expect(
-        AttendanceCopy.statusBadge(l10n, AttendanceDay.empty).label,
-        'REG - Regular Time',
-      );
+    test('falls back to Regular Time when no shift name is on file', () {
+      expect(AttendanceCopy.statusBadge(l10n).label, 'REG - Regular Time');
     });
 
     test('shows the employee\'s real shift name in place of Regular Time', () {
-      const day = AttendanceDay(sessions: [AttendanceSession(isLate: false)]);
-
       expect(
-        AttendanceCopy.statusBadge(l10n, day, shiftName: 'Regular Shift').label,
+        AttendanceCopy.statusBadge(l10n, shiftName: 'Regular Shift').label,
         'Regular Shift',
-      );
-    });
-
-    test('a late day keeps the Late badge even with a shift name on file', () {
-      const day = AttendanceDay(sessions: [AttendanceSession(isLate: true)]);
-
-      expect(
-        AttendanceCopy.statusBadge(l10n, day, shiftName: 'Regular Shift').label,
-        'Late',
       );
     });
   });

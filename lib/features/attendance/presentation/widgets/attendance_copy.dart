@@ -117,30 +117,16 @@ class AttendanceCopy {
     return hourMinute(at);
   }
 
-  /// The card header's badge, from the real `is_late` flag `records/my`
-  /// reports on today's sessions.
+  /// The card header's badge: the employee's assigned shift name
+  /// (`/core_hr/employees/me`'s `shift.name`/`shift.name_lo`), already
+  /// resolved to the app's language by the caller.
   ///
-  /// `attendance_status` (`present`/`late`/`absent`) would be the more
-  /// direct source, but the spec is explicit that it's clock-in-only —
-  /// `records/my` never carries it (§6.2/§3's field table) — so `is_late`
-  /// is the closest real signal available for a day that's already loaded.
-  ///
-  /// On time, the badge names the employee's actual assigned shift
-  /// (`/core_hr/employees/me`'s `shift.name`/`shift.name_lo`) rather than a
-  /// generic "on time" label — [AppLocalizations.regularTimeBadge] is only
-  /// the fallback for when that hasn't loaded or no shift is assigned.
+  /// It never reports lateness — [AppLocalizations.regularTimeBadge] is only
+  /// the fallback for when the shift hasn't loaded or none is assigned.
   static ({String label, Color color}) statusBadge(
-    AppLocalizations l10n,
-    AttendanceDay day, {
+    AppLocalizations l10n, {
     String? shiftName,
   }) {
-    if (day.isLate) {
-      return (
-        label: l10n.attendanceLateStatus,
-        color: AppColors.attendanceLate,
-      );
-    }
-
     final label = (shiftName != null && shiftName.isNotEmpty)
         ? shiftName
         : l10n.regularTimeBadge;

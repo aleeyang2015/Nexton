@@ -64,7 +64,7 @@ class AttendanceStatusCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CardHeader(day: day, shiftName: shiftName),
+          _CardHeader(shiftName: shiftName),
           const _LiveClock(),
           customText(
             AttendanceCopy.shiftHoursLine(
@@ -96,21 +96,19 @@ class AttendanceStatusCard extends ConsumerWidget {
   }
 }
 
-/// The clock icon, "current time" label, and the shift-name/late badge above
-/// the live clock.
+/// The clock icon, "current time" label, and the shift-name badge above the
+/// live clock.
 class _CardHeader extends StatelessWidget {
-  final AttendanceDay day;
-
   /// The employee's assigned shift name, already resolved to the app's
   /// language — null shows [AppLocalizations.regularTimeBadge] instead.
   final String? shiftName;
 
-  const _CardHeader({required this.day, this.shiftName});
+  const _CardHeader({this.shiftName});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final badge = AttendanceCopy.statusBadge(l10n, day, shiftName: shiftName);
+    final badge = AttendanceCopy.statusBadge(l10n, shiftName: shiftName);
 
     return Row(
       children: [
