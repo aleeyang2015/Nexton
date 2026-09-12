@@ -4,33 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
-import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
-import 'package:next_on/features/time_off/domain/entities/leave_type.dart';
-import 'package:next_on/features/time_off/domain/usecases/get_leave_approvals_usecase.dart';
 import 'package:next_on/features/time_off/presentation/widgets/leave_approvals_badge_icon.dart';
 import 'package:next_on/features/time_off/time_off_providers.dart';
 
-/// Answers the pending query with [pending] and the unfiltered history query
-/// with nothing — the badge only ever counts the former.
-class _FakeGetLeaveApprovals implements GetLeaveApprovalsUseCase {
-  _FakeGetLeaveApprovals(this.pending);
-
-  final Result<List<LeaveRequest>> pending;
-
-  @override
-  FutureResult<List<LeaveRequest>> call(LeaveStatus? status) async =>
-      status == LeaveStatus.pending ? pending : const Result.success([]);
-}
-
-LeaveRequest _request(String id) => LeaveRequest(
-  id: id,
-  employeeName: 'Somphone Vilaysone',
-  leaveType: const LeaveType(id: 'lt-1', code: 'annual', name: 'Annual'),
-  startDate: DateTime(2026, 9, 14),
-  endDate: DateTime(2026, 9, 15),
-  totalDays: 2,
-  status: LeaveStatus.pending,
-);
+import '../../support/leave_test_doubles.dart';
 
 void main() {
   /// Mounts the icon on its own with [pending] queued behind the use case.
@@ -45,7 +22,7 @@ void main() {
       ProviderScope(
         overrides: [
           getLeaveApprovalsUseCaseProvider.overrideWithValue(
-            _FakeGetLeaveApprovals(pending),
+            FakeGetLeaveApprovals(pending: pending),
           ),
         ],
         child: const MaterialApp(
@@ -59,7 +36,7 @@ void main() {
   testWidgets('counts the requests waiting on this approver', (tester) async {
     await pumpBadge(
       tester,
-      Result.success([_request('r-1'), _request('r-2'), _request('r-3')]),
+      Result.success([pendingApproval(id: 'r-1'), pendingApproval(id: 'r-2'), pendingApproval(id: 'r-3')]),
     );
 
     expect(find.text('3'), findsOneWidget);
@@ -75,7 +52,7 @@ void main() {
   testWidgets('caps a runaway queue at 99+', (tester) async {
     await pumpBadge(
       tester,
-      Result.success([for (var i = 0; i < 120; i++) _request('r-$i')]),
+      Result.success([for (var i = 0; i < 120; i++) pendingApproval(id: 'r-$i')]),
     );
 
     expect(find.text('99+'), findsOneWidget);
@@ -84,7 +61,7 @@ void main() {
   testWidgets('reports no count while the fetch is still in flight', (
     tester,
   ) async {
-    await pumpBadge(tester, Result.success([_request('r-1')]), settle: false);
+    await pumpBadge(tester, Result.success([pendingApproval(id: 'r-1')]), settle: false);
 
     expect(find.byType(Badge), findsNothing);
 

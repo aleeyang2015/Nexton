@@ -738,6 +738,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveApprovalApproveAction => 'Approve';
 
   @override
+  String get leaveApprovalFinalAction => 'Final approval';
+
+  @override
+  String get leaveApprovalClearedNotice => 'Approved by the department head';
+
+  @override
   String get leaveApprovalRejectAction => 'Reject';
 
   @override

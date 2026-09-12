@@ -1430,6 +1430,18 @@ abstract class AppLocalizations {
   /// **'Approve'**
   String get leaveApprovalApproveAction;
 
+  /// No description provided for @leaveApprovalFinalAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Final approval'**
+  String get leaveApprovalFinalAction;
+
+  /// No description provided for @leaveApprovalClearedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved by the department head'**
+  String get leaveApprovalClearedNotice;
+
   /// No description provided for @leaveApprovalRejectAction.
   ///
   /// In en, this message translates to:

@@ -196,9 +196,7 @@ class _PendingApprovalCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final stepLabel = request.currentStep == null
-        ? null
-        : LeaveCopy.stepRoleLabel(l10n, request.currentStep!.role);
+    final untouched = request.awaitsFirstApproval;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -236,9 +234,13 @@ class _PendingApprovalCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              if (stepLabel != null) _StepChip(label: stepLabel),
+              if (untouched) const _NewBadge(),
             ],
           ),
+          if (!untouched) ...[
+            heightBx(h: 12),
+            const _ClearedNotice(),
+          ],
           if (request.reason.isNotEmpty) ...[
             heightBx(h: 12),
             Container(
@@ -262,9 +264,9 @@ class _PendingApprovalCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: _DecisionButton(
-                  label: l10n.leaveApprovalApproveAction,
+                  label: LeaveCopy.approveActionLabel(l10n, request),
                   icon: Icons.check,
-                  color: AppColors.primary,
+                  filled: true,
                   enabled: !deciding,
                   onTap: () => _approve(context, ref),
                 ),
@@ -274,7 +276,7 @@ class _PendingApprovalCard extends ConsumerWidget {
                 child: _DecisionButton(
                   label: l10n.leaveApprovalRejectAction,
                   icon: Icons.close,
-                  color: AppColors.danger,
+                  filled: false,
                   enabled: !deciding,
                   onTap: () => _reject(context, ref),
                 ),
@@ -315,60 +317,153 @@ class _PendingApprovalCard extends ConsumerWidget {
   }
 }
 
-class _StepChip extends StatelessWidget {
-  final String label;
-
-  const _StepChip({required this.label});
+/// "New" — flags a request nobody in the chain has acted on yet. It gives
+/// way to [_ClearedNotice] once an earlier step approves, so the card always
+/// carries exactly one marker of where the request stands.
+class _NewBadge extends StatelessWidget {
+  const _NewBadge();
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: AppColors.primaryTint,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: customText(
-        label,
-        color: AppColors.primary,
-        fontWeight: FontWeight.w700,
-        fontSize: 10,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          customText(
+            l10n.leaveApprovalNewBadge,
+            color: AppColors.primary,
+            fontWeight: FontWeight.w700,
+            fontSize: 10,
+          ),
+          widthBx(w: 4),
+          const Icon(
+            Icons.notifications_active,
+            size: 12,
+            color: AppColors.primary,
+          ),
+        ],
       ),
     );
   }
 }
 
+/// "Approved by the department head" — tells the current approver the
+/// request has already cleared an earlier step, which is what makes their
+/// own decision the final one.
+class _ClearedNotice extends StatelessWidget {
+  const _ClearedNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check, size: 16, color: AppColors.success),
+          widthBx(w: 8),
+          Expanded(
+            child: customText(
+              l10n.leaveApprovalClearedNotice,
+              color: AppColors.success,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              maxLine: 2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One of the two decisions on a pending card. [filled] marks the approve
+/// side: solid primary against the outlined reject, so the action that moves
+/// the request forward is the one the eye lands on.
 class _DecisionButton extends StatelessWidget {
   final String label;
   final IconData icon;
-  final Color color;
+  final bool filled;
   final bool enabled;
   final VoidCallback onTap;
 
   const _DecisionButton({
     required this.label,
     required this.icon,
-    required this.color,
+    required this.filled,
     required this.enabled,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
+    final foreground = filled
+        ? AppColors.textWhite
+        : (enabled ? AppColors.textPrimary : AppColors.gray400);
+
+    // "Final approval" is a good deal longer than "Approve" — and longer
+    // still in Lao — but the two buttons split the row evenly. Scaling down
+    // keeps the long label whole where ellipsis would eat the word that
+    // makes it different from a plain approval.
+    final child = FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: foreground),
+          widthBx(w: 6),
+          customText(
+            label,
+            color: foreground,
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
+            alight: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+
+    const shape = StadiumBorder();
+    const padding = EdgeInsets.symmetric(vertical: 12);
+
+    if (filled) {
+      return FilledButton(
+        onPressed: enabled ? onTap : null,
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          disabledBackgroundColor: AppColors.gray300,
+          shape: shape,
+          padding: padding,
+        ),
+        child: child,
+      );
+    }
+
+    // Red border on the reject side — the outline carries the warning, so
+    // the label stays dark rather than turning the whole button red.
+    return OutlinedButton(
       onPressed: enabled ? onTap : null,
       style: OutlinedButton.styleFrom(
-        side: BorderSide(color: enabled ? color : AppColors.gray300),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        side: BorderSide(
+          color: enabled ? AppColors.danger : AppColors.gray300,
+        ),
+        shape: shape,
+        padding: padding,
       ),
-      icon: Icon(icon, size: 16, color: enabled ? color : AppColors.gray400),
-      label: customText(
-        label,
-        color: enabled ? color : AppColors.gray400,
-        fontWeight: FontWeight.w700,
-        fontSize: 13,
-      ),
+      child: child,
     );
   }
 }

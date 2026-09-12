@@ -240,6 +240,8 @@
   "leaveApprovalsHistoryHeader": "ປະຫວັດການອະນຸມັດ",
   "leaveApprovalNewBadge": "ໃໝ່",
   "leaveApprovalApproveAction": "ອະນຸມັດ",
+  "leaveApprovalFinalAction": "ອະນຸມັດຂັ້ນສຸດທ້າຍ",
+  "leaveApprovalClearedNotice": "ຫົວໜ້າພະແນກອະນຸມັດແລ້ວ",
   "leaveApprovalRejectAction": "ປະຕິເສດ",
   "leaveApprovalsLoadFailed": "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນອະນຸມັດໄດ້.",
   "leaveApprovalsPendingEmpty": "ບໍ່ມີລາຍການທີ່ຕ້ອງອະນຸມັດ",

@@ -296,6 +296,8 @@
   "leaveApprovalsHistoryHeader": "Approval history",
   "leaveApprovalNewBadge": "New",
   "leaveApprovalApproveAction": "Approve",
+  "leaveApprovalFinalAction": "Final approval",
+  "leaveApprovalClearedNotice": "Approved by the department head",
   "leaveApprovalRejectAction": "Reject",
   "leaveApprovalsLoadFailed": "Could not load the approval data.",
   "leaveApprovalsPendingEmpty": "Nothing needs your approval",

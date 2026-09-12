@@ -732,6 +732,12 @@ class AppLocalizationsLo extends AppLocalizations {
   String get leaveApprovalApproveAction => 'ອະນຸມັດ';
 
   @override
+  String get leaveApprovalFinalAction => 'ອະນຸມັດຂັ້ນສຸດທ້າຍ';
+
+  @override
+  String get leaveApprovalClearedNotice => 'ຫົວໜ້າພະແນກອະນຸມັດແລ້ວ';
+
+  @override
   String get leaveApprovalRejectAction => 'ປະຕິເສດ';
 
   @override
