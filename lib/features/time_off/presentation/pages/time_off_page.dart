@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../widgets/leave_approvals_badge_icon.dart';
 import '../widgets/leave_approvals_tab.dart';
 import '../widgets/leave_history_tab.dart';
 import '../widgets/leave_request_tab.dart';
@@ -108,7 +109,7 @@ class _TimeOffPageState extends State<TimeOffPage>
                   text: l10n.timeOffRequestTab,
                 ),
                 Tab(
-                  icon: const Icon(Icons.approval),
+                  icon: const LeaveApprovalsBadgeIcon(),
                   text: l10n.timeOffApprovalsTab,
                 ),
               ],

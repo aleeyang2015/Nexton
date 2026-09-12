@@ -235,7 +235,7 @@
   "leaveAttachUploading": "ກຳລັງອັບໂຫລດ…",
   "leaveAttachUploaded": "ອັບໂຫລດໄຟລ໌ແລ້ວ",
   "leaveAttachUploadFailed": "ອັບໂຫລດໄຟລ໌ບໍ່ສຳເລັດ. ກະລຸນາລອງໃໝ່.",
-  "timeOffApprovalsTab": "ອະນຸມັດຈາກສາຍງານ",
+  "timeOffApprovalsTab": "ອະນຸມັດຂໍລາພັກ",
   "leaveApprovalsPendingHeader": "ລາຍການທີ່ຕ້ອງອະນຸມັດ ({count})",
   "leaveApprovalsHistoryHeader": "ປະຫວັດການອະນຸມັດ",
   "leaveApprovalNewBadge": "ໃໝ່",

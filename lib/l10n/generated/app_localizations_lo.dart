@@ -715,7 +715,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get leaveAttachUploadFailed => 'ອັບໂຫລດໄຟລ໌ບໍ່ສຳເລັດ. ກະລຸນາລອງໃໝ່.';
 
   @override
-  String get timeOffApprovalsTab => 'ອະນຸມັດຈາກສາຍງານ';
+  String get timeOffApprovalsTab => 'ອະນຸມັດຂໍລາພັກ';
 
   @override
   String leaveApprovalsPendingHeader(int count) {

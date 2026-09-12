@@ -13,7 +13,7 @@ import '../providers/leave_approvals_state.dart';
 import 'leave_copy.dart';
 import 'leave_reject_reason_dialog.dart';
 
-/// "ອະນຸມັດຈາກສາຍງານ" — the requests awaiting the signed-in approver's
+/// "ອະນຸມັດຂໍລາພັກ" — the requests awaiting the signed-in approver's
 /// decision (`my-approvals?status=pending`), each approvable / rejectable
 /// inline, followed by everything already decided. Everything comes from
 /// [leaveApprovalsNotifierProvider].
