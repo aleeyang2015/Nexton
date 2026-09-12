@@ -8,18 +8,20 @@ class AppConstants {
 
   // API Configuration
   //
-  // `https://api.nexton.work/api` + `/v1` resolves to the `/api/v1/auth` route
-  // group auth.md documents, and auth.md states this reserved host is what the
-  // app points at today — so it is kept as the default rather than guessed at.
+  // `https://nexton-demo.nexton.work/api` + `/v1` resolves to the `/api/v1/auth`
+  // route group auth.md documents.
   //
-  // Caveat from the same doc: `api.` is RESERVED on the backend and bypasses
-  // tenant resolution, so a login against it mints an ADMIN-audience token, or
-  // is rejected 400 SUBDOMAIN_REQUIRED under TenantStrictMode. A multi-tenant
-  // build must point at `<company>.nexton.work`; override without a code
-  // change via `--dart-define=NEXTON_API_BASE_URL=https://acme.nexton.work/api`.
+  // The host MUST be a tenant subdomain. In production the backend resolves the
+  // tenant from the leftmost label of the Host header, and `api.` / `admin.` are
+  // RESERVED labels that bypass tenant resolution entirely — a login against
+  // `api.nexton.work` is rejected 400 SUBDOMAIN_REQUIRED under TenantStrictMode
+  // (verified live), which is why this default is a real tenant host and not the
+  // reserved one. Point a different tenant build at its own subdomain without a
+  // code change:
+  // `--dart-define=NEXTON_API_BASE_URL=https://acme.nexton.work/api`.
   static const String baseUrl = String.fromEnvironment(
     'NEXTON_API_BASE_URL',
-    defaultValue: 'https://api.nexton.work/api',
+    defaultValue: 'https://nexton-demo.nexton.work/api',
   );
   static const String apiVersion = 'v1';
   static const Duration apiTimeout = Duration(seconds: 30);
@@ -37,10 +39,12 @@ class AppConstants {
   static const String tenantSlugHeader = 'X-Tenant-Slug';
 
   /// Mirrors the RN app's `EXPO_PUBLIC_TENANT_SLUG`; override per build with
-  /// `--dart-define=NEXTON_TENANT_SLUG=<slug>`.
+  /// `--dart-define=NEXTON_TENANT_SLUG=<slug>`. Kept in step with the leftmost
+  /// label of [baseUrl] so a dev server honouring the header resolves the same
+  /// tenant the host would resolve in production.
   static const String tenantSlug = String.fromEnvironment(
     'NEXTON_TENANT_SLUG',
-    defaultValue: 'nexton-vientiane',
+    defaultValue: 'nexton-demo',
   );
 
   // Content Types
