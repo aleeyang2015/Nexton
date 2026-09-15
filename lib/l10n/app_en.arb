@@ -181,7 +181,7 @@
   "salaryOtherDeductions": "Other Deductions",
   "salaryWorkingDaysLabel": "Working Days",
   "salaryOvertimeLabel": "OT Hours",
-  "salaryPaidLeaveLabel": "Paid Leave",
+  "salaryUnpaidLeaveLabel": "Unpaid Leave",
   "salaryDownloadPdf": "Download Payslip (PDF)",
   "payslipDetailTitle": "Payslip",
   "salaryGrossLabel": "Gross",
@@ -193,6 +193,9 @@
   "salarySocialSecurityBaseLabel": "Social security base",
   "salaryHistoryEmpty": "No salary records",
   "salaryHistoryLoadFailed": "Unable to load salary records.",
+  "payslipDetailLoadFailed": "Unable to load the payslip.",
+  "salaryPdfSaved": "Payslip saved",
+  "salaryPdfInvalid": "The payslip PDF could not be read.",
 
   "language": "Language",
   "lao": "Lao",

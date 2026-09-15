@@ -3,14 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
+import '../../../../core/errors/failure.dart';
+import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/payslip.dart';
+import '../providers/payslip_pdf_notifier.dart';
 import '../providers/salary_history_notifier.dart';
 import '../providers/salary_history_state.dart';
+import '../widgets/salary_error_block.dart';
 import '../widgets/salary_history_copy.dart';
 
 /// "ປະຫວັດເງິນເດືອນ" — the destination behind the list page's menu tile.
@@ -321,7 +325,7 @@ class _RecordsList extends ConsumerWidget {
     }
 
     if (payslips.hasError) {
-      return _ErrorBlock(
+      return SalaryErrorBlock(
         message: l10n.salaryHistoryLoadFailed,
         onRetry: () => ref.read(salaryHistoryNotifierProvider.notifier).retry(),
       );
@@ -341,36 +345,6 @@ class _RecordsList extends ConsumerWidget {
         for (var i = 0; i < records.length; i++)
           _PayslipCard(index: i, payslip: records[i]),
       ],
-    );
-  }
-}
-
-class _ErrorBlock extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorBlock({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        child: Column(
-          children: [
-            const Icon(Icons.error_outline, color: AppColors.danger, size: 32),
-            heightBx(h: 8),
-            customText(message, color: AppColors.subTitle, alight: TextAlign.center),
-            heightBx(h: 12),
-            InkWell(
-              onTap: onRetry,
-              child: customText(l10n.retry, color: AppColors.primary, fontWeight: FontWeight.w700),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -422,7 +396,7 @@ class _PayslipCard extends ConsumerWidget {
                       heightBx(h: 2),
                       customText(
                         payslip.paidDate == null
-                            ? l10n.salaryFilterPending
+                            ? SalaryHistoryCopy.statusLabel(l10n, payslip.status)
                             : '${l10n.salaryPaidOnLabel} ${SalaryHistoryCopy.date(payslip.paidDate!)}',
                         color: AppColors.subTitle,
                         fontSize: 12,
@@ -476,7 +450,9 @@ class _PayslipCard extends ConsumerWidget {
             _SectionHeader(label: l10n.salaryDeductionsSection, color: AppColors.danger),
             heightBx(h: 8),
             _AmountRow(
-              label: '${l10n.salarySocialSecurity} (${(payslip.socialSecurityRate * 100).toStringAsFixed(1)}%)',
+              label: payslip.socialSecurityRate > 0
+                  ? '${l10n.salarySocialSecurity} (${(payslip.socialSecurityRate * 100).toStringAsFixed(1)}%)'
+                  : l10n.salarySocialSecurity,
               amount: -payslip.socialSecurity,
             ),
             _AmountRow(label: l10n.salaryIncomeTax, amount: -payslip.incomeTax),
@@ -506,24 +482,22 @@ class _PayslipCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: _StatBox(
-                    value: '${payslip.workingDays}',
+                    value: SalaryHistoryCopy.count(payslip.workingDays),
                     label: l10n.salaryWorkingDaysLabel,
                   ),
                 ),
                 widthBx(w: 10),
                 Expanded(
                   child: _StatBox(
-                    value: payslip.overtimeHours == payslip.overtimeHours.roundToDouble()
-                        ? payslip.overtimeHours.toStringAsFixed(0)
-                        : payslip.overtimeHours.toStringAsFixed(1),
+                    value: SalaryHistoryCopy.count(payslip.overtimeHours),
                     label: l10n.salaryOvertimeLabel,
                   ),
                 ),
                 widthBx(w: 10),
                 Expanded(
                   child: _StatBox(
-                    value: '${payslip.paidLeaveDays}',
-                    label: l10n.salaryPaidLeaveLabel,
+                    value: SalaryHistoryCopy.count(payslip.unpaidLeaveDays),
+                    label: l10n.salaryUnpaidLeaveLabel,
                   ),
                 ),
               ],
@@ -674,25 +648,49 @@ class _StatBox extends StatelessWidget {
   }
 }
 
-class _DownloadButton extends StatelessWidget {
+/// "Download Payslip (PDF)" — fetches the payslip's PDF and hands it to the
+/// system save dialog. The icon becomes a spinner while the download runs;
+/// the outcome is toasted.
+class _DownloadButton extends ConsumerWidget {
   final Payslip payslip;
 
   const _DownloadButton({required this.payslip});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final provider = payslipPdfNotifierProvider(payslip.id);
+    final downloading = ref.watch(provider).isLoading;
+
+    ref.listen(provider, (previous, next) {
+      next.whenOrNull(
+        data: (path) {
+          if (path != null) AppToast.success(l10n.salaryPdfSaved);
+        },
+        error: (error, _) => AppToast.error(
+          error is Failure ? error.localize(l10n) : error.toString(),
+        ),
+      );
+    });
 
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
-        onPressed: () => AppToast.info(l10n.comingSoon),
+        // Stays enabled so the border keeps its colour; the notifier ignores
+        // a tap while a download is already running.
+        onPressed: () => ref.read(provider.notifier).download(payslip),
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14),
           side: const BorderSide(color: AppColors.primary),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         ),
-        icon: const Icon(Icons.file_download_outlined, color: AppColors.primary, size: 18),
+        icon: downloading
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+              )
+            : const Icon(Icons.file_download_outlined, color: AppColors.primary, size: 18),
         label: customText(
           l10n.salaryDownloadPdf,
           color: AppColors.primary,

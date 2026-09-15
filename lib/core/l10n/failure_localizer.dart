@@ -88,6 +88,10 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.leaveInvalidStatus;
     case 'leaveEmployeeNotFound':
       return l10n.leaveEmployeeNotFound;
+    // Salary history — raised by the payroll datasource when the PDF
+    // endpoint answers with something that isn't a PDF.
+    case 'salaryPdfInvalid':
+      return l10n.salaryPdfInvalid;
     default:
       return null;
   }

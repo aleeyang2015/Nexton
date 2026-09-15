@@ -896,11 +896,11 @@ abstract class AppLocalizations {
   /// **'OT Hours'**
   String get salaryOvertimeLabel;
 
-  /// No description provided for @salaryPaidLeaveLabel.
+  /// No description provided for @salaryUnpaidLeaveLabel.
   ///
   /// In en, this message translates to:
-  /// **'Paid Leave'**
-  String get salaryPaidLeaveLabel;
+  /// **'Unpaid Leave'**
+  String get salaryUnpaidLeaveLabel;
 
   /// No description provided for @salaryDownloadPdf.
   ///
@@ -967,6 +967,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to load salary records.'**
   String get salaryHistoryLoadFailed;
+
+  /// No description provided for @payslipDetailLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the payslip.'**
+  String get payslipDetailLoadFailed;
+
+  /// No description provided for @salaryPdfSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Payslip saved'**
+  String get salaryPdfSaved;
+
+  /// No description provided for @salaryPdfInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The payslip PDF could not be read.'**
+  String get salaryPdfInvalid;
 
   /// No description provided for @language.
   ///

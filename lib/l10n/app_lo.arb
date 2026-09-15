@@ -146,7 +146,7 @@
   "salaryOtherDeductions": "ຫັກອື່ນໆ",
   "salaryWorkingDaysLabel": "ມື້ເຮັດວຽກ",
   "salaryOvertimeLabel": "ຊົ່ວໂມງໂອທີ",
-  "salaryPaidLeaveLabel": "ລາພັກຮັບເງິນ",
+  "salaryUnpaidLeaveLabel": "ລາພັກບໍ່ຮັບເງິນ",
   "salaryDownloadPdf": "ດາວໂຫລດໃບເງິນເດືອນ (PDF)",
   "payslipDetailTitle": "ໃບເງິນເດືອນ",
   "salaryGrossLabel": "ລາຍຮັບລວມ",
@@ -158,6 +158,9 @@
   "salarySocialSecurityBaseLabel": "ຖານປະກັນສັງຄົມ (SS base)",
   "salaryHistoryEmpty": "ບໍ່ມີຂໍ້ມູນເງິນເດືອນ",
   "salaryHistoryLoadFailed": "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນເງິນເດືອນໄດ້.",
+  "payslipDetailLoadFailed": "ບໍ່ສາມາດໂຫຼດໃບເງິນເດືອນໄດ້.",
+  "salaryPdfSaved": "ບັນທຶກໃບເງິນເດືອນແລ້ວ",
+  "salaryPdfInvalid": "ບໍ່ສາມາດອ່ານໄຟລ໌ PDF ໃບເງິນເດືອນໄດ້.",
 
   "language": "ພາສາ",
   "lao": "ລາວ",

@@ -451,7 +451,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryOvertimeLabel => 'OT Hours';
 
   @override
-  String get salaryPaidLeaveLabel => 'Paid Leave';
+  String get salaryUnpaidLeaveLabel => 'Unpaid Leave';
 
   @override
   String get salaryDownloadPdf => 'Download Payslip (PDF)';
@@ -486,6 +486,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get salaryHistoryLoadFailed => 'Unable to load salary records.';
+
+  @override
+  String get payslipDetailLoadFailed => 'Unable to load the payslip.';
+
+  @override
+  String get salaryPdfSaved => 'Payslip saved';
+
+  @override
+  String get salaryPdfInvalid => 'The payslip PDF could not be read.';
 
   @override
   String get language => 'Language';

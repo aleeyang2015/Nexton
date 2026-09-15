@@ -448,7 +448,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryOvertimeLabel => 'ຊົ່ວໂມງໂອທີ';
 
   @override
-  String get salaryPaidLeaveLabel => 'ລາພັກຮັບເງິນ';
+  String get salaryUnpaidLeaveLabel => 'ລາພັກບໍ່ຮັບເງິນ';
 
   @override
   String get salaryDownloadPdf => 'ດາວໂຫລດໃບເງິນເດືອນ (PDF)';
@@ -483,6 +483,15 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get salaryHistoryLoadFailed => 'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນເງິນເດືອນໄດ້.';
+
+  @override
+  String get payslipDetailLoadFailed => 'ບໍ່ສາມາດໂຫຼດໃບເງິນເດືອນໄດ້.';
+
+  @override
+  String get salaryPdfSaved => 'ບັນທຶກໃບເງິນເດືອນແລ້ວ';
+
+  @override
+  String get salaryPdfInvalid => 'ບໍ່ສາມາດອ່ານໄຟລ໌ PDF ໃບເງິນເດືອນໄດ້.';
 
   @override
   String get language => 'ພາສາ';

@@ -1,24 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/errors/failure.dart';
+import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
+import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/payslip.dart';
+import '../providers/payslip_detail_notifier.dart';
+import '../providers/payslip_pdf_notifier.dart';
+import '../widgets/salary_error_block.dart';
 import '../widgets/salary_history_copy.dart';
 
 /// "ໃບເງິນເດືອນ" — the full breakdown behind a month's card on
-/// [SalaryHistoryPage]. Purely a renderer for the [Payslip] handed to it via
-/// the route's `extra`; it fetches nothing and owns no state.
-class PayslipDetailPage extends StatelessWidget {
+/// [SalaryHistoryPage].
+///
+/// The list row rides along as the route's `extra` and is rendered at once —
+/// its header, identity and totals are the same backend figures the detail
+/// call returns — while [payslipDetailNotifierProvider] fetches the line
+/// items for that payslip's id and fills in the sections below.
+class PayslipDetailPage extends ConsumerWidget {
   final Payslip payslip;
 
   const PayslipDetailPage({super.key, required this.payslip});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final detail = ref.watch(payslipDetailNotifierProvider(payslip.id));
+    final shown = detail.valueOrNull ?? payslip;
 
     return Container(
       color: Colors.white,
@@ -28,37 +41,48 @@ class PayslipDetailPage extends StatelessWidget {
           body: Column(
             children: [
               heightBx(h: 4),
-              _DetailAppBar(payslip: payslip),
+              _DetailAppBar(payslip: shown),
               heightBx(h: 6),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(15, 10, 15, 40),
                   children: [
-                    _EmployeeCard(payslip: payslip),
+                    _EmployeeCard(payslip: shown),
                     heightBx(h: 14),
-                    _SummaryStrip(payslip: payslip),
+                    _SummaryStrip(payslip: shown),
                     heightBx(h: 22),
-                    _Section(
-                      title: l10n.salaryIncomeSection,
-                      titleColor: AppColors.primary,
-                      lines: payslip.earnings,
-                    ),
-                    _Section(
-                      title: l10n.salaryAllowancesSection,
-                      titleColor: AppColors.primary,
-                      lines: payslip.allowances,
-                    ),
-                    _Section(
-                      title: l10n.salaryAttendanceDeductionsSection,
-                      titleColor: AppColors.danger,
-                      lines: payslip.attendanceDeductions,
-                    ),
-                    _Section(
-                      title: l10n.salaryStatutoryDeductionsSection,
-                      titleColor: AppColors.danger,
-                      lines: payslip.statutoryDeductions,
-                    ),
-                    _FooterCard(payslip: payslip),
+                    if (detail.isLoading && !detail.hasValue)
+                      const _SectionsPlaceholder()
+                    else if (detail.hasError && !detail.hasValue)
+                      SalaryErrorBlock(
+                        message: l10n.payslipDetailLoadFailed,
+                        onRetry: () => ref
+                            .read(payslipDetailNotifierProvider(payslip.id).notifier)
+                            .refresh(),
+                      )
+                    else ...[
+                      _Section(
+                        title: l10n.salaryIncomeSection,
+                        titleColor: AppColors.primary,
+                        lines: shown.earnings,
+                      ),
+                      _Section(
+                        title: l10n.salaryAllowancesSection,
+                        titleColor: AppColors.primary,
+                        lines: shown.allowances,
+                      ),
+                      _Section(
+                        title: l10n.salaryAttendanceDeductionsSection,
+                        titleColor: AppColors.danger,
+                        lines: shown.attendanceDeductions,
+                      ),
+                      _Section(
+                        title: l10n.salaryStatutoryDeductionsSection,
+                        titleColor: AppColors.danger,
+                        lines: shown.statutoryDeductions,
+                      ),
+                    ],
+                    _FooterCard(payslip: shown),
                   ],
                 ),
               ),
@@ -99,10 +123,7 @@ class _DetailAppBar extends StatelessWidget {
                     onTap: () => context.pop(),
                     child: popBack(),
                   ),
-                  IconButton(
-                    onPressed: () => _notifyDownloadComingSoon(context),
-                    icon: const Icon(Icons.save_alt, color: AppColors.primary),
-                  ),
+                  _SaveButton(payslip: payslip),
                 ],
               ),
               Padding(
@@ -125,6 +146,67 @@ class _DetailAppBar extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Stands in for the four line-item sections while the detail call is in
+/// flight — the same shimmer the history list uses.
+class _SectionsPlaceholder extends StatelessWidget {
+  const _SectionsPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: List.generate(
+        2,
+        (_) => const Padding(
+          padding: EdgeInsets.only(bottom: 18),
+          child: ShimmerBox(
+            width: double.infinity,
+            height: 120,
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The app bar's save icon — fetches this payslip's PDF and hands it to the
+/// system save dialog, spinning while the download runs. Shares its state
+/// with the history card's "Download Payslip (PDF)" button.
+class _SaveButton extends ConsumerWidget {
+  final Payslip payslip;
+
+  const _SaveButton({required this.payslip});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final provider = payslipPdfNotifierProvider(payslip.id);
+    final downloading = ref.watch(provider).isLoading;
+
+    ref.listen(provider, (previous, next) {
+      next.whenOrNull(
+        data: (path) {
+          if (path != null) AppToast.success(l10n.salaryPdfSaved);
+        },
+        error: (error, _) => AppToast.error(
+          error is Failure ? error.localize(l10n) : error.toString(),
+        ),
+      );
+    });
+
+    return IconButton(
+      onPressed: () => ref.read(provider.notifier).download(payslip),
+      icon: downloading
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+            )
+          : const Icon(Icons.save_alt, color: AppColors.primary),
     );
   }
 }
@@ -490,11 +572,14 @@ class _FooterCard extends StatelessWidget {
             label: l10n.salaryTaxableIncomeLabel,
             value: SalaryHistoryCopy.amount(payslip.taxableIncome),
           ),
-          heightBx(h: 10),
-          _FooterRow(
-            label: l10n.salarySocialSecurityBaseLabel,
-            value: SalaryHistoryCopy.amount(payslip.socialSecurityBase),
-          ),
+          // The backend doesn't report the SS base yet; the row waits for it.
+          if (payslip.socialSecurityBase > 0) ...[
+            heightBx(h: 10),
+            _FooterRow(
+              label: l10n.salarySocialSecurityBaseLabel,
+              value: SalaryHistoryCopy.amount(payslip.socialSecurityBase),
+            ),
+          ],
           heightBx(h: 12),
           const _DottedLine(),
           heightBx(h: 12),
@@ -580,8 +665,4 @@ class _DottedLine extends StatelessWidget {
       ),
     );
   }
-}
-
-void _notifyDownloadComingSoon(BuildContext context) {
-  AppToast.info(AppLocalizations.of(context)!.comingSoon);
 }

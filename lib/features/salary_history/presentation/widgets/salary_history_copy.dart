@@ -38,6 +38,12 @@ class SalaryHistoryCopy {
   /// "₭ 7,426,674".
   static String currency(num amount) => '₭ ${_amountFormat.format(amount)}';
 
+  /// "22" / "2.5" / "0.82" — a day or hour count, with the decimals only
+  /// when there are some. The stat boxes under an expanded payslip card.
+  static String count(num value) => value == value.roundToDouble()
+      ? value.toStringAsFixed(0)
+      : value.toString();
+
   /// "20/08/2026".
   static String date(DateTime date) =>
       '${_two(date.day)}/${_two(date.month)}/${date.year}';
