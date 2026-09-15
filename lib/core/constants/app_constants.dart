@@ -8,20 +8,19 @@ class AppConstants {
 
   // API Configuration
   //
-  // `https://nexton-demo.nexton.work/api` + `/v1` resolves to the `/api/v1/auth`
+  // `https://app.nexton.work/api` + `/v1` resolves to the `/api/v1/auth`
   // route group auth.md documents.
   //
-  // The host MUST be a tenant subdomain. In production the backend resolves the
-  // tenant from the leftmost label of the Host header, and `api.` / `admin.` are
-  // RESERVED labels that bypass tenant resolution entirely — a login against
-  // `api.nexton.work` is rejected 400 SUBDOMAIN_REQUIRED under TenantStrictMode
-  // (verified live), which is why this default is a real tenant host and not the
-  // reserved one. Point a different tenant build at its own subdomain without a
-  // code change:
+  // In production the backend resolves the tenant from the leftmost label of
+  // the Host header, and `api.` / `admin.` are RESERVED labels that bypass
+  // tenant resolution entirely — a login against `api.nexton.work` is rejected
+  // 400 SUBDOMAIN_REQUIRED under TenantStrictMode (verified live), so never
+  // point this at the reserved host. Point a different tenant build at its own
+  // subdomain without a code change:
   // `--dart-define=NEXTON_API_BASE_URL=https://acme.nexton.work/api`.
   static const String baseUrl = String.fromEnvironment(
     'NEXTON_API_BASE_URL',
-    defaultValue: 'https://nexton-demo.nexton.work/api',
+    defaultValue: 'https://app.nexton.work/api',
   );
   static const String apiVersion = 'v1';
   static const Duration apiTimeout = Duration(seconds: 30);
