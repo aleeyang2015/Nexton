@@ -91,16 +91,18 @@ Payslip samplePayslip({
     overtimeHours: 0,
     unpaidLeaveDays: 0,
     earnings: withSections
-        ? const [PayslipLine(title: 'Base salary', caption: 'BASIC', amount: 12000000)]
+        ? const [PayslipLine(code: 'BASIC', title: 'Base salary', amount: 12000000)]
         : const [],
     allowances: withSections
-        ? const [PayslipLine(title: 'Position allowance', caption: '', amount: 300000)]
+        ? const [PayslipLine(title: 'Position allowance', amount: 300000)]
         : const [],
     attendanceDeductions: withSections
         ? const [
             PayslipLine(
+              code: 'LATE',
               title: 'Late arrival',
-              caption: 'LATE · 33 minutes',
+              quantity: 33,
+              quantityUnit: 'minutes',
               amount: -31731,
               icon: PayslipLineIcon.lateArrival,
             ),
@@ -109,8 +111,8 @@ Payslip samplePayslip({
     statutoryDeductions: withSections
         ? const [
             PayslipLine(
+              code: 'PIT',
               title: 'Income tax',
-              caption: 'PIT',
               amount: -940249,
               icon: PayslipLineIcon.incomeTax,
             ),

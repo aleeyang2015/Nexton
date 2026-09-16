@@ -45,7 +45,6 @@ class PayslipModel {
       for (final benefit in _objects(json['benefits']))
         PayslipLine(
           title: _string(benefit['name']) ?? '',
-          caption: '',
           amount: _double(benefit['amount']) ?? 0,
         ),
     ];
@@ -56,7 +55,6 @@ class PayslipModel {
       statutoryDeductions.add(
         PayslipLine(
           title: _string(item['deduction_name']) ?? '',
-          caption: '',
           amount: -(_double(item['amount']) ?? 0),
           icon: PayslipLineIcon.otherDeduction,
         ),
@@ -93,23 +91,22 @@ class PayslipModel {
     );
   }
 
-  /// One `lines[]` entry. The caption is the component code plus the
-  /// quantity it was charged on, when there is one — "LATE · 86 minutes".
+  /// One `lines[]` entry, passed through as raw wire values — the code, the
+  /// quantity it was charged on and the English `component_name`. Turning
+  /// those into the title and "LATE · 86 ນາທີ" caption the detail page shows
+  /// is `SalaryHistoryCopy`'s job, because it depends on the active locale.
   static PayslipLine _line(
     Map<String, dynamic> line, {
     required int sign,
     PayslipLineIcon icon = PayslipLineIcon.none,
   }) {
     final code = _string(line['component_code']) ?? '';
-    final quantity = _double(line['quantity']) ?? 0;
-    final unit = _string(line['quantity_unit']);
-    final caption = quantity > 0
-        ? '$code · ${_count(quantity)}${unit == null ? '' : ' $unit'}'
-        : code;
 
     return PayslipLine(
+      code: code,
       title: _string(line['component_name']) ?? code,
-      caption: caption,
+      quantity: _double(line['quantity']) ?? 0,
+      quantityUnit: _string(line['quantity_unit']),
       amount: sign * (_double(line['amount']) ?? 0),
       icon: icon,
     );
@@ -126,10 +123,6 @@ class PayslipModel {
     'PIT' => PayslipLineIcon.incomeTax,
     _ => PayslipLineIcon.otherDeduction,
   };
-
-  static String _count(double value) => value == value.roundToDouble()
-      ? value.toStringAsFixed(0)
-      : value.toString();
 
   static String? _string(dynamic value) => value is String ? value : null;
 

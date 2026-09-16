@@ -494,6 +494,30 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryPdfInvalid => 'ບໍ່ສາມາດອ່ານໄຟລ໌ PDF ໃບເງິນເດືອນໄດ້.';
 
   @override
+  String get salaryComponentLate => 'ຫັກເງິນມາຊ້າ';
+
+  @override
+  String get salaryComponentAbsentLate => 'ຫັກເງິນຂາດວຽກຍ້ອນມາຊ້າ';
+
+  @override
+  String get salaryComponentEarlyOut => 'ຫັກເງິນອອກກ່ອນເວລາ';
+
+  @override
+  String get salaryComponentAbsence => 'ຫັກເງິນຂາດວຽກ';
+
+  @override
+  String get salaryUnitMinutes => 'ນາທີ';
+
+  @override
+  String get salaryUnitTimes => 'ຄັ້ງ';
+
+  @override
+  String get salaryUnitDays => 'ມື້';
+
+  @override
+  String get salaryUnitHours => 'ຊົ່ວໂມງ';
+
+  @override
   String get language => 'ພາສາ';
 
   @override

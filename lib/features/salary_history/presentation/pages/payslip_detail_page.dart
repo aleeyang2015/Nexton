@@ -461,7 +461,9 @@ class _LineRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final glyph = _iconFor(line.icon);
+    final caption = SalaryHistoryCopy.lineCaption(l10n, line);
     final amountColor = line.amount == 0
         ? AppColors.subTitle
         : line.amount < 0
@@ -490,14 +492,14 @@ class _LineRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 customText(
-                  line.title,
+                  SalaryHistoryCopy.lineTitle(l10n, line),
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
-                if (line.caption.isNotEmpty) ...[
+                if (caption.isNotEmpty) ...[
                   heightBx(h: 2),
                   customText(
-                    line.caption,
+                    caption,
                     color: AppColors.subTitle,
                     fontSize: 11,
                   ),

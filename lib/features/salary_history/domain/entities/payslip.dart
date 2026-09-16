@@ -17,25 +17,48 @@ enum PayslipLineIcon {
   otherDeduction,
 }
 
-/// One printed line on a payslip — a single earning or a single deduction,
-/// with the code/context caption the detail page shows beneath its title
-/// (e.g. "LATE · 86 minutes"). [amount] is signed: positive for an
-/// earning, negative for a deduction.
+/// One printed line on a payslip — a single earning or a single deduction.
+/// [amount] is signed: positive for an earning, negative for a deduction.
+///
+/// The display strings are *not* built here: the payroll API names its lines
+/// in English only (`component_name`) while tenant-entered `benefits` /
+/// `deduction_items` arrive in Lao only, so neither can be shown as-is in a
+/// bilingual UI. This entity carries the raw wire values instead and
+/// `SalaryHistoryCopy.lineTitle` / `.lineCaption` resolve them against the
+/// active locale, keyed on [code].
 class PayslipLine extends Equatable {
+  /// `component_code` — `BASIC`, `PIT`, `LATE`, … The key the copy helper
+  /// localizes on. Empty for the free-text benefit and deduction-item lines,
+  /// which have no code and fall back to [title].
+  final String code;
+
+  /// The name exactly as the backend sent it. The fallback shown whenever
+  /// [code] is empty or is one the app doesn't have a translation for, so an
+  /// unrecognised component still renders rather than disappearing.
   final String title;
-  final String caption;
+
+  /// What the line was charged on — 86 (minutes), 1 (time). `0` when the
+  /// component isn't quantity-based, and the caption is then just [code].
+  final double quantity;
+
+  /// `quantity_unit` as it comes off the wire (`minutes`, `times`, …); null
+  /// when the backend sent none.
+  final String? quantityUnit;
+
   final double amount;
   final PayslipLineIcon icon;
 
   const PayslipLine({
+    this.code = '',
     required this.title,
-    required this.caption,
+    this.quantity = 0,
+    this.quantityUnit,
     required this.amount,
     this.icon = PayslipLineIcon.none,
   });
 
   @override
-  List<Object?> get props => [title, caption, amount, icon];
+  List<Object?> get props => [code, title, quantity, quantityUnit, amount, icon];
 }
 
 /// One month's payslip — the salary-history page's list item and, expanded,

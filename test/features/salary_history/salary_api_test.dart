@@ -292,7 +292,7 @@ void main() {
       final p = await source.detail(_listRow['id'] as String);
 
       expect(p.earnings, const [
-        PayslipLine(title: 'Basic Salary', caption: 'BASIC', amount: 10000000),
+        PayslipLine(code: 'BASIC', title: 'Basic Salary', amount: 10000000),
       ]);
 
       expect(p.attendanceDeductions.map((l) => l.title), [
@@ -308,11 +308,20 @@ void main() {
         PayslipLineIcon.earlyOut,
         PayslipLineIcon.absence,
       ]);
-      expect(p.attendanceDeductions.map((l) => l.caption), [
-        'LATE · 86 minutes',
-        'ABSENT-LATE · 1 times',
-        'EARLY-OUT · 170 minutes',
+      // The wire's own code/quantity/unit, kept raw — the caption text is
+      // built per-locale by SalaryHistoryCopy.lineCaption.
+      expect(p.attendanceDeductions.map((l) => l.code), [
+        'LATE',
+        'ABSENT-LATE',
+        'EARLY-OUT',
         'ABSENCE',
+      ]);
+      expect(p.attendanceDeductions.map((l) => l.quantity), [86, 1, 170, 0]);
+      expect(p.attendanceDeductions.map((l) => l.quantityUnit), [
+        'minutes',
+        'times',
+        'minutes',
+        'times',
       ]);
 
       // Statutory lines in sort order, then the ad-hoc deduction items.
@@ -327,7 +336,7 @@ void main() {
         PayslipLineIcon.incomeTax,
         PayslipLineIcon.otherDeduction,
       ]);
-      expect(p.statutoryDeductions.map((l) => l.caption), ['EMP-SS', 'PIT', '']);
+      expect(p.statutoryDeductions.map((l) => l.code), ['EMP-SS', 'PIT', '']);
 
       // The section totals foot to the wire totals.
       final earned = [...p.earnings, ...p.allowances].fold<double>(0, (s, l) => s + l.amount);
@@ -341,10 +350,12 @@ void main() {
 
       final p = await source.detail(_listRow['id'] as String);
 
+      // Free text a tenant typed in: no component code to translate on, so
+      // the backend's own wording is all there is.
       expect(p.allowances, const [
-        PayslipLine(title: 'ປະກັນສຸຂະພາບ', caption: '', amount: 1000000),
-        PayslipLine(title: 'ປະລິນຍາຕີ', caption: '', amount: 500000),
-        PayslipLine(title: 'ວິສະວະກອນຊອບແວ', caption: '', amount: 300000),
+        PayslipLine(title: 'ປະກັນສຸຂະພາບ', amount: 1000000),
+        PayslipLine(title: 'ປະລິນຍາຕີ', amount: 500000),
+        PayslipLine(title: 'ວິສະວະກອນຊອບແວ', amount: 300000),
       ]);
     });
 

@@ -986,6 +986,54 @@ abstract class AppLocalizations {
   /// **'The payslip PDF could not be read.'**
   String get salaryPdfInvalid;
 
+  /// No description provided for @salaryComponentLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late arrival penalty'**
+  String get salaryComponentLate;
+
+  /// No description provided for @salaryComponentAbsentLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent-late penalty'**
+  String get salaryComponentAbsentLate;
+
+  /// No description provided for @salaryComponentEarlyOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Early leave penalty'**
+  String get salaryComponentEarlyOut;
+
+  /// No description provided for @salaryComponentAbsence.
+  ///
+  /// In en, this message translates to:
+  /// **'Absence penalty'**
+  String get salaryComponentAbsence;
+
+  /// No description provided for @salaryUnitMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'minutes'**
+  String get salaryUnitMinutes;
+
+  /// No description provided for @salaryUnitTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'times'**
+  String get salaryUnitTimes;
+
+  /// No description provided for @salaryUnitDays.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get salaryUnitDays;
+
+  /// No description provided for @salaryUnitHours.
+  ///
+  /// In en, this message translates to:
+  /// **'hours'**
+  String get salaryUnitHours;
+
   /// No description provided for @language.
   ///
   /// In en, this message translates to:

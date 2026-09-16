@@ -497,6 +497,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryPdfInvalid => 'The payslip PDF could not be read.';
 
   @override
+  String get salaryComponentLate => 'Late arrival penalty';
+
+  @override
+  String get salaryComponentAbsentLate => 'Absent-late penalty';
+
+  @override
+  String get salaryComponentEarlyOut => 'Early leave penalty';
+
+  @override
+  String get salaryComponentAbsence => 'Absence penalty';
+
+  @override
+  String get salaryUnitMinutes => 'minutes';
+
+  @override
+  String get salaryUnitTimes => 'times';
+
+  @override
+  String get salaryUnitDays => 'days';
+
+  @override
+  String get salaryUnitHours => 'hours';
+
+  @override
   String get language => 'Language';
 
   @override
