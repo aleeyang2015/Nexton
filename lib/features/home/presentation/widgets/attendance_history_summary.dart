@@ -25,10 +25,10 @@ class AttendanceHistorySummary extends ConsumerWidget {
     final data = summary.valueOrNull;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.08)),
         boxShadow: [
           BoxShadow(
@@ -42,7 +42,7 @@ class AttendanceHistorySummary extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const _SummaryHeader(),
-          heightBx(h: 16),
+          heightBx(h: 12),
           if (loading)
             const _SummaryLoading()
           else if (failed)
@@ -117,19 +117,19 @@ class _SummaryHeader extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 10,
-          height: 10,
+          width: 8,
+          height: 8,
           decoration: const BoxDecoration(
             color: AppColors.primary,
             shape: BoxShape.circle,
           ),
         ),
-        widthBx(w: 10),
+        widthBx(w: 8),
         Expanded(
           child: customText(
             l10n.attendanceHistoryTitle,
             fontWeight: FontWeight.w700,
-            fontSize: 18,
+            fontSize: 16,
             color: AppColors.textPrimary,
           ),
         ),
@@ -141,7 +141,7 @@ class _SummaryHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(999),
             onTap: () => context.push(AppRoutes.attendanceHistory),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -149,13 +149,13 @@ class _SummaryHeader extends StatelessWidget {
                     l10n.viewAll,
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontSize: 13,
                   ),
-                  widthBx(w: 6),
+                  widthBx(w: 4),
                   const Icon(
                     Icons.arrow_forward_ios,
                     color: AppColors.primary,
-                    size: 13,
+                    size: 11,
                   ),
                 ],
               ),
@@ -178,13 +178,13 @@ class _SummaryGrid extends StatelessWidget {
     return Column(
       children: [
         for (var i = 0; i < tiles.length; i += 2) ...[
-          if (i > 0) heightBx(h: 12),
+          if (i > 0) heightBx(h: 8),
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(child: tiles[i]),
-                widthBx(w: 12),
+                widthBx(w: 8),
                 Expanded(
                   child: i + 1 < tiles.length ? tiles[i + 1] : const SizedBox(),
                 ),
@@ -209,7 +209,7 @@ class _SummaryLoading extends StatelessWidget {
       child: _SummaryGrid(
         tiles: [
           for (var i = 0; i < 4; i++)
-            const ShimmerBox(width: double.infinity, height: 104),
+            const ShimmerBox(width: double.infinity, height: 76),
         ],
       ),
     );
@@ -236,10 +236,10 @@ class _SummaryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withValues(alpha: 0.18)),
       ),
       child: Column(
@@ -251,49 +251,49 @@ class _SummaryTile extends StatelessWidget {
             children: [
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 6),
+                  padding: const EdgeInsets.only(top: 4),
                   child: customText(
                     label,
-                    fontSize: 13,
+                    fontSize: 12,
                     maxLine: 2,
                     fontWeight: FontWeight.w500,
                     color: AppColors.gray700,
                   ),
                 ),
               ),
-              widthBx(w: 8),
+              widthBx(w: 6),
               Container(
-                height: 36,
-                width: 36,
+                height: 28,
+                width: 28,
                 decoration: BoxDecoration(
                   color: color,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(9),
                   boxShadow: [
                     BoxShadow(
                       color: color.withValues(alpha: 0.3),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: Icon(icon, size: 20, color: Colors.white),
+                child: Icon(icon, size: 16, color: Colors.white),
               ),
             ],
           ),
-          heightBx(h: 12),
+          heightBx(h: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
               customText(
                 value,
-                fontSize: 28,
+                fontSize: 22,
                 fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
               ),
-              widthBx(w: 6),
+              widthBx(w: 4),
               Expanded(
-                child: customText(unit, fontSize: 13, color: AppColors.gray500),
+                child: customText(unit, fontSize: 12, color: AppColors.gray500),
               ),
             ],
           ),
