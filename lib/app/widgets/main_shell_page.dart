@@ -5,14 +5,14 @@ import '../../core/theme/app_colors.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/home/presentation/widgets/home_shimmer.dart';
-import '../../features/list/presentation/pages/list_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'main_shell_tab_provider.dart';
 
-/// Hosts the three bottom-nav tabs — ໜ້າຫຼັກ / ລາຍການ / ໂປຣຟາຍ — around the
-/// existing [HomePage]. Home is the first tab and the one a session lands on;
-/// all three are flat tabs of equal width.
+/// Hosts the two bottom-nav tabs — ໜ້າຫຼັກ / ໂປຣຟາຍ — around the existing
+/// [HomePage]. Home is the first tab and the one a session lands on; both are
+/// flat tabs of equal width. The shortcut menu that used to be its own
+/// "ລາຍການ" tab now lives on Home.
 ///
 /// This is also the route the router parks a cold start on while the stored
 /// session is still resolving (see `authRedirect`), so until a session with
@@ -35,7 +35,7 @@ class MainShellPage extends ConsumerWidget {
     return Scaffold(
       body: IndexedStack(
         index: index,
-        children: const [HomePage(), ListPage(), ProfilePage()],
+        children: const [HomePage(), ProfilePage()],
       ),
       bottomNavigationBar: _BottomNavBar(
         currentIndex: index,
@@ -47,11 +47,6 @@ class MainShellPage extends ConsumerWidget {
             icon: Icons.home_outlined,
             activeIcon: Icons.home,
             label: l10n.navHome,
-          ),
-          _NavItem(
-            icon: Icons.list_alt_outlined,
-            activeIcon: Icons.list_alt,
-            label: l10n.navList,
           ),
           _NavItem(
             icon: Icons.person_outline,
@@ -77,7 +72,7 @@ class _NavItem {
 }
 
 /// Flat bottom bar — white, rounded top corners, lifted off the content
-/// above with a soft shadow. Three equal-width tabs, no raised button.
+/// above with a soft shadow. Equal-width tabs, no raised button.
 class _BottomNavBar extends StatelessWidget {
   static const _barHeight = 68.0;
 

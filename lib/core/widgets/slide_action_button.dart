@@ -39,9 +39,11 @@ class SlideActionButton extends StatefulWidget {
 
 class _SlideActionButtonState extends State<SlideActionButton>
     with SingleTickerProviderStateMixin {
-  static const double _height = 60;
-  static const double _thumbSize = 48;
+  static const double _height = 56;
+  static const double _thumbSize = 44;
   static const double _pad = 6;
+  static const double _radius = 16;
+  static const double _thumbRadius = 12;
   static const double _thresholdRatio = 0.85;
 
   late final AnimationController _controller = AnimationController.unbounded(
@@ -119,8 +121,10 @@ class _SlideActionButtonState extends State<SlideActionButton>
           height: _height,
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(_height / 2),
+            gradient: const LinearGradient(
+              colors: [AppColors.primary, Color(0xFF5B47E0)],
+            ),
+            borderRadius: BorderRadius.circular(_radius),
           ),
           child: AnimatedBuilder(
             animation: _controller,
@@ -146,34 +150,13 @@ class _SlideActionButtonState extends State<SlideActionButton>
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(_height / 2),
+                          borderRadius: BorderRadius.circular(_radius),
                         ),
                       ),
                     ),
                   ),
-                  // Directional chevron hint, right-anchored.
-                  Positioned(
-                    right: 18,
-                    child: IgnorePointer(
-                      child: Opacity(
-                        opacity: labelOpacity,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: List.generate(
-                            3,
-                            (i) => Icon(
-                              Icons.chevron_right,
-                              size: 18,
-                              color: Colors.white.withValues(
-                                alpha: 0.35 + (i * 0.25),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Centered label, fading with drag progress.
+                  // Centered label and directional chevron hint, fading with
+                  // drag progress.
                   Positioned.fill(
                     child: IgnorePointer(
                       child: Padding(
@@ -199,6 +182,17 @@ class _SlideActionButtonState extends State<SlideActionButton>
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w600,
                                     color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              ...List.generate(
+                                3,
+                                (i) => Icon(
+                                  Icons.chevron_right,
+                                  size: 14,
+                                  color: Colors.white.withValues(
+                                    alpha: 0.4 + (i * 0.2),
                                   ),
                                 ),
                               ),
@@ -230,7 +224,7 @@ class _SlideActionButtonState extends State<SlideActionButton>
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(_thumbRadius),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.12),

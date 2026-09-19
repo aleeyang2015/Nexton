@@ -12,10 +12,14 @@ class ListMenuEntry {
 }
 
 /// Grid of list shortcuts: 3 columns per row, sized to fit its entries.
+///
+/// [compact] switches to the shorter, smaller-radius tiles the home screen
+/// uses; the "ລາຍການ" tab keeps the default tall tiles.
 class ListMenuGrid extends StatelessWidget {
   final List<ListMenuEntry> entries;
+  final bool compact;
 
-  const ListMenuGrid({super.key, required this.entries});
+  const ListMenuGrid({super.key, required this.entries, this.compact = false});
 
   @override
   Widget build(BuildContext context) {
@@ -23,34 +27,39 @@ class ListMenuGrid extends StatelessWidget {
       padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        crossAxisSpacing: 14,
-        mainAxisSpacing: 14,
-        childAspectRatio: 0.8,
+        crossAxisSpacing: compact ? 12 : 14,
+        mainAxisSpacing: compact ? 12 : 14,
+        childAspectRatio: compact ? 0.94 : 0.8,
       ),
       itemCount: entries.length,
-      itemBuilder: (context, index) => _MenuItem(entry: entries[index]),
+      itemBuilder: (context, index) =>
+          _MenuItem(entry: entries[index], compact: compact),
     );
   }
 }
 
 class _MenuItem extends StatelessWidget {
   final ListMenuEntry entry;
+  final bool compact;
 
-  const _MenuItem({required this.entry});
+  const _MenuItem({required this.entry, required this.compact});
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(compact ? 18 : 20);
+    final circle = compact ? 48.0 : 60.0;
+
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: radius,
       elevation: 0,
       shadowColor: Colors.transparent,
       child: Ink(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: radius,
           boxShadow: [
             BoxShadow(
               color: AppColors.primary.withValues(alpha: 0.06),
@@ -61,28 +70,32 @@ class _MenuItem extends StatelessWidget {
         ),
         child: InkWell(
           onTap: entry.onTap,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: radius,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                height: 60,
-                width: 60,
+                height: circle,
+                width: circle,
                 decoration: const BoxDecoration(
                   color: AppColors.primaryTint,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(entry.icon, size: 28, color: AppColors.primary),
+                child: Icon(
+                  entry.icon,
+                  size: compact ? 24 : 28,
+                  color: AppColors.primary,
+                ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: compact ? 8 : 10),
               Flexible(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   child: Text(
                     entry.label,
-                    style: const TextStyle(
-                      fontSize: 11,
+                    style: TextStyle(
+                      fontSize: compact ? 12 : 11,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),

@@ -25,53 +25,27 @@ class AttendanceHistorySummary extends ConsumerWidget {
     final data = summary.valueOrNull;
 
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.08)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
+            color: AppColors.primary.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: customText(
-                  l10n.attendanceHistoryTitle,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              InkWell(
-                onTap: () => context.push(AppRoutes.attendanceHistory),
-                child: Row(
-                  children: [
-                    customText(
-                      l10n.viewAll,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    widthBx(w: 5),
-                    const Icon(
-                      Icons.arrow_forward_ios,
-                      color: AppColors.primary,
-                      size: 15,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          heightBx(h: 20),
+          const _SummaryHeader(),
+          heightBx(h: 16),
           if (loading)
             const _SummaryLoading()
-          else if (failed) ...[
+          else if (failed)
             Row(
               children: [
                 Expanded(
@@ -92,45 +66,138 @@ class AttendanceHistorySummary extends ConsumerWidget {
                   ),
                 ),
               ],
+            )
+          else
+            _SummaryGrid(
+              tiles: [
+                _SummaryTile(
+                  color: AppColors.attendancePresent,
+                  label: l10n.daysPresent,
+                  value: '${data?.presentDays ?? 0}',
+                  unit: l10n.salaryUnitDays,
+                  icon: Icons.check,
+                ),
+                _SummaryTile(
+                  color: AppColors.attendanceLate,
+                  label: l10n.daysLate,
+                  value: '${data?.lateDays ?? 0}',
+                  unit: l10n.salaryUnitTimes,
+                  icon: Icons.watch_later_outlined,
+                ),
+                _SummaryTile(
+                  color: AppColors.attendanceAbsent,
+                  label: l10n.daysAbsent,
+                  value: '${data?.absentDays ?? 0}',
+                  unit: l10n.salaryUnitDays,
+                  icon: Icons.close,
+                ),
+                _SummaryTile(
+                  color: AppColors.primary,
+                  label: l10n.workHours,
+                  value: (data?.totalWorkHours ?? 0).toStringAsFixed(1),
+                  unit: l10n.hoursUnit,
+                  icon: Icons.work_outline,
+                ),
+              ],
             ),
-          ] else ...[
-            _SummaryRow(
-              color: AppColors.attendancePresent,
-              label: l10n.daysPresent,
-              value: '${data?.presentDays ?? 0}',
-              icon: Icons.check,
-            ),
-            heightBx(),
-            generalLine(),
-            heightBx(),
-            _SummaryRow(
-              color: AppColors.attendanceLate,
-              label: l10n.daysLate,
-              value: '${data?.lateDays ?? 0}',
-              icon: Icons.watch_later_outlined,
-            ),
-            heightBx(),
-            _SummaryRow(
-              color: AppColors.attendanceAbsent,
-              label: l10n.daysAbsent,
-              value: '${data?.absentDays ?? 0}',
-              icon: Icons.close,
-            ),
-            heightBx(),
-            _SummaryRow(
-              color: AppColors.primary,
-              label: l10n.workHours,
-              value: (data?.totalWorkHours ?? 0).toStringAsFixed(1),
-              icon: Icons.work_outline,
-            ),
-          ],
         ],
       ),
     );
   }
 }
 
-/// Sweeping placeholder for the four stat rows while the month summary
+/// Blue-dot title on the left, tinted "view all" pill on the right.
+class _SummaryHeader extends StatelessWidget {
+  const _SummaryHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Row(
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: const BoxDecoration(
+            color: AppColors.primary,
+            shape: BoxShape.circle,
+          ),
+        ),
+        widthBx(w: 10),
+        Expanded(
+          child: customText(
+            l10n.attendanceHistoryTitle,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        widthBx(w: 8),
+        Material(
+          color: AppColors.primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(999),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(999),
+            onTap: () => context.push(AppRoutes.attendanceHistory),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  customText(
+                    l10n.viewAll,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                  widthBx(w: 6),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    color: AppColors.primary,
+                    size: 13,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Lays [tiles] out two per row with equal-height tiles in each row.
+class _SummaryGrid extends StatelessWidget {
+  final List<Widget> tiles;
+
+  const _SummaryGrid({required this.tiles});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (var i = 0; i < tiles.length; i += 2) ...[
+          if (i > 0) heightBx(h: 12),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: tiles[i]),
+                widthBx(w: 12),
+                Expanded(
+                  child: i + 1 < tiles.length ? tiles[i + 1] : const SizedBox(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Sweeping placeholder for the four stat tiles while the month summary
 /// loads — wrapped in [Shimmer] so it animates like the rest of the home
 /// screen's loading state instead of sitting as flat grey bars.
 class _SummaryLoading extends StatelessWidget {
@@ -139,70 +206,99 @@ class _SummaryLoading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const ShimmerBox(width: double.infinity, height: 25),
-          heightBx(),
-          generalLine(),
-          heightBx(),
-          const ShimmerBox(width: double.infinity, height: 25),
-          heightBx(),
-          const ShimmerBox(width: double.infinity, height: 25),
-          heightBx(),
-          const ShimmerBox(width: double.infinity, height: 25),
+      child: _SummaryGrid(
+        tiles: [
+          for (var i = 0; i < 4; i++)
+            const ShimmerBox(width: double.infinity, height: 104),
         ],
       ),
     );
   }
 }
 
-class _SummaryRow extends StatelessWidget {
+/// One stat: label and icon badge on top, big value with its unit below, on
+/// a soft [color]-tinted background.
+class _SummaryTile extends StatelessWidget {
   final Color color;
   final String label;
   final String value;
+  final String unit;
   final IconData icon;
 
-  const _SummaryRow({
+  const _SummaryTile({
     required this.color,
     required this.label,
     required this.value,
+    required this.unit,
     required this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          height: 25,
-          width: 25,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 4,
-                offset: const Offset(2, 2),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: customText(
+                    label,
+                    fontSize: 13,
+                    maxLine: 2,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.gray700,
+                  ),
+                ),
+              ),
+              widthBx(w: 8),
+              Container(
+                height: 36,
+                width: 36,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, size: 20, color: Colors.white),
               ),
             ],
           ),
-          child: Icon(icon, size: 20, color: Colors.white),
-        ),
-        widthBx(),
-        Expanded(child: customText(label)),
-        widthBx(),
-        Padding(
-          padding: const EdgeInsets.only(right: 10),
-          child: customText(
-            value,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: color,
+          heightBx(h: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              customText(
+                value,
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+              widthBx(w: 6),
+              Expanded(
+                child: customText(unit, fontSize: 13, color: AppColors.gray500),
+              ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

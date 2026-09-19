@@ -5,6 +5,7 @@ import '../../../../core/widgets/global_widgets.dart';
 import '../../../attendance/presentation/widgets/attendance_status_card.dart';
 import '../widgets/attendance_history_summary.dart';
 import '../widgets/home_header.dart';
+import '../widgets/home_menu_grid.dart';
 
 /// Home screen.
 ///
@@ -29,11 +30,13 @@ class HomePage extends StatelessWidget {
               const HomeHeader(),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(15, 15, 15, 60),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
                   children: [
                     const AttendanceStatusCard(),
-                    heightBx(h: 20),
+                    heightBx(h: 22),
                     const AttendanceHistorySummary(),
+                    heightBx(h: 28),
+                    const HomeMenuGrid(),
                   ],
                 ),
               ),

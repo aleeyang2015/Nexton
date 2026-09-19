@@ -48,16 +48,21 @@ class AttendanceStatusCard extends ConsumerWidget {
     );
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
+        // A faint blue glow in the top-right corner, fading to white.
+        gradient: const RadialGradient(
+          center: Alignment.topRight,
+          radius: 0.9,
+          colors: [Color(0xFFE6EEFF), Colors.white],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.08)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: AppColors.primary.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -65,6 +70,7 @@ class AttendanceStatusCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _CardHeader(shiftName: shiftName),
+          heightBx(h: 8),
           const _LiveClock(),
           customText(
             AttendanceCopy.shiftHoursLine(
@@ -73,9 +79,10 @@ class AttendanceStatusCard extends ConsumerWidget {
               day.sessions,
               shiftDetails,
             ),
-            fontSize: 14,
+            fontSize: 12,
+            color: AppColors.secondaryTxt,
           ),
-          heightBx(h: 20),
+          heightBx(h: 16),
           SlideActionButton(
             label: state.nextAction == ClockAction.clockIn
                 ? l10n.slideToClockIn
@@ -86,8 +93,8 @@ class AttendanceStatusCard extends ConsumerWidget {
             onComplete: () => PunchFlow.start(context, ref),
             resetAfterComplete: true,
           ),
-          heightBx(h: 16),
-          const Divider(height: 1, color: AppColors.border),
+          heightBx(h: 14),
+          const Divider(height: 1, color: AppColors.gray200),
           heightBx(h: 12),
           _MethodsRow(methods: methods),
         ],
@@ -132,15 +139,16 @@ class _CardHeader extends StatelessWidget {
         ),
         widthBx(),
         Container(
-          padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
+          padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
           decoration: BoxDecoration(
-            color: badge.color,
+            color: badge.color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: badge.color.withValues(alpha: 0.35)),
           ),
           child: customText(
             badge.label,
-            color: Colors.white,
-            fontSize: 14,
+            color: badge.color,
+            fontSize: 12,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -185,7 +193,7 @@ class _LiveClockState extends ConsumerState<_LiveClock> {
     return customText(
       AttendanceCopy.hourMinuteSecond(_now),
       fontWeight: FontWeight.w700,
-      fontSize: 30,
+      fontSize: 32,
       color: AppColors.textPrimary,
     );
   }
