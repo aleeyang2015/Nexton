@@ -39,6 +39,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changePassword => 'Change Password';
 
   @override
+  String get changePasswordSecurityTitle => 'Keep your account secure';
+
+  @override
   String get changePasswordForcedNotice =>
       'Please set a new password before continuing.';
 

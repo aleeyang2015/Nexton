@@ -13,6 +13,7 @@
   "genericError": "ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່",
 
   "changePassword": "ປ່ຽນລະຫັດຜ່ານ",
+  "changePasswordSecurityTitle": "ຮັກສາບັນຊີຂອງທ່ານໃຫ້ປອດໄພ",
   "changePasswordForcedNotice": "ກະລຸນາຕັ້ງລະຫັດຜ່ານໃໝ່ກ່ອນເຂົ້ານຳໃຊ້ລະບົບ",
   "changePasswordVoluntaryNotice": "ຕັ້ງລະຫັດຜ່ານໃໝ່ສຳລັບບັນຊີຂອງທ່ານ",
   "currentPassword": "ລະຫັດຜ່ານປັດຈຸບັນ",

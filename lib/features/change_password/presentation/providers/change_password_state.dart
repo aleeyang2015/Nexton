@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/constants/app_constants.dart';
+
 part 'change_password_state.freezed.dart';
 
 /// Everything the change-password screen renders from. The widget holds no
@@ -32,6 +34,11 @@ class ChangePasswordState with _$ChangePasswordState {
   bool get isSubmitting => submission.isLoading;
 
   bool get succeeded => submission.valueOrNull == true;
+
+  /// The new password already meets the minimum length — ticks the
+  /// requirement chip under the field. Same constant the use case enforces.
+  bool get newPasswordLongEnough =>
+      newPassword.length >= AppConstants.minPasswordLength;
 
   /// All three fields filled and nothing in flight — matches the login
   /// screen's rule so the two forms behave the same way.

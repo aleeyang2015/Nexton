@@ -39,6 +39,9 @@ class AppLocalizationsLo extends AppLocalizations {
   String get changePassword => 'ປ່ຽນລະຫັດຜ່ານ';
 
   @override
+  String get changePasswordSecurityTitle => 'ຮັກສາບັນຊີຂອງທ່ານໃຫ້ປອດໄພ';
+
+  @override
   String get changePasswordForcedNotice =>
       'ກະລຸນາຕັ້ງລະຫັດຜ່ານໃໝ່ກ່ອນເຂົ້ານຳໃຊ້ລະບົບ';
 

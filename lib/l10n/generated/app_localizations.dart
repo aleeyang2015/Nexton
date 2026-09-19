@@ -158,6 +158,12 @@ abstract class AppLocalizations {
   /// **'Change Password'**
   String get changePassword;
 
+  /// No description provided for @changePasswordSecurityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your account secure'**
+  String get changePasswordSecurityTitle;
+
   /// No description provided for @changePasswordForcedNotice.
   ///
   /// In en, this message translates to:
