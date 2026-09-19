@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
@@ -8,7 +10,7 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../../profile/presentation/providers/profile_notifier.dart';
 
 /// Avatar, name/role and the notification bell across the top of the home
-/// screen.
+/// screen. Tapping the avatar opens the profile screen.
 ///
 /// Everything it shows comes from [profileNotifierProvider]; the widget
 /// fetches nothing itself and holds no profile logic.
@@ -26,7 +28,10 @@ class HomeHeader extends ConsumerWidget {
     return Row(
       children: [
         widthBx(w: 20),
-        _HeaderAvatar(url: data?.avatarUrl),
+        GestureDetector(
+          onTap: () => context.push(AppRoutes.profile),
+          child: _HeaderAvatar(url: data?.avatarUrl),
+        ),
         widthBx(w: 12),
         Expanded(
           child: Column(

@@ -355,6 +355,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get help => 'Help';
 
   @override
+  String get profileStatusActive => 'Active';
+
+  @override
   String get attendanceHistoryTitle => 'Attendance History';
 
   @override

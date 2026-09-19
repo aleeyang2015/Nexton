@@ -352,6 +352,9 @@ class AppLocalizationsLo extends AppLocalizations {
   String get help => 'ຊ່ວຍເຫຼືອ';
 
   @override
+  String get profileStatusActive => 'ປະຈຸບັນ (Active)';
+
+  @override
   String get attendanceHistoryTitle => 'ປະຫວັດການເຂົ້າວຽກ';
 
   @override

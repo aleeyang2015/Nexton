@@ -6,6 +6,7 @@ import '../../features/auth/domain/entities/auth_session.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/change_password/presentation/pages/change_password_page.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/salary_history/domain/entities/payslip.dart';
 import '../../features/salary_history/presentation/pages/payslip_detail_page.dart';
 import '../../features/salary_history/presentation/pages/salary_history_page.dart';
@@ -25,6 +26,7 @@ class AppRoutes {
   static const String home = '/';
   static const String login = '/login';
   static const String changePassword = '/change-password';
+  static const String profile = '/profile';
   static const String settings = '/settings';
   static const String attendanceHistory = '/attendance-history';
   static const String timeOff = '/time-off';
@@ -113,6 +115,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.changePassword,
         name: 'changePassword',
         builder: (context, state) => const ChangePasswordPage(),
+      ),
+
+      // Profile — pushed from the home header's avatar
+      GoRoute(
+        path: AppRoutes.profile,
+        name: 'profile',
+        builder: (context, state) => const ProfilePage(),
       ),
 
       // Settings

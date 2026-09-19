@@ -716,6 +716,12 @@ abstract class AppLocalizations {
   /// **'Help'**
   String get help;
 
+  /// No description provided for @profileStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get profileStatusActive;
+
   /// No description provided for @attendanceHistoryTitle.
   ///
   /// In en, this message translates to:

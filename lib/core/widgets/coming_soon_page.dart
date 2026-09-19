@@ -4,9 +4,8 @@ import '../theme/app_colors.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'global_widgets.dart';
 
-/// Generic placeholder body for a bottom-nav tab that doesn't have a real
-/// screen yet. Swap this out for the real page without touching the nav
-/// structure in `MainShellPage`.
+/// Generic placeholder body for a screen that doesn't exist yet. Swap this
+/// out for the real page without touching whatever routes to it.
 class ComingSoonPage extends StatelessWidget {
   final String title;
   final IconData icon;
