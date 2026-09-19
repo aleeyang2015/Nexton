@@ -34,30 +34,32 @@ class PayslipDetailPage extends ConsumerWidget {
     final shown = detail.valueOrNull ?? payslip;
 
     return Container(
-      color: Colors.white,
+      color: AppColors.homeBackground,
       child: SafeArea(
         child: Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.homeBackground,
           body: Column(
             children: [
-              heightBx(h: 4),
               _DetailAppBar(payslip: shown),
-              heightBx(h: 6),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(15, 10, 15, 40),
+                  padding: const EdgeInsets.fromLTRB(15, 14, 15, 20),
                   children: [
                     _EmployeeCard(payslip: shown),
-                    heightBx(h: 14),
+                    heightBx(h: 12),
                     _SummaryStrip(payslip: shown),
-                    heightBx(h: 22),
+                    heightBx(h: 20),
                     if (detail.isLoading && !detail.hasValue)
                       const _SectionsPlaceholder()
                     else if (detail.hasError && !detail.hasValue)
                       SalaryErrorBlock(
                         message: l10n.payslipDetailLoadFailed,
                         onRetry: () => ref
-                            .read(payslipDetailNotifierProvider(payslip.id).notifier)
+                            .read(
+                              payslipDetailNotifierProvider(
+                                payslip.id,
+                              ).notifier,
+                            )
                             .refresh(),
                       )
                     else ...[
@@ -70,6 +72,7 @@ class PayslipDetailPage extends ConsumerWidget {
                         title: l10n.salaryAllowancesSection,
                         titleColor: AppColors.primary,
                         lines: shown.allowances,
+                        bulleted: true,
                       ),
                       _Section(
                         title: l10n.salaryAttendanceDeductionsSection,
@@ -82,10 +85,12 @@ class PayslipDetailPage extends ConsumerWidget {
                         lines: shown.statutoryDeductions,
                       ),
                     ],
-                    _FooterCard(payslip: shown),
                   ],
                 ),
               ),
+              // Pinned under the scrolling breakdown so the headline net is
+              // always in view.
+              _FooterCard(payslip: shown),
             ],
           ),
         ),
@@ -109,40 +114,41 @@ class _DetailAppBar extends StatelessWidget {
         ? SalaryHistoryCopy.statusLabel(l10n, payslip.status)
         : '${l10n.salaryPaidOnLabel} ${SalaryHistoryCopy.date(payslip.paidDate!)}';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Column(
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          Stack(
-            alignment: Alignment.center,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => context.pop(),
-                    child: popBack(),
-                  ),
-                  _SaveButton(payslip: payslip),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 48),
-                child: customText(
-                  title,
-                  fontSize: 19,
-                  fontWeight: FontWeight.w700,
-                  alight: TextAlign.center,
-                ),
-              ),
+              GestureDetector(onTap: () => context.pop(), child: popBack()),
+              _SaveButton(payslip: payslip),
             ],
           ),
-          heightBx(h: 2),
-          customText(
-            paidLine,
-            fontSize: 12,
-            color: AppColors.subTitle,
-            alight: TextAlign.center,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 52),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                customText(
+                  title,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                  alight: TextAlign.center,
+                ),
+                heightBx(h: 2),
+                customText(
+                  paidLine,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: SalaryHistoryCopy.statusColor(payslip.status),
+                  alight: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -165,7 +171,7 @@ class _SectionsPlaceholder extends StatelessWidget {
           child: ShimmerBox(
             width: double.infinity,
             height: 120,
-            borderRadius: BorderRadius.all(Radius.circular(16)),
+            borderRadius: BorderRadius.all(Radius.circular(20)),
           ),
         ),
       ),
@@ -198,15 +204,25 @@ class _SaveButton extends ConsumerWidget {
       );
     });
 
-    return IconButton(
-      onPressed: () => ref.read(provider.notifier).download(payslip),
-      icon: downloading
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-            )
-          : const Icon(Icons.save_alt, color: AppColors.primary),
+    return GestureDetector(
+      onTap: () => ref.read(provider.notifier).download(payslip),
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: const BoxDecoration(
+          color: AppColors.primaryTint,
+          shape: BoxShape.circle,
+        ),
+        child: downloading
+            ? const Padding(
+                padding: EdgeInsets.all(11),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primary,
+                ),
+              )
+            : const Icon(Icons.save_alt, color: AppColors.primary, size: 22),
+      ),
     );
   }
 }
@@ -219,35 +235,29 @@ class _EmployeeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final identity = [
-      payslip.employeeCode,
-      payslip.position,
-      if (payslip.department.isNotEmpty) payslip.department,
-    ].join(' · ');
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.all(14),
+      decoration: _cardDecoration(radius: 20),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: AppColors.primary,
+          Container(
+            width: 56,
+            height: 56,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.secondary, AppColors.primary],
+              ),
+              borderRadius: BorderRadius.circular(18),
+            ),
             child: customText(
               _initials(payslip.employeeName),
               color: Colors.white,
               fontWeight: FontWeight.w700,
-              fontSize: 15,
+              fontSize: 18,
             ),
           ),
           widthBx(w: 14),
@@ -258,22 +268,18 @@ class _EmployeeCard extends StatelessWidget {
                 customText(
                   payslip.employeeName,
                   fontWeight: FontWeight.w700,
-                  fontSize: 16,
+                  fontSize: 17,
+                  color: AppColors.textPrimary,
                 ),
-                heightBx(h: 3),
-                customText(
-                  identity,
-                  color: AppColors.subTitle,
-                  fontSize: 12,
-                  maxLine: 2,
-                ),
+                heightBx(h: 4),
+                _Identity(payslip: payslip),
               ],
             ),
           ),
           widthBx(w: 8),
           _StatusPill(
             label: SalaryHistoryCopy.statusLabel(l10n, payslip.status),
-            color: SalaryHistoryCopy.statusColor(payslip.status),
+            status: payslip.status,
           ),
         ],
       ),
@@ -287,34 +293,92 @@ class _EmployeeCard extends StatelessWidget {
   }
 }
 
-class _StatusPill extends StatelessWidget {
-  final String label;
-  final Color color;
+/// Employee code in a grey chip, then the position and — in the brand blue —
+/// the department, dot-separated.
+class _Identity extends StatelessWidget {
+  final Payslip payslip;
 
-  const _StatusPill({required this.label, required this.color});
+  const _Identity({required this.payslip});
 
   @override
   Widget build(BuildContext context) {
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 6,
+      runSpacing: 2,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: AppColors.gray100,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: customText(
+            payslip.employeeCode,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: AppColors.secondaryTxt,
+          ),
+        ),
+        if (payslip.position.isNotEmpty)
+          customText(
+            '•  ${payslip.position}',
+            fontSize: 12,
+            color: AppColors.subTitle,
+          ),
+        if (payslip.department.isNotEmpty)
+          customText(
+            '•  ${payslip.department}',
+            fontSize: 12,
+            color: AppColors.primary,
+          ),
+      ],
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final String label;
+  final PayslipStatus status;
+
+  const _StatusPill({required this.label, required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = SalaryHistoryCopy.statusColor(status);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle, size: 14, color: color),
-          widthBx(w: 4),
-          customText(label, color: color, fontWeight: FontWeight.w700, fontSize: 12),
+          Icon(
+            status == PayslipStatus.paid
+                ? Icons.check_circle
+                : Icons.access_time_filled,
+            size: 14,
+            color: color,
+          ),
+          widthBx(w: 5),
+          customText(
+            label,
+            color: color,
+            fontWeight: FontWeight.w700,
+            fontSize: 12,
+          ),
         ],
       ),
     );
   }
 }
 
-/// Gross / deductions / net, three columns divided by hairlines — the totals
-/// strip below the employee card.
+/// Gross / deductions / net as three white cards on a soft blue tray — the
+/// totals strip below the employee card. The net card carries a blue outline.
 class _SummaryStrip extends StatelessWidget {
   final Payslip payslip;
 
@@ -325,10 +389,11 @@ class _SummaryStrip extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: AppColors.primaryTint,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.primaryTint.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -339,7 +404,7 @@ class _SummaryStrip extends StatelessWidget {
               color: AppColors.success,
             ),
           ),
-          _hairline(),
+          widthBx(w: 8),
           Expanded(
             child: _SummaryColumn(
               label: l10n.salaryTotalDeductionsLabel,
@@ -347,57 +412,66 @@ class _SummaryStrip extends StatelessWidget {
               color: AppColors.danger,
             ),
           ),
-          _hairline(),
+          widthBx(w: 8),
           Expanded(
             child: _SummaryColumn(
               label: l10n.salaryNetSalaryLabel,
               value: SalaryHistoryCopy.amount(payslip.netSalary),
               color: AppColors.primary,
+              highlighted: true,
             ),
           ),
         ],
       ),
     );
   }
-
-  Widget _hairline() => Container(
-    width: 1,
-    height: 34,
-    color: AppColors.primary.withValues(alpha: 0.15),
-  );
 }
 
 class _SummaryColumn extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
+  final bool highlighted;
 
   const _SummaryColumn({
     required this.label,
     required this.value,
     required this.color,
+    this.highlighted = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        customText(
-          label,
-          color: AppColors.subTitle,
-          fontSize: 12,
-          alight: TextAlign.center,
-        ),
-        heightBx(h: 6),
-        FittedBox(
-          child: customText(
-            value,
-            color: color,
-            fontWeight: FontWeight.w800,
-            fontSize: 17,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
+      decoration: _cardDecoration(
+        radius: 16,
+        border: highlighted
+            ? Border.all(
+                color: AppColors.primary.withValues(alpha: 0.4),
+                width: 1.2,
+              )
+            : null,
+      ),
+      child: Column(
+        children: [
+          customText(
+            label,
+            color: AppColors.subTitle,
+            fontSize: 12,
+            alight: TextAlign.center,
           ),
-        ),
-      ],
+          heightBx(h: 6),
+          FittedBox(
+            child: customText(
+              value,
+              color: color,
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -405,15 +479,20 @@ class _SummaryColumn extends StatelessWidget {
 /// A titled group of [PayslipLine]s in one white card. Renders nothing when
 /// [lines] is empty, so a payslip that only feeds the history list doesn't
 /// leave a stray header behind.
+///
+/// [bulleted] puts a green dot in front of each row — for lines that carry no
+/// icon and no caption, like the allowances.
 class _Section extends StatelessWidget {
   final String title;
   final Color titleColor;
   final List<PayslipLine> lines;
+  final bool bulleted;
 
   const _Section({
     required this.title,
     required this.titleColor,
     required this.lines,
+    this.bulleted = false,
   });
 
   @override
@@ -425,25 +504,41 @@ class _Section extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          customText(
-            title,
-            color: titleColor,
-            fontWeight: FontWeight.w700,
-            fontSize: 14,
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: titleColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              widthBx(w: 8),
+              Expanded(
+                child: customText(
+                  title,
+                  color: titleColor,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+            ],
           ),
-          heightBx(h: 8),
+          heightBx(h: 10),
           Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
-            ),
+            decoration: _cardDecoration(radius: 20),
             child: Column(
               children: [
                 for (var i = 0; i < lines.length; i++) ...[
                   if (i > 0)
-                    const Divider(height: 1, indent: 14, endIndent: 14, color: AppColors.border),
-                  _LineRow(line: lines[i]),
+                    const Divider(
+                      height: 1,
+                      indent: 16,
+                      endIndent: 16,
+                      color: AppColors.gray200,
+                    ),
+                  _LineRow(line: lines[i], bulleted: bulleted),
                 ],
               ],
             ),
@@ -456,14 +551,19 @@ class _Section extends StatelessWidget {
 
 class _LineRow extends StatelessWidget {
   final PayslipLine line;
+  final bool bulleted;
 
-  const _LineRow({required this.line});
+  const _LineRow({required this.line, required this.bulleted});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final glyph = _iconFor(line.icon);
     final caption = SalaryHistoryCopy.lineCaption(l10n, line);
+    // Late / early-out captions pick up the icon's amber; the rest stay grey.
+    final captionColor = glyph?.color == AppColors.attendanceLate
+        ? AppColors.attendanceLate
+        : AppColors.subTitle;
     final amountColor = line.amount == 0
         ? AppColors.subTitle
         : line.amount < 0
@@ -472,18 +572,28 @@ class _LineRow extends StatelessWidget {
     final sign = line.amount < 0 ? '-' : '+';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
           if (glyph != null) ...[
             Container(
-              width: 38,
-              height: 38,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 color: glyph.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(glyph.icon, size: 18, color: glyph.color),
+              child: Icon(glyph.icon, size: 20, color: glyph.color),
+            ),
+            widthBx(w: 12),
+          ] else if (bulleted) ...[
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: AppColors.success,
+                shape: BoxShape.circle,
+              ),
             ),
             widthBx(w: 12),
           ],
@@ -494,15 +604,12 @@ class _LineRow extends StatelessWidget {
                 customText(
                   SalaryHistoryCopy.lineTitle(l10n, line),
                   fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontSize: 15,
+                  color: AppColors.textPrimary,
                 ),
                 if (caption.isNotEmpty) ...[
                   heightBx(h: 2),
-                  customText(
-                    caption,
-                    color: AppColors.subTitle,
-                    fontSize: 11,
-                  ),
+                  customText(caption, color: captionColor, fontSize: 11),
                 ],
               ],
             ),
@@ -512,7 +619,7 @@ class _LineRow extends StatelessWidget {
             '$sign ${SalaryHistoryCopy.amount(line.amount.abs())}',
             color: amountColor,
             fontWeight: FontWeight.w700,
-            fontSize: 14,
+            fontSize: 16,
           ),
         ],
       ),
@@ -522,7 +629,9 @@ class _LineRow extends StatelessWidget {
 
 /// Icon + tint for a deduction line; `null` for [PayslipLineIcon.none], which
 /// the earnings sections use.
-({IconData icon, Color color})? _iconFor(PayslipLineIcon kind) => switch (kind) {
+({IconData icon, Color color})? _iconFor(
+  PayslipLineIcon kind,
+) => switch (kind) {
   PayslipLineIcon.none => null,
   PayslipLineIcon.lateArrival => (
     icon: Icons.history,
@@ -530,29 +639,43 @@ class _LineRow extends StatelessWidget {
   ),
   PayslipLineIcon.absentLate => (
     icon: Icons.schedule,
-    color: AppColors.gray500,
+    color: AppColors.gray600,
   ),
-  PayslipLineIcon.earlyOut => (icon: Icons.logout, color: AppColors.gray500),
-  PayslipLineIcon.absence => (
-    icon: Icons.event_busy,
-    color: AppColors.danger,
+  PayslipLineIcon.earlyOut => (
+    icon: Icons.logout,
+    color: AppColors.attendanceLate,
   ),
+  PayslipLineIcon.absence => (icon: Icons.event_busy, color: AppColors.danger),
   PayslipLineIcon.socialSecurity => (
     icon: Icons.shield,
     color: AppColors.primary,
   ),
-  PayslipLineIcon.incomeTax => (
-    icon: Icons.account_balance,
-    color: AppColors.primary,
-  ),
-  PayslipLineIcon.otherDeduction => (
-    icon: Icons.favorite,
-    color: AppColors.primary,
-  ),
+  PayslipLineIcon.incomeTax => (icon: Icons.account_balance, color: _indigo),
+  PayslipLineIcon.otherDeduction => (icon: Icons.favorite, color: _purple),
 };
 
-/// Taxable-income / SS-base figures and the headline net, in the tinted card
-/// that closes the payslip.
+// Tints for the tax and "other deduction" glyphs that the shared palette has
+// no name for.
+const Color _indigo = Color(0xFF5B5BD6);
+const Color _purple = Color(0xFF9B5CF6);
+
+/// White card with the soft blue shadow every block on this page shares.
+BoxDecoration _cardDecoration({required double radius, BoxBorder? border}) =>
+    BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(radius),
+      border: border,
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.primary.withValues(alpha: 0.06),
+          blurRadius: 16,
+          offset: const Offset(0, 6),
+        ),
+      ],
+    );
+
+/// Taxable-income / SS-base figures and the headline net, in the white bar
+/// pinned to the bottom of the payslip.
 class _FooterCard extends StatelessWidget {
   final Payslip payslip;
 
@@ -563,10 +686,18 @@ class _FooterCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, -6),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -576,15 +707,13 @@ class _FooterCard extends StatelessWidget {
           ),
           // The backend doesn't report the SS base yet; the row waits for it.
           if (payslip.socialSecurityBase > 0) ...[
-            heightBx(h: 10),
+            heightBx(h: 8),
             _FooterRow(
               label: l10n.salarySocialSecurityBaseLabel,
               value: SalaryHistoryCopy.amount(payslip.socialSecurityBase),
             ),
           ],
-          heightBx(h: 12),
-          const _DottedLine(),
-          heightBx(h: 12),
+          heightBx(h: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -592,15 +721,16 @@ class _FooterCard extends StatelessWidget {
                 child: customText(
                   l10n.salaryNetSalaryLabel,
                   fontWeight: FontWeight.w700,
-                  fontSize: 15,
+                  fontSize: 17,
+                  color: AppColors.textPrimary,
                 ),
               ),
               widthBx(w: 8),
               customText(
-                'K ${SalaryHistoryCopy.amount(payslip.netSalary)}',
+                '₭${SalaryHistoryCopy.amount(payslip.netSalary)}',
                 color: AppColors.primary,
                 fontWeight: FontWeight.w800,
-                fontSize: 20,
+                fontSize: 24,
               ),
             ],
           ),
@@ -622,49 +752,16 @@ class _FooterRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child: customText(
-            label,
-            color: AppColors.secondaryTxt,
-            fontSize: 13,
-          ),
+          child: customText(label, color: AppColors.secondaryTxt, fontSize: 13),
         ),
         widthBx(w: 8),
         customText(
           value,
           color: AppColors.textPrimary,
-          fontWeight: FontWeight.w600,
-          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          fontSize: 15,
         ),
       ],
-    );
-  }
-}
-
-class _DottedLine extends StatelessWidget {
-  const _DottedLine();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 1,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          const dashWidth = 3.0;
-          const gap = 4.0;
-          final count = (constraints.maxWidth / (dashWidth + gap)).floor();
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(
-              count,
-              (_) => Container(
-                width: dashWidth,
-                height: 1,
-                color: AppColors.gray400,
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 }

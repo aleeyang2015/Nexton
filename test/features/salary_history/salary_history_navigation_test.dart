@@ -208,7 +208,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
 
       expect(find.text('Payslip – August ${now.year}'), findsOneWidget);
-      expect(find.text('K 7,426,674'), findsOneWidget);
+      expect(find.text('₭7,426,674'), findsOneWidget);
       expect(find.text('Welfare / Allowances'), findsNothing);
     });
 
@@ -225,7 +225,7 @@ void main() {
 
       expect(find.text('Unable to load the payslip.'), findsOneWidget);
       // The header and totals still stand — they came with the list row.
-      expect(find.text('K 7,426,674'), findsOneWidget);
+      expect(find.text('₭7,426,674'), findsOneWidget);
 
       repository.detailResult = Result.success(detailRow);
       await tester.tap(find.text('Retry'));
@@ -287,13 +287,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Payslip – August ${now.year}'), findsOneWidget);
-      expect(find.text('EMP-002 · IT Developer · IT Development'), findsOneWidget);
+      expect(find.text('EMP-002'), findsOneWidget);
+      expect(find.text('•  IT Developer'), findsOneWidget);
+      expect(find.text('•  IT Development'), findsOneWidget);
       expect(find.text('SV'), findsOneWidget);
       // Totals strip (no currency mark) and the headline net (K-prefixed) —
       // straight from the wire.
       expect(find.text('12,800,000'), findsOneWidget);
       expect(find.text('-5,373,326'), findsOneWidget);
-      expect(find.text('K 7,426,674'), findsOneWidget);
+      expect(find.text('₭7,426,674'), findsOneWidget);
       // Sections rendered from the detail call's line items.
       expect(find.text('Welfare / Allowances'), findsOneWidget);
       expect(find.text('- 940,249'), findsOneWidget);
