@@ -6,12 +6,15 @@
 
   "login": "Login",
   "@login": {"description": "Login screen heading and submit button"},
+  "loginSubtitle": "Enter your credentials to sign in to NEXTON",
   "email": "Email",
   "emailHint": "Example@gmail.com",
   "password": "Password",
   "passwordHint": "Enter your password",
   "forgotPassword": "Forgot password?",
   "rememberMe": "Remember my email",
+  "loginOrLoginWith": "Or log in with",
+  "loginFooter": "NEXTON v{version} • Human resource management system",
   "genericError": "Something went wrong. Please try again.",
 
   "changePassword": "Change Password",

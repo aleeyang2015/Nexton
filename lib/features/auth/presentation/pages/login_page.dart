@@ -12,7 +12,11 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/auth_session.dart';
 import '../providers/login_notifier.dart';
 import '../providers/login_state.dart';
+import '../widgets/login_alternative_section.dart';
 import '../widgets/login_email_field.dart';
+import '../widgets/login_footer.dart';
+import '../widgets/login_header.dart';
+import '../widgets/login_submit_button.dart';
 import '../widgets/auth_password_field.dart';
 import '../widgets/remember_me_checkbox.dart';
 
@@ -80,50 +84,43 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final locale = ref.watch(localeProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 50, 20, 60),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Align(
-              alignment: Alignment.topRight,
-              child: _LanguageToggleButton(
-                locale: locale,
-                onTap: () {
-                  final next = locale == AppLocales.lao
-                      ? AppLocales.english
-                      : AppLocales.lao;
-                  ref.read(localeProvider.notifier).setLocale(next);
-                },
+      backgroundColor: AppColors.homeBackground,
+      // Fills the viewport so the footer sits at the bottom on tall screens,
+      // and scrolls instead when the keyboard or a small phone leaves no room.
+      body: CustomScrollView(
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 50, 20, 32),
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: _LanguageToggleButton(
+                      locale: locale,
+                      onTap: () {
+                        final next = locale == AppLocales.lao
+                            ? AppLocales.english
+                            : AppLocales.lao;
+                        ref.read(localeProvider.notifier).setLocale(next);
+                      },
+                    ),
+                  ),
+                  heightBx(h: 40),
+                  const LoginHeader(),
+                  heightBx(h: 40),
+                  _form(state, notifier, l10n),
+                  heightBx(h: 28),
+                  const LoginAlternativeSection(),
+                  const Spacer(),
+                  heightBx(h: 24),
+                  const LoginFooter(),
+                ],
               ),
             ),
-            heightBx(h: 10),
-            assetImg(
-              "assets/images/polygon.png",
-              width: 80,
-              height: 80,
-              fit: BoxFit.contain,
-            ),
-            heightBx(h: 20),
-            customText(
-              "NEXTON",
-              fontWeight: FontWeight.w700,
-              color: AppColors.primary,
-              fontSize: 40,
-            ),
-            heightBx(h: 40),
-            customText(
-              l10n.login,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textTertiary,
-              fontSize: 20,
-              alight: TextAlign.center,
-            ),
-            heightBx(h: 40),
-            _form(state, notifier, l10n),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -142,6 +139,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           label: l10n.password,
           hint: l10n.passwordHint,
           controller: _passwordController,
+          soft: true,
+          prefixIcon: Icons.lock_outline,
           obscure: state.obscurePassword,
           errorText: localizeFieldError(l10n, state.passwordError),
           onToggleObscure: notifier.togglePasswordVisibility,
@@ -149,20 +148,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           onSubmitted: (_) => notifier.submit(),
           trailing: customText(
             l10n.forgotPassword,
-            color: Colors.blueAccent,
-            fontWeight: FontWeight.w500,
+            color: AppColors.primary,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        heightBx(h: 30),
+        heightBx(h: 20),
         RememberMeCheckbox(
           value: state.rememberMe,
           onTap: notifier.toggleRememberMe,
         ),
-        heightBx(h: 20),
-        if (state.isSubmitting)
-          const Center(child: CircularProgressIndicator())
-        else
-          button(notifier.submit, l10n.login),
+        heightBx(h: 24),
+        LoginSubmitButton(
+          label: l10n.login,
+          loading: state.isSubmitting,
+          onPressed: notifier.submit,
+        ),
       ],
     );
   }
@@ -182,22 +183,33 @@ class _LanguageToggleButton extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final targetLabel = locale == AppLocales.lao ? l10n.english : l10n.lao;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.language, size: 18, color: AppColors.primary),
-            widthBx(w: 4),
-            customText(
-              targetLabel,
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ],
+    return Material(
+      color: Colors.white,
+      shape: StadiumBorder(side: BorderSide(color: AppColors.gray200)),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const StadiumBorder(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.language, size: 18, color: AppColors.primary),
+              widthBx(w: 6),
+              customText(
+                targetLabel,
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              widthBx(w: 4),
+              const Icon(
+                Icons.keyboard_arrow_down,
+                size: 18,
+                color: AppColors.gray500,
+              ),
+            ],
+          ),
         ),
       ),
     );

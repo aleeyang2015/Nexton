@@ -110,6 +110,12 @@ abstract class AppLocalizations {
   /// **'Login'**
   String get login;
 
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your credentials to sign in to NEXTON'**
+  String get loginSubtitle;
+
   /// No description provided for @email.
   ///
   /// In en, this message translates to:
@@ -145,6 +151,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remember my email'**
   String get rememberMe;
+
+  /// No description provided for @loginOrLoginWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Or log in with'**
+  String get loginOrLoginWith;
+
+  /// No description provided for @loginFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXTON v{version} • Human resource management system'**
+  String loginFooter(Object version);
 
   /// No description provided for @genericError.
   ///

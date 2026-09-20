@@ -24,18 +24,20 @@ class RememberMeCheckbox extends StatelessWidget {
       child: Row(
         children: [
           AnimatedContainer(
-            height: 25,
-            width: 25,
+            height: 24,
+            width: 24,
             duration: const Duration(milliseconds: 150),
             decoration: BoxDecoration(
               color: value ? AppColors.primary : Colors.white,
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: AppColors.primary),
+              borderRadius: BorderRadius.circular(7),
+              border: Border.all(
+                color: value ? AppColors.primary : AppColors.gray400,
+              ),
             ),
             child: const Icon(Icons.check, size: 15, color: Colors.white),
           ),
           widthBx(w: 10),
-          customText(l10n.rememberMe),
+          customText(l10n.rememberMe, color: AppColors.textPrimary),
         ],
       ),
     );

@@ -4,12 +4,15 @@
   "appTitle": "Next On",
 
   "login": "ເຂົ້າສູ່ລະບົບ",
+  "loginSubtitle": "ຍິນດີຕ້ອນຮັບສູ່ລະບົບບໍລິຫານ NEXTON",
   "email": "ອີເມວ",
   "emailHint": "Example@gmail.com",
   "password": "ລະຫັດຜ່ານ",
   "passwordHint": "ປ້ອນລະຫັດຜ່ານ",
   "forgotPassword": "ລືມລະຫັດຜ່ານ ?",
   "rememberMe": "ຈື່ອີເມວຂ້ອຍໄວ້",
+  "loginOrLoginWith": "ຫຼື ເຂົ້າສູ່ລະບົບດ້ວຍ",
+  "loginFooter": "NEXTON v{version} • ລະບົບບໍລິຫານບຸກຄະລາກອນ",
   "genericError": "ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່",
 
   "changePassword": "ປ່ຽນລະຫັດຜ່ານ",

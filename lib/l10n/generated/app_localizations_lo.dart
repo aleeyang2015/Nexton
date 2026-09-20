@@ -15,6 +15,9 @@ class AppLocalizationsLo extends AppLocalizations {
   String get login => 'ເຂົ້າສູ່ລະບົບ';
 
   @override
+  String get loginSubtitle => 'ຍິນດີຕ້ອນຮັບສູ່ລະບົບບໍລິຫານ NEXTON';
+
+  @override
   String get email => 'ອີເມວ';
 
   @override
@@ -31,6 +34,14 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get rememberMe => 'ຈື່ອີເມວຂ້ອຍໄວ້';
+
+  @override
+  String get loginOrLoginWith => 'ຫຼື ເຂົ້າສູ່ລະບົບດ້ວຍ';
+
+  @override
+  String loginFooter(Object version) {
+    return 'NEXTON v$version • ລະບົບບໍລິຫານບຸກຄະລາກອນ';
+  }
 
   @override
   String get genericError => 'ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່';

@@ -15,6 +15,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get login => 'Login';
 
   @override
+  String get loginSubtitle => 'Enter your credentials to sign in to NEXTON';
+
+  @override
   String get email => 'Email';
 
   @override
@@ -31,6 +34,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rememberMe => 'Remember my email';
+
+  @override
+  String get loginOrLoginWith => 'Or log in with';
+
+  @override
+  String loginFooter(Object version) {
+    return 'NEXTON v$version • Human resource management system';
+  }
 
   @override
   String get genericError => 'Something went wrong. Please try again.';
