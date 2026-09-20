@@ -423,7 +423,7 @@ void main() {
       await source.pdf('abc-123');
 
       expect(adapter.lastRequest!.method, 'GET');
-      expect(adapter.lastRequest!.path, '/payslips/my/abc-123/pdf');
+      expect(adapter.lastRequest!.path, '/payroll/payslips/my/abc-123/pdf');
       expect(adapter.lastRequest!.responseType, ResponseType.bytes);
     });
 

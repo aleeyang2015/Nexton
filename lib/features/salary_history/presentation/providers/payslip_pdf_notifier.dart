@@ -4,7 +4,7 @@ import '../../domain/entities/payslip.dart';
 import '../../salary_history_providers.dart';
 import '../services/payslip_pdf_saver.dart';
 
-/// Fetches one payslip's PDF (`GET /payslips/my/{id}/pdf`) and hands the
+/// Fetches one payslip's PDF (`GET /payroll/payslips/my/{id}/pdf`) and hands the
 /// bytes to the system save dialog. Keyed by payslip id so the history
 /// card's button and the detail page's save icon share one in-flight state.
 ///

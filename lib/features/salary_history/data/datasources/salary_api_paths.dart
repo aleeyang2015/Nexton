@@ -10,6 +10,5 @@ class SalaryPaths {
 
   static String payslip(String id) => '$payslipsMy/$id';
 
-  /// Lives outside the `/payroll` group on the backend.
-  static String payslipPdf(String id) => '/payslips/my/$id/pdf';
+  static String payslipPdf(String id) => '${payslip(id)}/pdf';
 }
