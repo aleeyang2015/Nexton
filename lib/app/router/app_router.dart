@@ -117,7 +117,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ChangePasswordPage(),
       ),
 
-      // Profile — pushed from the home header's avatar
+      // Profile — pushed from the home header's avatar or name
       GoRoute(
         path: AppRoutes.profile,
         name: 'profile',

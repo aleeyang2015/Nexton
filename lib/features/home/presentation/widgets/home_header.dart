@@ -10,7 +10,7 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../../profile/presentation/providers/profile_notifier.dart';
 
 /// Avatar, name/role and the notification bell across the top of the home
-/// screen. Tapping the avatar opens the profile screen.
+/// screen. Tapping the avatar or the name opens the profile screen.
 ///
 /// Everything it shows comes from [profileNotifierProvider]; the widget
 /// fetches nothing itself and holds no profile logic.
@@ -50,11 +50,15 @@ class HomeHeader extends ConsumerWidget {
                   ),
                 )
               else
-                customText(
-                  data?.fullName ?? '',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
-                  color: AppColors.textPrimary,
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => context.push(AppRoutes.profile),
+                  child: customText(
+                    data?.fullName ?? '',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               if (!loading && !failed && data?.positionTitle != null)
                 _PositionLine(title: data!.positionTitle!),

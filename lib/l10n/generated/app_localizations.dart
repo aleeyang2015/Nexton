@@ -698,17 +698,17 @@ abstract class AppLocalizations {
   /// **'Work Hours'**
   String get workHours;
 
-  /// No description provided for @leaveDays.
+  /// No description provided for @lateArrivals.
   ///
   /// In en, this message translates to:
-  /// **'Leave Days'**
-  String get leaveDays;
+  /// **'Late Arrivals'**
+  String get lateArrivals;
 
-  /// No description provided for @tasksDone.
+  /// No description provided for @absences.
   ///
   /// In en, this message translates to:
-  /// **'Tasks Done'**
-  String get tasksDone;
+  /// **'Absences'**
+  String get absences;
 
   /// No description provided for @personal.
   ///

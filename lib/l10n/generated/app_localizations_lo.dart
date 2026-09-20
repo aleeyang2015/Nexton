@@ -343,10 +343,10 @@ class AppLocalizationsLo extends AppLocalizations {
   String get workHours => 'ຊົ່ວໂມງເຮັດວຽກ';
 
   @override
-  String get leaveDays => 'ວັນລາພັກ';
+  String get lateArrivals => 'ມາຊ້າ';
 
   @override
-  String get tasksDone => 'ວຽກສຳເລັດ';
+  String get absences => 'ຂາດວຽກ';
 
   @override
   String get personal => 'ຂໍ້ມູນສ່ວນຕົວ';

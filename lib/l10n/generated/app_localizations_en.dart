@@ -346,10 +346,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workHours => 'Work Hours';
 
   @override
-  String get leaveDays => 'Leave Days';
+  String get lateArrivals => 'Late Arrivals';
 
   @override
-  String get tasksDone => 'Tasks Done';
+  String get absences => 'Absences';
 
   @override
   String get personal => 'Personal';

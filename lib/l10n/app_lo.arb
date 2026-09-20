@@ -111,8 +111,8 @@
   "comingSoon": "ກຳລັງພັດທະນາ",
 
   "workHours": "ຊົ່ວໂມງເຮັດວຽກ",
-  "leaveDays": "ວັນລາພັກ",
-  "tasksDone": "ວຽກສຳເລັດ",
+  "lateArrivals": "ມາຊ້າ",
+  "absences": "ຂາດວຽກ",
   "personal": "ຂໍ້ມູນສ່ວນຕົວ",
   "help": "ຊ່ວຍເຫຼືອ",
   "profileStatusActive": "ປະຈຸບັນ (Active)",

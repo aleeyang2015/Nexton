@@ -137,8 +137,8 @@
   "comingSoon": "Coming soon",
 
   "workHours": "Work Hours",
-  "leaveDays": "Leave Days",
-  "tasksDone": "Tasks Done",
+  "lateArrivals": "Late Arrivals",
+  "absences": "Absences",
   "personal": "Personal",
   "help": "Help",
   "profileStatusActive": "Active",

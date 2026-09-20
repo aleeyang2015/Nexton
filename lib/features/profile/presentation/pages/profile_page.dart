@@ -9,6 +9,8 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/coming_soon_page.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
+import '../../../../features/attendance/domain/entities/attendance_summary.dart';
+import '../../../../features/attendance/presentation/providers/attendance_month_summary_notifier.dart';
 import '../../../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/profile_notifier.dart';
@@ -16,14 +18,14 @@ import '../providers/profile_notifier.dart';
 /// "ໂປຣຟາຍ" screen, pushed from the home header. Profile summary + a
 /// settings-style menu.
 ///
-/// Identity and photo come from [profileNotifierProvider]. The stats row is
-/// still placeholder — no endpoint reports it yet.
+/// Identity and photo come from [profileNotifierProvider]; the stats row
+/// shows this month's attendance roll-up from
+/// [attendanceMonthSummaryNotifierProvider] (`GET /attendance/records/summary/my`).
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
     final profile = ref.watch(profileNotifierProvider);
     final loading = profile.isLoading && !profile.hasValue;
     final data = profile.valueOrNull;
@@ -33,33 +35,42 @@ class ProfilePage extends ConsumerWidget {
       child: SafeArea(
         child: Scaffold(
           backgroundColor: AppColors.homeBackground,
-          body: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+          body: Column(
             children: [
-              const _TopBar(),
-              heightBx(h: 20),
-              Center(child: _Avatar(avatarUrl: data?.avatarUrl)),
-              heightBx(h: 16),
-              if (loading)
-                const Center(child: ShimmerBox(width: 140, height: 20))
-              else
-                _NameRow(name: data?.fullName ?? ''),
-              heightBx(h: 4),
-              if (loading)
-                const Center(child: ShimmerBox(width: 180, height: 14))
-              else
-                customText(
-                  data?.email ?? '',
-                  color: AppColors.subTitle,
-                  fontSize: 14,
-                  alight: TextAlign.center,
+              // Outside the list so it stays put while the content scrolls.
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: _TopBar(),
+              ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+                  children: [
+                    Center(child: _Avatar(avatarUrl: data?.avatarUrl)),
+                    heightBx(h: 16),
+                    if (loading)
+                      const Center(child: ShimmerBox(width: 140, height: 20))
+                    else
+                      _NameRow(name: data?.fullName ?? ''),
+                    heightBx(h: 4),
+                    if (loading)
+                      const Center(child: ShimmerBox(width: 180, height: 14))
+                    else
+                      customText(
+                        data?.email ?? '',
+                        color: AppColors.subTitle,
+                        fontSize: 14,
+                        alight: TextAlign.center,
+                      ),
+                    heightBx(h: 12),
+                    const Center(child: _StatusPill()),
+                    heightBx(h: 20),
+                    const _StatsRow(),
+                    heightBx(h: 16),
+                    const _MenuCard(),
+                  ],
                 ),
-              heightBx(h: 12),
-              const Center(child: _StatusPill()),
-              heightBx(h: 20),
-              _StatsRow(l10n: l10n),
-              heightBx(h: 16),
-              const _MenuCard(),
+              ),
             ],
           ),
         ),
@@ -245,13 +256,23 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-class _StatsRow extends StatelessWidget {
-  final AppLocalizations l10n;
-
-  const _StatsRow({required this.l10n});
+/// This month's hours worked, late arrivals and absences, from
+/// `GET /attendance/records/summary/my`.
+class _StatsRow extends ConsumerWidget {
+  const _StatsRow();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final summary = ref.watch(attendanceMonthSummaryNotifierProvider);
+    final loading = summary.isLoading && !summary.hasValue;
+    final data = summary.valueOrNull;
+
+    // Null shows the shimmer while loading and a dash if there's no data,
+    // rather than a "0" that would read as a real result.
+    String? show(String Function(AttendanceSummary) format) =>
+        loading ? null : (data == null ? '-' : format(data));
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
@@ -267,26 +288,26 @@ class _StatsRow extends StatelessWidget {
               child: _StatItem(
                 icon: Icons.access_time,
                 color: AppColors.primary,
-                value: "2h 30m",
+                value: show((d) => d.totalWorkHours.toStringAsFixed(1)),
                 label: l10n.workHours,
               ),
             ),
             const _StatDivider(),
             Expanded(
               child: _StatItem(
-                icon: Icons.beach_access_outlined,
-                color: _purple,
-                value: "2",
-                label: l10n.leaveDays,
+                icon: Icons.alarm,
+                color: AppColors.attendanceLate,
+                value: show((d) => '${d.lateDays}'),
+                label: l10n.lateArrivals,
               ),
             ),
             const _StatDivider(),
             Expanded(
               child: _StatItem(
-                icon: Icons.task_alt,
-                color: AppColors.attendancePresent,
-                value: "12",
-                label: l10n.tasksDone,
+                icon: Icons.person_off_outlined,
+                color: AppColors.attendanceAbsent,
+                value: show((d) => '${d.absentDays}'),
+                label: l10n.absences,
               ),
             ),
           ],
@@ -312,7 +333,9 @@ class _StatDivider extends StatelessWidget {
 class _StatItem extends StatelessWidget {
   final IconData icon;
   final Color color;
-  final String value;
+
+  /// Null while loading, which shows a placeholder in its place.
+  final String? value;
   final String label;
 
   const _StatItem({
@@ -336,14 +359,26 @@ class _StatItem extends StatelessWidget {
           child: Icon(icon, color: color, size: 20),
         ),
         heightBx(h: 8),
-        customText(
-          value,
-          fontWeight: FontWeight.w700,
-          fontSize: 16,
-          color: AppColors.textPrimary,
-        ),
+        if (value == null)
+          const ShimmerBox(width: 28, height: 16)
+        else
+          customText(
+            value!,
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            color: AppColors.textPrimary,
+          ),
         heightBx(h: 2),
-        customText(label, color: AppColors.subTitle, fontSize: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: customText(
+            label,
+            color: AppColors.subTitle,
+            fontSize: 12,
+            maxLine: 2,
+            alight: TextAlign.center,
+          ),
+        ),
       ],
     );
   }
