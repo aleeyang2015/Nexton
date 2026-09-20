@@ -77,15 +77,15 @@ dev_dependencies:
 flutter_launcher_icons:
   android:
     adaptive_icon_background: "#08123A"
-    adaptive_icon_foreground: "assets/images/next_on_launcher_icon.png"
-    icon: "assets/images/next_on_launcher_icon.png"
+    adaptive_icon_foreground: "assets/images/next_on_launcher_icon2.png"
+    icon: "assets/images/next_on_launcher_icon2.png"
   ios: true
-  image_path: "assets/images/next_on_launcher_icon.png"
+  image_path: "assets/images/next_on_launcher_icon2.png"
   remove_alpha_ios: true
   web:
     generate: true
     background_color: "#08123A"
-    image_path: "assets/images/next_on_launcher_icon.png"
+    image_path: "assets/images/next_on_launcher_icon2.png"
 
 flutter_native_splash:
   color: "#FFFFFF"
