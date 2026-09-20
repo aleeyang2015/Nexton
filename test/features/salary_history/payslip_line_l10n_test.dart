@@ -53,7 +53,11 @@ void main() {
           reason: '$code has no Lao translation',
         );
         // ...and the two languages really are different copy.
-        expect(laoTitle, isNot(enTitle), reason: '$code reads the same in both');
+        expect(
+          laoTitle,
+          isNot(enTitle),
+          reason: '$code reads the same in both',
+        );
       }
     });
 
@@ -101,6 +105,32 @@ void main() {
       final odd = line('OT', quantity: 2, unit: 'shifts');
 
       expect(SalaryHistoryCopy.lineCaption(lo, odd), 'OT · 2 shifts');
+    });
+
+    test('a line charged on a base names it after the code', () {
+      const pit = PayslipLine(
+        code: 'PIT',
+        title: 'Personal Income Tax',
+        base: 12552500,
+        amount: -940249,
+      );
+
+      expect(SalaryHistoryCopy.lineCaption(lo, pit), 'PIT · ຈາກຖານ 12,552,500');
+      expect(
+        SalaryHistoryCopy.lineCaption(en, pit),
+        'PIT · on base 12,552,500',
+      );
+    });
+
+    test('a deduction item is captioned as an other deduction', () {
+      const item = PayslipLine(
+        code: 'DED',
+        title: 'ປະກັນສັງຄົມ (ຫັກເພີ່ມ)',
+        amount: -25000,
+      );
+
+      expect(SalaryHistoryCopy.lineCaption(lo, item), 'DED · ລາຍການຫັກອື່ນໆ');
+      expect(SalaryHistoryCopy.lineCaption(en, item), 'DED · Other deduction');
     });
 
     test('drops the decimals on a whole quantity', () {

@@ -485,7 +485,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryTaxableIncomeLabel => 'Taxable income';
 
   @override
-  String get salarySocialSecurityBaseLabel => 'Social security base';
+  String get salaryEmployerSocialSecurityLabel => 'Social security (employer)';
+
+  @override
+  String get salaryComponentOtherDeduction => 'Other deduction';
+
+  @override
+  String salaryPayslipLineBase(String amount) {
+    return 'on base $amount';
+  }
 
   @override
   String get salaryHistoryEmpty => 'No salary records';

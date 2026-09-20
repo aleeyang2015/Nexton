@@ -472,17 +472,25 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryAllowancesSection => 'ສະຫວັດດີການ / ເບ້ຍລ້ຽງ';
 
   @override
-  String get salaryAttendanceDeductionsSection => 'ລາຍການຫัก — ການເຂົ້າວຽກ';
+  String get salaryAttendanceDeductionsSection => 'ລາຍການຫັກ — ການເຂົ້າວຽກ';
 
   @override
   String get salaryStatutoryDeductionsSection =>
-      'ລາຍການຫัก — ຕາມກົດໝາຍ / ອື່ນໆ';
+      'ລາຍການຫັກ — ຕາມກົດໝາຍ / ອື່ນໆ';
 
   @override
   String get salaryTaxableIncomeLabel => 'ລາຍໄດ້ຄິດອາກອນ (taxable income)';
 
   @override
-  String get salarySocialSecurityBaseLabel => 'ຖານປະກັນສັງຄົມ (SS base)';
+  String get salaryEmployerSocialSecurityLabel => 'ປະກັນສັງຄົມ (ນາຍຈ້າງ)';
+
+  @override
+  String get salaryComponentOtherDeduction => 'ລາຍການຫັກອື່ນໆ';
+
+  @override
+  String salaryPayslipLineBase(String amount) {
+    return 'ຈາກຖານ $amount';
+  }
 
   @override
   String get salaryHistoryEmpty => 'ບໍ່ມີຂໍ້ມູນເງິນເດືອນ';

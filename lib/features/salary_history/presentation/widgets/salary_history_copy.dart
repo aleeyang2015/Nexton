@@ -76,13 +76,20 @@ class SalaryHistoryCopy {
         _ => line.title,
       };
 
-  /// The small line under a title — "LATE · 86 ນາທີ" / "LATE · 86 minutes".
+  /// The small line under a title — "LATE · 86 ນາທີ" / "LATE · 86 minutes",
+  /// "PIT · ຈາກຖານ 12,552,500", "DED · ລາຍການຫັກອື່ນໆ".
   ///
   /// The component code itself is an identifier, not prose, so it stays
-  /// as-is in both languages; only the unit is translated. Lines with no
-  /// quantity show the bare code, and the free-text benefit lines (no code,
-  /// no quantity) show nothing at all.
+  /// as-is in both languages; only the unit is translated. Lines with
+  /// neither a quantity nor a base show the bare code, and the free-text
+  /// benefit lines (no code, no quantity) show nothing at all.
   static String lineCaption(AppLocalizations l10n, PayslipLine line) {
+    if (line.code == 'DED') {
+      return 'DED · ${l10n.salaryComponentOtherDeduction}';
+    }
+    if (line.base > 0) {
+      return '${line.code} · ${l10n.salaryPayslipLineBase(amount(line.base))}';
+    }
     if (line.quantity <= 0) return line.code;
 
     final unit = _unitLabel(l10n, line.quantityUnit);

@@ -15,6 +15,11 @@ class PayslipModel {
   static const _earning = 'earning';
   static const _deduction = 'deduction';
   static const _penalty = 'penalty';
+  static const _incomeTaxCode = 'PIT';
+
+  /// Synthetic code for the ad-hoc `deduction_items`, which arrive without a
+  /// component code.
+  static const _deductionItemCode = 'DED';
 
   static Payslip fromJson(Map<String, dynamic> json) {
     // No explicit payroll period on the wire — the run's creation instant is
@@ -23,6 +28,8 @@ class PayslipModel {
 
     final lines = _objects(json['lines'])
       ..sort((a, b) => (_int(a['sort_order']) ?? 0).compareTo(_int(b['sort_order']) ?? 0));
+
+    final taxableIncome = _double(json['taxable_income']) ?? 0;
 
     final earnings = <PayslipLine>[];
     final attendanceDeductions = <PayslipLine>[];
@@ -35,7 +42,12 @@ class PayslipModel {
       } else if (type == _deduction) {
         final penalty = _string(line['category']) == _penalty;
         (penalty ? attendanceDeductions : statutoryDeductions).add(
-          _line(line, sign: -1, icon: _iconFor(_string(line['component_code']))),
+          _line(
+            line,
+            sign: -1,
+            icon: _iconFor(_string(line['component_code'])),
+            taxableIncome: taxableIncome,
+          ),
         );
       }
       // Any other `type` is not a payslip line the app knows how to print.
@@ -54,6 +66,7 @@ class PayslipModel {
     for (final item in _objects(json['deduction_items'])) {
       statutoryDeductions.add(
         PayslipLine(
+          code: _deductionItemCode,
           title: _string(item['deduction_name']) ?? '',
           amount: -(_double(item['amount']) ?? 0),
           icon: PayslipLineIcon.otherDeduction,
@@ -87,7 +100,7 @@ class PayslipModel {
       allowances: allowances,
       attendanceDeductions: attendanceDeductions,
       statutoryDeductions: statutoryDeductions,
-      taxableIncome: _double(json['taxable_income']) ?? 0,
+      taxableIncome: taxableIncome,
     );
   }
 
@@ -99,6 +112,7 @@ class PayslipModel {
     Map<String, dynamic> line, {
     required int sign,
     PayslipLineIcon icon = PayslipLineIcon.none,
+    double taxableIncome = 0,
   }) {
     final code = _string(line['component_code']) ?? '';
 
@@ -107,6 +121,7 @@ class PayslipModel {
       title: _string(line['component_name']) ?? code,
       quantity: _double(line['quantity']) ?? 0,
       quantityUnit: _string(line['quantity_unit']),
+      base: code == _incomeTaxCode ? taxableIncome : 0,
       amount: sign * (_double(line['amount']) ?? 0),
       icon: icon,
     );

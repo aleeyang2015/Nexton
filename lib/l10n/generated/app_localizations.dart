@@ -962,11 +962,23 @@ abstract class AppLocalizations {
   /// **'Taxable income'**
   String get salaryTaxableIncomeLabel;
 
-  /// No description provided for @salarySocialSecurityBaseLabel.
+  /// No description provided for @salaryEmployerSocialSecurityLabel.
   ///
   /// In en, this message translates to:
-  /// **'Social security base'**
-  String get salarySocialSecurityBaseLabel;
+  /// **'Social security (employer)'**
+  String get salaryEmployerSocialSecurityLabel;
+
+  /// No description provided for @salaryComponentOtherDeduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Other deduction'**
+  String get salaryComponentOtherDeduction;
+
+  /// No description provided for @salaryPayslipLineBase.
+  ///
+  /// In en, this message translates to:
+  /// **'on base {amount}'**
+  String salaryPayslipLineBase(String amount);
 
   /// No description provided for @salaryHistoryEmpty.
   ///

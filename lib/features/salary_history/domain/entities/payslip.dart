@@ -28,8 +28,8 @@ enum PayslipLineIcon {
 /// active locale, keyed on [code].
 class PayslipLine extends Equatable {
   /// `component_code` — `BASIC`, `PIT`, `LATE`, … The key the copy helper
-  /// localizes on. Empty for the free-text benefit and deduction-item lines,
-  /// which have no code and fall back to [title].
+  /// localizes on. Empty for the free-text benefit lines, which fall back to
+  /// [title]; the free-text deduction items carry the synthetic code `DED`.
   final String code;
 
   /// The name exactly as the backend sent it. The fallback shown whenever
@@ -45,6 +45,10 @@ class PayslipLine extends Equatable {
   /// when the backend sent none.
   final String? quantityUnit;
 
+  /// The amount the line was charged on — the taxable income behind `PIT`.
+  /// `0` when the line has no such base, and the caption then omits it.
+  final double base;
+
   final double amount;
   final PayslipLineIcon icon;
 
@@ -53,12 +57,21 @@ class PayslipLine extends Equatable {
     required this.title,
     this.quantity = 0,
     this.quantityUnit,
+    this.base = 0,
     required this.amount,
     this.icon = PayslipLineIcon.none,
   });
 
   @override
-  List<Object?> get props => [code, title, quantity, quantityUnit, amount, icon];
+  List<Object?> get props => [
+    code,
+    title,
+    quantity,
+    quantityUnit,
+    base,
+    amount,
+    icon,
+  ];
 }
 
 /// One month's payslip — the salary-history page's list item and, expanded,
@@ -113,7 +126,7 @@ class Payslip extends Equatable {
   final double socialSecurity;
 
   /// `employer_ss` — the employer's contribution. Not a deduction from the
-  /// employee and not rendered; kept so it's available.
+  /// employee; the detail page's footer shows it for reference.
   final double employerSocialSecurity;
 
   /// e.g. `0.045` for the "(4.5%)" the social-security row shows; `0` when
@@ -132,10 +145,8 @@ class Payslip extends Equatable {
   final List<PayslipLine> attendanceDeductions;
   final List<PayslipLine> statutoryDeductions;
 
-  /// Detail-page footer figures. [socialSecurityBase] is `0` when the
-  /// backend doesn't report it, and the footer skips the row.
+  /// Detail-page footer figure, beside [employerSocialSecurity].
   final double taxableIncome;
-  final double socialSecurityBase;
 
   const Payslip({
     required this.id,
@@ -164,7 +175,6 @@ class Payslip extends Equatable {
     this.attendanceDeductions = const [],
     this.statutoryDeductions = const [],
     this.taxableIncome = 0,
-    this.socialSecurityBase = 0,
   });
 
   /// Everything earned on top of the base salary (benefits, allowances) —
@@ -205,6 +215,5 @@ class Payslip extends Equatable {
     attendanceDeductions,
     statutoryDeductions,
     taxableIncome,
-    socialSecurityBase,
   ];
 }

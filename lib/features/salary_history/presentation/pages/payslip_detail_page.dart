@@ -674,8 +674,8 @@ BoxDecoration _cardDecoration({required double radius, BoxBorder? border}) =>
       ],
     );
 
-/// Taxable-income / SS-base figures and the headline net, in the white bar
-/// pinned to the bottom of the payslip.
+/// Taxable-income / employer-SS figures and the headline net, in the white
+/// bar pinned to the bottom of the payslip.
 class _FooterCard extends StatelessWidget {
   final Payslip payslip;
 
@@ -705,12 +705,12 @@ class _FooterCard extends StatelessWidget {
             label: l10n.salaryTaxableIncomeLabel,
             value: SalaryHistoryCopy.amount(payslip.taxableIncome),
           ),
-          // The backend doesn't report the SS base yet; the row waits for it.
-          if (payslip.socialSecurityBase > 0) ...[
+          // What the employer pays on top — not part of the employee's net.
+          if (payslip.employerSocialSecurity > 0) ...[
             heightBx(h: 8),
             _FooterRow(
-              label: l10n.salarySocialSecurityBaseLabel,
-              value: SalaryHistoryCopy.amount(payslip.socialSecurityBase),
+              label: l10n.salaryEmployerSocialSecurityLabel,
+              value: SalaryHistoryCopy.amount(payslip.employerSocialSecurity),
             ),
           ],
           heightBx(h: 14),

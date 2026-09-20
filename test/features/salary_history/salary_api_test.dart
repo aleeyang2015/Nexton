@@ -183,7 +183,6 @@ void main() {
       expect(p.incomeTax, 840249);
       expect(p.taxableIncome, 11552500);
       expect(p.socialSecurityRate, 0);
-      expect(p.socialSecurityBase, 0);
       // Statistics.
       expect(p.workingDays, 0.82);
       expect(p.overtimeHours, 0);
@@ -336,7 +335,9 @@ void main() {
         PayslipLineIcon.incomeTax,
         PayslipLineIcon.otherDeduction,
       ]);
-      expect(p.statutoryDeductions.map((l) => l.code), ['EMP-SS', 'PIT', '']);
+      expect(p.statutoryDeductions.map((l) => l.code), ['EMP-SS', 'PIT', 'DED']);
+      // The PIT line is charged on the taxable income; nothing else has a base.
+      expect(p.statutoryDeductions.map((l) => l.base), [0, 11552500, 0]);
 
       // The section totals foot to the wire totals.
       final earned = [...p.earnings, ...p.allowances].fold<double>(0, (s, l) => s + l.amount);
