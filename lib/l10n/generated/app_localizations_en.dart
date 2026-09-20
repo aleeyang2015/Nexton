@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Next On';
+  String get appTitle => 'NEXTON';
 
   @override
   String get login => 'Login';
@@ -310,11 +310,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationPermissionDenied =>
-      'Next On needs your location to check you in. Please allow location access and try again.';
+      'NEXTON needs your location to check you in. Please allow location access and try again.';
 
   @override
   String get locationPermissionDeniedForever =>
-      'Location access is blocked. Open Settings, allow location for Next On, then try again.';
+      'Location access is blocked. Open Settings, allow location for NEXTON, then try again.';
 
   @override
   String get locationTimeout =>

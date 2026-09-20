@@ -1,5 +1,5 @@
 name: next_on
-description: "Next On mobile app: Lao HR self-service for attendance, leave and payroll, built feature-first on Riverpod, GoRouter and Dio."
+description: "NEXTON mobile app: Lao HR self-service for attendance, leave and payroll, built feature-first on Riverpod, GoRouter and Dio."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 version: 1.0.0+1

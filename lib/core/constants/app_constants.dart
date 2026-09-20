@@ -3,7 +3,7 @@ class AppConstants {
   AppConstants._();
 
   // App Configuration
-  static const String appName = 'Next On';
+  static const String appName = 'NEXTON';
   static const String appVersion = '1.0.0';
 
   // API Configuration

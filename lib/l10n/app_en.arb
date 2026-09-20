@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
 
-  "appTitle": "Next On",
+  "appTitle": "NEXTON",
   "@appTitle": {"description": "Application name shown as the window/task title"},
 
   "login": "Login",
@@ -124,8 +124,8 @@
 
   "locationUnavailable": "Your location is unavailable. Turn on GPS, allow location access, then try again.",
   "locationServiceDisabled": "Location Services are turned off. Turn them on, then try again.",
-  "locationPermissionDenied": "Next On needs your location to check you in. Please allow location access and try again.",
-  "locationPermissionDeniedForever": "Location access is blocked. Open Settings, allow location for Next On, then try again.",
+  "locationPermissionDenied": "NEXTON needs your location to check you in. Please allow location access and try again.",
+  "locationPermissionDeniedForever": "Location access is blocked. Open Settings, allow location for NEXTON, then try again.",
   "locationTimeout": "Could not get a location fix. Move somewhere with a clearer view of the sky and try again.",
   "wifiUnavailable": "The WiFi network could not be read. Connect to the office WiFi and try again.",
   "fieldReasonRequired": "Please give a reason for the field work.",

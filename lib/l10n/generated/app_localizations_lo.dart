@@ -9,7 +9,7 @@ class AppLocalizationsLo extends AppLocalizations {
   AppLocalizationsLo([String locale = 'lo']) : super(locale);
 
   @override
-  String get appTitle => 'Next On';
+  String get appTitle => 'NEXTON';
 
   @override
   String get login => 'ເຂົ້າສູ່ລະບົບ';
@@ -306,11 +306,11 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get locationPermissionDenied =>
-      'Next On ຕ້ອງການສະຖານທີ່ຂອງທ່ານເພື່ອລົງເວລາ. ກະລຸນາອະນຸຍາດການເຂົ້າເຖິງສະຖານທີ່ ແລ້ວລອງໃໝ່.';
+      'NEXTON ຕ້ອງການສະຖານທີ່ຂອງທ່ານເພື່ອລົງເວລາ. ກະລຸນາອະນຸຍາດການເຂົ້າເຖິງສະຖານທີ່ ແລ້ວລອງໃໝ່.';
 
   @override
   String get locationPermissionDeniedForever =>
-      'ການເຂົ້າເຖິງສະຖານທີ່ຖືກບລັອກ. ກະລຸນາເປີດ ຕັ້ງຄ່າ ແລ້ວອະນຸຍາດສະຖານທີ່ໃຫ້ Next On ແລ້ວລອງໃໝ່.';
+      'ການເຂົ້າເຖິງສະຖານທີ່ຖືກບລັອກ. ກະລຸນາເປີດ ຕັ້ງຄ່າ ແລ້ວອະນຸຍາດສະຖານທີ່ໃຫ້ NEXTON ແລ້ວລອງໃໝ່.';
 
   @override
   String get locationTimeout =>

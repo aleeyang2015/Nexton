@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// Application name shown as the window/task title
   ///
   /// In en, this message translates to:
-  /// **'Next On'**
+  /// **'NEXTON'**
   String get appTitle;
 
   /// Login screen heading and submit button
@@ -635,13 +635,13 @@ abstract class AppLocalizations {
   /// No description provided for @locationPermissionDenied.
   ///
   /// In en, this message translates to:
-  /// **'Next On needs your location to check you in. Please allow location access and try again.'**
+  /// **'NEXTON needs your location to check you in. Please allow location access and try again.'**
   String get locationPermissionDenied;
 
   /// No description provided for @locationPermissionDeniedForever.
   ///
   /// In en, this message translates to:
-  /// **'Location access is blocked. Open Settings, allow location for Next On, then try again.'**
+  /// **'Location access is blocked. Open Settings, allow location for NEXTON, then try again.'**
   String get locationPermissionDeniedForever;
 
   /// No description provided for @locationTimeout.
