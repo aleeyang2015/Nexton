@@ -109,6 +109,9 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryHistoryMenu => 'ປະຫວັດເງິນເດືອນ';
 
   @override
+  String get forgotClockInMenu => 'ລືມລົງເວລາ';
+
+  @override
   String get activities => 'ການເຄື່ອນໄຫວ';
 
   @override
@@ -933,4 +936,81 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get leaveTypeSearchEmpty => 'ບໍ່ພົບປະເພດການລາທີ່ກົງກັນ';
+
+  @override
+  String get timeCorrectionTitle => 'ແກ້ໄຂເວລາເຂົ້າ ອອກວຽກ';
+
+  @override
+  String get timeCorrectionNoticeTitle => 'ແຈ້ງເຕືອນລະບົບ';
+
+  @override
+  String get timeCorrectionNoticeBody =>
+      'ຄຳຮ້ອງຂອງທ່ານຈະຖືກສົ່ງໄປຍັງຫົວໜ້າງານ (Manager) ເພື່ອພິຈາລະນາອະນຸມັດ';
+
+  @override
+  String get timeCorrectionDateLabel => 'ວັນທີຕ້ອງການແກ້ໄຂ';
+
+  @override
+  String get timeCorrectionTypeLabel => 'ປະເພດການແກ້ໄຂ';
+
+  @override
+  String get timeCorrectionTypeForgotIn => 'ລືມສະແກນເຂົ້າ';
+
+  @override
+  String get timeCorrectionTypeForgotOut => 'ລືມສະແກນອອກ';
+
+  @override
+  String get timeCorrectionTypeBoth => 'ທັງສອງ (ເຂົ້າ & ອອກ)';
+
+  @override
+  String get timeCorrectionTypeWrongTime => 'ເວລາບໍ່ຖືກຕ້ອງ';
+
+  @override
+  String get timeCorrectionShiftLabel => 'ກະການເຮັດວຽກທີ່ກ່ຽວຂ້ອງ';
+
+  @override
+  String get timeCorrectionClockInLabel => 'ເວລາເຂົ້າຂໍແກ້';
+
+  @override
+  String get timeCorrectionClockOutLabel => 'ເວລາອອກຂໍແກ້';
+
+  @override
+  String get timeCorrectionMorning => 'ຕອນເຊົ້າ';
+
+  @override
+  String get timeCorrectionAfternoon => 'ຕອນບ່າຍ';
+
+  @override
+  String get timeCorrectionEvening => 'ຕອນແລງ';
+
+  @override
+  String get timeCorrectionInvalidTimes => 'ເວລາອອກຕ້ອງຫຼັງເວລາເຂົ້າ';
+
+  @override
+  String get timeCorrectionReasonLabel => 'ເຫດຜົນ / ລາຍລະອຽດ';
+
+  @override
+  String get timeCorrectionReasonHint => 'ລະບຸເຫດຜົນ';
+
+  @override
+  String get timeCorrectionAttachmentLabel => 'ໄຟລ໌ ຫຼື ຮູບພາບປະກອບ';
+
+  @override
+  String get timeCorrectionUploadTitle => 'ກົດເພື່ອອັບໂຫຼດ ຫຼື ຖ່າຍຮູບຫຼັກຖານ';
+
+  @override
+  String get timeCorrectionUploadHint =>
+      'ຮອງຮັບຮູບຖ່າຍໃບຄຳຮ້ອງ, ຫຼັກຖານ JPG, PNG, PDF\n(ສູງສຸດ 5MB)';
+
+  @override
+  String get timeCorrectionTakePhoto => 'ຖ່າຍຮູບ';
+
+  @override
+  String get timeCorrectionChooseFile => 'ເລືອກໄຟລ໌';
+
+  @override
+  String get timeCorrectionFileTooLarge => 'ໄຟລ໌ໃຫຍ່ເກີນ 5MB';
+
+  @override
+  String get timeCorrectionSubmit => 'ສົ່ງຄຳຮ້ອງແກ້ໄຂ';
 }

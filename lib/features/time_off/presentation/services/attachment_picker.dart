@@ -21,14 +21,16 @@ class AttachmentPicker {
     'xls', 'xlsx',
   ];
 
-  /// Opens the system file chooser filtered to [allowedExtensions] and returns
-  /// the pick, or null when the user backs out (or the entry has no on-disk
-  /// path). A leave request carries a single attachment, so only one file is
-  /// offered.
-  Future<LocalFile?> pickAttachment() async {
+  /// Opens the system file chooser filtered to [extensions] (default
+  /// [allowedExtensions]) and returns the pick, or null when the user backs
+  /// out (or the entry has no on-disk path). A request carries a single
+  /// attachment, so only one file is offered.
+  Future<LocalFile?> pickAttachment({
+    List<String> extensions = allowedExtensions,
+  }) async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: allowedExtensions,
+      allowedExtensions: extensions,
     );
     final file = result?.files.singleOrNull;
     final path = file?.path;

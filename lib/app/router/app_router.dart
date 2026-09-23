@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/attendance/presentation/pages/attendance_history_page.dart';
+import '../../features/attendance/presentation/pages/time_correction_request_page.dart';
 import '../../features/auth/domain/entities/auth_session.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
@@ -29,6 +30,7 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String settings = '/settings';
   static const String attendanceHistory = '/attendance-history';
+  static const String timeCorrectionRequest = '/attendance/time-correction';
   static const String timeOff = '/time-off';
   static const String timeOffRequestDetail = '/time-off/request';
   static const String timeOffRequestEdit = '/time-off/request/edit';
@@ -136,6 +138,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.attendanceHistory,
         name: 'attendanceHistory',
         builder: (context, state) => const AttendanceHistoryPage(),
+      ),
+      // Time-correction request — the "ລືມລົງເວລາ" menu tile
+      GoRoute(
+        path: AppRoutes.timeCorrectionRequest,
+        name: 'timeCorrectionRequest',
+        builder: (context, state) => const TimeCorrectionRequestPage(),
       ),
 
       // Time off

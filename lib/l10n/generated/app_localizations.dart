@@ -290,6 +290,12 @@ abstract class AppLocalizations {
   /// **'Salary History'**
   String get salaryHistoryMenu;
 
+  /// No description provided for @forgotClockInMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot to Clock In'**
+  String get forgotClockInMenu;
+
   /// No description provided for @activities.
   ///
   /// In en, this message translates to:
@@ -1807,6 +1813,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No matching leave types'**
   String get leaveTypeSearchEmpty;
+
+  /// No description provided for @timeCorrectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Correction'**
+  String get timeCorrectionTitle;
+
+  /// No description provided for @timeCorrectionNoticeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'System notice'**
+  String get timeCorrectionNoticeTitle;
+
+  /// No description provided for @timeCorrectionNoticeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request will be sent to your manager for approval.'**
+  String get timeCorrectionNoticeBody;
+
+  /// No description provided for @timeCorrectionDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date to correct'**
+  String get timeCorrectionDateLabel;
+
+  /// No description provided for @timeCorrectionTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction type'**
+  String get timeCorrectionTypeLabel;
+
+  /// No description provided for @timeCorrectionTypeForgotIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed clock-in'**
+  String get timeCorrectionTypeForgotIn;
+
+  /// No description provided for @timeCorrectionTypeForgotOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed clock-out'**
+  String get timeCorrectionTypeForgotOut;
+
+  /// No description provided for @timeCorrectionTypeBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Both (in & out)'**
+  String get timeCorrectionTypeBoth;
+
+  /// No description provided for @timeCorrectionTypeWrongTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong time'**
+  String get timeCorrectionTypeWrongTime;
+
+  /// No description provided for @timeCorrectionShiftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Related shift'**
+  String get timeCorrectionShiftLabel;
+
+  /// No description provided for @timeCorrectionClockInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrected clock-in'**
+  String get timeCorrectionClockInLabel;
+
+  /// No description provided for @timeCorrectionClockOutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrected clock-out'**
+  String get timeCorrectionClockOutLabel;
+
+  /// No description provided for @timeCorrectionMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'morning'**
+  String get timeCorrectionMorning;
+
+  /// No description provided for @timeCorrectionAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'afternoon'**
+  String get timeCorrectionAfternoon;
+
+  /// No description provided for @timeCorrectionEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'evening'**
+  String get timeCorrectionEvening;
+
+  /// No description provided for @timeCorrectionInvalidTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock-out must be after clock-in.'**
+  String get timeCorrectionInvalidTimes;
+
+  /// No description provided for @timeCorrectionReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason / details'**
+  String get timeCorrectionReasonLabel;
+
+  /// No description provided for @timeCorrectionReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe what happened'**
+  String get timeCorrectionReasonHint;
+
+  /// No description provided for @timeCorrectionAttachmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'File or photo'**
+  String get timeCorrectionAttachmentLabel;
+
+  /// No description provided for @timeCorrectionUploadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to upload or take a photo of your evidence'**
+  String get timeCorrectionUploadTitle;
+
+  /// No description provided for @timeCorrectionUploadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Request form photos or evidence: JPG, PNG, PDF\n(max 5MB)'**
+  String get timeCorrectionUploadHint;
+
+  /// No description provided for @timeCorrectionTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get timeCorrectionTakePhoto;
+
+  /// No description provided for @timeCorrectionChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose file'**
+  String get timeCorrectionChooseFile;
+
+  /// No description provided for @timeCorrectionFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is larger than 5MB.'**
+  String get timeCorrectionFileTooLarge;
+
+  /// No description provided for @timeCorrectionSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit correction'**
+  String get timeCorrectionSubmit;
 }
 
 class _AppLocalizationsDelegate

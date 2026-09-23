@@ -109,6 +109,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryHistoryMenu => 'Salary History';
 
   @override
+  String get forgotClockInMenu => 'Forgot to Clock In';
+
+  @override
   String get activities => 'Activities';
 
   @override
@@ -942,4 +945,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leaveTypeSearchEmpty => 'No matching leave types';
+
+  @override
+  String get timeCorrectionTitle => 'Time Correction';
+
+  @override
+  String get timeCorrectionNoticeTitle => 'System notice';
+
+  @override
+  String get timeCorrectionNoticeBody =>
+      'Your request will be sent to your manager for approval.';
+
+  @override
+  String get timeCorrectionDateLabel => 'Date to correct';
+
+  @override
+  String get timeCorrectionTypeLabel => 'Correction type';
+
+  @override
+  String get timeCorrectionTypeForgotIn => 'Missed clock-in';
+
+  @override
+  String get timeCorrectionTypeForgotOut => 'Missed clock-out';
+
+  @override
+  String get timeCorrectionTypeBoth => 'Both (in & out)';
+
+  @override
+  String get timeCorrectionTypeWrongTime => 'Wrong time';
+
+  @override
+  String get timeCorrectionShiftLabel => 'Related shift';
+
+  @override
+  String get timeCorrectionClockInLabel => 'Corrected clock-in';
+
+  @override
+  String get timeCorrectionClockOutLabel => 'Corrected clock-out';
+
+  @override
+  String get timeCorrectionMorning => 'morning';
+
+  @override
+  String get timeCorrectionAfternoon => 'afternoon';
+
+  @override
+  String get timeCorrectionEvening => 'evening';
+
+  @override
+  String get timeCorrectionInvalidTimes => 'Clock-out must be after clock-in.';
+
+  @override
+  String get timeCorrectionReasonLabel => 'Reason / details';
+
+  @override
+  String get timeCorrectionReasonHint => 'Describe what happened';
+
+  @override
+  String get timeCorrectionAttachmentLabel => 'File or photo';
+
+  @override
+  String get timeCorrectionUploadTitle =>
+      'Tap to upload or take a photo of your evidence';
+
+  @override
+  String get timeCorrectionUploadHint =>
+      'Request form photos or evidence: JPG, PNG, PDF\n(max 5MB)';
+
+  @override
+  String get timeCorrectionTakePhoto => 'Take photo';
+
+  @override
+  String get timeCorrectionChooseFile => 'Choose file';
+
+  @override
+  String get timeCorrectionFileTooLarge => 'The file is larger than 5MB.';
+
+  @override
+  String get timeCorrectionSubmit => 'Submit correction';
 }

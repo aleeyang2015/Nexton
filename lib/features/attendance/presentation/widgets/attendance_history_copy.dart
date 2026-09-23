@@ -61,6 +61,17 @@ class AttendanceHistoryCopy {
     return '${names[month.month - 1]} ${month.year}';
   }
 
+  /// "18 ກັນຍາ 2026" / "18 September 2026".
+  static String dayMonthYear(AppLocalizations l10n, DateTime date) {
+    final names = _isLao(l10n) ? _monthsLo : _monthsEn;
+    return '${date.day} ${names[date.month - 1]} ${date.year}';
+  }
+
+  /// The full weekday name — "ວັນສຸກ" / "Friday".
+  static String weekday(AppLocalizations l10n, DateTime date) {
+    return (_isLao(l10n) ? _weekdaysLo : _weekdaysEn)[date.weekday % 7];
+  }
+
   /// "ວັນເສົາ 22 ມິ.ຖ." / "Sat 22 Jun" for a day row's title line.
   static String dayTitle(AppLocalizations l10n, DateTime date) {
     final lao = _isLao(l10n);

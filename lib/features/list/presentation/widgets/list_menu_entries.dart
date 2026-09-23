@@ -45,6 +45,11 @@ List<ListMenuEntry> buildListMenuEntries(
     Icons.payments_outlined,
     onTap: () => context.push(AppRoutes.salaryHistory),
   ),
+  ListMenuEntry(
+    l10n.forgotClockInMenu,
+    Icons.more_time,
+    onTap: () => context.push(AppRoutes.timeCorrectionRequest),
+  ),
   // ListMenuEntry(
   //   l10n.profile,
   //   Icons.person,
