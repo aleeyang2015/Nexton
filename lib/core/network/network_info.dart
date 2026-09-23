@@ -9,23 +9,33 @@ abstract class NetworkInfo {
 }
 
 /// Implementation of NetworkInfo using Dio
+///
+/// Probes our own API host rather than a third-party site: that is the host
+/// the app actually needs, and it stays reachable on networks that block
+/// sites like Google. Expects a bare [Dio] — no base URL, auth or tenant
+/// headers — so the probe never triggers a token refresh.
 class NetworkInfoImpl implements NetworkInfo {
   final Dio dio;
 
   NetworkInfoImpl(this.dio);
 
+  static const Duration _probeTimeout = Duration(seconds: 3);
+
   @override
   Future<bool> get isConnected async {
     try {
-      final response = await dio.get(
-        'https://www.google.com',
+      await dio.head<void>(
+        AppConstants.baseUrl,
         options: Options(
-          receiveTimeout: const Duration(seconds: 3),
-          sendTimeout: const Duration(seconds: 3),
+          sendTimeout: _probeTimeout,
+          receiveTimeout: _probeTimeout,
+          // Any HTTP status proves the server answered; only a transport
+          // error means we are offline.
+          validateStatus: (_) => true,
         ),
       );
-      return response.statusCode == 200;
-    } catch (e) {
+      return true;
+    } catch (_) {
       return false;
     }
   }

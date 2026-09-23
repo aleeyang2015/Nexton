@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Every API call goes over the network. The debug/profile manifests
+         already declare this, which is why only release builds broke. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <!-- Attendance clock-in verifies the employee is inside the site
          geofence. Foreground only: the app never reads a position
          except while the user is punching. -->
