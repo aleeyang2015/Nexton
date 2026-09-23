@@ -50,6 +50,7 @@ class LoginEmailField extends StatelessWidget {
             controller: controller,
             onChanged: onChanged,
             keyboardType: TextInputType.emailAddress,
+            style: AppTextStyles.inputStyle,
             decoration: InputDecoration(
               hintText: l10n.emailHint,
               fillColor: Colors.white,

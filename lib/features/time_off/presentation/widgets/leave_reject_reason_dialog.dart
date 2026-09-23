@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
@@ -58,6 +59,7 @@ class _LeaveRejectReasonDialogState extends State<LeaveRejectReasonDialog> {
         maxLines: 3,
         minLines: 2,
         textInputAction: TextInputAction.done,
+        style: AppTextStyles.inputStyle,
         decoration: inputDecoration(l10n.leaveRejectReasonHint),
         onChanged: (_) => setState(() {}),
         onSubmitted: (_) => _submit(),

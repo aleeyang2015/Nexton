@@ -109,10 +109,7 @@ class AuthPasswordField extends StatelessWidget {
                 keyboardType: TextInputType.visiblePassword,
                 autocorrect: false,
                 enableSuggestions: false,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                ),
+                style: AppTextStyles.inputStyle,
                 decoration: InputDecoration(
                   fillColor: Colors.white,
                   filled: true,

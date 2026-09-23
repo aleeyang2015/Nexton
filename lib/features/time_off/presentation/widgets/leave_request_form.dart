@@ -6,6 +6,7 @@ import '../../../../app/router/app_router.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -241,6 +242,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
                 controller: _reasonController,
                 maxLines: 4,
                 onChanged: _notifier.setReason,
+                style: AppTextStyles.inputStyle,
                 decoration: inputDecoration(l10n.leaveRequestReasonHint),
               ),
             ),

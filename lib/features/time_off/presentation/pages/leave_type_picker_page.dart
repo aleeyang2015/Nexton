@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_type.dart';
@@ -102,6 +103,7 @@ class _LeaveTypePickerPageState extends ConsumerState<LeaveTypePickerPage> {
                   controller: _searchController,
                   onChanged: (value) => setState(() => _query = value),
                   textInputAction: TextInputAction.search,
+                  style: AppTextStyles.inputStyle,
                   decoration: inputDecoration(l10n.leaveTypeSearchHint).copyWith(
                     prefixIcon: const Icon(
                       Icons.search,
