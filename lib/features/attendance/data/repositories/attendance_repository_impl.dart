@@ -5,6 +5,7 @@ import '../../domain/entities/attendance_summary.dart';
 import '../../domain/entities/date_range.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../../domain/entities/punch_request.dart';
+import '../../domain/entities/time_correction_request.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../datasources/attendance_remote_data_source.dart';
 
@@ -41,4 +42,11 @@ class AttendanceRepositoryImpl extends BaseRepository
   @override
   FutureResult<AttendanceSummary> summary(DateRange range) =>
       guard(() => _remote.summary(range));
+
+  @override
+  FutureResult<Unit> submitTimeCorrection(TimeCorrectionRequest request) =>
+      guard(() async {
+        await _remote.submitTimeCorrection(request);
+        return Unit.instance;
+      });
 }

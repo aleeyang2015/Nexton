@@ -19,12 +19,12 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$TimeCorrectionFormState {
   DateTime get date => throw _privateConstructorUsedError;
   TimeCorrectionType get type => throw _privateConstructorUsedError;
-  WorkShift? get shift => throw _privateConstructorUsedError;
+  ShiftDetail? get shiftDetail => throw _privateConstructorUsedError;
   TimeOfDay get clockIn => throw _privateConstructorUsedError;
   TimeOfDay get clockOut => throw _privateConstructorUsedError;
   String get reason => throw _privateConstructorUsedError;
-  LocalFile? get attachment => throw _privateConstructorUsedError;
-  int? get attachmentBytes => throw _privateConstructorUsedError;
+  bool get showErrors => throw _privateConstructorUsedError;
+  AsyncValue<void> get submission => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $TimeCorrectionFormStateCopyWith<TimeCorrectionFormState> get copyWith =>
@@ -41,12 +41,12 @@ abstract class $TimeCorrectionFormStateCopyWith<$Res> {
   $Res call({
     DateTime date,
     TimeCorrectionType type,
-    WorkShift? shift,
+    ShiftDetail? shiftDetail,
     TimeOfDay clockIn,
     TimeOfDay clockOut,
     String reason,
-    LocalFile? attachment,
-    int? attachmentBytes,
+    bool showErrors,
+    AsyncValue<void> submission,
   });
 }
 
@@ -68,12 +68,12 @@ class _$TimeCorrectionFormStateCopyWithImpl<
   $Res call({
     Object? date = null,
     Object? type = null,
-    Object? shift = freezed,
+    Object? shiftDetail = freezed,
     Object? clockIn = null,
     Object? clockOut = null,
     Object? reason = null,
-    Object? attachment = freezed,
-    Object? attachmentBytes = freezed,
+    Object? showErrors = null,
+    Object? submission = null,
   }) {
     return _then(
       _value.copyWith(
@@ -85,10 +85,10 @@ class _$TimeCorrectionFormStateCopyWithImpl<
                 ? _value.type
                 : type // ignore: cast_nullable_to_non_nullable
                       as TimeCorrectionType,
-            shift: freezed == shift
-                ? _value.shift
-                : shift // ignore: cast_nullable_to_non_nullable
-                      as WorkShift?,
+            shiftDetail: freezed == shiftDetail
+                ? _value.shiftDetail
+                : shiftDetail // ignore: cast_nullable_to_non_nullable
+                      as ShiftDetail?,
             clockIn: null == clockIn
                 ? _value.clockIn
                 : clockIn // ignore: cast_nullable_to_non_nullable
@@ -101,14 +101,14 @@ class _$TimeCorrectionFormStateCopyWithImpl<
                 ? _value.reason
                 : reason // ignore: cast_nullable_to_non_nullable
                       as String,
-            attachment: freezed == attachment
-                ? _value.attachment
-                : attachment // ignore: cast_nullable_to_non_nullable
-                      as LocalFile?,
-            attachmentBytes: freezed == attachmentBytes
-                ? _value.attachmentBytes
-                : attachmentBytes // ignore: cast_nullable_to_non_nullable
-                      as int?,
+            showErrors: null == showErrors
+                ? _value.showErrors
+                : showErrors // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            submission: null == submission
+                ? _value.submission
+                : submission // ignore: cast_nullable_to_non_nullable
+                      as AsyncValue<void>,
           )
           as $Val,
     );
@@ -127,12 +127,12 @@ abstract class _$$TimeCorrectionFormStateImplCopyWith<$Res>
   $Res call({
     DateTime date,
     TimeCorrectionType type,
-    WorkShift? shift,
+    ShiftDetail? shiftDetail,
     TimeOfDay clockIn,
     TimeOfDay clockOut,
     String reason,
-    LocalFile? attachment,
-    int? attachmentBytes,
+    bool showErrors,
+    AsyncValue<void> submission,
   });
 }
 
@@ -154,12 +154,12 @@ class __$$TimeCorrectionFormStateImplCopyWithImpl<$Res>
   $Res call({
     Object? date = null,
     Object? type = null,
-    Object? shift = freezed,
+    Object? shiftDetail = freezed,
     Object? clockIn = null,
     Object? clockOut = null,
     Object? reason = null,
-    Object? attachment = freezed,
-    Object? attachmentBytes = freezed,
+    Object? showErrors = null,
+    Object? submission = null,
   }) {
     return _then(
       _$TimeCorrectionFormStateImpl(
@@ -171,10 +171,10 @@ class __$$TimeCorrectionFormStateImplCopyWithImpl<$Res>
             ? _value.type
             : type // ignore: cast_nullable_to_non_nullable
                   as TimeCorrectionType,
-        shift: freezed == shift
-            ? _value.shift
-            : shift // ignore: cast_nullable_to_non_nullable
-                  as WorkShift?,
+        shiftDetail: freezed == shiftDetail
+            ? _value.shiftDetail
+            : shiftDetail // ignore: cast_nullable_to_non_nullable
+                  as ShiftDetail?,
         clockIn: null == clockIn
             ? _value.clockIn
             : clockIn // ignore: cast_nullable_to_non_nullable
@@ -187,14 +187,14 @@ class __$$TimeCorrectionFormStateImplCopyWithImpl<$Res>
             ? _value.reason
             : reason // ignore: cast_nullable_to_non_nullable
                   as String,
-        attachment: freezed == attachment
-            ? _value.attachment
-            : attachment // ignore: cast_nullable_to_non_nullable
-                  as LocalFile?,
-        attachmentBytes: freezed == attachmentBytes
-            ? _value.attachmentBytes
-            : attachmentBytes // ignore: cast_nullable_to_non_nullable
-                  as int?,
+        showErrors: null == showErrors
+            ? _value.showErrors
+            : showErrors // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        submission: null == submission
+            ? _value.submission
+            : submission // ignore: cast_nullable_to_non_nullable
+                  as AsyncValue<void>,
       ),
     );
   }
@@ -206,12 +206,12 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
   const _$TimeCorrectionFormStateImpl({
     required this.date,
     this.type = TimeCorrectionType.both,
-    this.shift,
+    this.shiftDetail,
     this.clockIn = const TimeOfDay(hour: 8, minute: 0),
     this.clockOut = const TimeOfDay(hour: 17, minute: 0),
     this.reason = '',
-    this.attachment,
-    this.attachmentBytes,
+    this.showErrors = false,
+    this.submission = const AsyncValue<void>.data(null),
   }) : super._();
 
   @override
@@ -220,7 +220,7 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
   @JsonKey()
   final TimeCorrectionType type;
   @override
-  final WorkShift? shift;
+  final ShiftDetail? shiftDetail;
   @override
   @JsonKey()
   final TimeOfDay clockIn;
@@ -231,13 +231,15 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
   @JsonKey()
   final String reason;
   @override
-  final LocalFile? attachment;
+  @JsonKey()
+  final bool showErrors;
   @override
-  final int? attachmentBytes;
+  @JsonKey()
+  final AsyncValue<void> submission;
 
   @override
   String toString() {
-    return 'TimeCorrectionFormState(date: $date, type: $type, shift: $shift, clockIn: $clockIn, clockOut: $clockOut, reason: $reason, attachment: $attachment, attachmentBytes: $attachmentBytes)';
+    return 'TimeCorrectionFormState(date: $date, type: $type, shiftDetail: $shiftDetail, clockIn: $clockIn, clockOut: $clockOut, reason: $reason, showErrors: $showErrors, submission: $submission)';
   }
 
   @override
@@ -247,15 +249,16 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
             other is _$TimeCorrectionFormStateImpl &&
             (identical(other.date, date) || other.date == date) &&
             (identical(other.type, type) || other.type == type) &&
-            (identical(other.shift, shift) || other.shift == shift) &&
+            (identical(other.shiftDetail, shiftDetail) ||
+                other.shiftDetail == shiftDetail) &&
             (identical(other.clockIn, clockIn) || other.clockIn == clockIn) &&
             (identical(other.clockOut, clockOut) ||
                 other.clockOut == clockOut) &&
             (identical(other.reason, reason) || other.reason == reason) &&
-            (identical(other.attachment, attachment) ||
-                other.attachment == attachment) &&
-            (identical(other.attachmentBytes, attachmentBytes) ||
-                other.attachmentBytes == attachmentBytes));
+            (identical(other.showErrors, showErrors) ||
+                other.showErrors == showErrors) &&
+            (identical(other.submission, submission) ||
+                other.submission == submission));
   }
 
   @override
@@ -263,12 +266,12 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
     runtimeType,
     date,
     type,
-    shift,
+    shiftDetail,
     clockIn,
     clockOut,
     reason,
-    attachment,
-    attachmentBytes,
+    showErrors,
+    submission,
   );
 
   @JsonKey(ignore: true)
@@ -285,12 +288,12 @@ abstract class _TimeCorrectionFormState extends TimeCorrectionFormState {
   const factory _TimeCorrectionFormState({
     required final DateTime date,
     final TimeCorrectionType type,
-    final WorkShift? shift,
+    final ShiftDetail? shiftDetail,
     final TimeOfDay clockIn,
     final TimeOfDay clockOut,
     final String reason,
-    final LocalFile? attachment,
-    final int? attachmentBytes,
+    final bool showErrors,
+    final AsyncValue<void> submission,
   }) = _$TimeCorrectionFormStateImpl;
   const _TimeCorrectionFormState._() : super._();
 
@@ -299,7 +302,7 @@ abstract class _TimeCorrectionFormState extends TimeCorrectionFormState {
   @override
   TimeCorrectionType get type;
   @override
-  WorkShift? get shift;
+  ShiftDetail? get shiftDetail;
   @override
   TimeOfDay get clockIn;
   @override
@@ -307,9 +310,9 @@ abstract class _TimeCorrectionFormState extends TimeCorrectionFormState {
   @override
   String get reason;
   @override
-  LocalFile? get attachment;
+  bool get showErrors;
   @override
-  int? get attachmentBytes;
+  AsyncValue<void> get submission;
   @override
   @JsonKey(ignore: true)
   _$$TimeCorrectionFormStateImplCopyWith<_$TimeCorrectionFormStateImpl>

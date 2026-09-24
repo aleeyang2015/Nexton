@@ -14,6 +14,7 @@ import 'domain/usecases/get_monthly_records_usecase.dart';
 import 'domain/usecases/get_monthly_summary_usecase.dart';
 import 'domain/usecases/get_today_attendance_usecase.dart';
 import 'domain/usecases/prepare_punch_usecase.dart';
+import 'domain/usecases/submit_time_correction_usecase.dart';
 
 /// Composition root for the attendance feature: the one place the data layer
 /// is constructed and bound to the domain contracts. Presentation consumes
@@ -74,3 +75,10 @@ final getMonthlySummaryUseCaseProvider = Provider<GetMonthlySummaryUseCase>((
 ) {
   return GetMonthlySummaryUseCase(ref.watch(attendanceRepositoryProvider));
 });
+
+final submitTimeCorrectionUseCaseProvider =
+    Provider<SubmitTimeCorrectionUseCase>((ref) {
+      return SubmitTimeCorrectionUseCase(
+        ref.watch(attendanceRepositoryProvider),
+      );
+    });

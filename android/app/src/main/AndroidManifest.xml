@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Every API call goes over the network. The debug/profile manifests
          already declare this, which is why only release builds broke. -->
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -8,6 +9,12 @@
          except while the user is punching. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <!-- The time-correction form photographs its evidence. CAMERA comes in
+         from the camera plugin's own manifest; the plugin also asks for
+         RECORD_AUDIO, which the app never uses (photos only, audio off). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"
+        tools:node="remove"/>
 
     <application
         android:label="NEXTON"

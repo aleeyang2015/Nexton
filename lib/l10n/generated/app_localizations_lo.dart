@@ -1013,4 +1013,52 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get timeCorrectionSubmit => 'ສົ່ງຄຳຮ້ອງແກ້ໄຂ';
+
+  @override
+  String get timeCorrectionNoShift => 'ທ່ານຍັງບໍ່ມີກະການເຮັດວຽກ';
+
+  @override
+  String get timeCorrectionPickSegment => 'ເລືອກຊ່ວງກະ';
+
+  @override
+  String get timeCorrectionDateInFuture => 'ວັນທີຕ້ອງບໍ່ເກີນມື້ນີ້';
+
+  @override
+  String timeCorrectionDateTooOld(int days) {
+    return 'ແກ້ໄຂໄດ້ສະເພາະ $days ມື້ຜ່ານມາ';
+  }
+
+  @override
+  String get timeCorrectionShiftRequired =>
+      'ທ່ານຍັງບໍ່ມີກະການເຮັດວຽກ, ບໍ່ສາມາດສົ່ງຄຳຮ້ອງແກ້ໄຂໄດ້';
+
+  @override
+  String get timeCorrectionTimeRequired => 'ກະລຸນາເລືອກເວລາ';
+
+  @override
+  String get timeCorrectionReasonRequired => 'ກະລຸນາລະບຸເຫດຜົນ';
+
+  @override
+  String timeCorrectionReasonTooLong(int max) {
+    return 'ເຫດຜົນຍາວໄດ້ບໍ່ເກີນ $max ຕົວອັກສອນ';
+  }
+
+  @override
+  String get timeCorrectionSubmitSuccess => 'ສົ່ງຄຳຮ້ອງແກ້ໄຂສຳເລັດ';
+
+  @override
+  String get cameraUnavailable => 'ບໍ່ພົບກ້ອງຖ່າຍຮູບໃນອຸປະກອນນີ້';
+
+  @override
+  String get cameraPermissionDenied =>
+      'ກະລຸນາອະນຸຍາດໃຫ້ເຂົ້າເຖິງກ້ອງໃນການຕັ້ງຄ່າ ເພື່ອຖ່າຍຮູບ';
+
+  @override
+  String get cameraCaptureFailed => 'ຖ່າຍຮູບບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່';
+
+  @override
+  String get cameraRetake => 'ຖ່າຍໃໝ່';
+
+  @override
+  String get cameraUsePhoto => 'ໃຊ້ຮູບນີ້';
 }

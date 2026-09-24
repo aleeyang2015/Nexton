@@ -4,6 +4,7 @@ import '../entities/attendance_summary.dart';
 import '../entities/date_range.dart';
 import '../entities/punch_outcome.dart';
 import '../entities/punch_request.dart';
+import '../entities/time_correction_request.dart';
 
 /// Contract the presentation layer depends on. The implementation lives in
 /// data/repositories.
@@ -33,4 +34,8 @@ abstract class AttendanceRepository {
   /// `GET /attendance/records/summary/my` over [range] — the history page's
   /// stat cards (§6.3).
   FutureResult<AttendanceSummary> summary(DateRange range);
+
+  /// `POST /attendance/correction-requests` — files a "ລືມລົງເວລາ" request
+  /// for a manager to approve.
+  FutureResult<Unit> submitTimeCorrection(TimeCorrectionRequest request);
 }

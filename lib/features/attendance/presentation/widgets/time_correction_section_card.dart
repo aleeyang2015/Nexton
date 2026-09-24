@@ -5,12 +5,14 @@ import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
 /// A white card with a bold title (plus a red `*` when [required]), an
-/// optional [trailing] widget on the title row, and the field below.
+/// optional [trailing] widget on the title row, the field below, and the
+/// field's validation message under it when there is one.
 class TimeCorrectionSectionCard extends StatelessWidget {
   final String title;
   final bool required;
   final Widget? trailing;
   final Widget child;
+  final String? errorText;
 
   const TimeCorrectionSectionCard({
     super.key,
@@ -18,6 +20,7 @@ class TimeCorrectionSectionCard extends StatelessWidget {
     required this.child,
     this.required = false,
     this.trailing,
+    this.errorText,
   });
 
   @override
@@ -59,6 +62,10 @@ class TimeCorrectionSectionCard extends StatelessWidget {
           ),
           heightBx(h: 12),
           child,
+          if (errorText != null) ...[
+            heightBx(h: 8),
+            customText(errorText!, fontSize: 13, color: AppColors.danger),
+          ],
         ],
       ),
     );

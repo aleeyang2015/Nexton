@@ -53,6 +53,11 @@ dependencies:
   # native picker UI; no extra Android/iOS permissions required.
   file_picker: ^11.0.3
 
+  # In-app camera for the time-correction form's "ຖ່າຍຮູບ" evidence photo.
+  # Needs NSCameraUsageDescription in Info.plist; its Android RECORD_AUDIO
+  # permission is stripped in AndroidManifest.xml (photos only, audio off).
+  camera: ^0.12.1
+
 dev_dependencies:
   flutter_native_splash: ^2.4.7
 

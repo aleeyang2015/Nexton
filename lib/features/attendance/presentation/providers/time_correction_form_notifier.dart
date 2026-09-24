@@ -1,40 +1,40 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../time_off/presentation/services/attachment_picker.dart';
+import '../../../profile/domain/entities/employee_profile.dart';
+import '../../../profile/domain/entities/shift_detail.dart';
+import '../../../profile/presentation/providers/profile_notifier.dart';
+import '../../attendance_providers.dart';
 import '../../domain/entities/time_correction_type.dart';
-import '../../domain/entities/work_shift.dart';
+import 'time_correction_attachment_notifier.dart';
 import 'time_correction_form_state.dart';
 
-/// Why a picked attachment was turned away.
-enum TimeCorrectionAttachmentError { tooLarge }
-
-/// Fields and rules of the time-correction request form ("ລືມລົງເວລາ").
+/// Fields, rules and submission of the time-correction request form
+/// ("ລືມລົງເວລາ").
 ///
-/// There is no shift or time-correction endpoint yet, so [build] seeds the
-/// standard shift as a placeholder and the page doesn't submit anywhere —
-/// swap both for real use cases once the API exists.
+/// The shift comes from the employee's profile (`/core_hr/employees/me`'s
+/// `shift.shift_details[]`) rather than a fetch of its own — the attendance
+/// card already reads it from there. The first segment is picked by default,
+/// and picking a segment pre-fills the times with its schedule.
 class TimeCorrectionFormNotifier
     extends AutoDisposeNotifier<TimeCorrectionFormState> {
-  /// File types the correction form accepts, per the design: images and PDF.
-  static const attachmentExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
-
-  static const _placeholderShift = WorkShift(
-    id: 'standard',
-    code: 'Shift A',
-    name: 'ກະປົກກະຕິ (Standard Shift)',
-    blocks: ['08:00 - 12:00', '13:00 - 17:00'],
-  );
-
   @override
   TimeCorrectionFormState build() {
+    // The profile may still be loading when the form opens; take the first
+    // segment once it lands, unless the user has picked one already.
+    ref.listen(profileNotifierProvider, (_, next) {
+      final detail = _firstDetail(next.valueOrNull);
+      if (state.shiftDetail == null && detail != null) {
+        selectShiftDetail(detail);
+      }
+    });
+
     final now = DateTime.now();
-    return TimeCorrectionFormState(
+    final initial = TimeCorrectionFormState(
       date: DateTime(now.year, now.month, now.day),
-      shift: _placeholderShift,
     );
+    final detail = _firstDetail(ref.read(profileNotifierProvider).valueOrNull);
+    return detail == null ? initial : _withShiftDetail(initial, detail);
   }
 
   void setDate(DateTime date) =>
@@ -42,31 +42,85 @@ class TimeCorrectionFormNotifier
 
   void setType(TimeCorrectionType type) => state = state.copyWith(type: type);
 
+  void selectShiftDetail(ShiftDetail detail) =>
+      state = _withShiftDetail(state, detail);
+
   void setClockIn(TimeOfDay time) => state = state.copyWith(clockIn: time);
 
   void setClockOut(TimeOfDay time) => state = state.copyWith(clockOut: time);
 
   void setReason(String reason) => state = state.copyWith(reason: reason);
 
-  /// Opens the file chooser and keeps the pick. Returns an error when the
-  /// file is over the size limit (and the previous pick is kept), null
-  /// otherwise — including a back-out.
-  Future<TimeCorrectionAttachmentError?> pickAttachment() async {
-    final picked = await ref
-        .read(attachmentPickerProvider)
-        .pickAttachment(extensions: attachmentExtensions);
-    if (picked == null) return null;
+  /// Validates the form and files the request, with the already-uploaded
+  /// evidence file (if any) as `attachment_url`. Returns whether it went
+  /// through; on failure the reason is in `state.submission`'s error.
+  Future<bool> submit() async {
+    if (state.isSubmitting) return false;
 
-    final bytes = await File(picked.path).length();
-    if (bytes > TimeCorrectionFormState.attachmentMaxBytes) {
-      return TimeCorrectionAttachmentError.tooLarge;
+    final request = state.toRequest();
+    final validation = request.validate();
+    if (validation.isFailure) {
+      state = state.copyWith(
+        showErrors: true,
+        submission: AsyncValue.error(
+          validation.failureOrNull!,
+          StackTrace.current,
+        ),
+      );
+      return false;
     }
-    state = state.copyWith(attachment: picked, attachmentBytes: bytes);
-    return null;
+
+    state = state.copyWith(submission: const AsyncValue.loading());
+
+    final attachment = ref
+        .read(timeCorrectionAttachmentNotifierProvider)
+        .valueOrNull
+        ?.uploaded;
+
+    final result = await ref.read(submitTimeCorrectionUseCaseProvider)(
+      request.withAttachment(attachment),
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          submission: AsyncValue.error(failure, StackTrace.current),
+        );
+        return false;
+      },
+      (_) {
+        state = state.copyWith(submission: const AsyncValue.data(null));
+        return true;
+      },
+    );
   }
 
-  void clearAttachment() =>
-      state = state.copyWith(attachment: null, attachmentBytes: null);
+  static ShiftDetail? _firstDetail(EmployeeProfile? profile) {
+    final details = profile?.shiftDetails ?? const <ShiftDetail>[];
+    return details.isEmpty ? null : details.first;
+  }
+
+  /// [form] with [detail] selected and its schedule as the default times.
+  static TimeCorrectionFormState _withShiftDetail(
+    TimeCorrectionFormState form,
+    ShiftDetail detail,
+  ) {
+    return form.copyWith(
+      shiftDetail: detail,
+      clockIn: _timeOf(detail.startTime) ?? form.clockIn,
+      clockOut: _timeOf(detail.endTime) ?? form.clockOut,
+    );
+  }
+
+  /// The backend's `HH:mm[:ss]` schedule string as a [TimeOfDay].
+  static TimeOfDay? _timeOf(String? raw) {
+    final match = RegExp(r'^(\d{1,2}):(\d{2})').firstMatch(raw ?? '');
+    if (match == null) return null;
+    return TimeOfDay(
+      hour: int.parse(match.group(1)!),
+      minute: int.parse(match.group(2)!),
+    );
+  }
 }
 
 final timeCorrectionFormNotifierProvider =

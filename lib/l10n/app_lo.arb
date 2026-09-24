@@ -332,5 +332,19 @@
   "timeCorrectionTakePhoto": "ຖ່າຍຮູບ",
   "timeCorrectionChooseFile": "ເລືອກໄຟລ໌",
   "timeCorrectionFileTooLarge": "ໄຟລ໌ໃຫຍ່ເກີນ 5MB",
-  "timeCorrectionSubmit": "ສົ່ງຄຳຮ້ອງແກ້ໄຂ"
+  "timeCorrectionSubmit": "ສົ່ງຄຳຮ້ອງແກ້ໄຂ",
+  "timeCorrectionNoShift": "ທ່ານຍັງບໍ່ມີກະການເຮັດວຽກ",
+  "timeCorrectionPickSegment": "ເລືອກຊ່ວງກະ",
+  "timeCorrectionDateInFuture": "ວັນທີຕ້ອງບໍ່ເກີນມື້ນີ້",
+  "timeCorrectionDateTooOld": "ແກ້ໄຂໄດ້ສະເພາະ {days} ມື້ຜ່ານມາ",
+  "timeCorrectionShiftRequired": "ທ່ານຍັງບໍ່ມີກະການເຮັດວຽກ, ບໍ່ສາມາດສົ່ງຄຳຮ້ອງແກ້ໄຂໄດ້",
+  "timeCorrectionTimeRequired": "ກະລຸນາເລືອກເວລາ",
+  "timeCorrectionReasonRequired": "ກະລຸນາລະບຸເຫດຜົນ",
+  "timeCorrectionReasonTooLong": "ເຫດຜົນຍາວໄດ້ບໍ່ເກີນ {max} ຕົວອັກສອນ",
+  "timeCorrectionSubmitSuccess": "ສົ່ງຄຳຮ້ອງແກ້ໄຂສຳເລັດ",
+  "cameraUnavailable": "ບໍ່ພົບກ້ອງຖ່າຍຮູບໃນອຸປະກອນນີ້",
+  "cameraPermissionDenied": "ກະລຸນາອະນຸຍາດໃຫ້ເຂົ້າເຖິງກ້ອງໃນການຕັ້ງຄ່າ ເພື່ອຖ່າຍຮູບ",
+  "cameraCaptureFailed": "ຖ່າຍຮູບບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່",
+  "cameraRetake": "ຖ່າຍໃໝ່",
+  "cameraUsePhoto": "ໃຊ້ຮູບນີ້"
 }

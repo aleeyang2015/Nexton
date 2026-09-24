@@ -388,5 +388,29 @@
   "timeCorrectionTakePhoto": "Take photo",
   "timeCorrectionChooseFile": "Choose file",
   "timeCorrectionFileTooLarge": "The file is larger than 5MB.",
-  "timeCorrectionSubmit": "Submit correction"
+  "timeCorrectionSubmit": "Submit correction",
+  "timeCorrectionNoShift": "No shift is assigned to you yet.",
+  "timeCorrectionPickSegment": "Select a shift segment",
+  "timeCorrectionDateInFuture": "The date can't be in the future.",
+  "timeCorrectionDateTooOld": "You can only correct the last {days} days.",
+  "@timeCorrectionDateTooOld": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "timeCorrectionShiftRequired": "No shift is assigned to you, so a correction can't be filed.",
+  "timeCorrectionTimeRequired": "Please pick the corrected time.",
+  "timeCorrectionReasonRequired": "Please enter a reason.",
+  "timeCorrectionReasonTooLong": "The reason can be at most {max} characters.",
+  "@timeCorrectionReasonTooLong": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "timeCorrectionSubmitSuccess": "Correction request submitted",
+  "cameraUnavailable": "No camera was found on this device.",
+  "cameraPermissionDenied": "Allow camera access in Settings to take a photo.",
+  "cameraCaptureFailed": "Couldn't take the photo. Please try again.",
+  "cameraRetake": "Retake",
+  "cameraUsePhoto": "Use photo"
 }

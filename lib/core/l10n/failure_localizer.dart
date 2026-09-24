@@ -71,6 +71,24 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.fieldReasonRequired;
     case ValidationCode.mockLocationDetected:
       return l10n.mockLocationDetected;
+    case ValidationCode.correctionDateInFuture:
+      return l10n.timeCorrectionDateInFuture;
+    case ValidationCode.correctionDateTooOld:
+      return l10n.timeCorrectionDateTooOld(
+        AppConstants.timeCorrectionMaxAgeDays,
+      );
+    case ValidationCode.correctionShiftRequired:
+      return l10n.timeCorrectionShiftRequired;
+    case ValidationCode.correctionTimeRequired:
+      return l10n.timeCorrectionTimeRequired;
+    case ValidationCode.correctionInvalidTimes:
+      return l10n.timeCorrectionInvalidTimes;
+    case ValidationCode.correctionReasonRequired:
+      return l10n.timeCorrectionReasonRequired;
+    case ValidationCode.correctionReasonTooLong:
+      return l10n.timeCorrectionReasonTooLong(
+        AppConstants.timeCorrectionReasonMaxLength,
+      );
     // Leave (time-off) business rules — the leave datasource encodes a
     // recognised `error.code` as one of these tokens
     // (see `time_off/data/datasources/leave_error_code.dart`).

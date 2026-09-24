@@ -1023,4 +1023,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timeCorrectionSubmit => 'Submit correction';
+
+  @override
+  String get timeCorrectionNoShift => 'No shift is assigned to you yet.';
+
+  @override
+  String get timeCorrectionPickSegment => 'Select a shift segment';
+
+  @override
+  String get timeCorrectionDateInFuture => 'The date can\'t be in the future.';
+
+  @override
+  String timeCorrectionDateTooOld(int days) {
+    return 'You can only correct the last $days days.';
+  }
+
+  @override
+  String get timeCorrectionShiftRequired =>
+      'No shift is assigned to you, so a correction can\'t be filed.';
+
+  @override
+  String get timeCorrectionTimeRequired => 'Please pick the corrected time.';
+
+  @override
+  String get timeCorrectionReasonRequired => 'Please enter a reason.';
+
+  @override
+  String timeCorrectionReasonTooLong(int max) {
+    return 'The reason can be at most $max characters.';
+  }
+
+  @override
+  String get timeCorrectionSubmitSuccess => 'Correction request submitted';
+
+  @override
+  String get cameraUnavailable => 'No camera was found on this device.';
+
+  @override
+  String get cameraPermissionDenied =>
+      'Allow camera access in Settings to take a photo.';
+
+  @override
+  String get cameraCaptureFailed =>
+      'Couldn\'t take the photo. Please try again.';
+
+  @override
+  String get cameraRetake => 'Retake';
+
+  @override
+  String get cameraUsePhoto => 'Use photo';
 }

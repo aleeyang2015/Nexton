@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_response.dart';
@@ -7,10 +10,12 @@ import '../../domain/entities/attendance_summary.dart';
 import '../../domain/entities/date_range.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../../domain/entities/punch_request.dart';
+import '../../domain/entities/time_correction_request.dart';
 import '../models/attendance_record_model.dart';
 import '../models/attendance_summary_model.dart';
 import '../models/clock_request_model.dart';
 import '../models/punch_receipt_model.dart';
+import '../models/time_correction_request_model.dart';
 import 'attendance_api_paths.dart';
 
 /// The attendance calls the home screen can trigger.
@@ -33,6 +38,10 @@ abstract class AttendanceRemoteDataSource {
 
   /// The history page's stat cards over [range].
   Future<AttendanceSummary> summary(DateRange range);
+
+  /// Files a time-correction request. The created record isn't used, so the
+  /// response body is not read.
+  Future<void> submitTimeCorrection(TimeCorrectionRequest request);
 }
 
 class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
@@ -109,6 +118,34 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     return AttendanceSummaryModel.fromJson(
       ApiEnvelope.unwrapObject(response.data),
     );
+  }
+
+  @override
+  Future<void> submitTimeCorrection(TimeCorrectionRequest request) async {
+    final body = TimeCorrectionRequestModel(request).toJson();
+    _debugLog('POST ${AttendancePaths.correctionRequests} body', body);
+
+    try {
+      final response = await _client.post<dynamic>(
+        AttendancePaths.correctionRequests,
+        data: body,
+      );
+      _debugLog('response ${response.statusCode}', response.data);
+    } on DioException catch (error) {
+      _debugLog('error ${error.response?.statusCode}', error.response?.data);
+      rethrow;
+    }
+  }
+
+  /// Pretty-prints a time-correction payload under one tag, so it can be
+  /// found among the client's general request log. Debug builds only — the
+  /// body carries the employee's reason and evidence URL.
+  static void _debugLog(String label, Object? data) {
+    if (!kDebugMode) return;
+    final text = data is Map || data is List
+        ? const JsonEncoder.withIndent('  ').convert(data)
+        : '$data';
+    debugPrint('[TimeCorrection] $label:\n$text', wrapWidth: 1024);
   }
 
   /// A 200 here still needs its body read: §3 warns that `status` — not the

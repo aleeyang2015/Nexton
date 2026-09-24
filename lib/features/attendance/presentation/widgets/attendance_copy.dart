@@ -184,15 +184,18 @@ class AttendanceCopy {
   /// 12:00"`).
   static String shiftDetailLine(Locale locale, ShiftDetail detail) {
     final name = shiftDetailName(locale, detail);
-    final start = _shiftClockTime(detail.startTime);
-    final end = _shiftClockTime(detail.endTime);
-    final range = [
-      if (start != null) start,
-      if (end != null) end,
-    ].join(' - ');
+    final range = shiftDetailHours(detail);
 
     if (name.isEmpty) return range;
     return range.isEmpty ? name : '$name: $range';
+  }
+
+  /// A shift segment's scheduled hours, e.g. `"08:00 - 12:00"`, or empty when
+  /// the backend sent neither end.
+  static String shiftDetailHours(ShiftDetail detail) {
+    final start = _shiftClockTime(detail.startTime);
+    final end = _shiftClockTime(detail.endTime);
+    return [if (start != null) start, if (end != null) end].join(' - ');
   }
 
   /// `name` or `name_lo`, following the app's language — Lao prefers

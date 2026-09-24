@@ -4,7 +4,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/time_correction_type.dart';
-import '../../domain/entities/work_shift.dart';
 import 'attendance_history_copy.dart';
 import 'time_correction_copy.dart';
 
@@ -163,16 +162,18 @@ class _TypeButton extends StatelessWidget {
   }
 }
 
-/// The shift the correction is filed against: name, its blocks, and a swap
-/// button.
+/// The shift the correction is filed against: its name, the picked
+/// segment's hours, and a swap button when there is another segment to pick.
 class TimeCorrectionShiftCard extends StatelessWidget {
-  final WorkShift shift;
-  final VoidCallback onChange;
+  final String name;
+  final String hours;
+  final VoidCallback? onChange;
 
   const TimeCorrectionShiftCard({
     super.key,
-    required this.shift,
-    required this.onChange,
+    required this.name,
+    required this.hours,
+    this.onChange,
   });
 
   @override
@@ -197,34 +198,32 @@ class TimeCorrectionShiftCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 customText(
-                  shift.name,
+                  name,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                 ),
                 heightBx(h: 2),
-                customText(
-                  shift.blocks.join(' | '),
-                  fontSize: 14,
-                  color: AppColors.secondaryTxt,
-                ),
+                customText(hours, fontSize: 14, color: AppColors.secondaryTxt),
               ],
             ),
           ),
-          widthBx(w: 8),
-          Material(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            child: InkWell(
-              onTap: onChange,
+          if (onChange != null) ...[
+            widthBx(w: 8),
+            Material(
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
-              child: const SizedBox(
-                width: 44,
-                height: 44,
-                child: Icon(Icons.swap_horiz, color: AppColors.textPrimary),
+              child: InkWell(
+                onTap: onChange,
+                borderRadius: BorderRadius.circular(10),
+                child: const SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: Icon(Icons.swap_horiz, color: AppColors.textPrimary),
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

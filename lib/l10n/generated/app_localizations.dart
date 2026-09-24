@@ -1963,6 +1963,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Submit correction'**
   String get timeCorrectionSubmit;
+
+  /// No description provided for @timeCorrectionNoShift.
+  ///
+  /// In en, this message translates to:
+  /// **'No shift is assigned to you yet.'**
+  String get timeCorrectionNoShift;
+
+  /// No description provided for @timeCorrectionPickSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a shift segment'**
+  String get timeCorrectionPickSegment;
+
+  /// No description provided for @timeCorrectionDateInFuture.
+  ///
+  /// In en, this message translates to:
+  /// **'The date can\'t be in the future.'**
+  String get timeCorrectionDateInFuture;
+
+  /// No description provided for @timeCorrectionDateTooOld.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only correct the last {days} days.'**
+  String timeCorrectionDateTooOld(int days);
+
+  /// No description provided for @timeCorrectionShiftRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'No shift is assigned to you, so a correction can\'t be filed.'**
+  String get timeCorrectionShiftRequired;
+
+  /// No description provided for @timeCorrectionTimeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please pick the corrected time.'**
+  String get timeCorrectionTimeRequired;
+
+  /// No description provided for @timeCorrectionReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a reason.'**
+  String get timeCorrectionReasonRequired;
+
+  /// No description provided for @timeCorrectionReasonTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'The reason can be at most {max} characters.'**
+  String timeCorrectionReasonTooLong(int max);
+
+  /// No description provided for @timeCorrectionSubmitSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction request submitted'**
+  String get timeCorrectionSubmitSuccess;
+
+  /// No description provided for @cameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No camera was found on this device.'**
+  String get cameraUnavailable;
+
+  /// No description provided for @cameraPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow camera access in Settings to take a photo.'**
+  String get cameraPermissionDenied;
+
+  /// No description provided for @cameraCaptureFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t take the photo. Please try again.'**
+  String get cameraCaptureFailed;
+
+  /// No description provided for @cameraRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake'**
+  String get cameraRetake;
+
+  /// No description provided for @cameraUsePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Use photo'**
+  String get cameraUsePhoto;
 }
 
 class _AppLocalizationsDelegate

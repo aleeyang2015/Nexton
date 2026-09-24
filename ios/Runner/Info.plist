@@ -22,6 +22,8 @@
 		<string>????</string>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
+		<key>NSCameraUsageDescription</key>
+		<string>NEXTON uses the camera to photograph evidence for your time-correction requests.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>NEXTON uses your location to confirm you are at your workplace when you clock in and out.</string>
 		<key>LSRequiresIPhoneOS</key>

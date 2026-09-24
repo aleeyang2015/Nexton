@@ -9,6 +9,7 @@ import 'package:next_on/features/attendance/domain/entities/clock_method.dart';
 import 'package:next_on/features/attendance/domain/entities/date_range.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_outcome.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_request.dart';
+import 'package:next_on/features/attendance/domain/entities/time_correction_request.dart';
 import 'package:next_on/features/attendance/domain/repositories/attendance_repository.dart';
 
 /// Programmable attendance repository: each call returns the queued result
@@ -21,8 +22,9 @@ import 'package:next_on/features/attendance/domain/repositories/attendance_repos
 class FakeAttendanceRepository implements AttendanceRepository {
   Result<AttendanceDay> today = const Result.success(AttendanceDay.empty);
   Result<List<AttendanceDay>> monthRecords = const Result.success([]);
-  Result<AttendanceSummary> monthSummary =
-      const Result.success(AttendanceSummary.empty);
+  Result<AttendanceSummary> monthSummary = const Result.success(
+    AttendanceSummary.empty,
+  );
 
   /// Reproduces the real backend's observed behaviour on `records/summary/
   /// my`: the request never resolves into a response or a `DioException` —
@@ -70,6 +72,15 @@ class FakeAttendanceRepository implements AttendanceRepository {
     clockOutRequests.add(request);
     return clockOutResult ??
         const Result.failure(Failure.unknown(message: 'no clock-out queued'));
+  }
+
+  Result<Unit> timeCorrectionResult = const Result.success(Unit.instance);
+  final List<TimeCorrectionRequest> timeCorrectionRequests = [];
+
+  @override
+  FutureResult<Unit> submitTimeCorrection(TimeCorrectionRequest request) async {
+    timeCorrectionRequests.add(request);
+    return timeCorrectionResult;
   }
 }
 

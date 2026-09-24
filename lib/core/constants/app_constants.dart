@@ -23,6 +23,13 @@ class AppConstants {
     defaultValue: 'https://app.nexton.work/api',
   );
   static const String apiVersion = 'v1';
+
+  // Time-correction requests ("ລືມລົງເວລາ")
+  /// How far back a correction may be filed, in days.
+  static const int timeCorrectionMaxAgeDays = 90;
+
+  /// Longest reason a correction request accepts.
+  static const int timeCorrectionReasonMaxLength = 200;
   static const Duration apiTimeout = Duration(seconds: 30);
   static const Duration connectTimeout = Duration(seconds: 10);
   static const Duration receiveTimeout = Duration(seconds: 30);

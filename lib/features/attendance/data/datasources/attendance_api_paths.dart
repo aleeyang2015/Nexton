@@ -13,4 +13,5 @@ class AttendancePaths {
   static const String myRecords = '$_prefix/records/my';
   static const String myCheckins = '$_prefix/checkins/my';
   static const String mySummary = '$_prefix/records/summary/my';
+  static const String correctionRequests = '$_prefix/correction-requests';
 }
