@@ -304,6 +304,57 @@ void main() {
       expect(day.lastClockOut!.toUtc(), DateTime.utc(2026, 8, 24, 5));
     });
 
+    test(
+      'reads the month the history page reads and picks today out of it',
+      () async {
+        adapter
+          ..status = 200
+          ..body = {
+            'success': true,
+            'data': [
+              {
+                'date': '2020-01-01',
+                'sessions': [
+                  {'session_label': '08:00–12:00'},
+                ],
+              },
+              {
+                'date': _today(),
+                'sessions': [
+                  {'session_label': '13:00–17:00'},
+                ],
+              },
+            ],
+          };
+
+        final day = await source.todayRecord();
+
+        final now = DateTime.now();
+        expect(
+          adapter.lastRequest!.queryParameters['month'],
+          '${now.year}-${now.month.toString().padLeft(2, '0')}',
+        );
+        expect(day.sessions.single.label, '13:00–17:00');
+      },
+    );
+
+    test('skips a record with no date, since it cannot be placed', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            {
+              'sessions': [
+                {'clock_in': '2026-08-24T01:05:00Z'},
+              ],
+            },
+          ],
+        };
+
+      expect(await source.todayRecord(), AttendanceDay.empty);
+    });
+
     test('ignores a record that is not dated today', () async {
       adapter
         ..status = 200
@@ -343,6 +394,7 @@ void main() {
           'success': true,
           'data': [
             {
+              'date': _today(),
               'sessions': [
                 {
                   'clock_in': '2026-08-24T01:05:00Z',
@@ -359,7 +411,7 @@ void main() {
       expect(day.nextAction, ClockAction.clockIn);
     });
 
-    test('queries a single local date', () async {
+    test('queries the current month in ASCII digits', () async {
       adapter
         ..status = 200
         ..body = {'success': true, 'data': []};
@@ -367,9 +419,9 @@ void main() {
       await source.todayRecord();
 
       final query = adapter.lastRequest!.queryParameters;
-      expect(query['start_date'], query['end_date']);
+      expect(query.containsKey('start_date'), isFalse);
       // ASCII digits, never the active locale's numerals.
-      expect(query['start_date'], matches(r'^\d{4}-\d{2}-\d{2}$'));
+      expect(query['month'], matches(r'^\d{4}-\d{2}$'));
     });
   });
 }

@@ -61,10 +61,6 @@ abstract class AttendanceRemoteDataSource {
 }
 
 class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
-  /// Enough to cover a day split into several sessions; the endpoint is
-  /// queried for a single date, so one page is always the whole answer.
-  static const int _todayPageSize = 5;
-
   /// The history page shows one unpaged list; corrections are limited to
   /// the last 90 days, so this comfortably covers them.
   static const int _correctionPageSize = 100;
@@ -86,30 +82,19 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   Future<PunchOutcome> clockOut(PunchRequest request) =>
       _punch(AttendancePaths.clockOut, request);
 
+  /// Read from the same `month` query the history page uses — the param
+  /// `records/my` is known to honour — then narrowed to today's record by
+  /// its `date`, so the card and the history list always agree. A record
+  /// with no `date` can't be placed in the month, so it is skipped.
   @override
   Future<AttendanceDay> todayRecord() async {
-    final today = _isoDate(DateTime.now());
+    final now = DateTime.now();
+    final today = _isoDate(now);
 
-    final response = await _client.get<dynamic>(
-      AttendancePaths.myRecords,
-      queryParameters: {
-        'start_date': today,
-        'end_date': today,
-        'page': 1,
-        'per_page': _todayPageSize,
-      },
-    );
-
-    // Picked by date rather than trusting `records.first`: if the filter is
-    // ever ignored, another day's sessions would otherwise drive the card's
-    // clock-in/clock-out state. A record without a date is taken on trust,
-    // since the query asked for today only.
-    final days = ApiEnvelope.unwrapList(
-      response.data,
-    ).map(AttendanceRecordModel.fromJson);
+    final days = await records(DateRange.month(now));
     for (final day in days) {
       final date = day.date;
-      if (date == null || _isoDate(date) == today) return day;
+      if (date != null && _isoDate(date) == today) return day;
     }
     return AttendanceDay.empty;
   }

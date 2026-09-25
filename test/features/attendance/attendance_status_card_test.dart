@@ -57,7 +57,43 @@ void main() {
       expect(slots[1].isAwaitingClockOut, isTrue);
     });
 
-    test('falls back to position for a session with no label', () {
+    test('places an unlabelled 12:00 clock-in in the afternoon, not the '
+        'morning', () {
+      final noon = AttendanceSession(clockIn: _todayAt(12, 0));
+
+      final slots = ShiftSessionSlot.build([_morning, _afternoon], [noon]);
+
+      expect(slots[0].session, isNull);
+      expect(slots[1].session, noon);
+    });
+
+    test('places an unlabelled clock-in inside a window in that segment', () {
+      final late = AttendanceSession(clockIn: _todayAt(10, 30));
+      final afterHours = AttendanceSession(clockIn: _todayAt(18, 0));
+
+      expect(
+        ShiftSessionSlot.build([_morning, _afternoon], [late])[0].session,
+        late,
+      );
+      expect(
+        ShiftSessionSlot.build([_morning, _afternoon], [afterHours])[1].session,
+        afterHours,
+      );
+    });
+
+    test('reads a single-digit hour in the label', () {
+      final morning = AttendanceSession(
+        label: '8:00-12:00',
+        clockIn: _todayAt(12, 0),
+      );
+
+      final slots = ShiftSessionSlot.build([_morning, _afternoon], [morning]);
+
+      // The backend's own label wins over the clock-in time.
+      expect(slots[0].session, morning);
+    });
+
+    test('uses the clock-in time for a session with no label', () {
       final morning = AttendanceSession(
         clockIn: _todayAt(8, 2),
         clockOut: _todayAt(12, 5),
