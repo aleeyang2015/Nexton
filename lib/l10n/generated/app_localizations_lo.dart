@@ -348,6 +348,11 @@ class AppLocalizationsLo extends AppLocalizations {
   String get navList => 'ລາຍການ';
 
   @override
+  String menuItemCount(int count) {
+    return '$count ລາຍການ';
+  }
+
+  @override
   String get navHome => 'ໜ້າຫຼັກ';
 
   @override

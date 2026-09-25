@@ -112,6 +112,7 @@
   "attendanceLoadFailed": "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນການລົງເວລາຂອງມື້ນີ້ໄດ້.",
   "noTimeYet": "--:--",
   "navList": "ລາຍການ",
+  "menuItemCount": "{count} ລາຍການ",
   "navHome": "ໜ້າຫຼັກ",
   "navProfile": "ໂປຣຟາຍ",
   "comingSoon": "ກຳລັງພັດທະນາ",

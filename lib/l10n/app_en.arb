@@ -132,6 +132,10 @@
   "attendanceLoadFailed": "Could not load today\u0027s attendance.",
   "noTimeYet": "--:--",
   "navList": "List",
+  "menuItemCount": "{count} items",
+  "@menuItemCount": {
+    "placeholders": {"count": {"type": "int"}}
+  },
   "navHome": "Home",
   "navProfile": "Profile",
   "comingSoon": "Coming soon",

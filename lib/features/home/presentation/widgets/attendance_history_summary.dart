@@ -25,11 +25,10 @@ class AttendanceHistorySummary extends ConsumerWidget {
     final data = summary.valueOrNull;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.08)),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withValues(alpha: 0.06),
@@ -42,7 +41,7 @@ class AttendanceHistorySummary extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const _SummaryHeader(),
-          heightBx(h: 12),
+          heightBx(h: 14),
           if (loading)
             const _SummaryLoading()
           else if (failed)
@@ -106,7 +105,7 @@ class AttendanceHistorySummary extends ConsumerWidget {
   }
 }
 
-/// Blue-dot title on the left, tinted "view all" pill on the right.
+/// Haloed blue-dot title on the left, neutral "view all" pill on the right.
 class _SummaryHeader extends StatelessWidget {
   const _SummaryHeader();
 
@@ -117,11 +116,20 @@ class _SummaryHeader extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 8,
-          height: 8,
-          decoration: const BoxDecoration(
-            color: AppColors.primary,
+          width: 18,
+          height: 18,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.12),
             shape: BoxShape.circle,
+          ),
+          child: Container(
+            width: 9,
+            height: 9,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+            ),
           ),
         ),
         widthBx(w: 8),
@@ -129,33 +137,33 @@ class _SummaryHeader extends StatelessWidget {
           child: customText(
             l10n.attendanceHistoryTitle,
             fontWeight: FontWeight.w700,
-            fontSize: 16,
+            fontSize: 17,
             color: AppColors.textPrimary,
           ),
         ),
         widthBx(w: 8),
         Material(
-          color: AppColors.primary.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(999),
+          color: _neutralFill,
+          shape: const StadiumBorder(side: BorderSide(color: _neutralBorder)),
           child: InkWell(
-            borderRadius: BorderRadius.circular(999),
+            customBorder: const StadiumBorder(),
             onTap: () => context.push(AppRoutes.attendanceHistory),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.fromLTRB(14, 7, 10, 7),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   customText(
                     l10n.viewAll,
-                    color: AppColors.primary,
+                    color: AppColors.secondaryTxt,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
                   widthBx(w: 4),
                   const Icon(
-                    Icons.arrow_forward_ios,
-                    color: AppColors.primary,
-                    size: 11,
+                    Icons.chevron_right,
+                    color: AppColors.secondaryTxt,
+                    size: 18,
                   ),
                 ],
               ),
@@ -209,15 +217,15 @@ class _SummaryLoading extends StatelessWidget {
       child: _SummaryGrid(
         tiles: [
           for (var i = 0; i < 4; i++)
-            const ShimmerBox(width: double.infinity, height: 76),
+            const ShimmerBox(width: double.infinity, height: 88),
         ],
       ),
     );
   }
 }
 
-/// One stat: label and icon badge on top, big value with its unit below, on
-/// a soft [color]-tinted background.
+/// One stat on a neutral tile: label and a [color]-tinted round icon badge
+/// on top, big value with its unit below.
 class _SummaryTile extends StatelessWidget {
   final Color color;
   final String label;
@@ -236,11 +244,11 @@ class _SummaryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.fromLTRB(14, 12, 12, 14),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.18)),
+        color: _neutralFill,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _neutralBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,46 +262,38 @@ class _SummaryTile extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 4),
                   child: customText(
                     label,
-                    fontSize: 12,
+                    fontSize: 13,
                     maxLine: 2,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.gray700,
+                    color: AppColors.secondaryTxt,
                   ),
                 ),
               ),
               widthBx(w: 6),
               Container(
-                height: 28,
-                width: 28,
+                height: 30,
+                width: 30,
                 decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(9),
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                  color: color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: 16, color: Colors.white),
+                child: Icon(icon, size: 17, color: color),
               ),
             ],
           ),
-          heightBx(h: 6),
+          heightBx(h: 4),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
               customText(
                 value,
-                fontSize: 22,
+                fontSize: 26,
                 fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
+                color: const Color(0xFF111827),
               ),
-              widthBx(w: 4),
+              widthBx(w: 6),
               Expanded(
-                child: customText(unit, fontSize: 12, color: AppColors.gray500),
+                child: customText(unit, fontSize: 13, color: AppColors.gray500),
               ),
             ],
           ),
@@ -302,3 +302,7 @@ class _SummaryTile extends StatelessWidget {
     );
   }
 }
+
+/// The soft grey shared by the stat tiles and the "view all" pill.
+const _neutralFill = Color(0xFFF8FAFC);
+const _neutralBorder = Color(0xFFEDF0F5);

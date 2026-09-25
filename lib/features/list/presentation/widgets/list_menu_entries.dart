@@ -28,11 +28,13 @@ List<ListMenuEntry> buildListMenuEntries(
   ListMenuEntry(
     l10n.leaveMenu,
     Icons.edit_calendar_outlined,
+    color: const Color(0xFF3B6FF6),
     onTap: () => context.push(AppRoutes.timeOff, extra: TimeOffTab.request),
   ),
   ListMenuEntry(
     l10n.leaveHistoryMenu,
     Icons.event_available_outlined,
+    color: const Color(0xFF5B5BF0),
     onTap: () => context.push(AppRoutes.timeOff),
   ),
   // ListMenuEntry(l10n.delegateTaskMenu, Icons.assignment_ind_outlined),
@@ -43,16 +45,19 @@ List<ListMenuEntry> buildListMenuEntries(
   ListMenuEntry(
     l10n.salaryHistoryMenu,
     Icons.payments_outlined,
+    color: const Color(0xFF2F9E6E),
     onTap: () => context.push(AppRoutes.salaryHistory),
   ),
   ListMenuEntry(
     l10n.forgotClockInMenu,
     Icons.more_time,
+    color: const Color(0xFFE9A23B),
     onTap: () => context.push(AppRoutes.timeCorrectionRequest),
   ),
   ListMenuEntry(
     l10n.timeCorrectionHistoryMenu,
     Icons.manage_history,
+    color: const Color(0xFF8B5CF6),
     onTap: () => context.push(AppRoutes.timeCorrectionHistory),
   ),
   // ListMenuEntry(

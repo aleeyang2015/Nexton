@@ -8,7 +8,16 @@ class ListMenuEntry {
   final IconData icon;
   final VoidCallback? onTap;
 
-  const ListMenuEntry(this.label, this.icon, {this.onTap});
+  /// The entry's accent — its icon, icon outline and the tint of its tile
+  /// in the [ListMenuGrid.compact] style.
+  final Color color;
+
+  const ListMenuEntry(
+    this.label,
+    this.icon, {
+    this.onTap,
+    this.color = AppColors.primary,
+  });
 }
 
 /// Grid of list shortcuts: 3 columns per row, sized to fit its entries.
@@ -31,25 +40,113 @@ class ListMenuGrid extends StatelessWidget {
         crossAxisCount: 3,
         crossAxisSpacing: compact ? 12 : 14,
         mainAxisSpacing: compact ? 12 : 14,
-        childAspectRatio: compact ? 0.94 : 0.8,
+        childAspectRatio: compact ? 0.9 : 0.8,
       ),
       itemCount: entries.length,
-      itemBuilder: (context, index) =>
-          _MenuItem(entry: entries[index], compact: compact),
+      itemBuilder: (context, index) => compact
+          ? _CompactMenuItem(entry: entries[index])
+          : _MenuItem(entry: entries[index]),
     );
   }
 }
 
-class _MenuItem extends StatelessWidget {
+/// The home screen's tile: an outlined rounded-square icon in the entry's
+/// accent, on white fading into a faint wash of that accent.
+class _CompactMenuItem extends StatelessWidget {
   final ListMenuEntry entry;
-  final bool compact;
 
-  const _MenuItem({required this.entry, required this.compact});
+  const _CompactMenuItem({required this.entry});
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(compact ? 18 : 20);
-    final circle = compact ? 48.0 : 60.0;
+    final radius = BorderRadius.circular(18);
+    final color = entry.color;
+
+    return Material(
+      color: Colors.transparent,
+      child: Ink(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.alphaBlend(color.withValues(alpha: 0.05), Colors.white),
+              Colors.white,
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: InkWell(
+          onTap: entry.onTap,
+          borderRadius: radius,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(6, 14, 6, 10),
+            child: Column(
+              children: [
+                Container(
+                  height: 50,
+                  width: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: color.withValues(alpha: 0.6),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.18),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Icon(entry.icon, size: 24, color: color),
+                ),
+                // Labels sit centred in the space under the icon, so one-
+                // and two-line labels still line up across a row.
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      entry.label,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary,
+                        height: 1.3,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The "ລາຍການ" tab's taller tile.
+class _MenuItem extends StatelessWidget {
+  final ListMenuEntry entry;
+
+  const _MenuItem({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(20);
+    const circle = 60.0;
 
     return Material(
       color: Colors.white,
@@ -82,20 +179,16 @@ class _MenuItem extends StatelessWidget {
                   color: AppColors.primaryTint,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  entry.icon,
-                  size: compact ? 24 : 28,
-                  color: AppColors.primary,
-                ),
+                child: Icon(entry.icon, size: 28, color: AppColors.primary),
               ),
-              SizedBox(height: compact ? 8 : 10),
+              const SizedBox(height: 10),
               Flexible(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   child: Text(
                     entry.label,
-                    style: TextStyle(
-                      fontSize: compact ? 12 : 11,
+                    style: const TextStyle(
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),

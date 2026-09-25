@@ -710,6 +710,12 @@ abstract class AppLocalizations {
   /// **'List'**
   String get navList;
 
+  /// No description provided for @menuItemCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String menuItemCount(int count);
+
   /// No description provided for @navHome.
   ///
   /// In en, this message translates to:

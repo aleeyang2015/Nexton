@@ -351,6 +351,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navList => 'List';
 
   @override
+  String menuItemCount(int count) {
+    return '$count items';
+  }
+
+  @override
   String get navHome => 'Home';
 
   @override
