@@ -57,15 +57,11 @@
   "timeOut": "Time out",
   "currentTimeLabel": "Current time",
   "regularTimeBadge": "REG - Regular Time",
-  "shiftHoursPlaceholder": "Morning: 08:00 - 12:00 | Afternoon: 13:00 - 17:00",
-  "@shiftHoursPlaceholder": {
-    "description": "Fallback only, shown by AttendanceCopy.shiftHoursLine before today's first punch — records/my has no sessions yet at that point, so there is nothing real to show."
-  },
   "slideToClockIn": "Slide to check in",
-  "clockMethodsLabel": "Clock methods: {methods}",
-  "@clockMethodsLabel": {
-    "placeholders": {"methods": {"type": "String"}}
-  },
+  "clockMethodsLabel": "Clock methods:",
+  "sessionClockInLabel": "In",
+  "sessionClockOutLabel": "Out",
+  "sessionAwaitingClockOut": "(waiting)",
   "methodGps": "GPS",
   "methodWifi": "WiFi",
   "methodBiometric": "Biometric",

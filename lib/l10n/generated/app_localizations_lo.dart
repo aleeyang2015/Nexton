@@ -156,16 +156,19 @@ class AppLocalizationsLo extends AppLocalizations {
   String get regularTimeBadge => 'REG - ເວລາປົກກະຕິ';
 
   @override
-  String get shiftHoursPlaceholder =>
-      'ກະເຊົ້າ: 08:00 - 12:00 | ກະແລງ: 13:00 - 17:00';
-
-  @override
   String get slideToClockIn => 'ເລື່ອນເພື່ອລົງເວລາເຂົ້າ';
 
   @override
-  String clockMethodsLabel(String methods) {
-    return 'ວິທີລົງເວລາ: $methods';
-  }
+  String get clockMethodsLabel => 'ວິທີລົງເວລາ:';
+
+  @override
+  String get sessionClockInLabel => 'ເຂົ້າ';
+
+  @override
+  String get sessionClockOutLabel => 'ອອກ';
+
+  @override
+  String get sessionAwaitingClockOut => '(ລໍຖ້າ)';
 
   @override
   String get methodGps => 'GPS';

@@ -275,7 +275,7 @@ void main() {
           'success': true,
           'data': [
             {
-              'date': '2026-08-24',
+              'date': _today(),
               'status': 'present',
               'sessions': [
                 {
@@ -302,6 +302,27 @@ void main() {
       expect(day.openSession?.label, '13:30–17:30');
       expect(day.firstClockIn!.toUtc(), DateTime.utc(2026, 8, 24, 1, 5));
       expect(day.lastClockOut!.toUtc(), DateTime.utc(2026, 8, 24, 5));
+    });
+
+    test('ignores a record that is not dated today', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            {
+              'date': '2020-01-01',
+              'sessions': [
+                {'clock_in': '2020-01-01T01:05:00Z'},
+              ],
+            },
+          ],
+        };
+
+      final day = await source.todayRecord();
+
+      expect(day, AttendanceDay.empty);
+      expect(day.nextAction, ClockAction.clockIn);
     });
 
     test('a day with no records is empty, not a failure', () async {
@@ -363,4 +384,12 @@ class PunchLocationReadingStub {
     gpsAccuracy: 12.5,
     isMockLocation: false,
   );
+}
+
+/// Today as `YYYY-MM-DD`, the date `todayRecord()` accepts.
+String _today() {
+  final now = DateTime.now();
+  final month = now.month.toString().padLeft(2, '0');
+  final day = now.day.toString().padLeft(2, '0');
+  return '${now.year}-$month-$day';
 }

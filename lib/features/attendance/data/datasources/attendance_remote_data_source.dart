@@ -100,10 +100,18 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
       },
     );
 
-    final records = ApiEnvelope.unwrapList(response.data);
-    if (records.isEmpty) return AttendanceDay.empty;
-
-    return AttendanceRecordModel.fromJson(records.first);
+    // Picked by date rather than trusting `records.first`: if the filter is
+    // ever ignored, another day's sessions would otherwise drive the card's
+    // clock-in/clock-out state. A record without a date is taken on trust,
+    // since the query asked for today only.
+    final days = ApiEnvelope.unwrapList(
+      response.data,
+    ).map(AttendanceRecordModel.fromJson);
+    for (final day in days) {
+      final date = day.date;
+      if (date == null || _isoDate(date) == today) return day;
+    }
+    return AttendanceDay.empty;
   }
 
   @override

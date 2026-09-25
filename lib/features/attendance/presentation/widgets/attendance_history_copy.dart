@@ -85,10 +85,8 @@ class AttendanceHistoryCopy {
     return (_isLao(l10n) ? _weekdaysShortLo : _weekdaysShortEn)[date.weekday % 7];
   }
 
-  /// A standard day is 8 hours — the same shift length
-  /// `AttendanceStatusCard`'s `shiftHoursPlaceholder` assumes, until a real
-  /// shift/schedule endpoint exists. Worked time beyond that reads as
-  /// overtime.
+  /// A standard day is 8 hours, until a real shift/schedule endpoint
+  /// exists. Worked time beyond that reads as overtime.
   static const double standardWorkHours = 8;
 
   /// The one status pill a day's row shows. Priority: an early exit or a

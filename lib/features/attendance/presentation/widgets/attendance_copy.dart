@@ -145,40 +145,6 @@ class AttendanceCopy {
     return picked.isEmpty ? null : picked;
   }
 
-  /// Today's shift-hours line for the card, from the real `session_label`s
-  /// `records/my` returns (§6.2's note recommends showing this rather than
-  /// the raw session order).
-  ///
-  /// Before the first punch of the day there are no sessions to read a label
-  /// from, so this falls back to the employee's assigned shift
-  /// (`/core_hr/employees/me`'s `shift.shift_details[]`) — the real "ກະເຊົ້າ
-  /// 08:00-12:00 | ກະແລງ 13:00-17:00" for *this* employee, not a canned
-  /// example. [AppLocalizations.shiftHoursPlaceholder] is the last resort,
-  /// for when even that hasn't loaded.
-  static String shiftHoursLine(
-    AppLocalizations l10n,
-    Locale locale,
-    List<AttendanceSession> sessions,
-    List<ShiftDetail> shiftDetails,
-  ) {
-    final labels = sessions
-        .map((s) => s.label)
-        .whereType<String>()
-        .where((label) => label.isNotEmpty)
-        .toList(growable: false);
-
-    if (labels.isNotEmpty) return labels.join(' | ');
-
-    final shiftLines = shiftDetails
-        .map((detail) => shiftDetailLine(locale, detail))
-        .where((line) => line.isNotEmpty)
-        .toList(growable: false);
-
-    return shiftLines.isEmpty
-        ? l10n.shiftHoursPlaceholder
-        : shiftLines.join(' | ');
-  }
-
   /// One shift segment as shown on screen — its localized name, plus its
   /// scheduled hours when the backend sent them (e.g. `"ກະເຊົ້າ: 08:00 -
   /// 12:00"`).

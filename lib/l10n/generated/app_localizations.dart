@@ -380,12 +380,6 @@ abstract class AppLocalizations {
   /// **'REG - Regular Time'**
   String get regularTimeBadge;
 
-  /// Fallback only, shown by AttendanceCopy.shiftHoursLine before today's first punch — records/my has no sessions yet at that point, so there is nothing real to show.
-  ///
-  /// In en, this message translates to:
-  /// **'Morning: 08:00 - 12:00 | Afternoon: 13:00 - 17:00'**
-  String get shiftHoursPlaceholder;
-
   /// No description provided for @slideToClockIn.
   ///
   /// In en, this message translates to:
@@ -395,8 +389,26 @@ abstract class AppLocalizations {
   /// No description provided for @clockMethodsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Clock methods: {methods}'**
-  String clockMethodsLabel(String methods);
+  /// **'Clock methods:'**
+  String get clockMethodsLabel;
+
+  /// No description provided for @sessionClockInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'In'**
+  String get sessionClockInLabel;
+
+  /// No description provided for @sessionClockOutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Out'**
+  String get sessionClockOutLabel;
+
+  /// No description provided for @sessionAwaitingClockOut.
+  ///
+  /// In en, this message translates to:
+  /// **'(waiting)'**
+  String get sessionAwaitingClockOut;
 
   /// No description provided for @methodGps.
   ///

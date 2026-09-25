@@ -156,16 +156,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get regularTimeBadge => 'REG - Regular Time';
 
   @override
-  String get shiftHoursPlaceholder =>
-      'Morning: 08:00 - 12:00 | Afternoon: 13:00 - 17:00';
-
-  @override
   String get slideToClockIn => 'Slide to check in';
 
   @override
-  String clockMethodsLabel(String methods) {
-    return 'Clock methods: $methods';
-  }
+  String get clockMethodsLabel => 'Clock methods:';
+
+  @override
+  String get sessionClockInLabel => 'In';
+
+  @override
+  String get sessionClockOutLabel => 'Out';
+
+  @override
+  String get sessionAwaitingClockOut => '(waiting)';
 
   @override
   String get methodGps => 'GPS';
