@@ -412,5 +412,147 @@
   "cameraPermissionDenied": "Allow camera access in Settings to take a photo.",
   "cameraCaptureFailed": "Couldn't take the photo. Please try again.",
   "cameraRetake": "Retake",
-  "cameraUsePhoto": "Use photo"
+  "cameraUsePhoto": "Use photo",
+  "timeCorrectionHistoryMenu": "Time Correction History",
+  "timeCorrectionHistoryTitle": "Time Correction History",
+  "timeCorrectionSummaryTotal": "Total",
+  "timeCorrectionSummaryTotalUnit": "items",
+  "timeCorrectionSummaryPending": "Awaiting review",
+  "timeCorrectionSummaryPendingUnit": "pending",
+  "timeCorrectionSummaryApproved": "Approved",
+  "timeCorrectionSummaryApprovedUnit": "done",
+  "timeCorrectionFilterAll": "All ({count})",
+  "@timeCorrectionFilterAll": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeCorrectionFilterPending": "Pending ({count})",
+  "@timeCorrectionFilterPending": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeCorrectionFilterApproved": "Approved ({count})",
+  "@timeCorrectionFilterApproved": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeCorrectionFilterRejected": "Rejected ({count})",
+  "@timeCorrectionFilterRejected": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeCorrectionStatusPending": "Awaiting approval",
+  "timeCorrectionStatusApproved": "Approved",
+  "timeCorrectionStatusRejected": "Rejected",
+  "timeCorrectionClockInAt": "In {time}",
+  "@timeCorrectionClockInAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "timeCorrectionClockOutAt": "Out {time}",
+  "@timeCorrectionClockOutAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "timeCorrectionHistoryEmpty": "No correction requests",
+  "timeCorrectionNewRequestTitle": "New request",
+  "timeCorrectionNewRequestSubtitle": "Request a clock-in/out time correction",
+  "timeCorrectionHistoryLoadFailed": "Could not load your correction requests.",
+  "timeCorrectionStatusCancelled": "Cancelled",
+  "timeCorrectionDetailTitle": "Request Details",
+  "timeCorrectionDetailLoadFailed": "Could not load this request.",
+  "timeCorrectionSubmittedOn": "Submitted: {date}",
+  "@timeCorrectionSubmittedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "timeCorrectionRequestDateLabel": "Request date",
+  "timeCorrectionDetailsSection": "Correction details",
+  "timeCorrectionRequestedIn": "Clock in (Requested)",
+  "timeCorrectionRequestedOut": "Clock out (Requested)",
+  "timeCorrectionNormalTime": "Normal: {time}",
+  "@timeCorrectionNormalTime": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "timeCorrectionTotalHours": "Total corrected hours:",
+  "timeCorrectionHoursValue": "{hours} h",
+  "@timeCorrectionHoursValue": {
+    "placeholders": {
+      "hours": {"type": "String"}
+    }
+  },
+  "timeCorrectionShiftGroup": "Shift group (SHIFT)",
+  "timeCorrectionOtEligible": "OT Eligible",
+  "timeCorrectionShiftBreak": "{hours} ({minutes} min break)",
+  "@timeCorrectionShiftBreak": {
+    "placeholders": {
+      "hours": {"type": "String"},
+      "minutes": {"type": "int"}
+    }
+  },
+  "timeCorrectionShiftType": "Type: {type}",
+  "@timeCorrectionShiftType": {
+    "placeholders": {
+      "type": {"type": "String"}
+    }
+  },
+  "timeCorrectionReasonSection": "Reason",
+  "timeCorrectionAttachmentsSection": "Attachments",
+  "timeCorrectionFileCount": "{count} file(s)",
+  "@timeCorrectionFileCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeCorrectionEvidencePhoto": "Evidence photo",
+  "timeCorrectionEvidenceDocument": "Evidence document",
+  "timeCorrectionWorkflowSection": "Approval Workflow",
+  "timeCorrectionStepOf": "Step {current} of {total}",
+  "@timeCorrectionStepOf": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "timeCorrectionRoleDeptHead": "Department Head",
+  "timeCorrectionRoleHr": "Human Resources (HR)",
+  "timeCorrectionRoleOther": "Approver",
+  "timeCorrectionStepReviewing": "Reviewing",
+  "timeCorrectionStepWaitingFor": "Waiting for step {step}",
+  "@timeCorrectionStepWaitingFor": {
+    "placeholders": {
+      "step": {"type": "int"}
+    }
+  },
+  "timeCorrectionStepApproved": "Approved",
+  "timeCorrectionStepRejected": "Rejected",
+  "timeCorrectionApproverUnassigned": "To be assigned",
+  "timeCorrectionSentAt": "Sent: {time}",
+  "@timeCorrectionSentAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "timeCorrectionActedAt": "Decided: {time}",
+  "@timeCorrectionActedAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "timeCorrectionCancelAction": "Cancel Request",
+  "timeCorrectionCancelConfirm": "Cancel this time correction request?",
+  "timeCorrectionCancelled": "Request cancelled",
+  "timeCorrectionCancelFailed": "Couldn't cancel the request.",
+  "timeCorrectionContactNote": "Questions? Contact your department head or HR directly.",
+  "timeCorrectionAttachmentSaved": "File saved",
+  "timeCorrectionAttachmentSaveFailed": "Couldn't download the file."
 }

@@ -2047,6 +2047,366 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use photo'**
   String get cameraUsePhoto;
+
+  /// No description provided for @timeCorrectionHistoryMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Correction History'**
+  String get timeCorrectionHistoryMenu;
+
+  /// No description provided for @timeCorrectionHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Correction History'**
+  String get timeCorrectionHistoryTitle;
+
+  /// No description provided for @timeCorrectionSummaryTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get timeCorrectionSummaryTotal;
+
+  /// No description provided for @timeCorrectionSummaryTotalUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'items'**
+  String get timeCorrectionSummaryTotalUnit;
+
+  /// No description provided for @timeCorrectionSummaryPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting review'**
+  String get timeCorrectionSummaryPending;
+
+  /// No description provided for @timeCorrectionSummaryPendingUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'pending'**
+  String get timeCorrectionSummaryPendingUnit;
+
+  /// No description provided for @timeCorrectionSummaryApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get timeCorrectionSummaryApproved;
+
+  /// No description provided for @timeCorrectionSummaryApprovedUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'done'**
+  String get timeCorrectionSummaryApprovedUnit;
+
+  /// No description provided for @timeCorrectionFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All ({count})'**
+  String timeCorrectionFilterAll(int count);
+
+  /// No description provided for @timeCorrectionFilterPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending ({count})'**
+  String timeCorrectionFilterPending(int count);
+
+  /// No description provided for @timeCorrectionFilterApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved ({count})'**
+  String timeCorrectionFilterApproved(int count);
+
+  /// No description provided for @timeCorrectionFilterRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected ({count})'**
+  String timeCorrectionFilterRejected(int count);
+
+  /// No description provided for @timeCorrectionStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting approval'**
+  String get timeCorrectionStatusPending;
+
+  /// No description provided for @timeCorrectionStatusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get timeCorrectionStatusApproved;
+
+  /// No description provided for @timeCorrectionStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get timeCorrectionStatusRejected;
+
+  /// No description provided for @timeCorrectionClockInAt.
+  ///
+  /// In en, this message translates to:
+  /// **'In {time}'**
+  String timeCorrectionClockInAt(String time);
+
+  /// No description provided for @timeCorrectionClockOutAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Out {time}'**
+  String timeCorrectionClockOutAt(String time);
+
+  /// No description provided for @timeCorrectionHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No correction requests'**
+  String get timeCorrectionHistoryEmpty;
+
+  /// No description provided for @timeCorrectionNewRequestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New request'**
+  String get timeCorrectionNewRequestTitle;
+
+  /// No description provided for @timeCorrectionNewRequestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request a clock-in/out time correction'**
+  String get timeCorrectionNewRequestSubtitle;
+
+  /// No description provided for @timeCorrectionHistoryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your correction requests.'**
+  String get timeCorrectionHistoryLoadFailed;
+
+  /// No description provided for @timeCorrectionStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get timeCorrectionStatusCancelled;
+
+  /// No description provided for @timeCorrectionDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Details'**
+  String get timeCorrectionDetailTitle;
+
+  /// No description provided for @timeCorrectionDetailLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this request.'**
+  String get timeCorrectionDetailLoadFailed;
+
+  /// No description provided for @timeCorrectionSubmittedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted: {date}'**
+  String timeCorrectionSubmittedOn(String date);
+
+  /// No description provided for @timeCorrectionRequestDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Request date'**
+  String get timeCorrectionRequestDateLabel;
+
+  /// No description provided for @timeCorrectionDetailsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction details'**
+  String get timeCorrectionDetailsSection;
+
+  /// No description provided for @timeCorrectionRequestedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock in (Requested)'**
+  String get timeCorrectionRequestedIn;
+
+  /// No description provided for @timeCorrectionRequestedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock out (Requested)'**
+  String get timeCorrectionRequestedOut;
+
+  /// No description provided for @timeCorrectionNormalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal: {time}'**
+  String timeCorrectionNormalTime(String time);
+
+  /// No description provided for @timeCorrectionTotalHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Total corrected hours:'**
+  String get timeCorrectionTotalHours;
+
+  /// No description provided for @timeCorrectionHoursValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h'**
+  String timeCorrectionHoursValue(String hours);
+
+  /// No description provided for @timeCorrectionShiftGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift group (SHIFT)'**
+  String get timeCorrectionShiftGroup;
+
+  /// No description provided for @timeCorrectionOtEligible.
+  ///
+  /// In en, this message translates to:
+  /// **'OT Eligible'**
+  String get timeCorrectionOtEligible;
+
+  /// No description provided for @timeCorrectionShiftBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} ({minutes} min break)'**
+  String timeCorrectionShiftBreak(String hours, int minutes);
+
+  /// No description provided for @timeCorrectionShiftType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type: {type}'**
+  String timeCorrectionShiftType(String type);
+
+  /// No description provided for @timeCorrectionReasonSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get timeCorrectionReasonSection;
+
+  /// No description provided for @timeCorrectionAttachmentsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get timeCorrectionAttachmentsSection;
+
+  /// No description provided for @timeCorrectionFileCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} file(s)'**
+  String timeCorrectionFileCount(int count);
+
+  /// No description provided for @timeCorrectionEvidencePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence photo'**
+  String get timeCorrectionEvidencePhoto;
+
+  /// No description provided for @timeCorrectionEvidenceDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence document'**
+  String get timeCorrectionEvidenceDocument;
+
+  /// No description provided for @timeCorrectionWorkflowSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval Workflow'**
+  String get timeCorrectionWorkflowSection;
+
+  /// No description provided for @timeCorrectionStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String timeCorrectionStepOf(int current, int total);
+
+  /// No description provided for @timeCorrectionRoleDeptHead.
+  ///
+  /// In en, this message translates to:
+  /// **'Department Head'**
+  String get timeCorrectionRoleDeptHead;
+
+  /// No description provided for @timeCorrectionRoleHr.
+  ///
+  /// In en, this message translates to:
+  /// **'Human Resources (HR)'**
+  String get timeCorrectionRoleHr;
+
+  /// No description provided for @timeCorrectionRoleOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Approver'**
+  String get timeCorrectionRoleOther;
+
+  /// No description provided for @timeCorrectionStepReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewing'**
+  String get timeCorrectionStepReviewing;
+
+  /// No description provided for @timeCorrectionStepWaitingFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for step {step}'**
+  String timeCorrectionStepWaitingFor(int step);
+
+  /// No description provided for @timeCorrectionStepApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get timeCorrectionStepApproved;
+
+  /// No description provided for @timeCorrectionStepRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get timeCorrectionStepRejected;
+
+  /// No description provided for @timeCorrectionApproverUnassigned.
+  ///
+  /// In en, this message translates to:
+  /// **'To be assigned'**
+  String get timeCorrectionApproverUnassigned;
+
+  /// No description provided for @timeCorrectionSentAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent: {time}'**
+  String timeCorrectionSentAt(String time);
+
+  /// No description provided for @timeCorrectionActedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Decided: {time}'**
+  String timeCorrectionActedAt(String time);
+
+  /// No description provided for @timeCorrectionCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Request'**
+  String get timeCorrectionCancelAction;
+
+  /// No description provided for @timeCorrectionCancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this time correction request?'**
+  String get timeCorrectionCancelConfirm;
+
+  /// No description provided for @timeCorrectionCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Request cancelled'**
+  String get timeCorrectionCancelled;
+
+  /// No description provided for @timeCorrectionCancelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t cancel the request.'**
+  String get timeCorrectionCancelFailed;
+
+  /// No description provided for @timeCorrectionContactNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions? Contact your department head or HR directly.'**
+  String get timeCorrectionContactNote;
+
+  /// No description provided for @timeCorrectionAttachmentSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'File saved'**
+  String get timeCorrectionAttachmentSaved;
+
+  /// No description provided for @timeCorrectionAttachmentSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t download the file.'**
+  String get timeCorrectionAttachmentSaveFailed;
 }
 
 class _AppLocalizationsDelegate

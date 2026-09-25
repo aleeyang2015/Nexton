@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../domain/entities/time_correction_record.dart';
+import '../../domain/entities/time_correction_status.dart';
 import '../../domain/entities/time_correction_type.dart';
 import 'attendance_history_copy.dart';
 
@@ -55,6 +58,82 @@ class TimeCorrectionCopy {
     }
     return '${(bytes / 1024).ceil()} KB';
   }
+
+  static String statusLabel(
+    AppLocalizations l10n,
+    TimeCorrectionStatus status,
+  ) => switch (status) {
+    TimeCorrectionStatus.pending => l10n.timeCorrectionStatusPending,
+    TimeCorrectionStatus.approved => l10n.timeCorrectionStatusApproved,
+    TimeCorrectionStatus.rejected => l10n.timeCorrectionStatusRejected,
+    TimeCorrectionStatus.cancelled => l10n.timeCorrectionStatusCancelled,
+  };
+
+  static Color statusColor(TimeCorrectionStatus status) => switch (status) {
+    TimeCorrectionStatus.pending => AppColors.primaryVariant,
+    TimeCorrectionStatus.approved => AppColors.attendancePresent,
+    TimeCorrectionStatus.rejected => AppColors.danger,
+    TimeCorrectionStatus.cancelled => AppColors.gray600,
+  };
+
+  /// A history tab's label with its count — "ລໍຖ້າ (4)"; null is "all".
+  static String filterLabel(
+    AppLocalizations l10n,
+    TimeCorrectionStatus? status,
+    int count,
+  ) => switch (status) {
+    null => l10n.timeCorrectionFilterAll(count),
+    TimeCorrectionStatus.pending => l10n.timeCorrectionFilterPending(count),
+    TimeCorrectionStatus.approved => l10n.timeCorrectionFilterApproved(count),
+    TimeCorrectionStatus.rejected => l10n.timeCorrectionFilterRejected(count),
+    TimeCorrectionStatus.cancelled =>
+      '${l10n.timeCorrectionStatusCancelled} ($count)',
+  };
+
+  /// "#d290" — a long id (a UUID) cut to its first four characters, as the
+  /// design shows it; a short id is shown whole.
+  static String shortId(String id) =>
+      '#${id.length > 8 ? id.substring(0, 4) : id}';
+
+  /// "24/09/2026 10:45" — when a request was sent.
+  static String submittedAt(DateTime at) =>
+      '${_two(at.day)}/${_two(at.month)}/${at.year} '
+      '${_two(at.hour)}:${_two(at.minute)}';
+
+  /// The corrected time(s) a history card shows, with the icon that goes
+  /// before them: "08:00 - 12:00" for both, "ເຂົ້າ 08:00" for one side.
+  static ({IconData icon, String label})? recordTimes(
+    AppLocalizations l10n,
+    TimeCorrectionRecord record,
+  ) {
+    final clockIn = record.type.needsClockIn ? record.clockIn : null;
+    final clockOut = record.type.needsClockOut ? record.clockOut : null;
+    if (clockIn != null && clockOut != null) {
+      return (
+        icon: Icons.schedule,
+        label: '${_duration(clockIn)} - ${_duration(clockOut)}',
+      );
+    }
+    if (clockIn != null) {
+      return (
+        icon: Icons.login,
+        label: l10n.timeCorrectionClockInAt(_duration(clockIn)),
+      );
+    }
+    if (clockOut != null) {
+      return (
+        icon: Icons.logout,
+        label: l10n.timeCorrectionClockOutAt(_duration(clockOut)),
+      );
+    }
+    return null;
+  }
+
+  /// "08:00" from an offset since midnight.
+  static String hourMinuteOf(Duration offset) => _duration(offset);
+
+  static String _duration(Duration offset) =>
+      '${_two(offset.inHours)}:${_two(offset.inMinutes % 60)}';
 
   static String _two(int value) => value.toString().padLeft(2, '0');
 }

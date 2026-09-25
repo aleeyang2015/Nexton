@@ -10,11 +10,15 @@ import '../../domain/entities/attendance_summary.dart';
 import '../../domain/entities/date_range.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../../domain/entities/punch_request.dart';
+import '../../domain/entities/time_correction_detail.dart';
+import '../../domain/entities/time_correction_record.dart';
 import '../../domain/entities/time_correction_request.dart';
 import '../models/attendance_record_model.dart';
 import '../models/attendance_summary_model.dart';
 import '../models/clock_request_model.dart';
 import '../models/punch_receipt_model.dart';
+import '../models/time_correction_detail_model.dart';
+import '../models/time_correction_record_model.dart';
 import '../models/time_correction_request_model.dart';
 import 'attendance_api_paths.dart';
 
@@ -42,6 +46,18 @@ abstract class AttendanceRemoteDataSource {
   /// Files a time-correction request. The created record isn't used, so the
   /// response body is not read.
   Future<void> submitTimeCorrection(TimeCorrectionRequest request);
+
+  /// The employee's own time-correction requests, newest first.
+  Future<List<TimeCorrectionRecord>> myTimeCorrections();
+
+  /// One of the employee's requests in full.
+  Future<TimeCorrectionDetail> timeCorrectionDetail(String id);
+
+  /// Withdraws a pending request. The body isn't read.
+  Future<void> cancelTimeCorrection(String id);
+
+  /// Downloads an evidence file from its storage URL.
+  Future<Uint8List> fetchFile(String url);
 }
 
 class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
@@ -49,9 +65,18 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   /// queried for a single date, so one page is always the whole answer.
   static const int _todayPageSize = 5;
 
+  /// The history page shows one unpaged list; corrections are limited to
+  /// the last 90 days, so this comfortably covers them.
+  static const int _correctionPageSize = 100;
+
   final ApiClient _client;
 
-  AttendanceRemoteDataSourceImpl(this._client);
+  /// For evidence files: they live on the object store, not the API, so they
+  /// are fetched without the API client's session token.
+  final Dio _files;
+
+  AttendanceRemoteDataSourceImpl(this._client, {Dio? files})
+    : _files = files ?? Dio();
 
   @override
   Future<PunchOutcome> clockIn(PunchRequest request) =>
@@ -135,6 +160,60 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
       _debugLog('error ${error.response?.statusCode}', error.response?.data);
       rethrow;
     }
+  }
+
+  @override
+  Future<List<TimeCorrectionRecord>> myTimeCorrections() async {
+    final response = await _client.get<dynamic>(
+      AttendancePaths.myCorrectionRequests,
+      queryParameters: {'page': 1, 'per_page': _correctionPageSize},
+    );
+    _debugLog(
+      'GET ${AttendancePaths.myCorrectionRequests} response',
+      response.data,
+    );
+
+    final records = ApiEnvelope.unwrapList(response.data)
+        .map(TimeCorrectionRecordModel.fromJson)
+        .whereType<TimeCorrectionRecord>()
+        .toList();
+    records.sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
+    return records;
+  }
+
+  @override
+  Future<TimeCorrectionDetail> timeCorrectionDetail(String id) async {
+    final path = AttendancePaths.correctionRequest(id);
+    final response = await _client.get<dynamic>(path);
+    _debugLog('GET $path response', response.data);
+
+    return TimeCorrectionDetailModel.fromJson(
+      ApiEnvelope.unwrapObject(response.data),
+    );
+  }
+
+  @override
+  Future<void> cancelTimeCorrection(String id) async {
+    final path = AttendancePaths.cancelCorrectionRequest(id);
+    try {
+      final response = await _client.put<dynamic>(path);
+      _debugLog('PUT $path response ${response.statusCode}', response.data);
+    } on DioException catch (error) {
+      _debugLog(
+        'PUT $path error ${error.response?.statusCode}',
+        error.response?.data,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Uint8List> fetchFile(String url) async {
+    final response = await _files.get<List<int>>(
+      url,
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(response.data ?? const []);
   }
 
   /// Pretty-prints a time-correction payload under one tag, so it can be

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../../../../core/utils/base_repository.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/attendance_day.dart';
@@ -5,6 +7,8 @@ import '../../domain/entities/attendance_summary.dart';
 import '../../domain/entities/date_range.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../../domain/entities/punch_request.dart';
+import '../../domain/entities/time_correction_detail.dart';
+import '../../domain/entities/time_correction_record.dart';
 import '../../domain/entities/time_correction_request.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../datasources/attendance_remote_data_source.dart';
@@ -49,4 +53,22 @@ class AttendanceRepositoryImpl extends BaseRepository
         await _remote.submitTimeCorrection(request);
         return Unit.instance;
       });
+
+  @override
+  FutureResult<List<TimeCorrectionRecord>> myTimeCorrections() =>
+      guard(() => _remote.myTimeCorrections());
+
+  @override
+  FutureResult<TimeCorrectionDetail> timeCorrectionDetail(String id) =>
+      guard(() => _remote.timeCorrectionDetail(id));
+
+  @override
+  FutureResult<Unit> cancelTimeCorrection(String id) => guard(() async {
+    await _remote.cancelTimeCorrection(id);
+    return Unit.instance;
+  });
+
+  @override
+  FutureResult<Uint8List> timeCorrectionAttachment(String url) =>
+      guard(() => _remote.fetchFile(url));
 }

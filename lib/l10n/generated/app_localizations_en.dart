@@ -1072,4 +1072,221 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cameraUsePhoto => 'Use photo';
+
+  @override
+  String get timeCorrectionHistoryMenu => 'Time Correction History';
+
+  @override
+  String get timeCorrectionHistoryTitle => 'Time Correction History';
+
+  @override
+  String get timeCorrectionSummaryTotal => 'Total';
+
+  @override
+  String get timeCorrectionSummaryTotalUnit => 'items';
+
+  @override
+  String get timeCorrectionSummaryPending => 'Awaiting review';
+
+  @override
+  String get timeCorrectionSummaryPendingUnit => 'pending';
+
+  @override
+  String get timeCorrectionSummaryApproved => 'Approved';
+
+  @override
+  String get timeCorrectionSummaryApprovedUnit => 'done';
+
+  @override
+  String timeCorrectionFilterAll(int count) {
+    return 'All ($count)';
+  }
+
+  @override
+  String timeCorrectionFilterPending(int count) {
+    return 'Pending ($count)';
+  }
+
+  @override
+  String timeCorrectionFilterApproved(int count) {
+    return 'Approved ($count)';
+  }
+
+  @override
+  String timeCorrectionFilterRejected(int count) {
+    return 'Rejected ($count)';
+  }
+
+  @override
+  String get timeCorrectionStatusPending => 'Awaiting approval';
+
+  @override
+  String get timeCorrectionStatusApproved => 'Approved';
+
+  @override
+  String get timeCorrectionStatusRejected => 'Rejected';
+
+  @override
+  String timeCorrectionClockInAt(String time) {
+    return 'In $time';
+  }
+
+  @override
+  String timeCorrectionClockOutAt(String time) {
+    return 'Out $time';
+  }
+
+  @override
+  String get timeCorrectionHistoryEmpty => 'No correction requests';
+
+  @override
+  String get timeCorrectionNewRequestTitle => 'New request';
+
+  @override
+  String get timeCorrectionNewRequestSubtitle =>
+      'Request a clock-in/out time correction';
+
+  @override
+  String get timeCorrectionHistoryLoadFailed =>
+      'Could not load your correction requests.';
+
+  @override
+  String get timeCorrectionStatusCancelled => 'Cancelled';
+
+  @override
+  String get timeCorrectionDetailTitle => 'Request Details';
+
+  @override
+  String get timeCorrectionDetailLoadFailed => 'Could not load this request.';
+
+  @override
+  String timeCorrectionSubmittedOn(String date) {
+    return 'Submitted: $date';
+  }
+
+  @override
+  String get timeCorrectionRequestDateLabel => 'Request date';
+
+  @override
+  String get timeCorrectionDetailsSection => 'Correction details';
+
+  @override
+  String get timeCorrectionRequestedIn => 'Clock in (Requested)';
+
+  @override
+  String get timeCorrectionRequestedOut => 'Clock out (Requested)';
+
+  @override
+  String timeCorrectionNormalTime(String time) {
+    return 'Normal: $time';
+  }
+
+  @override
+  String get timeCorrectionTotalHours => 'Total corrected hours:';
+
+  @override
+  String timeCorrectionHoursValue(String hours) {
+    return '$hours h';
+  }
+
+  @override
+  String get timeCorrectionShiftGroup => 'Shift group (SHIFT)';
+
+  @override
+  String get timeCorrectionOtEligible => 'OT Eligible';
+
+  @override
+  String timeCorrectionShiftBreak(String hours, int minutes) {
+    return '$hours ($minutes min break)';
+  }
+
+  @override
+  String timeCorrectionShiftType(String type) {
+    return 'Type: $type';
+  }
+
+  @override
+  String get timeCorrectionReasonSection => 'Reason';
+
+  @override
+  String get timeCorrectionAttachmentsSection => 'Attachments';
+
+  @override
+  String timeCorrectionFileCount(int count) {
+    return '$count file(s)';
+  }
+
+  @override
+  String get timeCorrectionEvidencePhoto => 'Evidence photo';
+
+  @override
+  String get timeCorrectionEvidenceDocument => 'Evidence document';
+
+  @override
+  String get timeCorrectionWorkflowSection => 'Approval Workflow';
+
+  @override
+  String timeCorrectionStepOf(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get timeCorrectionRoleDeptHead => 'Department Head';
+
+  @override
+  String get timeCorrectionRoleHr => 'Human Resources (HR)';
+
+  @override
+  String get timeCorrectionRoleOther => 'Approver';
+
+  @override
+  String get timeCorrectionStepReviewing => 'Reviewing';
+
+  @override
+  String timeCorrectionStepWaitingFor(int step) {
+    return 'Waiting for step $step';
+  }
+
+  @override
+  String get timeCorrectionStepApproved => 'Approved';
+
+  @override
+  String get timeCorrectionStepRejected => 'Rejected';
+
+  @override
+  String get timeCorrectionApproverUnassigned => 'To be assigned';
+
+  @override
+  String timeCorrectionSentAt(String time) {
+    return 'Sent: $time';
+  }
+
+  @override
+  String timeCorrectionActedAt(String time) {
+    return 'Decided: $time';
+  }
+
+  @override
+  String get timeCorrectionCancelAction => 'Cancel Request';
+
+  @override
+  String get timeCorrectionCancelConfirm =>
+      'Cancel this time correction request?';
+
+  @override
+  String get timeCorrectionCancelled => 'Request cancelled';
+
+  @override
+  String get timeCorrectionCancelFailed => 'Couldn\'t cancel the request.';
+
+  @override
+  String get timeCorrectionContactNote =>
+      'Questions? Contact your department head or HR directly.';
+
+  @override
+  String get timeCorrectionAttachmentSaved => 'File saved';
+
+  @override
+  String get timeCorrectionAttachmentSaveFailed =>
+      'Couldn\'t download the file.';
 }

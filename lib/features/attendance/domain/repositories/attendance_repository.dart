@@ -1,9 +1,13 @@
+import 'dart:typed_data';
+
 import '../../../../core/utils/result.dart';
 import '../entities/attendance_day.dart';
 import '../entities/attendance_summary.dart';
 import '../entities/date_range.dart';
 import '../entities/punch_outcome.dart';
 import '../entities/punch_request.dart';
+import '../entities/time_correction_detail.dart';
+import '../entities/time_correction_record.dart';
 import '../entities/time_correction_request.dart';
 
 /// Contract the presentation layer depends on. The implementation lives in
@@ -38,4 +42,18 @@ abstract class AttendanceRepository {
   /// `POST /attendance/correction-requests` — files a "ລືມລົງເວລາ" request
   /// for a manager to approve.
   FutureResult<Unit> submitTimeCorrection(TimeCorrectionRequest request);
+
+  /// `GET /attendance/correction-requests/my` — the employee's filed
+  /// requests, newest first.
+  FutureResult<List<TimeCorrectionRecord>> myTimeCorrections();
+
+  /// `GET /attendance/correction-requests/:id` — one request in full.
+  FutureResult<TimeCorrectionDetail> timeCorrectionDetail(String id);
+
+  /// `PUT /attendance/correction-requests/:id/cancel` — withdraws a pending
+  /// request.
+  FutureResult<Unit> cancelTimeCorrection(String id);
+
+  /// The bytes of an evidence file, from its storage URL.
+  FutureResult<Uint8List> timeCorrectionAttachment(String url);
 }

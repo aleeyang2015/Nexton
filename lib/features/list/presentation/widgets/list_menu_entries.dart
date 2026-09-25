@@ -50,6 +50,11 @@ List<ListMenuEntry> buildListMenuEntries(
     Icons.more_time,
     onTap: () => context.push(AppRoutes.timeCorrectionRequest),
   ),
+  ListMenuEntry(
+    l10n.timeCorrectionHistoryMenu,
+    Icons.manage_history,
+    onTap: () => context.push(AppRoutes.timeCorrectionHistory),
+  ),
   // ListMenuEntry(
   //   l10n.profile,
   //   Icons.person,

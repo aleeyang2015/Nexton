@@ -1061,4 +1061,221 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get cameraUsePhoto => 'ໃຊ້ຮູບນີ້';
+
+  @override
+  String get timeCorrectionHistoryMenu => 'ປະຫວັດແກ້ໄຂເວລາ';
+
+  @override
+  String get timeCorrectionHistoryTitle => 'ປະຫວັດການຮ້ອງຂໍແກ້ໄຂເວລາ';
+
+  @override
+  String get timeCorrectionSummaryTotal => 'ທັງໝົດ';
+
+  @override
+  String get timeCorrectionSummaryTotalUnit => 'ລາຍການ';
+
+  @override
+  String get timeCorrectionSummaryPending => 'ລໍຖ້າກວດ';
+
+  @override
+  String get timeCorrectionSummaryPendingUnit => 'ລໍຖ້າ';
+
+  @override
+  String get timeCorrectionSummaryApproved => 'ອະນຸມັດ';
+
+  @override
+  String get timeCorrectionSummaryApprovedUnit => 'ສຳເລັດ';
+
+  @override
+  String timeCorrectionFilterAll(int count) {
+    return 'ທັງໝົດ ($count)';
+  }
+
+  @override
+  String timeCorrectionFilterPending(int count) {
+    return 'ລໍຖ້າ ($count)';
+  }
+
+  @override
+  String timeCorrectionFilterApproved(int count) {
+    return 'ອະນຸມັດ ($count)';
+  }
+
+  @override
+  String timeCorrectionFilterRejected(int count) {
+    return 'ປະຕິເສດ ($count)';
+  }
+
+  @override
+  String get timeCorrectionStatusPending => 'ລໍຖ້າອະນຸມັດ';
+
+  @override
+  String get timeCorrectionStatusApproved => 'ອະນຸມັດແລ້ວ';
+
+  @override
+  String get timeCorrectionStatusRejected => 'ຖືກປະຕິເສດ';
+
+  @override
+  String timeCorrectionClockInAt(String time) {
+    return 'ເຂົ້າ $time';
+  }
+
+  @override
+  String timeCorrectionClockOutAt(String time) {
+    return 'ອອກ $time';
+  }
+
+  @override
+  String get timeCorrectionHistoryEmpty => 'ບໍ່ມີຄຳຮ້ອງ';
+
+  @override
+  String get timeCorrectionNewRequestTitle => 'ສ້າງຄຳຮ້ອງໃໝ່';
+
+  @override
+  String get timeCorrectionNewRequestSubtitle => 'ຮ້ອງຂໍແກ້ໄຂເວລາເຂົ້າ-ອອກວຽກ';
+
+  @override
+  String get timeCorrectionHistoryLoadFailed =>
+      'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງແກ້ໄຂເວລາໄດ້.';
+
+  @override
+  String get timeCorrectionStatusCancelled => 'ຍົກເລີກແລ້ວ';
+
+  @override
+  String get timeCorrectionDetailTitle => 'ລາຍລະອຽດຄຳຮ້ອງ';
+
+  @override
+  String get timeCorrectionDetailLoadFailed => 'ບໍ່ສາມາດໂຫຼດລາຍລະອຽດຄຳຮ້ອງໄດ້.';
+
+  @override
+  String timeCorrectionSubmittedOn(String date) {
+    return 'ວັນທີສົ່ງ: $date';
+  }
+
+  @override
+  String get timeCorrectionRequestDateLabel => 'ວັນທີຮ້ອງຂໍ';
+
+  @override
+  String get timeCorrectionDetailsSection => 'ລາຍລະອຽດການແກ້ໄຂເວລາ';
+
+  @override
+  String get timeCorrectionRequestedIn => 'ເວລາເຂົ້າ (Requested)';
+
+  @override
+  String get timeCorrectionRequestedOut => 'ເວລາອອກ (Requested)';
+
+  @override
+  String timeCorrectionNormalTime(String time) {
+    return 'ປົກກະຕິ: $time';
+  }
+
+  @override
+  String get timeCorrectionTotalHours => 'ລວມຊົ່ວໂມງທີ່ແກ້ໄຂ:';
+
+  @override
+  String timeCorrectionHoursValue(String hours) {
+    return '$hours ຊົ່ວໂມງ';
+  }
+
+  @override
+  String get timeCorrectionShiftGroup => 'ກຸ່ມການກວດສອບກະວຽກ (SHIFT)';
+
+  @override
+  String get timeCorrectionOtEligible => 'OT Eligible';
+
+  @override
+  String timeCorrectionShiftBreak(String hours, int minutes) {
+    return '$hours (ພັກ $minutes ນາທີ)';
+  }
+
+  @override
+  String timeCorrectionShiftType(String type) {
+    return 'ປະເພດ: $type';
+  }
+
+  @override
+  String get timeCorrectionReasonSection => 'ເຫດຜົນ / ລາຍລະອຽດ (Reason)';
+
+  @override
+  String get timeCorrectionAttachmentsSection => 'ເອກະສານ ຫຼື ຮູບພາບຕິດຄັດ';
+
+  @override
+  String timeCorrectionFileCount(int count) {
+    return '$count ໄຟລ໌';
+  }
+
+  @override
+  String get timeCorrectionEvidencePhoto => 'ຮູບພາບຫຼັກຖານ';
+
+  @override
+  String get timeCorrectionEvidenceDocument => 'ເອກະສານຫຼັກຖານ';
+
+  @override
+  String get timeCorrectionWorkflowSection =>
+      'ຂັ້ນຕອນການອະນຸມັດ (Approval Workflow)';
+
+  @override
+  String timeCorrectionStepOf(int current, int total) {
+    return 'ຂັ້ນຕອນທີ $current ຈາກ $total';
+  }
+
+  @override
+  String get timeCorrectionRoleDeptHead => 'ຫົວໜ້າພະແນກ (Dept Head)';
+
+  @override
+  String get timeCorrectionRoleHr => 'ຝ່າຍບຸກຄະລາກອນ (HR)';
+
+  @override
+  String get timeCorrectionRoleOther => 'ຜູ້ອະນຸມັດ';
+
+  @override
+  String get timeCorrectionStepReviewing => 'ກຳລັງກວດສອບ';
+
+  @override
+  String timeCorrectionStepWaitingFor(int step) {
+    return 'ລໍຖ້າຂັ້ນຕອນ $step';
+  }
+
+  @override
+  String get timeCorrectionStepApproved => 'ອະນຸມັດແລ້ວ';
+
+  @override
+  String get timeCorrectionStepRejected => 'ປະຕິເສດ';
+
+  @override
+  String get timeCorrectionApproverUnassigned =>
+      'ລໍຖ້າການກຳນົດ (To be assigned)';
+
+  @override
+  String timeCorrectionSentAt(String time) {
+    return 'ສົ່ງຄຳຮ້ອງເມື່ອ: $time';
+  }
+
+  @override
+  String timeCorrectionActedAt(String time) {
+    return 'ດຳເນີນການເມື່ອ: $time';
+  }
+
+  @override
+  String get timeCorrectionCancelAction => 'ຍົກເລີກຄຳຮ້ອງ (Cancel Request)';
+
+  @override
+  String get timeCorrectionCancelConfirm =>
+      'ຕ້ອງການຍົກເລີກຄຳຮ້ອງແກ້ໄຂເວລານີ້ບໍ?';
+
+  @override
+  String get timeCorrectionCancelled => 'ຍົກເລີກຄຳຮ້ອງແລ້ວ';
+
+  @override
+  String get timeCorrectionCancelFailed => 'ບໍ່ສາມາດຍົກເລີກຄຳຮ້ອງໄດ້.';
+
+  @override
+  String get timeCorrectionContactNote =>
+      'ຫາກມີຂໍ້ສົງໄສ ສາມາດຕິດຕໍ່ຫົວໜ້າພະແນກ ຫຼື HR ໄດ້ໂດຍກົງ';
+
+  @override
+  String get timeCorrectionAttachmentSaved => 'ບັນທຶກໄຟລ໌ແລ້ວ';
+
+  @override
+  String get timeCorrectionAttachmentSaveFailed => 'ດາວໂຫຼດໄຟລ໌ບໍ່ສຳເລັດ.';
 }

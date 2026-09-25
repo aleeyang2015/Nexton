@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/attendance/presentation/pages/attendance_history_page.dart';
 import '../../features/attendance/presentation/pages/camera_capture_page.dart';
+import '../../features/attendance/presentation/pages/time_correction_history_detail_page.dart';
+import '../../features/attendance/presentation/pages/time_correction_history_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_request_page.dart';
 import '../../features/auth/domain/entities/auth_session.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
@@ -32,6 +34,10 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String attendanceHistory = '/attendance-history';
   static const String timeCorrectionRequest = '/attendance/time-correction';
+  static const String timeCorrectionHistory =
+      '/attendance/time-correction/history';
+  static const String timeCorrectionHistoryDetail =
+      '/attendance/time-correction/history/detail';
   static const String cameraCapture = '/attendance/camera';
   static const String timeOff = '/time-off';
   static const String timeOffRequestDetail = '/time-off/request';
@@ -146,6 +152,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.timeCorrectionRequest,
         name: 'timeCorrectionRequest',
         builder: (context, state) => const TimeCorrectionRequestPage(),
+      ),
+      // The requests filed from it
+      GoRoute(
+        path: AppRoutes.timeCorrectionHistory,
+        name: 'timeCorrectionHistory',
+        builder: (context, state) => const TimeCorrectionHistoryPage(),
+      ),
+      // One of those requests — its id rides along as `extra`, so a direct
+      // hit without one falls through to the 404 page.
+      GoRoute(
+        path: AppRoutes.timeCorrectionHistoryDetail,
+        name: 'timeCorrectionHistoryDetail',
+        builder: (context, state) {
+          final id = state.extra;
+          if (id is! String) return const NotFoundPage();
+          return TimeCorrectionHistoryDetailPage(id: id);
+        },
       ),
       // Its "ຖ່າຍຮູບ" button — pops with the photo as a `LocalFile`.
       GoRoute(

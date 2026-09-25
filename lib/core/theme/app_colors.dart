@@ -8,6 +8,9 @@ class AppColors {
   static const Color primary = Color(0xFF325AFB);
   static const Color primaryVariant = Color(0xFF1E3FCB);
   static const Color primaryTint = Color(0xFFECF1FD);
+
+  /// Deep navy for high-emphasis banners, e.g. the "new request" card.
+  static const Color primaryDark = Color(0xFF0A2A8C);
   static const Color secondary = Color(0xFF3386FF);
   static const Color secondaryVariant = Color(0xFF5C9DFF);
 

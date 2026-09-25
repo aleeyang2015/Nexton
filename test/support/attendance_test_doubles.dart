@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
@@ -9,6 +10,8 @@ import 'package:next_on/features/attendance/domain/entities/clock_method.dart';
 import 'package:next_on/features/attendance/domain/entities/date_range.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_outcome.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_request.dart';
+import 'package:next_on/features/attendance/domain/entities/time_correction_detail.dart';
+import 'package:next_on/features/attendance/domain/entities/time_correction_record.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_request.dart';
 import 'package:next_on/features/attendance/domain/repositories/attendance_repository.dart';
 
@@ -82,6 +85,37 @@ class FakeAttendanceRepository implements AttendanceRepository {
     timeCorrectionRequests.add(request);
     return timeCorrectionResult;
   }
+
+  Result<List<TimeCorrectionRecord>> timeCorrectionHistoryResult =
+      const Result.success([]);
+
+  @override
+  FutureResult<List<TimeCorrectionRecord>> myTimeCorrections() async =>
+      timeCorrectionHistoryResult;
+
+  Result<TimeCorrectionDetail> timeCorrectionDetailResult =
+      const Result.failure(Failure.unknown(message: 'unset'));
+
+  @override
+  FutureResult<TimeCorrectionDetail> timeCorrectionDetail(String id) async =>
+      timeCorrectionDetailResult;
+
+  Result<Unit> cancelTimeCorrectionResult = const Result.success(Unit.instance);
+  final List<String> cancelledTimeCorrectionIds = [];
+
+  @override
+  FutureResult<Unit> cancelTimeCorrection(String id) async {
+    cancelledTimeCorrectionIds.add(id);
+    return cancelTimeCorrectionResult;
+  }
+
+  Result<Uint8List> timeCorrectionAttachmentResult = Result.success(
+    Uint8List(0),
+  );
+
+  @override
+  FutureResult<Uint8List> timeCorrectionAttachment(String url) async =>
+      timeCorrectionAttachmentResult;
 }
 
 /// Location source with a scripted reading, standing in for the device.
