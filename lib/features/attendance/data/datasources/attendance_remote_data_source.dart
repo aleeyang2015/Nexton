@@ -56,6 +56,17 @@ abstract class AttendanceRemoteDataSource {
   /// Withdraws a pending request. The body isn't read.
   Future<void> cancelTimeCorrection(String id);
 
+  /// The requests the signed-in approver decides on, newest first — the
+  /// endpoint scopes to the caller, so a non-approver gets an empty list.
+  Future<List<TimeCorrectionDetail>> timeCorrectionApprovals();
+
+  /// Approves a pending request. The body isn't read.
+  Future<void> approveTimeCorrection(String id);
+
+  /// Rejects a pending request with the approver's [reason]. The body isn't
+  /// read.
+  Future<void> rejectTimeCorrection(String id, String reason);
+
   /// Downloads an evidence file from its storage URL.
   Future<Uint8List> fetchFile(String url);
 }
@@ -201,12 +212,65 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   }
 
   @override
+  Future<List<TimeCorrectionDetail>> timeCorrectionApprovals() async {
+    final response = await _client.get<dynamic>(
+      AttendancePaths.myCorrectionApprovals,
+      queryParameters: {'page': 1, 'per_page': _correctionPageSize},
+    );
+    _debugLog(
+      'GET ${AttendancePaths.myCorrectionApprovals} response',
+      response.data,
+    );
+
+    final requests = ApiEnvelope.unwrapList(
+      response.data,
+    ).map(_approvalOrNull).whereType<TimeCorrectionDetail>().toList();
+    requests.sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
+    return requests;
+  }
+
+  @override
+  Future<void> approveTimeCorrection(String id) =>
+      _decide(AttendancePaths.approveCorrectionRequest(id), const {});
+
+  @override
+  Future<void> rejectTimeCorrection(String id, String reason) => _decide(
+    AttendancePaths.rejectCorrectionRequest(id),
+    {'reason': reason.trim()},
+  );
+
+  @override
   Future<Uint8List> fetchFile(String url) async {
     final response = await _files.get<List<int>>(
       url,
       options: Options(responseType: ResponseType.bytes),
     );
     return Uint8List.fromList(response.data ?? const []);
+  }
+
+  /// An approval-list entry carries the same fields as the detail response;
+  /// one missing its id, date or type is dropped rather than shown
+  /// half-empty — same policy as [TimeCorrectionRecordModel].
+  static TimeCorrectionDetail? _approvalOrNull(Map<String, dynamic> json) {
+    try {
+      return TimeCorrectionDetailModel.fromJson(json);
+    } on FormatException {
+      return null;
+    }
+  }
+
+  /// `PUT` an approver's decision, logging the answer either way.
+  Future<void> _decide(String path, Map<String, dynamic> body) async {
+    try {
+      final response = await _client.put<dynamic>(path, data: body);
+      _debugLog('PUT $path response ${response.statusCode}', response.data);
+    } on DioException catch (error) {
+      _debugLog(
+        'PUT $path error ${error.response?.statusCode}',
+        error.response?.data,
+      );
+      rethrow;
+    }
   }
 
   /// Pretty-prints a time-correction payload under one tag, so it can be

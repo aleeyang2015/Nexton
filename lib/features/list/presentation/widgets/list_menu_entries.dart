@@ -60,6 +60,12 @@ List<ListMenuEntry> buildListMenuEntries(
     color: const Color(0xFF8B5CF6),
     onTap: () => context.push(AppRoutes.timeCorrectionHistory),
   ),
+  ListMenuEntry(
+    l10n.timeCorrectionApprovalsMenu,
+    Icons.fact_check_outlined,
+    color: const Color(0xFF0E9F8E),
+    onTap: () => context.push(AppRoutes.timeCorrectionApprovals),
+  ),
   // ListMenuEntry(
   //   l10n.profile,
   //   Icons.person,

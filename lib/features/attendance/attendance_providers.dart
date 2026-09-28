@@ -8,16 +8,19 @@ import 'data/datasources/geolocator_punch_location_source.dart';
 import 'data/repositories/attendance_repository_impl.dart';
 import 'domain/datasources/punch_location_source.dart';
 import 'domain/repositories/attendance_repository.dart';
+import 'domain/usecases/approve_time_correction_usecase.dart';
 import 'domain/usecases/cancel_time_correction_usecase.dart';
 import 'domain/usecases/clock_in_usecase.dart';
 import 'domain/usecases/clock_out_usecase.dart';
 import 'domain/usecases/download_time_correction_attachment_usecase.dart';
 import 'domain/usecases/get_monthly_records_usecase.dart';
 import 'domain/usecases/get_monthly_summary_usecase.dart';
+import 'domain/usecases/get_time_correction_approvals_usecase.dart';
 import 'domain/usecases/get_time_correction_detail_usecase.dart';
 import 'domain/usecases/get_time_correction_history_usecase.dart';
 import 'domain/usecases/get_today_attendance_usecase.dart';
 import 'domain/usecases/prepare_punch_usecase.dart';
+import 'domain/usecases/reject_time_correction_usecase.dart';
 import 'domain/usecases/submit_time_correction_usecase.dart';
 
 /// Composition root for the attendance feature: the one place the data layer
@@ -111,6 +114,27 @@ final cancelTimeCorrectionUseCaseProvider =
 final downloadTimeCorrectionAttachmentUseCaseProvider =
     Provider<DownloadTimeCorrectionAttachmentUseCase>((ref) {
       return DownloadTimeCorrectionAttachmentUseCase(
+        ref.watch(attendanceRepositoryProvider),
+      );
+    });
+
+final getTimeCorrectionApprovalsUseCaseProvider =
+    Provider<GetTimeCorrectionApprovalsUseCase>((ref) {
+      return GetTimeCorrectionApprovalsUseCase(
+        ref.watch(attendanceRepositoryProvider),
+      );
+    });
+
+final approveTimeCorrectionUseCaseProvider =
+    Provider<ApproveTimeCorrectionUseCase>((ref) {
+      return ApproveTimeCorrectionUseCase(
+        ref.watch(attendanceRepositoryProvider),
+      );
+    });
+
+final rejectTimeCorrectionUseCaseProvider =
+    Provider<RejectTimeCorrectionUseCase>((ref) {
+      return RejectTimeCorrectionUseCase(
         ref.watch(attendanceRepositoryProvider),
       );
     });

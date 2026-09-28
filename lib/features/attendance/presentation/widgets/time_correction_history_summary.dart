@@ -196,19 +196,24 @@ class _PendingDot extends StatelessWidget {
 
 /// The status filter: a dropdown of "ທັງໝົດ / ລໍຖ້າ / ອະນຸມັດ / ປະຕິເສດ /
 /// ຍົກເລີກແລ້ວ", each with its count. A null status is "all".
+///
+/// [options] defaults to every status; the approvals page passes only the
+/// ones an approver acts on.
 class TimeCorrectionFilterDropdown extends StatelessWidget {
   final TimeCorrectionStatus? selected;
   final int Function(TimeCorrectionStatus? status) countOf;
   final ValueChanged<TimeCorrectionStatus?> onSelect;
+  final List<TimeCorrectionStatus?> options;
 
   const TimeCorrectionFilterDropdown({
     super.key,
     required this.selected,
     required this.countOf,
     required this.onSelect,
+    this.options = allOptions,
   });
 
-  static const List<TimeCorrectionStatus?> _options = [
+  static const List<TimeCorrectionStatus?> allOptions = [
     null,
     ...TimeCorrectionStatus.values,
   ];
@@ -236,7 +241,7 @@ class TimeCorrectionFilterDropdown extends StatelessWidget {
           ),
           onChanged: onSelect,
           selectedItemBuilder: (context) => [
-            for (final status in _options)
+            for (final status in options)
               Row(
                 children: [
                   const Icon(
@@ -261,7 +266,7 @@ class TimeCorrectionFilterDropdown extends StatelessWidget {
               ),
           ],
           items: [
-            for (final status in _options)
+            for (final status in options)
               DropdownMenuItem(
                 value: status,
                 child: customText(

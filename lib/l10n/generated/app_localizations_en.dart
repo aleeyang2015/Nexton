@@ -1297,4 +1297,82 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get timeCorrectionAttachmentSaveFailed =>
       'Couldn\'t download the file.';
+
+  @override
+  String get timeCorrectionApprovalsMenu => 'Approve Time Corrections';
+
+  @override
+  String get timeCorrectionApprovalsTitle => 'Time Correction Requests';
+
+  @override
+  String get timeCorrectionApprovalsSearchHint =>
+      'Search by employee name or ID (EMP-007)...';
+
+  @override
+  String get timeCorrectionApprovalStatusPending => 'Awaiting review';
+
+  @override
+  String timeCorrectionApprovalDepartment(String name) {
+    return 'Department: $name';
+  }
+
+  @override
+  String timeCorrectionApprovalShift(String name, String hours) {
+    return 'Shift $name ($hours)';
+  }
+
+  @override
+  String get timeCorrectionApprovalTypeMissingIn => 'Missing In';
+
+  @override
+  String get timeCorrectionApprovalTypeMissingOut => 'Missing Out';
+
+  @override
+  String get timeCorrectionApprovalTypeBoth => 'Both in & out';
+
+  @override
+  String get timeCorrectionApprovalTypeWrongTime => 'Wrong time';
+
+  @override
+  String get timeCorrectionApprovalClockIn => 'Clock in (In)';
+
+  @override
+  String get timeCorrectionApprovalClockOut => 'Clock out (Out)';
+
+  @override
+  String get timeCorrectionApprovalNewIn => 'Requested in (New In)';
+
+  @override
+  String get timeCorrectionApprovalNewOut => 'Requested out (New Out)';
+
+  @override
+  String get timeCorrectionApprovalReason => 'Reason:';
+
+  @override
+  String get timeCorrectionApprovalNoAttachment => 'No attachment';
+
+  @override
+  String get timeCorrectionApprovalAttachmentSubtitle => 'Attached evidence';
+
+  @override
+  String get timeCorrectionApprovalViewImage => 'View';
+
+  @override
+  String get timeCorrectionApprovalApprove => 'Approve';
+
+  @override
+  String get timeCorrectionApprovalReject => 'Reject';
+
+  @override
+  String get timeCorrectionApprovalApproved => 'Request approved';
+
+  @override
+  String get timeCorrectionApprovalRejected => 'Request rejected';
+
+  @override
+  String get timeCorrectionApprovalsLoadFailed =>
+      'Couldn\'t load the correction requests.';
+
+  @override
+  String get timeCorrectionApprovalsEmpty => 'No correction requests';
 }

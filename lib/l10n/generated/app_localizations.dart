@@ -2425,6 +2425,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t download the file.'**
   String get timeCorrectionAttachmentSaveFailed;
+
+  /// No description provided for @timeCorrectionApprovalsMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Time Corrections'**
+  String get timeCorrectionApprovalsMenu;
+
+  /// No description provided for @timeCorrectionApprovalsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Correction Requests'**
+  String get timeCorrectionApprovalsTitle;
+
+  /// No description provided for @timeCorrectionApprovalsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by employee name or ID (EMP-007)...'**
+  String get timeCorrectionApprovalsSearchHint;
+
+  /// No description provided for @timeCorrectionApprovalStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting review'**
+  String get timeCorrectionApprovalStatusPending;
+
+  /// No description provided for @timeCorrectionApprovalDepartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Department: {name}'**
+  String timeCorrectionApprovalDepartment(String name);
+
+  /// No description provided for @timeCorrectionApprovalShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift {name} ({hours})'**
+  String timeCorrectionApprovalShift(String name, String hours);
+
+  /// No description provided for @timeCorrectionApprovalTypeMissingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing In'**
+  String get timeCorrectionApprovalTypeMissingIn;
+
+  /// No description provided for @timeCorrectionApprovalTypeMissingOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing Out'**
+  String get timeCorrectionApprovalTypeMissingOut;
+
+  /// No description provided for @timeCorrectionApprovalTypeBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Both in & out'**
+  String get timeCorrectionApprovalTypeBoth;
+
+  /// No description provided for @timeCorrectionApprovalTypeWrongTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong time'**
+  String get timeCorrectionApprovalTypeWrongTime;
+
+  /// No description provided for @timeCorrectionApprovalClockIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock in (In)'**
+  String get timeCorrectionApprovalClockIn;
+
+  /// No description provided for @timeCorrectionApprovalClockOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock out (Out)'**
+  String get timeCorrectionApprovalClockOut;
+
+  /// No description provided for @timeCorrectionApprovalNewIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested in (New In)'**
+  String get timeCorrectionApprovalNewIn;
+
+  /// No description provided for @timeCorrectionApprovalNewOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested out (New Out)'**
+  String get timeCorrectionApprovalNewOut;
+
+  /// No description provided for @timeCorrectionApprovalReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason:'**
+  String get timeCorrectionApprovalReason;
+
+  /// No description provided for @timeCorrectionApprovalNoAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'No attachment'**
+  String get timeCorrectionApprovalNoAttachment;
+
+  /// No description provided for @timeCorrectionApprovalAttachmentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached evidence'**
+  String get timeCorrectionApprovalAttachmentSubtitle;
+
+  /// No description provided for @timeCorrectionApprovalViewImage.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get timeCorrectionApprovalViewImage;
+
+  /// No description provided for @timeCorrectionApprovalApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get timeCorrectionApprovalApprove;
+
+  /// No description provided for @timeCorrectionApprovalReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get timeCorrectionApprovalReject;
+
+  /// No description provided for @timeCorrectionApprovalApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Request approved'**
+  String get timeCorrectionApprovalApproved;
+
+  /// No description provided for @timeCorrectionApprovalRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Request rejected'**
+  String get timeCorrectionApprovalRejected;
+
+  /// No description provided for @timeCorrectionApprovalsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the correction requests.'**
+  String get timeCorrectionApprovalsLoadFailed;
+
+  /// No description provided for @timeCorrectionApprovalsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No correction requests'**
+  String get timeCorrectionApprovalsEmpty;
 }
 
 class _AppLocalizationsDelegate

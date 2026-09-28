@@ -109,6 +109,33 @@ class FakeAttendanceRepository implements AttendanceRepository {
     return cancelTimeCorrectionResult;
   }
 
+  Result<List<TimeCorrectionDetail>> timeCorrectionApprovalsResult =
+      const Result.success([]);
+
+  @override
+  FutureResult<List<TimeCorrectionDetail>> timeCorrectionApprovals() async =>
+      timeCorrectionApprovalsResult;
+
+  Result<Unit> approveTimeCorrectionResult = const Result.success(
+    Unit.instance,
+  );
+  final List<String> approvedTimeCorrectionIds = [];
+
+  @override
+  FutureResult<Unit> approveTimeCorrection(String id) async {
+    approvedTimeCorrectionIds.add(id);
+    return approveTimeCorrectionResult;
+  }
+
+  Result<Unit> rejectTimeCorrectionResult = const Result.success(Unit.instance);
+  final List<({String id, String reason})> rejectedTimeCorrections = [];
+
+  @override
+  FutureResult<Unit> rejectTimeCorrection(String id, String reason) async {
+    rejectedTimeCorrections.add((id: id, reason: reason));
+    return rejectTimeCorrectionResult;
+  }
+
   Result<Uint8List> timeCorrectionAttachmentResult = Result.success(
     Uint8List(0),
   );

@@ -12,6 +12,7 @@ import '../../domain/entities/time_correction_detail.dart';
 import '../providers/time_correction_detail_notifier.dart';
 import '../widgets/time_correction_approval_workflow.dart';
 import '../widgets/time_correction_detail_cards.dart';
+import '../widgets/time_correction_image_viewer.dart';
 
 /// "ລາຍລະອຽດຄຳຮ້ອງ" — one time-correction request in full, from
 /// `GET /attendance/correction-requests/:id`, with a cancel action while it
@@ -103,7 +104,7 @@ class _Body extends ConsumerWidget {
           TimeCorrectionAttachmentCard(
             url: attachment,
             downloading: downloading,
-            onView: () => _viewImage(context, attachment),
+            onView: () => showTimeCorrectionImage(context, attachment),
             onDownload: () => _download(context, ref),
           ),
         ],
@@ -170,29 +171,6 @@ class _Body extends ConsumerWidget {
       case AttachmentSaveOutcome.dismissed:
         break;
     }
-  }
-
-  /// The evidence photo full screen, pinch-zoomable.
-  void _viewImage(BuildContext context, String url) {
-    showDialog<void>(
-      context: context,
-      barrierColor: Colors.black87,
-      builder: (context) => GestureDetector(
-        onTap: () => Navigator.of(context).pop(),
-        child: InteractiveViewer(
-          child: Center(
-            child: Image.network(
-              url,
-              errorBuilder: (_, _, _) => const Icon(
-                Icons.broken_image_outlined,
-                color: Colors.white,
-                size: 48,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
 

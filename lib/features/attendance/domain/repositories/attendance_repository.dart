@@ -54,6 +54,17 @@ abstract class AttendanceRepository {
   /// request.
   FutureResult<Unit> cancelTimeCorrection(String id);
 
+  /// `GET /attendance/correction-requests/my-approvals` — the requests the
+  /// signed-in approver decides on, newest first.
+  FutureResult<List<TimeCorrectionDetail>> timeCorrectionApprovals();
+
+  /// `PUT /attendance/correction-requests/:id/approve`.
+  FutureResult<Unit> approveTimeCorrection(String id);
+
+  /// `PUT /attendance/correction-requests/:id/reject` — [reason] is what
+  /// the employee is told.
+  FutureResult<Unit> rejectTimeCorrection(String id, String reason);
+
   /// The bytes of an evidence file, from its storage URL.
   FutureResult<Uint8List> timeCorrectionAttachment(String url);
 }

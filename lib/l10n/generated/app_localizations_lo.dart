@@ -1286,4 +1286,84 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get timeCorrectionAttachmentSaveFailed => 'ດາວໂຫຼດໄຟລ໌ບໍ່ສຳເລັດ.';
+
+  @override
+  String get timeCorrectionApprovalsMenu => 'ອະນຸມັດແກ້ໄຂເວລາ';
+
+  @override
+  String get timeCorrectionApprovalsTitle => 'ຄຳຮ້ອງແກ້ໄຂເວລາ';
+
+  @override
+  String get timeCorrectionApprovalsSearchHint =>
+      'ຄົ້ນຫາຊື່ພະນັກງານ ຫຼື ລະຫັດ (EMP-007)...';
+
+  @override
+  String get timeCorrectionApprovalStatusPending => 'ລໍຖ້າກວດສອບ';
+
+  @override
+  String timeCorrectionApprovalDepartment(String name) {
+    return 'ພະແນກ: $name';
+  }
+
+  @override
+  String timeCorrectionApprovalShift(String name, String hours) {
+    return 'ກະ $name ($hours)';
+  }
+
+  @override
+  String get timeCorrectionApprovalTypeMissingIn =>
+      'ລືມສະແກນເຂົ້າ (Missing In)';
+
+  @override
+  String get timeCorrectionApprovalTypeMissingOut =>
+      'ລືມສະແກນອອກ (Missing Out)';
+
+  @override
+  String get timeCorrectionApprovalTypeBoth => 'ແກ້ໄຂທັງ ເຂົ້າ ແລະ ອອກ (Both)';
+
+  @override
+  String get timeCorrectionApprovalTypeWrongTime => 'ແກ້ໄຂເວລາຜິດ (Wrong Time)';
+
+  @override
+  String get timeCorrectionApprovalClockIn => 'ເວລາເຂົ້າ (In)';
+
+  @override
+  String get timeCorrectionApprovalClockOut => 'ເວລາອອກ (Out)';
+
+  @override
+  String get timeCorrectionApprovalNewIn => 'ເວລາຂໍແກ້ໄຂເຂົ້າ (New In)';
+
+  @override
+  String get timeCorrectionApprovalNewOut => 'ເວລາຂໍແກ້ໄຂອອກ (New Out)';
+
+  @override
+  String get timeCorrectionApprovalReason => 'ເຫດຜົນ:';
+
+  @override
+  String get timeCorrectionApprovalNoAttachment => 'ບໍ່ມີເອກະສານແນບ';
+
+  @override
+  String get timeCorrectionApprovalAttachmentSubtitle => 'ເອກະສານຫຼັກຖານແນບ';
+
+  @override
+  String get timeCorrectionApprovalViewImage => 'ເບິ່ງຮູບ';
+
+  @override
+  String get timeCorrectionApprovalApprove => 'ອະນຸມັດ';
+
+  @override
+  String get timeCorrectionApprovalReject => 'ປະຕິເສດ';
+
+  @override
+  String get timeCorrectionApprovalApproved => 'ອະນຸມັດຄຳຮ້ອງແລ້ວ';
+
+  @override
+  String get timeCorrectionApprovalRejected => 'ປະຕິເສດຄຳຮ້ອງແລ້ວ';
+
+  @override
+  String get timeCorrectionApprovalsLoadFailed =>
+      'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງແກ້ໄຂເວລາໄດ້.';
+
+  @override
+  String get timeCorrectionApprovalsEmpty => 'ບໍ່ມີຄຳຮ້ອງແກ້ໄຂເວລາ';
 }

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/attendance/presentation/pages/attendance_history_page.dart';
 import '../../features/attendance/presentation/pages/camera_capture_page.dart';
+import '../../features/attendance/presentation/pages/time_correction_approvals_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_history_detail_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_history_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_request_page.dart';
@@ -38,6 +39,8 @@ class AppRoutes {
       '/attendance/time-correction/history';
   static const String timeCorrectionHistoryDetail =
       '/attendance/time-correction/history/detail';
+  static const String timeCorrectionApprovals =
+      '/attendance/time-correction/approvals';
   static const String cameraCapture = '/attendance/camera';
   static const String timeOff = '/time-off';
   static const String timeOffRequestDetail = '/time-off/request';
@@ -169,6 +172,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           if (id is! String) return const NotFoundPage();
           return TimeCorrectionHistoryDetailPage(id: id);
         },
+      ),
+      // The requests an approver decides on — the "ອະນຸມັດແກ້ໄຂເວລາ" menu tile
+      GoRoute(
+        path: AppRoutes.timeCorrectionApprovals,
+        name: 'timeCorrectionApprovals',
+        builder: (context, state) => const TimeCorrectionApprovalsPage(),
       ),
       // Its "ຖ່າຍຮູບ" button — pops with the photo as a `LocalFile`.
       GoRoute(

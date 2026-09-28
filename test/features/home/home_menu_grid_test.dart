@@ -31,7 +31,8 @@ void main() {
     final lo = lookupAppLocalizations(const Locale('lo'));
     expect(tester.takeException(), isNull);
     expect(find.text(lo.navList), findsOneWidget);
-    expect(find.text(lo.menuItemCount(5)), findsOneWidget);
+    expect(find.text(lo.menuItemCount(6)), findsOneWidget);
     expect(find.text(lo.salaryHistoryMenu), findsOneWidget);
+    expect(find.text(lo.timeCorrectionApprovalsMenu), findsOneWidget);
   });
 }
