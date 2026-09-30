@@ -17,9 +17,9 @@ final _privateConstructorUsedError = UnsupportedError(
 
 /// @nodoc
 mixin _$TimeCorrectionApprovalsState {
-  AsyncValue<List<TimeCorrectionDetail>> get requests =>
-      throw _privateConstructorUsedError;
-  TimeCorrectionStatus? get filter => throw _privateConstructorUsedError;
+  AsyncValue<Map<TimeCorrectionStatus, List<TimeCorrectionDetail>>>
+  get requests => throw _privateConstructorUsedError;
+  TimeCorrectionStatus get filter => throw _privateConstructorUsedError;
   String get query => throw _privateConstructorUsedError;
   Set<String> get decidingIds => throw _privateConstructorUsedError;
 
@@ -40,8 +40,8 @@ abstract class $TimeCorrectionApprovalsStateCopyWith<$Res> {
       >;
   @useResult
   $Res call({
-    AsyncValue<List<TimeCorrectionDetail>> requests,
-    TimeCorrectionStatus? filter,
+    AsyncValue<Map<TimeCorrectionStatus, List<TimeCorrectionDetail>>> requests,
+    TimeCorrectionStatus filter,
     String query,
     Set<String> decidingIds,
   });
@@ -64,7 +64,7 @@ class _$TimeCorrectionApprovalsStateCopyWithImpl<
   @override
   $Res call({
     Object? requests = null,
-    Object? filter = freezed,
+    Object? filter = null,
     Object? query = null,
     Object? decidingIds = null,
   }) {
@@ -73,11 +73,13 @@ class _$TimeCorrectionApprovalsStateCopyWithImpl<
             requests: null == requests
                 ? _value.requests
                 : requests // ignore: cast_nullable_to_non_nullable
-                      as AsyncValue<List<TimeCorrectionDetail>>,
-            filter: freezed == filter
+                      as AsyncValue<
+                        Map<TimeCorrectionStatus, List<TimeCorrectionDetail>>
+                      >,
+            filter: null == filter
                 ? _value.filter
                 : filter // ignore: cast_nullable_to_non_nullable
-                      as TimeCorrectionStatus?,
+                      as TimeCorrectionStatus,
             query: null == query
                 ? _value.query
                 : query // ignore: cast_nullable_to_non_nullable
@@ -102,8 +104,8 @@ abstract class _$$TimeCorrectionApprovalsStateImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    AsyncValue<List<TimeCorrectionDetail>> requests,
-    TimeCorrectionStatus? filter,
+    AsyncValue<Map<TimeCorrectionStatus, List<TimeCorrectionDetail>>> requests,
+    TimeCorrectionStatus filter,
     String query,
     Set<String> decidingIds,
   });
@@ -126,7 +128,7 @@ class __$$TimeCorrectionApprovalsStateImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? requests = null,
-    Object? filter = freezed,
+    Object? filter = null,
     Object? query = null,
     Object? decidingIds = null,
   }) {
@@ -135,11 +137,13 @@ class __$$TimeCorrectionApprovalsStateImplCopyWithImpl<$Res>
         requests: null == requests
             ? _value.requests
             : requests // ignore: cast_nullable_to_non_nullable
-                  as AsyncValue<List<TimeCorrectionDetail>>,
-        filter: freezed == filter
+                  as AsyncValue<
+                    Map<TimeCorrectionStatus, List<TimeCorrectionDetail>>
+                  >,
+        filter: null == filter
             ? _value.filter
             : filter // ignore: cast_nullable_to_non_nullable
-                  as TimeCorrectionStatus?,
+                  as TimeCorrectionStatus,
         query: null == query
             ? _value.query
             : query // ignore: cast_nullable_to_non_nullable
@@ -157,8 +161,11 @@ class __$$TimeCorrectionApprovalsStateImplCopyWithImpl<$Res>
 
 class _$TimeCorrectionApprovalsStateImpl extends _TimeCorrectionApprovalsState {
   const _$TimeCorrectionApprovalsStateImpl({
-    this.requests = const AsyncValue<List<TimeCorrectionDetail>>.loading(),
-    this.filter,
+    this.requests =
+        const AsyncValue<
+          Map<TimeCorrectionStatus, List<TimeCorrectionDetail>>
+        >.loading(),
+    this.filter = TimeCorrectionStatus.pending,
     this.query = '',
     final Set<String> decidingIds = const <String>{},
   }) : _decidingIds = decidingIds,
@@ -166,9 +173,11 @@ class _$TimeCorrectionApprovalsStateImpl extends _TimeCorrectionApprovalsState {
 
   @override
   @JsonKey()
-  final AsyncValue<List<TimeCorrectionDetail>> requests;
+  final AsyncValue<Map<TimeCorrectionStatus, List<TimeCorrectionDetail>>>
+  requests;
   @override
-  final TimeCorrectionStatus? filter;
+  @JsonKey()
+  final TimeCorrectionStatus filter;
   @override
   @JsonKey()
   final String query;
@@ -225,17 +234,19 @@ class _$TimeCorrectionApprovalsStateImpl extends _TimeCorrectionApprovalsState {
 abstract class _TimeCorrectionApprovalsState
     extends TimeCorrectionApprovalsState {
   const factory _TimeCorrectionApprovalsState({
-    final AsyncValue<List<TimeCorrectionDetail>> requests,
-    final TimeCorrectionStatus? filter,
+    final AsyncValue<Map<TimeCorrectionStatus, List<TimeCorrectionDetail>>>
+    requests,
+    final TimeCorrectionStatus filter,
     final String query,
     final Set<String> decidingIds,
   }) = _$TimeCorrectionApprovalsStateImpl;
   const _TimeCorrectionApprovalsState._() : super._();
 
   @override
-  AsyncValue<List<TimeCorrectionDetail>> get requests;
+  AsyncValue<Map<TimeCorrectionStatus, List<TimeCorrectionDetail>>>
+  get requests;
   @override
-  TimeCorrectionStatus? get filter;
+  TimeCorrectionStatus get filter;
   @override
   String get query;
   @override

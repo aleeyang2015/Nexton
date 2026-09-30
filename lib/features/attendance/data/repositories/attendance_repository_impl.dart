@@ -10,6 +10,7 @@ import '../../domain/entities/punch_request.dart';
 import '../../domain/entities/time_correction_detail.dart';
 import '../../domain/entities/time_correction_record.dart';
 import '../../domain/entities/time_correction_request.dart';
+import '../../domain/entities/time_correction_status.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../datasources/attendance_remote_data_source.dart';
 
@@ -69,21 +70,26 @@ class AttendanceRepositoryImpl extends BaseRepository
   });
 
   @override
-  FutureResult<List<TimeCorrectionDetail>> timeCorrectionApprovals() =>
-      guard(() => _remote.timeCorrectionApprovals());
+  FutureResult<List<TimeCorrectionDetail>> timeCorrectionApprovals({
+    TimeCorrectionStatus? status,
+  }) => guard(() => _remote.timeCorrectionApprovals(status: status));
 
   @override
-  FutureResult<Unit> approveTimeCorrection(String id) => guard(() async {
-    await _remote.approveTimeCorrection(id);
-    return Unit.instance;
-  });
-
-  @override
-  FutureResult<Unit> rejectTimeCorrection(String id, String reason) =>
+  FutureResult<Unit> approveTimeCorrection(String id, {String? stepId}) =>
       guard(() async {
-        await _remote.rejectTimeCorrection(id, reason);
+        await _remote.approveTimeCorrection(id, stepId: stepId);
         return Unit.instance;
       });
+
+  @override
+  FutureResult<Unit> rejectTimeCorrection(
+    String id, {
+    required String note,
+    String? stepId,
+  }) => guard(() async {
+    await _remote.rejectTimeCorrection(id, note: note, stepId: stepId);
+    return Unit.instance;
+  });
 
   @override
   FutureResult<Uint8List> timeCorrectionAttachment(String url) =>

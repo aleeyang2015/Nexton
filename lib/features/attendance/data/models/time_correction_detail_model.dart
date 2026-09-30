@@ -74,6 +74,7 @@ class TimeCorrectionDetailModel {
   static TimeCorrectionApprovalStep _step(Map<String, dynamic> json) {
     final approver = json['approver'];
     return TimeCorrectionApprovalStep(
+      id: LeaveJson.nonEmpty(json['id']),
       stepNo: LeaveJson.intOf(json['step_no']) ?? 0,
       role: LeaveApprovalStep.roleFromWire(LeaveJson.str(json['step_role'])),
       approverName: approver is Map

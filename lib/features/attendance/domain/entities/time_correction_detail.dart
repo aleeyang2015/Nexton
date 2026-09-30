@@ -48,6 +48,16 @@ class TimeCorrectionDetail extends Equatable {
   /// Only an undecided request can be withdrawn.
   bool get canCancel => status == TimeCorrectionStatus.pending;
 
+  /// The step awaiting a decision right now, if any — its id goes with an
+  /// approve/reject call as `step_id`, so the backend can refuse a decision
+  /// aimed at a step someone else has already moved past (§4.7).
+  TimeCorrectionApprovalStep? get currentStep {
+    for (final step in steps) {
+      if (step.status == LeaveStepStatus.pending) return step;
+    }
+    return null;
+  }
+
   /// Time between the requested clock-in and clock-out, when both are set.
   Duration? get requestedDuration {
     final start = type.needsClockIn ? clockIn : null;
@@ -138,6 +148,9 @@ class TimeCorrectionShift extends Equatable {
 /// One entry of `steps[]`. Roles and statuses follow the same approval
 /// workflow as leave requests, so their enums are shared.
 class TimeCorrectionApprovalStep extends Equatable {
+  /// The step's own id, sent back as `step_id` on a decision.
+  final String? id;
+
   final int stepNo;
   final LeaveStepRole role;
   final String? approverName;
@@ -149,6 +162,7 @@ class TimeCorrectionApprovalStep extends Equatable {
   final DateTime? actedAt;
 
   const TimeCorrectionApprovalStep({
+    this.id,
     required this.stepNo,
     required this.role,
     required this.status,
@@ -160,6 +174,7 @@ class TimeCorrectionApprovalStep extends Equatable {
 
   @override
   List<Object?> get props => [
+    id,
     stepNo,
     role,
     approverName,

@@ -13,6 +13,7 @@ import 'package:next_on/features/attendance/domain/entities/punch_request.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_detail.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_record.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_request.dart';
+import 'package:next_on/features/attendance/domain/entities/time_correction_status.dart';
 import 'package:next_on/features/attendance/domain/repositories/attendance_repository.dart';
 
 /// Programmable attendance repository: each call returns the queued result
@@ -112,27 +113,39 @@ class FakeAttendanceRepository implements AttendanceRepository {
   Result<List<TimeCorrectionDetail>> timeCorrectionApprovalsResult =
       const Result.success([]);
 
+  /// The statuses the page asked for, in call order.
+  final List<TimeCorrectionStatus?> requestedApprovalStatuses = [];
+
   @override
-  FutureResult<List<TimeCorrectionDetail>> timeCorrectionApprovals() async =>
-      timeCorrectionApprovalsResult;
+  FutureResult<List<TimeCorrectionDetail>> timeCorrectionApprovals({
+    TimeCorrectionStatus? status,
+  }) async {
+    requestedApprovalStatuses.add(status);
+    return timeCorrectionApprovalsResult;
+  }
 
   Result<Unit> approveTimeCorrectionResult = const Result.success(
     Unit.instance,
   );
-  final List<String> approvedTimeCorrectionIds = [];
+  final List<({String id, String? stepId})> approvedTimeCorrections = [];
 
   @override
-  FutureResult<Unit> approveTimeCorrection(String id) async {
-    approvedTimeCorrectionIds.add(id);
+  FutureResult<Unit> approveTimeCorrection(String id, {String? stepId}) async {
+    approvedTimeCorrections.add((id: id, stepId: stepId));
     return approveTimeCorrectionResult;
   }
 
   Result<Unit> rejectTimeCorrectionResult = const Result.success(Unit.instance);
-  final List<({String id, String reason})> rejectedTimeCorrections = [];
+  final List<({String id, String note, String? stepId})>
+  rejectedTimeCorrections = [];
 
   @override
-  FutureResult<Unit> rejectTimeCorrection(String id, String reason) async {
-    rejectedTimeCorrections.add((id: id, reason: reason));
+  FutureResult<Unit> rejectTimeCorrection(
+    String id, {
+    required String note,
+    String? stepId,
+  }) async {
+    rejectedTimeCorrections.add((id: id, note: note, stepId: stepId));
     return rejectTimeCorrectionResult;
   }
 

@@ -10,8 +10,8 @@ import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../time_off/presentation/widgets/leave_reject_reason_dialog.dart';
 import '../../domain/entities/time_correction_detail.dart';
-import '../../domain/entities/time_correction_status.dart';
 import '../providers/time_correction_approvals_notifier.dart';
+import '../providers/time_correction_approvals_state.dart';
 import '../widgets/time_correction_approval_card.dart';
 import '../widgets/time_correction_approval_filters.dart';
 import '../widgets/time_correction_history_summary.dart';
@@ -26,15 +26,6 @@ import '../widgets/time_correction_image_viewer.dart';
 /// an empty list — there is no role gate here, as on the leave approvals tab.
 class TimeCorrectionApprovalsPage extends ConsumerWidget {
   const TimeCorrectionApprovalsPage({super.key});
-
-  /// The statuses an approver filters by — there is no "all" here, and
-  /// cancelled requests are the employee's business, so both are left out
-  /// of the dropdown. The list always shows one status at a time.
-  static const List<TimeCorrectionStatus?> _filters = [
-    TimeCorrectionStatus.pending,
-    TimeCorrectionStatus.approved,
-    TimeCorrectionStatus.rejected,
-  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,7 +53,7 @@ class TimeCorrectionApprovalsPage extends ConsumerWidget {
                       selected: state.filter,
                       countOf: state.countOf,
                       onSelect: notifier.selectFilter,
-                      options: _filters,
+                      options: TimeCorrectionApprovalsState.statuses,
                     ),
                   ],
                 ),
@@ -181,7 +172,7 @@ class _RequestsList extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final failure = await ref
         .read(timeCorrectionApprovalsNotifierProvider.notifier)
-        .approve(request.id);
+        .approve(request);
     if (!context.mounted) return;
 
     if (failure == null) {
@@ -204,7 +195,7 @@ class _RequestsList extends ConsumerWidget {
 
     final failure = await ref
         .read(timeCorrectionApprovalsNotifierProvider.notifier)
-        .reject(request.id, reason);
+        .reject(request, reason);
     if (!context.mounted) return;
 
     if (failure == null) {

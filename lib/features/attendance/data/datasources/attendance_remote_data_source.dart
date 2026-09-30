@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../../core/errors/failure.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_response.dart';
 import '../../domain/entities/attendance_day.dart';
@@ -13,6 +14,7 @@ import '../../domain/entities/punch_request.dart';
 import '../../domain/entities/time_correction_detail.dart';
 import '../../domain/entities/time_correction_record.dart';
 import '../../domain/entities/time_correction_request.dart';
+import '../../domain/entities/time_correction_status.dart';
 import '../models/attendance_record_model.dart';
 import '../models/attendance_summary_model.dart';
 import '../models/clock_request_model.dart';
@@ -21,6 +23,7 @@ import '../models/time_correction_detail_model.dart';
 import '../models/time_correction_record_model.dart';
 import '../models/time_correction_request_model.dart';
 import 'attendance_api_paths.dart';
+import 'time_correction_error_code.dart';
 
 /// The attendance calls the home screen can trigger.
 ///
@@ -58,14 +61,29 @@ abstract class AttendanceRemoteDataSource {
 
   /// The requests the signed-in approver decides on, newest first — the
   /// endpoint scopes to the caller, so a non-approver gets an empty list.
-  Future<List<TimeCorrectionDetail>> timeCorrectionApprovals();
+  ///
+  /// [status] is passed straight to the endpoint, which reads it against the
+  /// caller's own step rather than the request as a whole (§4.4):
+  /// `pending` is what still waits on *this* approver, `approved`/`rejected`
+  /// what they have already decided. That distinction can't be made on the
+  /// client — a request this approver cleared stays `pending` overall while
+  /// it sits with HR — so the filter belongs on the query.
+  Future<List<TimeCorrectionDetail>> timeCorrectionApprovals({
+    TimeCorrectionStatus? status,
+  });
 
-  /// Approves a pending request. The body isn't read.
-  Future<void> approveTimeCorrection(String id);
+  /// Approves the request's current step. [stepId] is the step the caller
+  /// saw pending; the backend refuses with `STEP_CHANGED` when it has moved
+  /// on since. The body isn't read.
+  Future<void> approveTimeCorrection(String id, {String? stepId});
 
-  /// Rejects a pending request with the approver's [reason]. The body isn't
-  /// read.
-  Future<void> rejectTimeCorrection(String id, String reason);
+  /// Rejects a pending request. [note] is required by the endpoint — it is
+  /// what the employee is told. The body isn't read.
+  Future<void> rejectTimeCorrection(
+    String id, {
+    required String note,
+    String? stepId,
+  });
 
   /// Downloads an evidence file from its storage URL.
   Future<Uint8List> fetchFile(String url);
@@ -212,10 +230,16 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   }
 
   @override
-  Future<List<TimeCorrectionDetail>> timeCorrectionApprovals() async {
+  Future<List<TimeCorrectionDetail>> timeCorrectionApprovals({
+    TimeCorrectionStatus? status,
+  }) async {
     final response = await _client.get<dynamic>(
       AttendancePaths.myCorrectionApprovals,
-      queryParameters: {'page': 1, 'per_page': _correctionPageSize},
+      queryParameters: {
+        if (status != null) 'status': status.wireValue,
+        'page': 1,
+        'per_page': _correctionPageSize,
+      },
     );
     _debugLog(
       'GET ${AttendancePaths.myCorrectionApprovals} response',
@@ -230,14 +254,22 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   }
 
   @override
-  Future<void> approveTimeCorrection(String id) =>
-      _decide(AttendancePaths.approveCorrectionRequest(id), const {});
-
-  @override
-  Future<void> rejectTimeCorrection(String id, String reason) => _decide(
-    AttendancePaths.rejectCorrectionRequest(id),
-    {'reason': reason.trim()},
+  Future<void> approveTimeCorrection(String id, {String? stepId}) => _decide(
+    AttendancePaths.approveCorrectionRequest(id),
+    {if (stepId != null) 'step_id': stepId},
   );
+
+  /// §4.8 names the rejection reason `note`, and rejects the call with a 422
+  /// without it.
+  @override
+  Future<void> rejectTimeCorrection(
+    String id, {
+    required String note,
+    String? stepId,
+  }) => _decide(AttendancePaths.rejectCorrectionRequest(id), {
+    'note': note.trim(),
+    if (stepId != null) 'step_id': stepId,
+  });
 
   @override
   Future<Uint8List> fetchFile(String url) async {
@@ -260,7 +292,13 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   }
 
   /// `PUT` an approver's decision, logging the answer either way.
+  ///
+  /// A refusal the spec documents (§6) leaves as a
+  /// `Failure.validation(message: <token>)` the localizer can translate —
+  /// the same contract `LeaveRemoteDataSourceImpl._business` uses. Anything
+  /// else rethrows for the repository to map.
   Future<void> _decide(String path, Map<String, dynamic> body) async {
+    _debugLog('PUT $path body', body);
     try {
       final response = await _client.put<dynamic>(path, data: body);
       _debugLog('PUT $path response ${response.statusCode}', response.data);
@@ -269,6 +307,10 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
         'PUT $path error ${error.response?.statusCode}',
         error.response?.data,
       );
+
+      final code = ApiError.tryParse(error.response?.data)?.code;
+      final token = TimeCorrectionErrorCode.tokenByWire[code];
+      if (token != null) throw Failure.validation(message: token);
       rethrow;
     }
   }
