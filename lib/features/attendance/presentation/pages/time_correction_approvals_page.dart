@@ -27,10 +27,10 @@ import '../widgets/time_correction_image_viewer.dart';
 class TimeCorrectionApprovalsPage extends ConsumerWidget {
   const TimeCorrectionApprovalsPage({super.key});
 
-  /// The statuses an approver filters by — cancelled requests are the
-  /// employee's business, so they are left out of the dropdown.
+  /// The statuses an approver filters by — there is no "all" here, and
+  /// cancelled requests are the employee's business, so both are left out
+  /// of the dropdown. The list always shows one status at a time.
   static const List<TimeCorrectionStatus?> _filters = [
-    null,
     TimeCorrectionStatus.pending,
     TimeCorrectionStatus.approved,
     TimeCorrectionStatus.rejected,

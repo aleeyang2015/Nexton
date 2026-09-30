@@ -20,7 +20,11 @@ class TimeCorrectionApprovalsNotifier
     _disposed = false;
     ref.onDispose(() => _disposed = true);
     Future.microtask(refresh);
-    return const TimeCorrectionApprovalsState();
+    // The dropdown has no "all" option, so the page opens on the status an
+    // approver comes for.
+    return const TimeCorrectionApprovalsState(
+      filter: TimeCorrectionStatus.pending,
+    );
   }
 
   void selectFilter(TimeCorrectionStatus? status) =>
