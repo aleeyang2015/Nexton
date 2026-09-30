@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../constants/app_constants.dart';
 import '../errors/failure.dart';
 import 'api_response.dart';
 
@@ -31,6 +32,11 @@ class ApiErrorCodes {
 /// validation failures, 5xx are server failures, and everything else —
 /// **including the 429 login throttle** — is a network failure. The login
 /// screen relies on that split to decide whether to clear the password field.
+///
+/// A throttled response's `Retry-After` is carried through on the failure
+/// (auth-login.md §2). It has to be read *here*: this is the last point that
+/// still holds the raw [Response], and [NetworkInterceptor] rejects the chain
+/// with nothing but the mapped [Failure].
 class ApiErrorMapper {
   ApiErrorMapper._();
 
@@ -105,7 +111,26 @@ class ApiErrorMapper {
       message: message,
       statusCode: status,
       errorCode: code,
+      retryAfter: _retryAfterOf(response),
     );
+  }
+
+  /// The `Retry-After` delay a response asked for, or null when it asked for
+  /// none.
+  ///
+  /// Only the delta-seconds form is read — the one the backend's throttle
+  /// sends. RFC 9110 also allows an HTTP-date, which we treat as "unknown"
+  /// rather than guess at clock skew between device and server. A negative or
+  /// unparseable value is unknown too; it must never become a zero-length
+  /// wait that looks deliberate.
+  static Duration? _retryAfterOf(Response<dynamic>? response) {
+    final raw = response?.headers.value(AppConstants.retryAfterHeader)?.trim();
+    if (raw == null || raw.isEmpty) return null;
+
+    final seconds = int.tryParse(raw);
+    if (seconds == null || seconds <= 0) return null;
+
+    return Duration(seconds: seconds);
   }
 
   /// 400s that mean "your credentials are wrong", not "your JSON is wrong".

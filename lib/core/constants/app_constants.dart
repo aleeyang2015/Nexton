@@ -40,6 +40,10 @@ class AppConstants {
   static const String authorizationHeader = 'Authorization';
   static const String userAgentHeader = 'User-Agent';
 
+  /// Sent by a throttled response (429) to say how many seconds to wait
+  /// before retrying — see auth-login.md §2.
+  static const String retryAfterHeader = 'retry-after';
+
   /// Dev-only tenant override on the backend (ignored in production, where the
   /// tenant is the leftmost label of the Host header). See auth.md.
   static const String tenantSlugHeader = 'X-Tenant-Slug';
@@ -62,6 +66,11 @@ class AppConstants {
   static const String accessTokenKey = 'access_token';
   static const String refreshTokenKey = 'refresh_token';
   static const String cachedUserKey = 'cached_user';
+
+  /// Unix-seconds expiry of the stored access token, as `/auth/login` and
+  /// `/auth/refresh` report it (auth-login.md §5). Stored beside the tokens so
+  /// it is rotated and cleared with them.
+  static const String expiresAtKey = 'expires_at';
 
   /// Mirrors the login response's `must_change_password` so the requirement
   /// survives a cold start — `/auth/me` never re-reports it.

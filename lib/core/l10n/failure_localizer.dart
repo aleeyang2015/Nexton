@@ -13,7 +13,9 @@ import '../../l10n/generated/app_localizations.dart';
 /// no code to look up), so nothing is ever hidden from the user.
 extension FailureLocalization on Failure {
   String localize(AppLocalizations l10n) => when(
-    network: (message, statusCode, errorCode) =>
+    // The `Retry-After` a throttled response carries is state for a caller to
+    // act on, not copy — the message stays the same either way.
+    network: (message, statusCode, errorCode, _) =>
         _byErrorCode(l10n, errorCode) ??
         _byStatusCode(l10n, statusCode) ??
         message,

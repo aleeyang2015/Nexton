@@ -10,6 +10,11 @@ class Failure with _$Failure {
     required String message,
     int? statusCode,
     String? errorCode,
+
+    /// How long the server asked the client to wait before retrying, taken
+    /// from the `Retry-After` response header. Null whenever the server did
+    /// not say — only the throttled responses (429) carry it today.
+    Duration? retryAfter,
   }) = NetworkFailure;
 
   /// Server-side failures (5xx errors, maintenance, etc.)
@@ -47,11 +52,18 @@ class Failure with _$Failure {
 extension FailureX on Failure {
   /// The human-readable message, whichever variant this is
   String get message => when(
-        network: (message, _, __) => message,
+        network: (message, _, __, ___) => message,
         server: (message, _, __) => message,
         validation: (message, _) => message,
         cache: (message, _) => message,
         auth: (message, _) => message,
         unknown: (message, _) => message,
       );
+
+  /// How long the server asked us to wait before retrying, when it said so.
+  ///
+  /// Carried by a throttled response's `Retry-After` header (429 — the login
+  /// throttle in auth-login.md §2, and the clock-in limiter). Null for every
+  /// other failure, and for a throttle that arrived without the header.
+  Duration? get retryAfter => mapOrNull(network: (f) => f.retryAfter);
 }

@@ -19,8 +19,8 @@ mixin _$Failure {
   String get message => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(
-            String message, int? statusCode, String? errorCode)
+    required TResult Function(String message, int? statusCode,
+            String? errorCode, Duration? retryAfter)
         network,
     required TResult Function(
             String message, int? statusCode, String? errorCode)
@@ -33,7 +33,8 @@ mixin _$Failure {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message, int? statusCode, String? errorCode)?
+    TResult? Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -45,7 +46,8 @@ mixin _$Failure {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message, int? statusCode, String? errorCode)?
+    TResult Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -132,7 +134,11 @@ abstract class _$$NetworkFailureImplCopyWith<$Res>
       __$$NetworkFailureImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String message, int? statusCode, String? errorCode});
+  $Res call(
+      {String message,
+      int? statusCode,
+      String? errorCode,
+      Duration? retryAfter});
 }
 
 /// @nodoc
@@ -149,6 +155,7 @@ class __$$NetworkFailureImplCopyWithImpl<$Res>
     Object? message = null,
     Object? statusCode = freezed,
     Object? errorCode = freezed,
+    Object? retryAfter = freezed,
   }) {
     return _then(_$NetworkFailureImpl(
       message: null == message
@@ -163,6 +170,10 @@ class __$$NetworkFailureImplCopyWithImpl<$Res>
           ? _value.errorCode
           : errorCode // ignore: cast_nullable_to_non_nullable
               as String?,
+      retryAfter: freezed == retryAfter
+          ? _value.retryAfter
+          : retryAfter // ignore: cast_nullable_to_non_nullable
+              as Duration?,
     ));
   }
 }
@@ -171,7 +182,10 @@ class __$$NetworkFailureImplCopyWithImpl<$Res>
 
 class _$NetworkFailureImpl implements NetworkFailure {
   const _$NetworkFailureImpl(
-      {required this.message, this.statusCode, this.errorCode});
+      {required this.message,
+      this.statusCode,
+      this.errorCode,
+      this.retryAfter});
 
   @override
   final String message;
@@ -180,9 +194,15 @@ class _$NetworkFailureImpl implements NetworkFailure {
   @override
   final String? errorCode;
 
+  /// How long the server asked the client to wait before retrying, taken
+  /// from the `Retry-After` response header. Null whenever the server did
+  /// not say — only the throttled responses (429) carry it today.
+  @override
+  final Duration? retryAfter;
+
   @override
   String toString() {
-    return 'Failure.network(message: $message, statusCode: $statusCode, errorCode: $errorCode)';
+    return 'Failure.network(message: $message, statusCode: $statusCode, errorCode: $errorCode, retryAfter: $retryAfter)';
   }
 
   @override
@@ -194,11 +214,14 @@ class _$NetworkFailureImpl implements NetworkFailure {
             (identical(other.statusCode, statusCode) ||
                 other.statusCode == statusCode) &&
             (identical(other.errorCode, errorCode) ||
-                other.errorCode == errorCode));
+                other.errorCode == errorCode) &&
+            (identical(other.retryAfter, retryAfter) ||
+                other.retryAfter == retryAfter));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, message, statusCode, errorCode);
+  int get hashCode =>
+      Object.hash(runtimeType, message, statusCode, errorCode, retryAfter);
 
   @JsonKey(ignore: true)
   @override
@@ -210,8 +233,8 @@ class _$NetworkFailureImpl implements NetworkFailure {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(
-            String message, int? statusCode, String? errorCode)
+    required TResult Function(String message, int? statusCode,
+            String? errorCode, Duration? retryAfter)
         network,
     required TResult Function(
             String message, int? statusCode, String? errorCode)
@@ -221,13 +244,14 @@ class _$NetworkFailureImpl implements NetworkFailure {
     required TResult Function(String message, String? code) auth,
     required TResult Function(String message, dynamic error) unknown,
   }) {
-    return network(message, statusCode, errorCode);
+    return network(message, statusCode, errorCode, retryAfter);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message, int? statusCode, String? errorCode)?
+    TResult? Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -236,13 +260,14 @@ class _$NetworkFailureImpl implements NetworkFailure {
     TResult? Function(String message, String? code)? auth,
     TResult? Function(String message, dynamic error)? unknown,
   }) {
-    return network?.call(message, statusCode, errorCode);
+    return network?.call(message, statusCode, errorCode, retryAfter);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message, int? statusCode, String? errorCode)?
+    TResult Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -253,7 +278,7 @@ class _$NetworkFailureImpl implements NetworkFailure {
     required TResult orElse(),
   }) {
     if (network != null) {
-      return network(message, statusCode, errorCode);
+      return network(message, statusCode, errorCode, retryAfter);
     }
     return orElse();
   }
@@ -306,12 +331,18 @@ abstract class NetworkFailure implements Failure {
   const factory NetworkFailure(
       {required final String message,
       final int? statusCode,
-      final String? errorCode}) = _$NetworkFailureImpl;
+      final String? errorCode,
+      final Duration? retryAfter}) = _$NetworkFailureImpl;
 
   @override
   String get message;
   int? get statusCode;
   String? get errorCode;
+
+  /// How long the server asked the client to wait before retrying, taken
+  /// from the `Retry-After` response header. Null whenever the server did
+  /// not say — only the throttled responses (429) carry it today.
+  Duration? get retryAfter;
   @override
   @JsonKey(ignore: true)
   _$$NetworkFailureImplCopyWith<_$NetworkFailureImpl> get copyWith =>
@@ -403,8 +434,8 @@ class _$ServerFailureImpl implements ServerFailure {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(
-            String message, int? statusCode, String? errorCode)
+    required TResult Function(String message, int? statusCode,
+            String? errorCode, Duration? retryAfter)
         network,
     required TResult Function(
             String message, int? statusCode, String? errorCode)
@@ -420,7 +451,8 @@ class _$ServerFailureImpl implements ServerFailure {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message, int? statusCode, String? errorCode)?
+    TResult? Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -435,7 +467,8 @@ class _$ServerFailureImpl implements ServerFailure {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message, int? statusCode, String? errorCode)?
+    TResult Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -586,8 +619,8 @@ class _$ValidationFailureImpl implements ValidationFailure {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(
-            String message, int? statusCode, String? errorCode)
+    required TResult Function(String message, int? statusCode,
+            String? errorCode, Duration? retryAfter)
         network,
     required TResult Function(
             String message, int? statusCode, String? errorCode)
@@ -603,7 +636,8 @@ class _$ValidationFailureImpl implements ValidationFailure {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message, int? statusCode, String? errorCode)?
+    TResult? Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -618,7 +652,8 @@ class _$ValidationFailureImpl implements ValidationFailure {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message, int? statusCode, String? errorCode)?
+    TResult Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -767,8 +802,8 @@ class _$CacheFailureImpl implements CacheFailure {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(
-            String message, int? statusCode, String? errorCode)
+    required TResult Function(String message, int? statusCode,
+            String? errorCode, Duration? retryAfter)
         network,
     required TResult Function(
             String message, int? statusCode, String? errorCode)
@@ -784,7 +819,8 @@ class _$CacheFailureImpl implements CacheFailure {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message, int? statusCode, String? errorCode)?
+    TResult? Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -799,7 +835,8 @@ class _$CacheFailureImpl implements CacheFailure {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message, int? statusCode, String? errorCode)?
+    TResult Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -947,8 +984,8 @@ class _$AuthFailureImpl implements AuthFailure {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(
-            String message, int? statusCode, String? errorCode)
+    required TResult Function(String message, int? statusCode,
+            String? errorCode, Duration? retryAfter)
         network,
     required TResult Function(
             String message, int? statusCode, String? errorCode)
@@ -964,7 +1001,8 @@ class _$AuthFailureImpl implements AuthFailure {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message, int? statusCode, String? errorCode)?
+    TResult? Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -979,7 +1017,8 @@ class _$AuthFailureImpl implements AuthFailure {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message, int? statusCode, String? errorCode)?
+    TResult Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -1128,8 +1167,8 @@ class _$UnknownFailureImpl implements UnknownFailure {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(
-            String message, int? statusCode, String? errorCode)
+    required TResult Function(String message, int? statusCode,
+            String? errorCode, Duration? retryAfter)
         network,
     required TResult Function(
             String message, int? statusCode, String? errorCode)
@@ -1145,7 +1184,8 @@ class _$UnknownFailureImpl implements UnknownFailure {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message, int? statusCode, String? errorCode)?
+    TResult? Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
@@ -1160,7 +1200,8 @@ class _$UnknownFailureImpl implements UnknownFailure {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message, int? statusCode, String? errorCode)?
+    TResult Function(String message, int? statusCode, String? errorCode,
+            Duration? retryAfter)?
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,

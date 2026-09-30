@@ -204,6 +204,43 @@ void main() {
       expect(h.sessionExpiredEvents, isEmpty);
     });
 
+    test('stores the rotated expiry alongside the rotated tokens', () async {
+      final h = await _Harness.create();
+      await h.tokens.writeAccessTokenExpiry(
+        DateTime.fromMillisecondsSinceEpoch(1773504662 * 1000, isUtc: true),
+      );
+      h.adapter.queue(ApiPaths.me, [_unauthorized, _okProfile]);
+      h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+
+      await h.client.get<dynamic>(ApiPaths.me);
+
+      // The refresh response's own expires_at replaces the one it superseded.
+      expect(
+        await h.tokens.readAccessTokenExpiry(),
+        DateTime.fromMillisecondsSinceEpoch(1773505562 * 1000, isUtc: true),
+      );
+    });
+
+    test('a refresh that reports no expiry drops the stale one', () async {
+      final h = await _Harness.create();
+      await h.tokens.writeAccessTokenExpiry(
+        DateTime.fromMillisecondsSinceEpoch(1773504662 * 1000, isUtc: true),
+      );
+      h.adapter.queue(ApiPaths.me, [_unauthorized, _okProfile]);
+      h.adapter.queue(ApiPaths.refresh, [
+        const _Reply(200, {
+          'success': true,
+          'data': {'access_token': 'access-2', 'refresh_token': 'refresh-2'},
+        }),
+      ]);
+
+      await h.client.get<dynamic>(ApiPaths.me);
+
+      // The old expiry described the token that was just replaced.
+      expect(await h.tokens.readAccessTokenExpiry(), isNull);
+      expect(await h.tokens.readAccessToken(), 'access-2');
+    });
+
     test('sends no bearer on the refresh call itself', () async {
       final h = await _Harness.create();
       h.adapter.queue(ApiPaths.me, [_unauthorized, _okProfile]);
@@ -251,6 +288,7 @@ void main() {
 
       expect(await h.tokens.readAccessToken(), isNull);
       expect(await h.tokens.readRefreshToken(), isNull);
+      expect(await h.tokens.readAccessTokenExpiry(), isNull);
       expect(h.sessionExpiredEvents, hasLength(1));
     });
 
