@@ -434,5 +434,9 @@
   "timeCorrectionApprovalApproved": "ອະນຸມັດຄຳຮ້ອງແລ້ວ",
   "timeCorrectionApprovalRejected": "ປະຕິເສດຄຳຮ້ອງແລ້ວ",
   "timeCorrectionApprovalsLoadFailed": "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງແກ້ໄຂເວລາໄດ້.",
-  "timeCorrectionApprovalsEmpty": "ບໍ່ມີຄຳຮ້ອງແກ້ໄຂເວລາ"
+  "timeCorrectionApprovalsEmpty": "ບໍ່ມີຄຳຮ້ອງແກ້ໄຂເວລາ",
+
+  "approvalsMenu": "ອະນຸມັດ",
+  "approvalsLeaveTab": "ອະນຸມັດລາພັກ",
+  "approvalsTimeCorrectionTab": "ອະນຸມັດແກ້ໄຂເວລາ"
 }

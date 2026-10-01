@@ -26,6 +26,12 @@ List<ListMenuEntry> buildListMenuEntries(
   //   onTap: () => context.push(AppRoutes.attendanceHistory),
   // ),
   ListMenuEntry(
+    l10n.approvalsMenu,
+    Icons.fact_check_outlined,
+    color: const Color(0xFF0E9F8E),
+    onTap: () => context.push(AppRoutes.approvals),
+  ),
+  ListMenuEntry(
     l10n.leaveMenu,
     Icons.edit_calendar_outlined,
     color: const Color(0xFF3B6FF6),
@@ -59,12 +65,6 @@ List<ListMenuEntry> buildListMenuEntries(
     Icons.manage_history,
     color: const Color(0xFF8B5CF6),
     onTap: () => context.push(AppRoutes.timeCorrectionHistory),
-  ),
-  ListMenuEntry(
-    l10n.timeCorrectionApprovalsMenu,
-    Icons.fact_check_outlined,
-    color: const Color(0xFF0E9F8E),
-    onTap: () => context.push(AppRoutes.timeCorrectionApprovals),
   ),
   // ListMenuEntry(
   //   l10n.profile,

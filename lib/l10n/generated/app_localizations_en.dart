@@ -1375,4 +1375,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timeCorrectionApprovalsEmpty => 'No correction requests';
+
+  @override
+  String get approvalsMenu => 'Approvals';
+
+  @override
+  String get approvalsLeaveTab => 'Approve Leave';
+
+  @override
+  String get approvalsTimeCorrectionTab => 'Approve Corrections';
 }

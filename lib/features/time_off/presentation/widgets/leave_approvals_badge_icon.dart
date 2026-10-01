@@ -14,7 +14,7 @@ import '../providers/leave_approvals_notifier.dart';
 ///
 /// Watching from the [TabBar] is deliberate: the badge has to be right before
 /// the tab is ever opened, so this is what triggers the approvals fetch when
-/// [TimeOffPage] opens, on whichever tab. It also keeps the auto-dispose
+/// the approvals page opens, on whichever tab. It also keeps the auto-dispose
 /// notifier alive for the life of the page, so switching tabs no longer
 /// refetches.
 ///

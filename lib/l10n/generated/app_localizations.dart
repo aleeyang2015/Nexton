@@ -2569,6 +2569,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No correction requests'**
   String get timeCorrectionApprovalsEmpty;
+
+  /// No description provided for @approvalsMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Approvals'**
+  String get approvalsMenu;
+
+  /// No description provided for @approvalsLeaveTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Leave'**
+  String get approvalsLeaveTab;
+
+  /// No description provided for @approvalsTimeCorrectionTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Corrections'**
+  String get approvalsTimeCorrectionTab;
 }
 
 class _AppLocalizationsDelegate

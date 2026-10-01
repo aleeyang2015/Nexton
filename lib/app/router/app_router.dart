@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/approvals/approvals_page.dart';
 import '../../features/attendance/presentation/pages/attendance_history_page.dart';
 import '../../features/attendance/presentation/pages/camera_capture_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_approvals_page.dart';
@@ -48,6 +49,7 @@ class AppRoutes {
   static const String timeOffLeaveTypePicker = '/time-off/leave-type';
   static const String salaryHistory = '/salary-history';
   static const String payslipDetail = '/salary-history/payslip';
+  static const String approvals = '/approvals';
   static const String notFound = '/404';
 }
 
@@ -184,6 +186,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.cameraCapture,
         name: 'cameraCapture',
         builder: (context, state) => const CameraCapturePage(),
+      ),
+
+      // Approvals — the "ອະນຸມັດ" menu tile
+      GoRoute(
+        path: AppRoutes.approvals,
+        name: 'approvals',
+        builder: (context, state) => const ApprovalsPage(),
       ),
 
       // Time off

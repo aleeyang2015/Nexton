@@ -1366,4 +1366,13 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get timeCorrectionApprovalsEmpty => 'ບໍ່ມີຄຳຮ້ອງແກ້ໄຂເວລາ';
+
+  @override
+  String get approvalsMenu => 'ອະນຸມັດ';
+
+  @override
+  String get approvalsLeaveTab => 'ອະນຸມັດລາພັກ';
+
+  @override
+  String get approvalsTimeCorrectionTab => 'ອະນຸມັດແກ້ໄຂເວລາ';
 }

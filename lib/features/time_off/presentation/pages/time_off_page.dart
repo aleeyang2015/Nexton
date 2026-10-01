@@ -4,20 +4,20 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../widgets/leave_approvals_badge_icon.dart';
-import '../widgets/leave_approvals_tab.dart';
 import '../widgets/leave_history_tab.dart';
 import '../widgets/leave_request_tab.dart';
 
 /// Which tab [TimeOffPage] should open on. The order matches the [TabBar]
 /// below, so `.index` doubles as the tab index.
-enum TimeOffTab { history, request, approvals }
+enum TimeOffTab { history, request }
 
-/// The "ຂໍລາພັກ" destination behind the list page's menu button: a 3-tab
-/// screen for the leave history, the request-leave form and the
-/// team-approvals list. Opens on the history tab unless [initialTab] says
-/// otherwise — the list page's "ລາພັກ" menu points it straight at the
-/// request-leave tab.
+/// The "ຂໍລາພັກ" destination behind the list page's menu button: a 2-tab
+/// screen for the leave history and the request-leave form. Opens on the
+/// history tab unless [initialTab] says otherwise — the list page's "ລາພັກ"
+/// menu points it straight at the request-leave tab.
+///
+/// The team-approvals tab now lives on the approvals page, beside the
+/// time-correction approvals, so an approver decides everything in one place.
 class TimeOffPage extends StatefulWidget {
   const TimeOffPage({super.key, this.initialTab = TimeOffTab.history});
 
@@ -36,7 +36,7 @@ class _TimeOffPageState extends State<TimeOffPage>
     super.initState();
     _controller =
         TabController(
-          length: 3,
+          length: TimeOffTab.values.length,
           vsync: this,
           initialIndex: widget.initialTab.index,
         )..addListener(() {
@@ -53,11 +53,7 @@ class _TimeOffPageState extends State<TimeOffPage>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final titles = [
-      l10n.timeOffHistoryTab,
-      l10n.timeOffRequestTab,
-      l10n.timeOffApprovalsTab,
-    ];
+    final titles = [l10n.timeOffHistoryTab, l10n.timeOffRequestTab];
 
     return Container(
       color: Colors.white,
@@ -108,20 +104,12 @@ class _TimeOffPageState extends State<TimeOffPage>
                   icon: const Icon(Icons.note_add_outlined),
                   text: l10n.timeOffRequestTab,
                 ),
-                Tab(
-                  icon: const LeaveApprovalsBadgeIcon(),
-                  text: l10n.timeOffApprovalsTab,
-                ),
               ],
             ),
           ),
           body: TabBarView(
             controller: _controller,
-            children: const [
-              LeaveHistoryTab(),
-              LeaveRequestTab(),
-              LeaveApprovalsTab(),
-            ],
+            children: const [LeaveHistoryTab(), LeaveRequestTab()],
           ),
         ),
       ),

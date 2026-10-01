@@ -581,5 +581,9 @@
   "timeCorrectionApprovalApproved": "Request approved",
   "timeCorrectionApprovalRejected": "Request rejected",
   "timeCorrectionApprovalsLoadFailed": "Couldn't load the correction requests.",
-  "timeCorrectionApprovalsEmpty": "No correction requests"
+  "timeCorrectionApprovalsEmpty": "No correction requests",
+
+  "approvalsMenu": "Approvals",
+  "approvalsLeaveTab": "Approve Leave",
+  "approvalsTimeCorrectionTab": "Approve Corrections"
 }
