@@ -14,6 +14,7 @@ class AttendancePaths {
   static const String myCheckins = '$_prefix/checkins/my';
   static const String mySummary = '$_prefix/records/summary/my';
   static const String correctionRequests = '$_prefix/correction-requests';
+
   static const String myCorrectionRequests = '$correctionRequests/my';
 
   /// The requests awaiting (or already given) the caller's decision — the
@@ -31,4 +32,18 @@ class AttendancePaths {
 
   static String rejectCorrectionRequest(String id) =>
       '$correctionRequests/$id/reject';
+
+  /// Off-site scan requests — the "ສະແກນນອກພື້ນທີ່" menu
+  /// (attendance-offsite-requests.md §2). Only the create route is here; the
+  /// list, detail and decision routes come with the menus that call them.
+  static const String offsiteRequests = '$_prefix/offsite-requests';
+
+  /// The off-site requests awaiting (or already given) the caller's decision.
+  static const String myOffsiteApprovals = '$offsiteRequests/my-approvals';
+
+  static String approveOffsiteRequest(String id) =>
+      '$offsiteRequests/$id/approve';
+
+  static String rejectOffsiteRequest(String id) =>
+      '$offsiteRequests/$id/reject';
 }

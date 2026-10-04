@@ -66,6 +66,12 @@ List<ListMenuEntry> buildListMenuEntries(
     color: const Color(0xFF8B5CF6),
     onTap: () => context.push(AppRoutes.timeCorrectionHistory),
   ),
+  ListMenuEntry(
+    l10n.offsiteMenu,
+    Icons.wrong_location_outlined,
+    color: const Color(0xFFE8604C),
+    onTap: () => context.push(AppRoutes.offsiteRequest),
+  ),
   // ListMenuEntry(
   //   l10n.profile,
   //   Icons.person,

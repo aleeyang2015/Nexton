@@ -8,6 +8,9 @@ import 'package:next_on/features/attendance/domain/entities/attendance_day.dart'
 import 'package:next_on/features/attendance/domain/entities/attendance_summary.dart';
 import 'package:next_on/features/attendance/domain/entities/clock_method.dart';
 import 'package:next_on/features/attendance/domain/entities/date_range.dart';
+import 'package:next_on/features/attendance/domain/entities/offsite_detail.dart';
+import 'package:next_on/features/attendance/domain/entities/offsite_outcome.dart';
+import 'package:next_on/features/attendance/domain/entities/offsite_request.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_outcome.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_request.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_detail.dart';
@@ -15,6 +18,7 @@ import 'package:next_on/features/attendance/domain/entities/time_correction_reco
 import 'package:next_on/features/attendance/domain/entities/time_correction_request.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_status.dart';
 import 'package:next_on/features/attendance/domain/repositories/attendance_repository.dart';
+import 'package:next_on/features/attendance/domain/repositories/offsite_repository.dart';
 
 /// Programmable attendance repository: each call returns the queued result
 /// and records the request it was given.
@@ -156,6 +160,55 @@ class FakeAttendanceRepository implements AttendanceRepository {
   @override
   FutureResult<Uint8List> timeCorrectionAttachment(String url) async =>
       timeCorrectionAttachmentResult;
+}
+
+/// Programmable off-site scan repository: each call returns the queued result
+/// and records what it was asked.
+///
+/// Defaults to an empty approvals inbox and a decision that goes through, so a
+/// test that only cares about one of them can leave the rest alone.
+class FakeOffsiteRepository implements OffsiteRepository {
+  Result<List<OffsiteRequestDetail>> approvalsResult = const Result.success([]);
+  Result<OffsiteOutcome>? submitResult;
+  Result<Unit> decisionResult = const Result.success(Unit.instance);
+
+  final List<OffsiteRequest> submitted = [];
+  final List<TimeCorrectionStatus?> approvalsStatuses = [];
+  final List<({String id, String? stepId})> approved = [];
+  final List<({String id, String note, String? stepId})> rejected = [];
+
+  @override
+  FutureResult<OffsiteOutcome> submit(OffsiteRequest request) async {
+    submitted.add(request);
+    return submitResult ??
+        const Result.success(
+          OffsiteFiled(OffsiteSubmission(autoApproved: true)),
+        );
+  }
+
+  @override
+  FutureResult<List<OffsiteRequestDetail>> approvals({
+    TimeCorrectionStatus? status,
+  }) async {
+    approvalsStatuses.add(status);
+    return approvalsResult;
+  }
+
+  @override
+  FutureResult<Unit> approve(String id, {String? stepId}) async {
+    approved.add((id: id, stepId: stepId));
+    return decisionResult;
+  }
+
+  @override
+  FutureResult<Unit> reject(
+    String id, {
+    required String note,
+    String? stepId,
+  }) async {
+    rejected.add((id: id, note: note, stepId: stepId));
+    return decisionResult;
+  }
 }
 
 /// Location source with a scripted reading, standing in for the device.

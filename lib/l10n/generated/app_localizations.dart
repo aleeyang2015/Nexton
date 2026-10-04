@@ -2587,6 +2587,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Approve Corrections'**
   String get approvalsTimeCorrectionTab;
+
+  /// No description provided for @offsiteMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Off-site Scan'**
+  String get offsiteMenu;
+
+  /// No description provided for @offsiteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Off-site Scan'**
+  String get offsiteTitle;
+
+  /// No description provided for @offsiteNoticeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning outside the work area'**
+  String get offsiteNoticeTitle;
+
+  /// No description provided for @offsiteNoticeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your position is outside every work area. Attach a photo and a reason: if you are cleared for off-site work your punch is recorded at once, otherwise HR reviews the request first.'**
+  String get offsiteNoticeBody;
+
+  /// No description provided for @offsiteMethodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan type'**
+  String get offsiteMethodLabel;
+
+  /// No description provided for @offsiteMethodCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock in'**
+  String get offsiteMethodCheckIn;
+
+  /// No description provided for @offsiteMethodCheckOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock out'**
+  String get offsiteMethodCheckOut;
+
+  /// No description provided for @offsiteLocationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your position'**
+  String get offsiteLocationLabel;
+
+  /// No description provided for @offsiteLocating.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading your position…'**
+  String get offsiteLocating;
+
+  /// No description provided for @offsiteAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Accurate to about {metres} m'**
+  String offsiteAccuracy(int metres);
+
+  /// No description provided for @offsiteReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get offsiteReasonLabel;
+
+  /// No description provided for @offsiteReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you scanning from outside the work area?'**
+  String get offsiteReasonHint;
+
+  /// No description provided for @offsiteReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a reason.'**
+  String get offsiteReasonRequired;
+
+  /// No description provided for @offsiteReasonTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'The reason can be at most {max} characters.'**
+  String offsiteReasonTooLong(int max);
+
+  /// No description provided for @offsitePhotoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get offsitePhotoLabel;
+
+  /// No description provided for @offsitePhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to take a photo of where you are'**
+  String get offsitePhotoTitle;
+
+  /// No description provided for @offsitePhotoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A photo is required: JPG, PNG, HEIC or WEBP\n(max 5MB)'**
+  String get offsitePhotoHint;
+
+  /// No description provided for @offsiteChooseImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose image'**
+  String get offsiteChooseImage;
+
+  /// No description provided for @offsitePhotoRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please attach a photo.'**
+  String get offsitePhotoRequired;
+
+  /// No description provided for @offsiteSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get offsiteSubmit;
+
+  /// No description provided for @offsiteSubmitApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Off-site scan recorded'**
+  String get offsiteSubmitApproved;
+
+  /// No description provided for @offsiteSubmitPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent — waiting for approval'**
+  String get offsiteSubmitPending;
+
+  /// No description provided for @ruleOffsiteRequestExists.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have an off-site request for this session. Please wait for the decision.'**
+  String get ruleOffsiteRequestExists;
+
+  /// No description provided for @ruleTooEarlyCheckin.
+  ///
+  /// In en, this message translates to:
+  /// **'It isn\'t time to clock in yet.'**
+  String get ruleTooEarlyCheckin;
+
+  /// No description provided for @ruleTooEarlyCheckinAt.
+  ///
+  /// In en, this message translates to:
+  /// **'It isn\'t time to clock in yet — scanning opens at {time}.'**
+  String ruleTooEarlyCheckinAt(String time);
+
+  /// No description provided for @approvalsOffsiteTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Off-site'**
+  String get approvalsOffsiteTab;
+
+  /// No description provided for @offsiteApprovalScannedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned at'**
+  String get offsiteApprovalScannedAt;
+
+  /// No description provided for @offsiteApprovalPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get offsiteApprovalPosition;
+
+  /// No description provided for @offsiteApprovalNoFix.
+  ///
+  /// In en, this message translates to:
+  /// **'No position'**
+  String get offsiteApprovalNoFix;
+
+  /// No description provided for @offsiteApprovalNoScanDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No scan date'**
+  String get offsiteApprovalNoScanDate;
+
+  /// No description provided for @offsiteApprovalApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Request approved'**
+  String get offsiteApprovalApproved;
+
+  /// No description provided for @offsiteApprovalRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Request rejected'**
+  String get offsiteApprovalRejected;
+
+  /// No description provided for @offsiteApprovalsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the off-site scan requests.'**
+  String get offsiteApprovalsLoadFailed;
+
+  /// No description provided for @offsiteApprovalsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No off-site scan requests'**
+  String get offsiteApprovalsEmpty;
+
+  /// No description provided for @offsiteTooEarlyCheckin.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved, but it isn\'t time to clock in yet — the punch was not recorded.'**
+  String get offsiteTooEarlyCheckin;
 }
 
 class _AppLocalizationsDelegate

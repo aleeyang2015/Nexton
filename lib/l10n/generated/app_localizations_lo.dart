@@ -1375,4 +1375,120 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get approvalsTimeCorrectionTab => 'ອະນຸມັດແກ້ໄຂເວລາ';
+
+  @override
+  String get offsiteMenu => 'ສະແກນນອກພື້ນທີ່';
+
+  @override
+  String get offsiteTitle => 'ສະແກນນອກພື້ນທີ່';
+
+  @override
+  String get offsiteNoticeTitle => 'ການສະແກນນອກພື້ນທີ່ວຽກ';
+
+  @override
+  String get offsiteNoticeBody =>
+      'ຕຳແໜ່ງຂອງທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ. ກະລຸນາແນບຮູບຖ່າຍ ແລະ ເຫດຜົນ: ຖ້າທ່ານມີສິດເຮັດວຽກນອກພື້ນທີ່ ລະບົບຈະບັນທຶກເວລາທັນທີ, ຖ້າບໍ່ມີ ຝ່າຍບຸຄຄົນຈະພິຈາລະນາອະນຸມັດກ່ອນ';
+
+  @override
+  String get offsiteMethodLabel => 'ປະເພດການສະແກນ';
+
+  @override
+  String get offsiteMethodCheckIn => 'ລົງເວລາເຂົ້າ';
+
+  @override
+  String get offsiteMethodCheckOut => 'ລົງເວລາອອກ';
+
+  @override
+  String get offsiteLocationLabel => 'ຕຳແໜ່ງຂອງທ່ານ';
+
+  @override
+  String get offsiteLocating => 'ກຳລັງອ່ານຕຳແໜ່ງ…';
+
+  @override
+  String offsiteAccuracy(int metres) {
+    return 'ຄວາມຄາດເຄື່ອນປະມານ $metres ແມັດ';
+  }
+
+  @override
+  String get offsiteReasonLabel => 'ເຫດຜົນ';
+
+  @override
+  String get offsiteReasonHint => 'ລະບຸເຫດຜົນທີ່ສະແກນຢູ່ນອກພື້ນທີ່';
+
+  @override
+  String get offsiteReasonRequired => 'ກະລຸນາລະບຸເຫດຜົນ';
+
+  @override
+  String offsiteReasonTooLong(int max) {
+    return 'ເຫດຜົນຕ້ອງບໍ່ເກີນ $max ຕົວອັກສອນ';
+  }
+
+  @override
+  String get offsitePhotoLabel => 'ຮູບຖ່າຍ';
+
+  @override
+  String get offsitePhotoTitle => 'ກົດເພື່ອຖ່າຍຮູບສະຖານທີ່ທີ່ທ່ານຢູ່';
+
+  @override
+  String get offsitePhotoHint =>
+      'ຕ້ອງແນບຮູບຖ່າຍ: JPG, PNG, HEIC ຫຼື WEBP\n(ສູງສຸດ 5MB)';
+
+  @override
+  String get offsiteChooseImage => 'ເລືອກຮູບ';
+
+  @override
+  String get offsitePhotoRequired => 'ກະລຸນາແນບຮູບຖ່າຍ';
+
+  @override
+  String get offsiteSubmit => 'ສົ່ງຄຳຮ້ອງ';
+
+  @override
+  String get offsiteSubmitApproved => 'ບັນທຶກການສະແກນນອກພື້ນທີ່ແລ້ວ';
+
+  @override
+  String get offsiteSubmitPending => 'ສົ່ງຄຳຮ້ອງແລ້ວ — ລໍຖ້າການອະນຸມັດ';
+
+  @override
+  String get ruleOffsiteRequestExists =>
+      'ທ່ານມີຄຳຮ້ອງສະແກນນອກພື້ນທີ່ຂອງຊ່ວງເວລານີ້ຢູ່ແລ້ວ ກະລຸນາລໍຖ້າຜົນການອະນຸມັດ';
+
+  @override
+  String get ruleTooEarlyCheckin => 'ຍັງບໍ່ເຖິງເວລາລົງເວລາເຂົ້າ';
+
+  @override
+  String ruleTooEarlyCheckinAt(String time) {
+    return 'ຍັງບໍ່ເຖິງເວລາລົງເວລາເຂົ້າ — ເປີດໃຫ້ສະແກນເວລາ $time';
+  }
+
+  @override
+  String get approvalsOffsiteTab => 'ອະນຸມັດນອກພື້ນທີ່';
+
+  @override
+  String get offsiteApprovalScannedAt => 'ເວລາສະແກນ';
+
+  @override
+  String get offsiteApprovalPosition => 'ຕຳແໜ່ງ';
+
+  @override
+  String get offsiteApprovalNoFix => 'ບໍ່ມີຕຳແໜ່ງ';
+
+  @override
+  String get offsiteApprovalNoScanDate => 'ບໍ່ມີວັນທີສະແກນ';
+
+  @override
+  String get offsiteApprovalApproved => 'ອະນຸມັດຄຳຮ້ອງແລ້ວ';
+
+  @override
+  String get offsiteApprovalRejected => 'ປະຕິເສດຄຳຮ້ອງແລ້ວ';
+
+  @override
+  String get offsiteApprovalsLoadFailed =>
+      'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງສະແກນນອກພື້ນທີ່ໄດ້.';
+
+  @override
+  String get offsiteApprovalsEmpty => 'ບໍ່ມີຄຳຮ້ອງສະແກນນອກພື້ນທີ່';
+
+  @override
+  String get offsiteTooEarlyCheckin =>
+      'ອະນຸມັດແລ້ວ ແຕ່ຍັງບໍ່ເຖິງເວລາລົງເວລາເຂົ້າ — ຍັງບໍ່ໄດ້ບັນທຶກເວລາ';
 }

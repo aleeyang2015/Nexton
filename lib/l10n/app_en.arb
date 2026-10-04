@@ -585,5 +585,55 @@
 
   "approvalsMenu": "Approvals",
   "approvalsLeaveTab": "Approve Leave",
-  "approvalsTimeCorrectionTab": "Approve Corrections"
+  "approvalsTimeCorrectionTab": "Approve Corrections",
+  "offsiteMenu": "Off-site Scan",
+  "offsiteTitle": "Off-site Scan",
+  "offsiteNoticeTitle": "Scanning outside the work area",
+  "offsiteNoticeBody": "Your position is outside every work area. Attach a photo and a reason: if you are cleared for off-site work your punch is recorded at once, otherwise HR reviews the request first.",
+  "offsiteMethodLabel": "Scan type",
+  "offsiteMethodCheckIn": "Clock in",
+  "offsiteMethodCheckOut": "Clock out",
+  "offsiteLocationLabel": "Your position",
+  "offsiteLocating": "Reading your position\u2026",
+  "offsiteAccuracy": "Accurate to about {metres} m",
+  "@offsiteAccuracy": {
+    "placeholders": {
+      "metres": {"type": "int"}
+    }
+  },
+  "offsiteReasonLabel": "Reason",
+  "offsiteReasonHint": "Why are you scanning from outside the work area?",
+  "offsiteReasonRequired": "Please enter a reason.",
+  "offsiteReasonTooLong": "The reason can be at most {max} characters.",
+  "@offsiteReasonTooLong": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "offsitePhotoLabel": "Photo",
+  "offsitePhotoTitle": "Tap to take a photo of where you are",
+  "offsitePhotoHint": "A photo is required: JPG, PNG, HEIC or WEBP\n(max 5MB)",
+  "offsiteChooseImage": "Choose image",
+  "offsitePhotoRequired": "Please attach a photo.",
+  "offsiteSubmit": "Send request",
+  "offsiteSubmitApproved": "Off-site scan recorded",
+  "offsiteSubmitPending": "Request sent \u2014 waiting for approval",
+  "ruleOffsiteRequestExists": "You already have an off-site request for this session. Please wait for the decision.",
+  "ruleTooEarlyCheckin": "It isn't time to clock in yet.",
+  "ruleTooEarlyCheckinAt": "It isn't time to clock in yet \u2014 scanning opens at {time}.",
+  "@ruleTooEarlyCheckinAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "approvalsOffsiteTab": "Approve Off-site",
+  "offsiteApprovalScannedAt": "Scanned at",
+  "offsiteApprovalPosition": "Position",
+  "offsiteApprovalNoFix": "No position",
+  "offsiteApprovalNoScanDate": "No scan date",
+  "offsiteApprovalApproved": "Request approved",
+  "offsiteApprovalRejected": "Request rejected",
+  "offsiteApprovalsLoadFailed": "Couldn't load the off-site scan requests.",
+  "offsiteApprovalsEmpty": "No off-site scan requests",
+  "offsiteTooEarlyCheckin": "Approved, but it isn't time to clock in yet \u2014 the punch was not recorded."
 }

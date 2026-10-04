@@ -44,7 +44,17 @@ enum AttendanceRule {
   /// 409 — clock-out only, and the one rule with a recovery path: collect a
   /// reason from the user and send the same punch again with `notes` set
   /// (§4 rule 4, §7 rule 6).
-  earlyCheckoutRequiresReason;
+  earlyCheckoutRequiresReason,
+
+  /// 409 — an off-site scan request for this session and direction is already
+  /// pending or approved. Only the off-site endpoint raises it
+  /// (`OFFSITE_REQUEST_EXISTS`, attendance-offsite-requests.md §3); a punch
+  /// never does, which is why it is absent from the punch endpoints' table.
+  offsiteRequestExists,
+
+  /// 409 — the clock-in window hasn't opened yet. `details.clock_in_opens`
+  /// says when it will (`TOO_EARLY_CHECKIN`, §3). Off-site only, as above.
+  tooEarlyCheckin;
 
   /// True when re-sending the punch with `notes` clears the refusal. Only
   /// [earlyCheckoutRequiresReason] is recoverable this way — every other rule
@@ -82,6 +92,9 @@ class PunchBlockDetails extends Equatable {
   /// `NO_SHIFT_ASSIGNED`.
   final String? employeeId;
 
+  /// `TOO_EARLY_CHECKIN` — when clocking in starts being accepted.
+  final String? clockInOpens;
+
   /// Everything the backend sent, so a detail added server-side is never
   /// silently dropped before it reaches a log.
   final Map<String, dynamic> raw;
@@ -96,6 +109,7 @@ class PunchBlockDetails extends Equatable {
     this.endedAt,
     this.nextStarts,
     this.employeeId,
+    this.clockInOpens,
     this.raw = const {},
   });
 
@@ -112,6 +126,7 @@ class PunchBlockDetails extends Equatable {
     endedAt,
     nextStarts,
     employeeId,
+    clockInOpens,
     raw,
   ];
 }

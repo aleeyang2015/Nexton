@@ -91,6 +91,17 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.timeCorrectionReasonTooLong(
         AppConstants.timeCorrectionReasonMaxLength,
       );
+    case ValidationCode.offsiteReasonRequired:
+      return l10n.offsiteReasonRequired;
+    case ValidationCode.offsiteReasonTooLong:
+      return l10n.offsiteReasonTooLong(AppConstants.offsiteReasonMaxLength);
+    case ValidationCode.offsitePhotoRequired:
+      return l10n.offsitePhotoRequired;
+    // Off-site approvals — the datasource encodes the one refusal a decision
+    // can hit that the correction workflow doesn't share
+    // (`attendance/data/datasources/offsite_error_code.dart`).
+    case 'offsiteTooEarlyCheckin':
+      return l10n.offsiteTooEarlyCheckin;
     // Leave (time-off) business rules — the leave datasource encodes a
     // recognised `error.code` as one of these tokens
     // (see `time_off/data/datasources/leave_error_code.dart`).

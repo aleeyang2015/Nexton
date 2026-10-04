@@ -23,7 +23,20 @@ class AttendanceCopy {
     final serverMessage = blocked.message.trim();
     if (serverMessage.isNotEmpty) return serverMessage;
 
-    return switch (blocked.rule) {
+    return ruleFallback(l10n, blocked.rule, blocked.details);
+  }
+
+  /// The app's own wording for [rule], for when the backend sent none.
+  ///
+  /// Public because the off-site scan form is refused by the same rules (its
+  /// POST is gated by the same session guard) and must not invent a second set
+  /// of words for them.
+  static String ruleFallback(
+    AppLocalizations l10n,
+    AttendanceRule rule,
+    PunchBlockDetails details,
+  ) {
+    return switch (rule) {
       AttendanceRule.mockLocationDetected => l10n.ruleMockLocationDetected,
       AttendanceRule.employeeNotFound => l10n.ruleEmployeeNotFound,
       AttendanceRule.noShiftAssigned => l10n.ruleNoShiftAssigned,
@@ -38,6 +51,15 @@ class AttendanceCopy {
       AttendanceRule.afterCheckoutWindow => l10n.ruleAfterCheckoutWindow,
       AttendanceRule.earlyCheckoutRequiresReason =>
         l10n.ruleEarlyCheckoutRequiresReason,
+      AttendanceRule.offsiteRequestExists => l10n.ruleOffsiteRequestExists,
+      // §3 asks for the opening time to be named so the user knows when to
+      // come back; without it the message can only say "not yet".
+      AttendanceRule.tooEarlyCheckin => switch (detailTime(
+        details.clockInOpens,
+      )) {
+        final String opens => l10n.ruleTooEarlyCheckinAt(opens),
+        null => l10n.ruleTooEarlyCheckin,
+      },
     };
   }
 

@@ -18,6 +18,7 @@ import '../../domain/entities/time_correction_status.dart';
 import '../models/attendance_record_model.dart';
 import '../models/attendance_summary_model.dart';
 import '../models/clock_request_model.dart';
+import '../models/punch_block_details_model.dart';
 import '../models/punch_receipt_model.dart';
 import '../models/time_correction_detail_model.dart';
 import '../models/time_correction_record_model.dart';
@@ -386,43 +387,10 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
         AttendanceRule.earlyCheckoutRequiresReason,
   };
 
-  /// Lifts `error.details` out of the envelope. §7 rule 7 asks for these to
-  /// be shown instead of generic copy, so they are parsed rather than dropped.
-  static PunchBlockDetails _detailsOf(dynamic body) {
-    if (body is! Map) return PunchBlockDetails.empty;
-
-    final error = body['error'];
-    if (error is! Map) return PunchBlockDetails.empty;
-
-    final details = error['details'];
-    if (details is! Map) return PunchBlockDetails.empty;
-
-    final raw = Map<String, dynamic>.from(details);
-
-    return PunchBlockDetails(
-      sessionLabel: _text(raw['session_label']),
-      sessionOrder: (raw['session_order'] as num?)?.toInt(),
-      earliestCheckout: _text(raw['earliest_checkout']),
-      latestCheckout: _text(raw['latest_checkout']),
-      // §5.2 spells this `next_session_*`; both spellings seen in the wild.
-      nextSessionStart: _text(
-        raw['next_session_start'] ?? raw['next_session_starts'],
-      ),
-      lastShiftEnd: _text(raw['last_shift_end']),
-      endedAt: _text(raw['ended_at']),
-      nextStarts: _text(raw['next_starts']),
-      employeeId: _text(raw['employee_id']),
-      raw: raw,
-    );
-  }
-
-  /// Details values are interpolated straight into user copy, so a number or
-  /// a timestamp is accepted as readily as a string.
-  static String? _text(dynamic value) {
-    if (value == null) return null;
-    final text = value.toString();
-    return text.isEmpty ? null : text;
-  }
+  /// Lifts `error.details` out of the envelope — shared with the off-site
+  /// scan request, which the same session guard refuses with the same details.
+  static PunchBlockDetails _detailsOf(dynamic body) =>
+      PunchBlockDetailsModel.fromErrorBody(body);
 
   /// `YYYY-MM-DD` in the device's own timezone.
   ///

@@ -1384,4 +1384,121 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get approvalsTimeCorrectionTab => 'Approve Corrections';
+
+  @override
+  String get offsiteMenu => 'Off-site Scan';
+
+  @override
+  String get offsiteTitle => 'Off-site Scan';
+
+  @override
+  String get offsiteNoticeTitle => 'Scanning outside the work area';
+
+  @override
+  String get offsiteNoticeBody =>
+      'Your position is outside every work area. Attach a photo and a reason: if you are cleared for off-site work your punch is recorded at once, otherwise HR reviews the request first.';
+
+  @override
+  String get offsiteMethodLabel => 'Scan type';
+
+  @override
+  String get offsiteMethodCheckIn => 'Clock in';
+
+  @override
+  String get offsiteMethodCheckOut => 'Clock out';
+
+  @override
+  String get offsiteLocationLabel => 'Your position';
+
+  @override
+  String get offsiteLocating => 'Reading your position…';
+
+  @override
+  String offsiteAccuracy(int metres) {
+    return 'Accurate to about $metres m';
+  }
+
+  @override
+  String get offsiteReasonLabel => 'Reason';
+
+  @override
+  String get offsiteReasonHint =>
+      'Why are you scanning from outside the work area?';
+
+  @override
+  String get offsiteReasonRequired => 'Please enter a reason.';
+
+  @override
+  String offsiteReasonTooLong(int max) {
+    return 'The reason can be at most $max characters.';
+  }
+
+  @override
+  String get offsitePhotoLabel => 'Photo';
+
+  @override
+  String get offsitePhotoTitle => 'Tap to take a photo of where you are';
+
+  @override
+  String get offsitePhotoHint =>
+      'A photo is required: JPG, PNG, HEIC or WEBP\n(max 5MB)';
+
+  @override
+  String get offsiteChooseImage => 'Choose image';
+
+  @override
+  String get offsitePhotoRequired => 'Please attach a photo.';
+
+  @override
+  String get offsiteSubmit => 'Send request';
+
+  @override
+  String get offsiteSubmitApproved => 'Off-site scan recorded';
+
+  @override
+  String get offsiteSubmitPending => 'Request sent — waiting for approval';
+
+  @override
+  String get ruleOffsiteRequestExists =>
+      'You already have an off-site request for this session. Please wait for the decision.';
+
+  @override
+  String get ruleTooEarlyCheckin => 'It isn\'t time to clock in yet.';
+
+  @override
+  String ruleTooEarlyCheckinAt(String time) {
+    return 'It isn\'t time to clock in yet — scanning opens at $time.';
+  }
+
+  @override
+  String get approvalsOffsiteTab => 'Approve Off-site';
+
+  @override
+  String get offsiteApprovalScannedAt => 'Scanned at';
+
+  @override
+  String get offsiteApprovalPosition => 'Position';
+
+  @override
+  String get offsiteApprovalNoFix => 'No position';
+
+  @override
+  String get offsiteApprovalNoScanDate => 'No scan date';
+
+  @override
+  String get offsiteApprovalApproved => 'Request approved';
+
+  @override
+  String get offsiteApprovalRejected => 'Request rejected';
+
+  @override
+  String get offsiteApprovalsLoadFailed =>
+      'Couldn\'t load the off-site scan requests.';
+
+  @override
+  String get offsiteApprovalsEmpty => 'No off-site scan requests';
+
+  @override
+  String get offsiteTooEarlyCheckin =>
+      'Approved, but it isn\'t time to clock in yet — the punch was not recorded.';
 }
