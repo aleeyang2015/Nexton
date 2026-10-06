@@ -1459,6 +1459,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offsiteSubmitPending => 'Request sent — waiting for approval';
 
   @override
+  String get ruleOutsideWorkArea =>
+      'You are outside every work area, so this punch was not accepted.';
+
+  @override
   String get ruleOffsiteRequestExists =>
       'You already have an off-site request for this session. Please wait for the decision.';
 
@@ -1500,6 +1504,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get offsiteOfferClockOut =>
       'You are outside every work area, so this clock-out was recorded but not accepted. Do you want to request an off-site clock-out from here?';
+
+  @override
+  String get offsiteOfferRefusedClockIn =>
+      'You are outside every work area, so this clock-in was not accepted and nothing was recorded. Do you want to request an off-site clock-in from here?';
+
+  @override
+  String get offsiteOfferRefusedClockOut =>
+      'You are outside every work area, so this clock-out was not accepted and nothing was recorded. Do you want to request an off-site clock-out from here?';
 
   @override
   String get offsiteOfferConfirm => 'Request off-site scan';

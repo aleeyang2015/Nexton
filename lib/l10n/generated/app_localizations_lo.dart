@@ -1449,6 +1449,10 @@ class AppLocalizationsLo extends AppLocalizations {
   String get offsiteSubmitPending => 'ສົ່ງຄຳຮ້ອງແລ້ວ — ລໍຖ້າການອະນຸມັດ';
 
   @override
+  String get ruleOutsideWorkArea =>
+      'ທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ ການລົງເວລານີ້ຈຶ່ງບໍ່ຜ່ານການຕວດສອບ';
+
+  @override
   String get ruleOffsiteRequestExists =>
       'ທ່ານມີຄຳຮ້ອງສະແກນນອກພື້ນທີ່ຂອງຊ່ວງເວລານີ້ຢູ່ແລ້ວ ກະລຸນາລໍຖ້າຜົນການອະນຸມັດ';
 
@@ -1489,6 +1493,14 @@ class AppLocalizationsLo extends AppLocalizations {
   @override
   String get offsiteOfferClockOut =>
       'ທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ ການລົງເວລາອອກຖືກບັນທຶກແຕ່ບໍ່ຜ່ານການຕວດສອບ. ຕ້ອງການຍື່ນຄຳຮ້ອງລົງເວລາອອກນອກພື້ນທີ່ຈາກຈຸດນີ້ບໍ?';
+
+  @override
+  String get offsiteOfferRefusedClockIn =>
+      'ທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ ການລົງເວລາເຂົ້າຈຶ່ງບໍ່ຖືກຮັບ ແລະ ບໍ່ມີການບັນທຶກ. ຕ້ອງການຍື່ນຄຳຮ້ອງລົງເວລາເຂົ້ານອກພື້ນທີ່ຈາກຈຸດນີ້ບໍ?';
+
+  @override
+  String get offsiteOfferRefusedClockOut =>
+      'ທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ ການລົງເວລາອອກຈຶ່ງບໍ່ຖືກຮັບ ແລະ ບໍ່ມີການບັນທຶກ. ຕ້ອງການຍື່ນຄຳຮ້ອງລົງເວລາອອກນອກພື້ນທີ່ຈາກຈຸດນີ້ບໍ?';
 
   @override
   String get offsiteOfferConfirm => 'ຍື່ນຄຳຮ້ອງສະແກນນອກພື້ນທີ່';

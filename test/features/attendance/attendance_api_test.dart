@@ -236,6 +236,40 @@ void main() {
     );
 
     test(
+      'OUTSIDE_GEOFENCE is the rule that offers the off-site request',
+      () async {
+        // The deployed API's actual answer, verbatim: no `data`, so nothing
+        // was stored, and `outside_geofence` arrives as an error code rather
+        // than the receipt field §3 documents.
+        adapter
+          ..status = 409
+          ..body = {
+            'success': false,
+            'error': {
+              'code': 'OUTSIDE_GEOFENCE',
+              'message':
+                  'Clock-in rejected: you are outside all work locations',
+            },
+          };
+
+        final outcome = await source.clockIn(gpsRequest);
+
+        expect(outcome, isA<PunchBlocked>());
+        final blocked = outcome as PunchBlocked;
+        expect(blocked.rule, AttendanceRule.outsideWorkArea);
+        expect(blocked.rule.isResolvableOffsite, isTrue);
+        // No reason dialog: being in the wrong place is not fixed by typing.
+        expect(blocked.rule.isResolvableWithReason, isFalse);
+        expect(
+          blocked.message,
+          'Clock-in rejected: you are outside all work locations',
+        );
+        // The refusal carries no details, so nothing is invented from them.
+        expect(blocked.details, PunchBlockDetails.empty);
+      },
+    );
+
+    test(
       'an unknown 409 code stays an error rather than a made-up rule',
       () async {
         adapter

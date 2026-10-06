@@ -118,6 +118,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Outside the work area'), findsOneWidget);
+      // The documented 200 path *does* store the punch, so this wording stays.
+      expect(
+        find.textContaining('was recorded but not accepted'),
+        findsOneWidget,
+      );
       expect(
         find.textContaining('request an off-site clock-in from here'),
         findsOneWidget,
@@ -210,6 +215,116 @@ void main() {
         clockIn: Result.success(
           PunchRecorded(
             _rejected(reason: PunchRejectionReason.missingCoordinates),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('PUNCH'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Outside the work area'), findsNothing);
+    });
+  });
+
+  group('a punch the backend refused outright for being out of area', () {
+    // The deployed API answers this case with an error rather than the 200
+    // rejected receipt §3 documents, so it arrives as a PunchBlocked. Both
+    // paths owe the employee the same way forward.
+    testWidgets('offers the off-site request and opens it as a check-out', (
+      tester,
+    ) async {
+      await pumpFlow(
+        tester,
+        today: _openDay(),
+        clockOut: Result.success(
+          const PunchBlocked(
+            rule: AttendanceRule.outsideWorkArea,
+            message: 'Clock-out rejected: you are outside all work locations',
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('PUNCH'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Outside the work area'), findsOneWidget);
+      // Refused, not stored — the wording must not claim a record exists.
+      expect(
+        find.textContaining('was not accepted and nothing was recorded'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('request an off-site clock-out from here'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Request off-site scan'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('FORM:${OffsiteMethod.checkOut}'), findsOneWidget);
+    });
+
+    testWidgets('declining still shows the backend\'s own wording', (
+      tester,
+    ) async {
+      await pumpFlow(
+        tester,
+        clockIn: Result.success(
+          const PunchBlocked(
+            rule: AttendanceRule.outsideWorkArea,
+            message: 'Clock-in rejected: you are outside all work locations',
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('PUNCH'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('FORM:'), findsNothing);
+      expect(
+        find.text('Clock-in rejected: you are outside all work locations'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('falls back to localized copy when the backend sent none', (
+      tester,
+    ) async {
+      await pumpFlow(
+        tester,
+        clockIn: Result.success(
+          const PunchBlocked(
+            rule: AttendanceRule.outsideWorkArea,
+            message: '',
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('PUNCH'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'You are outside every work area, so this punch was not accepted.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a different refusal is not offered the off-site form', (
+      tester,
+    ) async {
+      await pumpFlow(
+        tester,
+        today: _openDay(),
+        clockOut: Result.success(
+          const PunchBlocked(
+            rule: AttendanceRule.sessionAlreadyCheckedOut,
+            message: 'Already checked out',
           ),
         ),
       );

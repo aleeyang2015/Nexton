@@ -2720,6 +2720,12 @@ abstract class AppLocalizations {
   /// **'Request sent — waiting for approval'**
   String get offsiteSubmitPending;
 
+  /// No description provided for @ruleOutsideWorkArea.
+  ///
+  /// In en, this message translates to:
+  /// **'You are outside every work area, so this punch was not accepted.'**
+  String get ruleOutsideWorkArea;
+
   /// No description provided for @ruleOffsiteRequestExists.
   ///
   /// In en, this message translates to:
@@ -2791,6 +2797,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You are outside every work area, so this clock-out was recorded but not accepted. Do you want to request an off-site clock-out from here?'**
   String get offsiteOfferClockOut;
+
+  /// No description provided for @offsiteOfferRefusedClockIn.
+  ///
+  /// In en, this message translates to:
+  /// **'You are outside every work area, so this clock-in was not accepted and nothing was recorded. Do you want to request an off-site clock-in from here?'**
+  String get offsiteOfferRefusedClockIn;
+
+  /// No description provided for @offsiteOfferRefusedClockOut.
+  ///
+  /// In en, this message translates to:
+  /// **'You are outside every work area, so this clock-out was not accepted and nothing was recorded. Do you want to request an off-site clock-out from here?'**
+  String get offsiteOfferRefusedClockOut;
 
   /// No description provided for @offsiteOfferConfirm.
   ///

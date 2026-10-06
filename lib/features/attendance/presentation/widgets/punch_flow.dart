@@ -83,7 +83,13 @@ class PunchFlow {
         // forward. Offer the off-site request instead of leaving the employee
         // with a warning and nothing to do about it.
         if (receipt.isOutsideWorkArea) {
-          return _offerOffsiteRequest(context, action, message, l10n);
+          return _offerOffsiteRequest(
+            context,
+            action,
+            message,
+            l10n,
+            recorded: true,
+          );
         }
 
         // Stored-but-unverified is amber, never green (§7 rule 5).
@@ -129,6 +135,22 @@ class PunchFlow {
 
     final message = AttendanceCopy.rule(l10n, blocked);
 
+    // Refused for being out of area. The same situation reaches this method
+    // down two different paths depending on how the backend answers — a
+    // stored-but-rejected receipt above, an outright refusal here — and both
+    // owe the employee the same way forward.
+    if (blocked.rule.isResolvableOffsite) {
+      // `success: false` with no `data` — the punch was refused, not stored,
+      // so the offer must not claim it was recorded.
+      return _offerOffsiteRequest(
+        context,
+        action,
+        message,
+        l10n,
+        recorded: false,
+      );
+    }
+
     // Rules only HR or a device setting can clear deserve a dialog the user
     // has to acknowledge; the rest are informational.
     if (_needsAcknowledgement.contains(blocked.rule)) {
@@ -169,6 +191,15 @@ class PunchFlow {
   /// Asks whether to file an off-site scan for a punch that didn't count
   /// because the employee was out of area, and opens the form on a yes.
   ///
+  /// Reached both from a stored-but-rejected receipt and from an outright
+  /// refusal, so [warning] carries whichever wording the caller's path
+  /// produced rather than being rebuilt here.
+  ///
+  /// [recorded] picks between the two: the documented 200 stores the punch
+  /// and merely marks it unverified, while the deployed refusal writes
+  /// nothing at all. Telling someone their punch was "recorded" when no row
+  /// exists would leave them expecting a record that HR will never see.
+  ///
   /// The punch itself is already logged — the backend stores a rejected punch —
   /// but a rejected one never becomes the day's record, so the scan request is
   /// how the time gets counted. The form opens on the direction that was just
@@ -180,14 +211,17 @@ class PunchFlow {
     BuildContext context,
     ClockAction action,
     String warning,
-    AppLocalizations l10n,
-  ) async {
+    AppLocalizations l10n, {
+    required bool recorded,
+  }) async {
     final confirmed = await AppDialog.ask(
       context,
       title: l10n.offsiteOfferTitle,
-      message: switch (action) {
-        ClockAction.clockIn => l10n.offsiteOfferClockIn,
-        ClockAction.clockOut => l10n.offsiteOfferClockOut,
+      message: switch ((action, recorded)) {
+        (ClockAction.clockIn, true) => l10n.offsiteOfferClockIn,
+        (ClockAction.clockOut, true) => l10n.offsiteOfferClockOut,
+        (ClockAction.clockIn, false) => l10n.offsiteOfferRefusedClockIn,
+        (ClockAction.clockOut, false) => l10n.offsiteOfferRefusedClockOut,
       },
       confirmLabel: l10n.offsiteOfferConfirm,
     );

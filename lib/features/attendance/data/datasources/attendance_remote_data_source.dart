@@ -385,6 +385,12 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     'AFTER_CHECKOUT_WINDOW': AttendanceRule.afterCheckoutWindow,
     'EARLY_CHECKOUT_REQUIRES_REASON':
         AttendanceRule.earlyCheckoutRequiresReason,
+    // Undocumented: §3 describes out-of-area as a *stored* punch — 200 with
+    // `rejection_reason: "outside_geofence"` — but the deployed API refuses
+    // it, promoting that reason to an error code and omitting `data`, so
+    // nothing is written. Both shapes are handled; whichever the backend
+    // settles on, the employee is offered the off-site scan request.
+    'OUTSIDE_GEOFENCE': AttendanceRule.outsideWorkArea,
   };
 
   /// Lifts `error.details` out of the envelope — shared with the off-site

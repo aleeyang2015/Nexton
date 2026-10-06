@@ -51,6 +51,7 @@ class AttendanceCopy {
       AttendanceRule.afterCheckoutWindow => l10n.ruleAfterCheckoutWindow,
       AttendanceRule.earlyCheckoutRequiresReason =>
         l10n.ruleEarlyCheckoutRequiresReason,
+      AttendanceRule.outsideWorkArea => l10n.ruleOutsideWorkArea,
       AttendanceRule.offsiteRequestExists => l10n.ruleOffsiteRequestExists,
       // §3 asks for the opening time to be named so the user knows when to
       // come back; without it the message can only say "not yet".

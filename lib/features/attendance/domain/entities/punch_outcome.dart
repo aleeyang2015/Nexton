@@ -46,6 +46,18 @@ enum AttendanceRule {
   /// (§4 rule 4, §7 rule 6).
   earlyCheckoutRequiresReason,
 
+  /// The punch was refused because the employee is outside every work area.
+  ///
+  /// Not in the spec's error tables: §3 documents out-of-area as a *stored*
+  /// punch — HTTP 200 with `status: "rejected"` and
+  /// `rejection_reason: "outside_geofence"` — which arrives as a
+  /// [PunchRecorded] whose receipt reports [PunchReceipt.isOutsideWorkArea].
+  /// The deployed backend refuses it outright instead, so the same situation
+  /// can reach the app down either path and both must offer the off-site
+  /// scan request. [isResolvableOffsite] is what the UI keys on, so neither
+  /// path has to be recognised twice.
+  outsideWorkArea,
+
   /// 409 — an off-site scan request for this session and direction is already
   /// pending or approved. Only the off-site endpoint raises it
   /// (`OFFSITE_REQUEST_EXISTS`, attendance-offsite-requests.md §3); a punch
@@ -60,6 +72,11 @@ enum AttendanceRule {
   /// [earlyCheckoutRequiresReason] is recoverable this way — every other rule
   /// needs a different time, a different day, or HR.
   bool get isResolvableWithReason => this == earlyCheckoutRequiresReason;
+
+  /// True when an off-site scan request is the way forward. The employee is
+  /// in the wrong place, which no retry from here can change — but the scan
+  /// request is exactly the form for recording work done elsewhere.
+  bool get isResolvableOffsite => this == outsideWorkArea;
 }
 
 /// The `error.details` a refusal carries (§5.2).
