@@ -70,7 +70,7 @@ List<ListMenuEntry> buildListMenuEntries(
     l10n.offsiteMenu,
     Icons.wrong_location_outlined,
     color: const Color(0xFFE8604C),
-    onTap: () => context.push(AppRoutes.offsiteRequest),
+    onTap: () => context.push(AppRoutes.offsiteHistory),
   ),
   // ListMenuEntry(
   //   l10n.profile,

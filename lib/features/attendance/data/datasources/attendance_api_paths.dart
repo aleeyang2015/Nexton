@@ -34,9 +34,12 @@ class AttendancePaths {
       '$correctionRequests/$id/reject';
 
   /// Off-site scan requests — the "ສະແກນນອກພື້ນທີ່" menu
-  /// (attendance-offsite-requests.md §2). Only the create route is here; the
-  /// list, detail and decision routes come with the menus that call them.
+  /// (attendance-offsite-requests.md §2). The detail route comes with the menu
+  /// that calls it.
   static const String offsiteRequests = '$_prefix/offsite-requests';
+
+  /// The caller's own off-site requests, for the history page (§4).
+  static const String myOffsiteRequests = '$offsiteRequests/my';
 
   /// The off-site requests awaiting (or already given) the caller's decision.
   static const String myOffsiteApprovals = '$offsiteRequests/my-approvals';
@@ -46,4 +49,8 @@ class AttendancePaths {
 
   static String rejectOffsiteRequest(String id) =>
       '$offsiteRequests/$id/reject';
+
+  /// The owner withdrawing their own still-pending request (§9).
+  static String cancelOffsiteRequest(String id) =>
+      '$offsiteRequests/$id/cancel';
 }

@@ -38,6 +38,14 @@ abstract class OffsiteRemoteDataSource {
   /// the query.
   Future<List<OffsiteRequestDetail>> approvals({TimeCorrectionStatus? status});
 
+  /// Every off-site request the signed-in employee has filed, newest first —
+  /// the history page's list (§4).
+  ///
+  /// Unfiltered on purpose, unlike [approvals]: the status here is the
+  /// request's own, so the page can bucket and count the one list locally
+  /// without asking the endpoint once per status.
+  Future<List<OffsiteRequestDetail>> mine();
+
   /// Approves the request's current step. [stepId] is the step the caller saw
   /// pending; the backend refuses with `STEP_CHANGED` when it has moved on
   /// since. The body isn't read.
@@ -46,11 +54,20 @@ abstract class OffsiteRemoteDataSource {
   /// Rejects a pending request. [note] is required by the endpoint (§8) — it is
   /// what the employee is told. The body isn't read.
   Future<void> reject(String id, {required String note, String? stepId});
+
+  /// Withdraws the caller's own still-pending request (§9). Takes no body, and
+  /// the answer isn't read.
+  ///
+  /// The endpoint is the one that decides whether a withdrawal is allowed: the
+  /// card's [OffsiteRequestDetail.canCancel] is only as fresh as the last
+  /// fetch, so a request HR approved in the meantime is refused here with
+  /// `CANNOT_CANCEL`.
+  Future<void> cancel(String id);
 }
 
 class OffsiteRemoteDataSourceImpl implements OffsiteRemoteDataSource {
-  /// One page covers the approver's inbox comfortably — the same ceiling the
-  /// correction approvals use, and the endpoint's documented maximum.
+  /// One page covers either list comfortably — the same ceiling the correction
+  /// approvals use, and the endpoint's documented maximum.
   static const int _pageSize = 100;
 
   final ApiClient _client;
@@ -89,26 +106,11 @@ class OffsiteRemoteDataSourceImpl implements OffsiteRemoteDataSource {
   @override
   Future<List<OffsiteRequestDetail>> approvals({
     TimeCorrectionStatus? status,
-  }) async {
-    final response = await _client.get<dynamic>(
-      AttendancePaths.myOffsiteApprovals,
-      queryParameters: {
-        if (status != null) 'status': status.wireValue,
-        'page': 1,
-        'per_page': _pageSize,
-      },
-    );
-    _debugLog(
-      'GET ${AttendancePaths.myOffsiteApprovals} response',
-      response.data,
-    );
+  }) => _list(AttendancePaths.myOffsiteApprovals, status: status);
 
-    final requests = ApiEnvelope.unwrapList(
-      response.data,
-    ).map(_detailOrNull).whereType<OffsiteRequestDetail>().toList();
-    requests.sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
-    return requests;
-  }
+  @override
+  Future<List<OffsiteRequestDetail>> mine() =>
+      _list(AttendancePaths.myOffsiteRequests);
 
   @override
   Future<void> approve(String id, {String? stepId}) => _decide(
@@ -119,14 +121,44 @@ class OffsiteRemoteDataSourceImpl implements OffsiteRemoteDataSource {
   /// §8 names the rejection reason `note`, and rejects the call with a 422
   /// without it.
   @override
-  Future<void> reject(
-    String id, {
-    required String note,
-    String? stepId,
-  }) => _decide(AttendancePaths.rejectOffsiteRequest(id), {
-    'note': note.trim(),
-    if (stepId != null) 'step_id': stepId,
-  });
+  Future<void> reject(String id, {required String note, String? stepId}) =>
+      _decide(AttendancePaths.rejectOffsiteRequest(id), {
+        'note': note.trim(),
+        if (stepId != null) 'step_id': stepId,
+      });
+
+  @override
+  Future<void> cancel(String id) => _decide(
+    AttendancePaths.cancelOffsiteRequest(id),
+    null,
+    tokens: OffsiteErrorCode.cancelTokenByWire,
+  );
+
+  /// `GET`s one of §4/§5's two list routes, which answer the same envelope and
+  /// the same `OffsiteRequestResponse` shape, and sorts it newest first.
+  ///
+  /// Offset mode (`page`/`per_page`) rather than §4's cursor mode: one page of
+  /// 100 covers both lists, and neither screen scrolls infinitely.
+  Future<List<OffsiteRequestDetail>> _list(
+    String path, {
+    TimeCorrectionStatus? status,
+  }) async {
+    final response = await _client.get<dynamic>(
+      path,
+      queryParameters: {
+        if (status != null) 'status': status.wireValue,
+        'page': 1,
+        'per_page': _pageSize,
+      },
+    );
+    _debugLog('GET $path response', response.data);
+
+    final requests = ApiEnvelope.unwrapList(
+      response.data,
+    ).map(_detailOrNull).whereType<OffsiteRequestDetail>().toList();
+    requests.sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
+    return requests;
+  }
 
   /// An entry missing its id or method is dropped rather than shown
   /// half-empty — same policy as the correction approvals list.
@@ -138,13 +170,20 @@ class OffsiteRemoteDataSourceImpl implements OffsiteRemoteDataSource {
     }
   }
 
-  /// `PUT` an approver's decision, logging the answer either way.
+  /// `PUT`s a verdict on a request — an approver's decision, or the owner's
+  /// withdrawal — logging the answer either way. A null [body] sends none, as
+  /// §9 expects.
   ///
-  /// A refusal §7/§8 document leaves as a validation failure carrying a client
+  /// A refusal in [tokens] leaves as a validation failure carrying a client
   /// token the localizer can translate — the same contract the correction
-  /// decisions use. Anything else rethrows for the repository to map.
-  Future<void> _decide(String path, Map<String, dynamic> body) async {
-    _debugLog('PUT $path body', body);
+  /// decisions use. Anything else rethrows for the repository to map, so an
+  /// unrecognised code is never dressed up as a rule the app understands.
+  Future<void> _decide(
+    String path,
+    Map<String, dynamic>? body, {
+    Map<String, String> tokens = OffsiteErrorCode.decisionTokenByWire,
+  }) async {
+    if (body != null) _debugLog('PUT $path body', body);
     try {
       final response = await _client.put<dynamic>(path, data: body);
       _debugLog('PUT $path response ${response.statusCode}', response.data);
@@ -155,7 +194,7 @@ class OffsiteRemoteDataSourceImpl implements OffsiteRemoteDataSource {
       );
 
       final code = ApiError.tryParse(error.response?.data)?.code;
-      final token = OffsiteErrorCode.decisionTokenByWire[code];
+      final token = tokens[code];
       if (token != null) throw Failure.validation(message: token);
       rethrow;
     }

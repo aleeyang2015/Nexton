@@ -2744,6 +2744,84 @@ abstract class AppLocalizations {
   /// **'Approve Off-site'**
   String get approvalsOffsiteTab;
 
+  /// No description provided for @offsiteHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Off-site Scan History'**
+  String get offsiteHistoryTitle;
+
+  /// No description provided for @offsiteHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No off-site scan requests'**
+  String get offsiteHistoryEmpty;
+
+  /// No description provided for @offsiteHistoryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your off-site scan requests.'**
+  String get offsiteHistoryLoadFailed;
+
+  /// No description provided for @offsiteNewRequestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New off-site scan'**
+  String get offsiteNewRequestTitle;
+
+  /// No description provided for @offsiteNewRequestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'File a scan taken outside the work area'**
+  String get offsiteNewRequestSubtitle;
+
+  /// No description provided for @offsiteOfferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside the work area'**
+  String get offsiteOfferTitle;
+
+  /// No description provided for @offsiteOfferClockIn.
+  ///
+  /// In en, this message translates to:
+  /// **'You are outside every work area, so this clock-in was recorded but not accepted. Do you want to request an off-site clock-in from here?'**
+  String get offsiteOfferClockIn;
+
+  /// No description provided for @offsiteOfferClockOut.
+  ///
+  /// In en, this message translates to:
+  /// **'You are outside every work area, so this clock-out was recorded but not accepted. Do you want to request an off-site clock-out from here?'**
+  String get offsiteOfferClockOut;
+
+  /// No description provided for @offsiteOfferConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Request off-site scan'**
+  String get offsiteOfferConfirm;
+
+  /// No description provided for @offsiteCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel request'**
+  String get offsiteCancelAction;
+
+  /// No description provided for @offsiteCancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw this off-site scan request? You will have to file the scan again.'**
+  String get offsiteCancelConfirm;
+
+  /// No description provided for @offsiteCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Request withdrawn'**
+  String get offsiteCancelled;
+
+  /// No description provided for @offsiteCannotCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'This request can no longer be withdrawn — it has already been decided.'**
+  String get offsiteCannotCancel;
+
   /// No description provided for @offsiteApprovalScannedAt.
   ///
   /// In en, this message translates to:

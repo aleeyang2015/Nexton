@@ -20,6 +20,13 @@ abstract class OffsiteRepository {
   /// transport, auth and server errors come back as `Result.failure`.
   FutureResult<OffsiteOutcome> submit(OffsiteRequest request);
 
+  /// `GET /attendance/offsite-requests/my` — every off-site request the
+  /// signed-in employee has filed, newest first, for the history page (§4).
+  ///
+  /// Unfiltered: the status filter on that page is the employee's own view of
+  /// one list, not a second query.
+  FutureResult<List<OffsiteRequestDetail>> mine();
+
   /// `GET /attendance/offsite-requests/my-approvals` — the requests the
   /// signed-in approver decides on, newest first.
   ///
@@ -41,9 +48,14 @@ abstract class OffsiteRepository {
 
   /// `PUT /attendance/offsite-requests/:id/reject` — [note] is required by the
   /// endpoint (§8), and is what the employee is told.
-  FutureResult<Unit> reject(
-    String id, {
-    required String note,
-    String? stepId,
-  });
+  FutureResult<Unit> reject(String id, {required String note, String? stepId});
+
+  /// `PUT /attendance/offsite-requests/:id/cancel` — the employee withdraws
+  /// their own request while it is still pending (§9).
+  ///
+  /// Unlike [submit], a refusal here comes back as `Result.failure`, not as an
+  /// outcome: there is nothing for the employee to do about `CANNOT_CANCEL`
+  /// beyond reading where the request now stands, so it is reported like any
+  /// other failed call rather than modelled as a rule the form answers to.
+  FutureResult<Unit> cancel(String id);
 }

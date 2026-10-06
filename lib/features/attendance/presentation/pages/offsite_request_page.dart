@@ -11,6 +11,7 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../time_off/domain/entities/local_file.dart';
+import '../../domain/entities/offsite_method.dart';
 import '../../domain/entities/offsite_outcome.dart';
 import '../../domain/entities/offsite_request.dart';
 import '../providers/offsite_form_notifier.dart';
@@ -28,14 +29,23 @@ import '../widgets/time_correction_section_card.dart';
 /// records the punch straight away (they hold `can_work_offsite`) or holds the
 /// request for HR. Fields and rules live in [offsiteFormNotifierProvider]; this
 /// page renders them, opens the camera, and reports how it went.
+///
+/// [method] is the direction the form opens on — the punch that was refused,
+/// when [PunchFlow] sent the employee here, so they don't have to restate it.
 class OffsiteRequestPage extends ConsumerWidget {
-  const OffsiteRequestPage({super.key});
+  /// Which punch the scan stands in for when the form opens. Defaults to
+  /// clocking out: that is the direction the history page's "new scan" button
+  /// implies no answer about, and the commonest reason to file one by hand.
+  final OffsiteMethod method;
+
+  const OffsiteRequestPage({super.key, this.method = OffsiteMethod.checkOut});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final state = ref.watch(offsiteFormNotifierProvider);
-    final notifier = ref.read(offsiteFormNotifierProvider.notifier);
+    final provider = offsiteFormNotifierProvider(method);
+    final state = ref.watch(provider);
+    final notifier = ref.read(provider.notifier);
     // Watched here too so the photo stays held for the page's lifetime, and so
     // submit waits for an upload still in flight.
     final uploading = ref.watch(offsitePhotoNotifierProvider).isLoading;
@@ -115,7 +125,7 @@ class OffsiteRequestPage extends ConsumerWidget {
   /// request that never reached a verdict reads as an error.
   Future<void> _submit(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
-    final provider = offsiteFormNotifierProvider;
+    final provider = offsiteFormNotifierProvider(method);
 
     final outcome = await ref.read(provider.notifier).submit();
     if (!context.mounted) return;

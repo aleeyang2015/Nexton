@@ -165,14 +165,20 @@ class FakeAttendanceRepository implements AttendanceRepository {
 /// Programmable off-site scan repository: each call returns the queued result
 /// and records what it was asked.
 ///
-/// Defaults to an empty approvals inbox and a decision that goes through, so a
-/// test that only cares about one of them can leave the rest alone.
+/// Defaults to an empty history and approvals inbox and a decision that goes
+/// through, so a test that only cares about one of them can leave the rest
+/// alone.
 class FakeOffsiteRepository implements OffsiteRepository {
+  Result<List<OffsiteRequestDetail>> mineResult = const Result.success([]);
   Result<List<OffsiteRequestDetail>> approvalsResult = const Result.success([]);
   Result<OffsiteOutcome>? submitResult;
   Result<Unit> decisionResult = const Result.success(Unit.instance);
 
   final List<OffsiteRequest> submitted = [];
+  Result<Unit> cancelResult = const Result.success(Unit.instance);
+
+  final List<String> cancelled = [];
+  int mineCalls = 0;
   final List<TimeCorrectionStatus?> approvalsStatuses = [];
   final List<({String id, String? stepId})> approved = [];
   final List<({String id, String note, String? stepId})> rejected = [];
@@ -184,6 +190,12 @@ class FakeOffsiteRepository implements OffsiteRepository {
         const Result.success(
           OffsiteFiled(OffsiteSubmission(autoApproved: true)),
         );
+  }
+
+  @override
+  FutureResult<List<OffsiteRequestDetail>> mine() async {
+    mineCalls++;
+    return mineResult;
   }
 
   @override
@@ -208,6 +220,12 @@ class FakeOffsiteRepository implements OffsiteRepository {
   }) async {
     rejected.add((id: id, note: note, stepId: stepId));
     return decisionResult;
+  }
+
+  @override
+  FutureResult<Unit> cancel(String id) async {
+    cancelled.add(id);
+    return cancelResult;
   }
 }
 

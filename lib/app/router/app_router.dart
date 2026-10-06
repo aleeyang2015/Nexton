@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/approvals/approvals_page.dart';
 import '../../features/attendance/presentation/pages/attendance_history_page.dart';
 import '../../features/attendance/presentation/pages/camera_capture_page.dart';
+import '../../features/attendance/domain/entities/offsite_method.dart';
+import '../../features/attendance/presentation/pages/offsite_history_page.dart';
 import '../../features/attendance/presentation/pages/offsite_request_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_approvals_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_history_detail_page.dart';
@@ -43,6 +45,7 @@ class AppRoutes {
       '/attendance/time-correction/history/detail';
   static const String timeCorrectionApprovals =
       '/attendance/time-correction/approvals';
+  static const String offsiteHistory = '/attendance/offsite/history';
   static const String offsiteRequest = '/attendance/offsite';
   static const String cameraCapture = '/attendance/camera';
   static const String timeOff = '/time-off';
@@ -183,11 +186,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'timeCorrectionApprovals',
         builder: (context, state) => const TimeCorrectionApprovalsPage(),
       ),
-      // Off-site scan request — the "ສະແກນນອກພື້ນທີ່" menu tile
+      // The off-site scans already filed — the "ສະແກນນອກພື້ນທີ່" menu tile
+      // opens this, with the form one tap behind it.
+      GoRoute(
+        path: AppRoutes.offsiteHistory,
+        name: 'offsiteHistory',
+        builder: (context, state) => const OffsiteHistoryPage(),
+      ),
+      // The off-site scan request form itself. `extra` carries the direction
+      // the form opens on when a refused punch sent the employee here; without
+      // one the page picks its own default.
       GoRoute(
         path: AppRoutes.offsiteRequest,
         name: 'offsiteRequest',
-        builder: (context, state) => const OffsiteRequestPage(),
+        builder: (context, state) {
+          final method = state.extra;
+          return method is OffsiteMethod
+              ? OffsiteRequestPage(method: method)
+              : const OffsiteRequestPage();
+        },
       ),
       // Its "ຖ່າຍຮູບ" button — pops with the photo as a `LocalFile`.
       GoRoute(

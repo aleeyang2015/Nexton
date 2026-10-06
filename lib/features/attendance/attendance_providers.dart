@@ -13,12 +13,14 @@ import 'domain/repositories/attendance_repository.dart';
 import 'domain/repositories/offsite_repository.dart';
 import 'domain/usecases/approve_offsite_request_usecase.dart';
 import 'domain/usecases/approve_time_correction_usecase.dart';
+import 'domain/usecases/cancel_offsite_request_usecase.dart';
 import 'domain/usecases/cancel_time_correction_usecase.dart';
 import 'domain/usecases/clock_in_usecase.dart';
 import 'domain/usecases/clock_out_usecase.dart';
 import 'domain/usecases/download_time_correction_attachment_usecase.dart';
 import 'domain/usecases/get_monthly_records_usecase.dart';
 import 'domain/usecases/get_offsite_approvals_usecase.dart';
+import 'domain/usecases/get_offsite_history_usecase.dart';
 import 'domain/usecases/get_monthly_summary_usecase.dart';
 import 'domain/usecases/get_time_correction_approvals_usecase.dart';
 import 'domain/usecases/get_time_correction_detail_usecase.dart';
@@ -171,6 +173,12 @@ final readOffsiteLocationUseCaseProvider = Provider<ReadOffsiteLocationUseCase>(
   (ref) => ReadOffsiteLocationUseCase(ref.watch(punchLocationSourceProvider)),
 );
 
+/// The employee's own off-site requests, for the history page in front of the
+/// request form.
+final getOffsiteHistoryUseCaseProvider = Provider<GetOffsiteHistoryUseCase>(
+  (ref) => GetOffsiteHistoryUseCase(ref.watch(offsiteRepositoryProvider)),
+);
+
 final getOffsiteApprovalsUseCaseProvider = Provider<GetOffsiteApprovalsUseCase>(
   (ref) => GetOffsiteApprovalsUseCase(ref.watch(offsiteRepositoryProvider)),
 );
@@ -178,6 +186,12 @@ final getOffsiteApprovalsUseCaseProvider = Provider<GetOffsiteApprovalsUseCase>(
 final approveOffsiteRequestUseCaseProvider =
     Provider<ApproveOffsiteRequestUseCase>((ref) {
       return ApproveOffsiteRequestUseCase(ref.watch(offsiteRepositoryProvider));
+    });
+
+/// The employee withdrawing their own pending request, from the history page.
+final cancelOffsiteRequestUseCaseProvider =
+    Provider<CancelOffsiteRequestUseCase>((ref) {
+      return CancelOffsiteRequestUseCase(ref.watch(offsiteRepositoryProvider));
     });
 
 final rejectOffsiteRequestUseCaseProvider =

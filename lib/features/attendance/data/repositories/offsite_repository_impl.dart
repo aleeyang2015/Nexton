@@ -25,6 +25,9 @@ class OffsiteRepositoryImpl extends BaseRepository
       guard(() => _remote.submit(request));
 
   @override
+  FutureResult<List<OffsiteRequestDetail>> mine() => guard(_remote.mine);
+
+  @override
   FutureResult<List<OffsiteRequestDetail>> approvals({
     TimeCorrectionStatus? status,
   }) => guard(() => _remote.approvals(status: status));
@@ -42,6 +45,12 @@ class OffsiteRepositoryImpl extends BaseRepository
     String? stepId,
   }) => guard(() async {
     await _remote.reject(id, note: note, stepId: stepId);
+    return Unit.instance;
+  });
+
+  @override
+  FutureResult<Unit> cancel(String id) => guard(() async {
+    await _remote.cancel(id);
     return Unit.instance;
   });
 }

@@ -28,9 +28,10 @@ class OffsiteFormState with _$OffsiteFormState {
   static const int reasonMaxLength = AppConstants.offsiteReasonMaxLength;
 
   const factory OffsiteFormState({
-    /// The menu is reached when a clock-out lands outside every geofence, so
-    /// that is where the form starts; the employee can switch it.
-    @Default(OffsiteMethod.checkOut) OffsiteMethod method,
+    /// Which punch the scan stands in for. Set when the form opens — to the
+    /// direction of the punch that was just refused, when the employee got here
+    /// from one — and switchable on the form.
+    required OffsiteMethod method,
     @Default(AsyncValue<PunchLocationReading>.loading())
     AsyncValue<PunchLocationReading> location,
     @Default('') String reason,

@@ -13,9 +13,15 @@ import 'offsite_photo_notifier.dart';
 /// The position is read when the form opens, because the employee is standing
 /// where the scan happened *now* — asking them to press a button for it first
 /// would only add a step to a flow they reached by being refused a punch.
-class OffsiteFormNotifier extends AutoDisposeNotifier<OffsiteFormState> {
+///
+/// Keyed by the direction the form opens on, so the punch that sent the
+/// employee here decides it: a clock-in refused for being out of area opens a
+/// `check_in` request. A family rather than a setter call after build, so the
+/// form never renders a frame with the wrong direction selected.
+class OffsiteFormNotifier
+    extends AutoDisposeFamilyNotifier<OffsiteFormState, OffsiteMethod> {
   @override
-  OffsiteFormState build() {
+  OffsiteFormState build(OffsiteMethod initialMethod) {
     // The photo is owned by its own notifier (it uploads as soon as it is
     // picked); the form keeps the accepted file so it can refuse to submit
     // without one.
@@ -27,7 +33,7 @@ class OffsiteFormNotifier extends AutoDisposeNotifier<OffsiteFormState> {
     // Deferred to a microtask: `readLocation` writes to `state`, which can
     // only happen once build() has returned one.
     Future.microtask(readLocation);
-    return const OffsiteFormState();
+    return OffsiteFormState(method: initialMethod);
   }
 
   void setMethod(OffsiteMethod method) =>
@@ -93,7 +99,7 @@ class OffsiteFormNotifier extends AutoDisposeNotifier<OffsiteFormState> {
   }
 }
 
-final offsiteFormNotifierProvider =
-    NotifierProvider.autoDispose<OffsiteFormNotifier, OffsiteFormState>(
+final offsiteFormNotifierProvider = NotifierProvider.autoDispose
+    .family<OffsiteFormNotifier, OffsiteFormState, OffsiteMethod>(
       OffsiteFormNotifier.new,
     );

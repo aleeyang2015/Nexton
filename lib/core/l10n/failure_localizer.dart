@@ -102,6 +102,9 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
     // (`attendance/data/datasources/offsite_error_code.dart`).
     case 'offsiteTooEarlyCheckin':
       return l10n.offsiteTooEarlyCheckin;
+    // Off-site withdrawal — §9's one refusal, raised by the same datasource.
+    case 'offsiteCannotCancel':
+      return l10n.offsiteCannotCancel;
     // Leave (time-off) business rules — the leave datasource encodes a
     // recognised `error.code` as one of these tokens
     // (see `time_off/data/datasources/leave_error_code.dart`).

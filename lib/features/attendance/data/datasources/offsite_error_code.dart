@@ -1,3 +1,4 @@
+import '../../../time_off/data/datasources/leave_error_code.dart';
 import '../../domain/entities/punch_outcome.dart';
 import 'time_correction_error_code.dart';
 
@@ -26,6 +27,10 @@ class OffsiteErrorCode {
   /// The account has no employee record (§3 answers this as a 400).
   static const String employeeNotFound = 'EMPLOYEE_NOT_FOUND';
 
+  /// Off-site only — the request isn't the caller's, or isn't pending any more
+  /// (§9). The single refusal a withdrawal can hit.
+  static const String cannotCancel = 'CANNOT_CANCEL';
+
   /// A decision's own refusals (§7, §8) are the ones the correction workflow
   /// already has copy for — `STEP_CHANGED`, `NOT_APPROVER`, `NOT_PENDING`,
   /// `EMPLOYEE_NOT_FOUND` — so [TimeCorrectionErrorCode.tokenByWire] covers
@@ -34,10 +39,26 @@ class OffsiteErrorCode {
   /// rolls the approval back when it does).
   static const String tokenTooEarlyCheckin = 'offsiteTooEarlyCheckin';
 
+  /// `CANNOT_CANCEL` has no counterpart in the correction workflow — that one
+  /// withdraws from a detail page that has already re-read the request — so it
+  /// gets a token of its own.
+  static const String tokenCannotCancel = 'offsiteCannotCancel';
+
   /// Wire code → client token, for the approve/reject calls.
   static const Map<String, String> decisionTokenByWire = {
     ...TimeCorrectionErrorCode.tokenByWire,
     tooEarlyCheckin: tokenTooEarlyCheckin,
+  };
+
+  /// Wire code → client token, for the cancel call.
+  ///
+  /// Kept apart from [decisionTokenByWire] for the reason that table is kept
+  /// apart from the punch rules: §9 can answer with exactly two of these, and a
+  /// withdrawal must never report `NOT_APPROVER` or `STEP_CHANGED` — refusals
+  /// its endpoint cannot send.
+  static const Map<String, String> cancelTokenByWire = {
+    cannotCancel: tokenCannotCancel,
+    employeeNotFound: LeaveErrorCode.tokenEmployeeNotFound,
   };
 
   static const Map<String, AttendanceRule> ruleByWire = {

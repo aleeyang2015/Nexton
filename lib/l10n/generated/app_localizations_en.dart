@@ -1474,6 +1474,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get approvalsOffsiteTab => 'Approve Off-site';
 
   @override
+  String get offsiteHistoryTitle => 'Off-site Scan History';
+
+  @override
+  String get offsiteHistoryEmpty => 'No off-site scan requests';
+
+  @override
+  String get offsiteHistoryLoadFailed =>
+      'Could not load your off-site scan requests.';
+
+  @override
+  String get offsiteNewRequestTitle => 'New off-site scan';
+
+  @override
+  String get offsiteNewRequestSubtitle =>
+      'File a scan taken outside the work area';
+
+  @override
+  String get offsiteOfferTitle => 'Outside the work area';
+
+  @override
+  String get offsiteOfferClockIn =>
+      'You are outside every work area, so this clock-in was recorded but not accepted. Do you want to request an off-site clock-in from here?';
+
+  @override
+  String get offsiteOfferClockOut =>
+      'You are outside every work area, so this clock-out was recorded but not accepted. Do you want to request an off-site clock-out from here?';
+
+  @override
+  String get offsiteOfferConfirm => 'Request off-site scan';
+
+  @override
+  String get offsiteCancelAction => 'Cancel request';
+
+  @override
+  String get offsiteCancelConfirm =>
+      'Withdraw this off-site scan request? You will have to file the scan again.';
+
+  @override
+  String get offsiteCancelled => 'Request withdrawn';
+
+  @override
+  String get offsiteCannotCancel =>
+      'This request can no longer be withdrawn — it has already been decided.';
+
+  @override
   String get offsiteApprovalScannedAt => 'Scanned at';
 
   @override

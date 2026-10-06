@@ -12,12 +12,14 @@ part of 'offsite_form_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$OffsiteFormState {
-  /// The menu is reached when a clock-out lands outside every geofence, so
-  /// that is where the form starts; the employee can switch it.
+  /// Which punch the scan stands in for. Set when the form opens — to the
+  /// direction of the punch that was just refused, when the employee got here
+  /// from one — and switchable on the form.
   OffsiteMethod get method => throw _privateConstructorUsedError;
   AsyncValue<PunchLocationReading> get location =>
       throw _privateConstructorUsedError;
@@ -34,16 +36,18 @@ mixin _$OffsiteFormState {
 /// @nodoc
 abstract class $OffsiteFormStateCopyWith<$Res> {
   factory $OffsiteFormStateCopyWith(
-          OffsiteFormState value, $Res Function(OffsiteFormState) then) =
-      _$OffsiteFormStateCopyWithImpl<$Res, OffsiteFormState>;
+    OffsiteFormState value,
+    $Res Function(OffsiteFormState) then,
+  ) = _$OffsiteFormStateCopyWithImpl<$Res, OffsiteFormState>;
   @useResult
-  $Res call(
-      {OffsiteMethod method,
-      AsyncValue<PunchLocationReading> location,
-      String reason,
-      UploadedAttachment? photo,
-      bool showErrors,
-      AsyncValue<void> submission});
+  $Res call({
+    OffsiteMethod method,
+    AsyncValue<PunchLocationReading> location,
+    String reason,
+    UploadedAttachment? photo,
+    bool showErrors,
+    AsyncValue<void> submission,
+  });
 }
 
 /// @nodoc
@@ -66,59 +70,65 @@ class _$OffsiteFormStateCopyWithImpl<$Res, $Val extends OffsiteFormState>
     Object? showErrors = null,
     Object? submission = null,
   }) {
-    return _then(_value.copyWith(
-      method: null == method
-          ? _value.method
-          : method // ignore: cast_nullable_to_non_nullable
-              as OffsiteMethod,
-      location: null == location
-          ? _value.location
-          : location // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<PunchLocationReading>,
-      reason: null == reason
-          ? _value.reason
-          : reason // ignore: cast_nullable_to_non_nullable
-              as String,
-      photo: freezed == photo
-          ? _value.photo
-          : photo // ignore: cast_nullable_to_non_nullable
-              as UploadedAttachment?,
-      showErrors: null == showErrors
-          ? _value.showErrors
-          : showErrors // ignore: cast_nullable_to_non_nullable
-              as bool,
-      submission: null == submission
-          ? _value.submission
-          : submission // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<void>,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            method: null == method
+                ? _value.method
+                : method // ignore: cast_nullable_to_non_nullable
+                      as OffsiteMethod,
+            location: null == location
+                ? _value.location
+                : location // ignore: cast_nullable_to_non_nullable
+                      as AsyncValue<PunchLocationReading>,
+            reason: null == reason
+                ? _value.reason
+                : reason // ignore: cast_nullable_to_non_nullable
+                      as String,
+            photo: freezed == photo
+                ? _value.photo
+                : photo // ignore: cast_nullable_to_non_nullable
+                      as UploadedAttachment?,
+            showErrors: null == showErrors
+                ? _value.showErrors
+                : showErrors // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            submission: null == submission
+                ? _value.submission
+                : submission // ignore: cast_nullable_to_non_nullable
+                      as AsyncValue<void>,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$OffsiteFormStateImplCopyWith<$Res>
     implements $OffsiteFormStateCopyWith<$Res> {
-  factory _$$OffsiteFormStateImplCopyWith(_$OffsiteFormStateImpl value,
-          $Res Function(_$OffsiteFormStateImpl) then) =
-      __$$OffsiteFormStateImplCopyWithImpl<$Res>;
+  factory _$$OffsiteFormStateImplCopyWith(
+    _$OffsiteFormStateImpl value,
+    $Res Function(_$OffsiteFormStateImpl) then,
+  ) = __$$OffsiteFormStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {OffsiteMethod method,
-      AsyncValue<PunchLocationReading> location,
-      String reason,
-      UploadedAttachment? photo,
-      bool showErrors,
-      AsyncValue<void> submission});
+  $Res call({
+    OffsiteMethod method,
+    AsyncValue<PunchLocationReading> location,
+    String reason,
+    UploadedAttachment? photo,
+    bool showErrors,
+    AsyncValue<void> submission,
+  });
 }
 
 /// @nodoc
 class __$$OffsiteFormStateImplCopyWithImpl<$Res>
     extends _$OffsiteFormStateCopyWithImpl<$Res, _$OffsiteFormStateImpl>
     implements _$$OffsiteFormStateImplCopyWith<$Res> {
-  __$$OffsiteFormStateImplCopyWithImpl(_$OffsiteFormStateImpl _value,
-      $Res Function(_$OffsiteFormStateImpl) _then)
-      : super(_value, _then);
+  __$$OffsiteFormStateImplCopyWithImpl(
+    _$OffsiteFormStateImpl _value,
+    $Res Function(_$OffsiteFormStateImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -130,51 +140,53 @@ class __$$OffsiteFormStateImplCopyWithImpl<$Res>
     Object? showErrors = null,
     Object? submission = null,
   }) {
-    return _then(_$OffsiteFormStateImpl(
-      method: null == method
-          ? _value.method
-          : method // ignore: cast_nullable_to_non_nullable
-              as OffsiteMethod,
-      location: null == location
-          ? _value.location
-          : location // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<PunchLocationReading>,
-      reason: null == reason
-          ? _value.reason
-          : reason // ignore: cast_nullable_to_non_nullable
-              as String,
-      photo: freezed == photo
-          ? _value.photo
-          : photo // ignore: cast_nullable_to_non_nullable
-              as UploadedAttachment?,
-      showErrors: null == showErrors
-          ? _value.showErrors
-          : showErrors // ignore: cast_nullable_to_non_nullable
-              as bool,
-      submission: null == submission
-          ? _value.submission
-          : submission // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<void>,
-    ));
+    return _then(
+      _$OffsiteFormStateImpl(
+        method: null == method
+            ? _value.method
+            : method // ignore: cast_nullable_to_non_nullable
+                  as OffsiteMethod,
+        location: null == location
+            ? _value.location
+            : location // ignore: cast_nullable_to_non_nullable
+                  as AsyncValue<PunchLocationReading>,
+        reason: null == reason
+            ? _value.reason
+            : reason // ignore: cast_nullable_to_non_nullable
+                  as String,
+        photo: freezed == photo
+            ? _value.photo
+            : photo // ignore: cast_nullable_to_non_nullable
+                  as UploadedAttachment?,
+        showErrors: null == showErrors
+            ? _value.showErrors
+            : showErrors // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        submission: null == submission
+            ? _value.submission
+            : submission // ignore: cast_nullable_to_non_nullable
+                  as AsyncValue<void>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$OffsiteFormStateImpl extends _OffsiteFormState {
-  const _$OffsiteFormStateImpl(
-      {this.method = OffsiteMethod.checkOut,
-      this.location = const AsyncValue<PunchLocationReading>.loading(),
-      this.reason = '',
-      this.photo,
-      this.showErrors = false,
-      this.submission = const AsyncValue<void>.data(null)})
-      : super._();
+  const _$OffsiteFormStateImpl({
+    required this.method,
+    this.location = const AsyncValue<PunchLocationReading>.loading(),
+    this.reason = '',
+    this.photo,
+    this.showErrors = false,
+    this.submission = const AsyncValue<void>.data(null),
+  }) : super._();
 
-  /// The menu is reached when a clock-out lands outside every geofence, so
-  /// that is where the form starts; the employee can switch it.
+  /// Which punch the scan stands in for. Set when the form opens — to the
+  /// direction of the punch that was just refused, when the employee got here
+  /// from one — and switchable on the form.
   @override
-  @JsonKey()
   final OffsiteMethod method;
   @override
   @JsonKey()
@@ -214,30 +226,40 @@ class _$OffsiteFormStateImpl extends _OffsiteFormState {
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, method, location, reason, photo, showErrors, submission);
+    runtimeType,
+    method,
+    location,
+    reason,
+    photo,
+    showErrors,
+    submission,
+  );
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$OffsiteFormStateImplCopyWith<_$OffsiteFormStateImpl> get copyWith =>
       __$$OffsiteFormStateImplCopyWithImpl<_$OffsiteFormStateImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 }
 
 abstract class _OffsiteFormState extends OffsiteFormState {
-  const factory _OffsiteFormState(
-      {final OffsiteMethod method,
-      final AsyncValue<PunchLocationReading> location,
-      final String reason,
-      final UploadedAttachment? photo,
-      final bool showErrors,
-      final AsyncValue<void> submission}) = _$OffsiteFormStateImpl;
+  const factory _OffsiteFormState({
+    required final OffsiteMethod method,
+    final AsyncValue<PunchLocationReading> location,
+    final String reason,
+    final UploadedAttachment? photo,
+    final bool showErrors,
+    final AsyncValue<void> submission,
+  }) = _$OffsiteFormStateImpl;
   const _OffsiteFormState._() : super._();
 
   @override
-
-  /// The menu is reached when a clock-out lands outside every geofence, so
-  /// that is where the form starts; the employee can switch it.
+  /// Which punch the scan stands in for. Set when the form opens — to the
+  /// direction of the punch that was just refused, when the employee got here
+  /// from one — and switchable on the form.
   OffsiteMethod get method;
   @override
   AsyncValue<PunchLocationReading> get location;

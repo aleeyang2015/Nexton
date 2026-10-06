@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/utils/result.dart';
@@ -9,6 +11,7 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/attendance_failure_x.dart';
 import '../../domain/entities/attendance_day.dart';
+import '../../domain/entities/offsite_method.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../providers/attendance_notifier.dart';
 import 'attendance_copy.dart';
@@ -75,6 +78,14 @@ class PunchFlow {
     switch (outcome) {
       case PunchRecorded(:final receipt):
         final message = AttendanceCopy.receipt(l10n, receipt, action);
+
+        // Logged, but outside every work area — the one rejection with a way
+        // forward. Offer the off-site request instead of leaving the employee
+        // with a warning and nothing to do about it.
+        if (receipt.isOutsideWorkArea) {
+          return _offerOffsiteRequest(context, action, message, l10n);
+        }
+
         // Stored-but-unverified is amber, never green (§7 rule 5).
         receipt.isVerified
             ? AppToast.success(message)
@@ -155,6 +166,41 @@ class PunchFlow {
     );
   }
 
+  /// Asks whether to file an off-site scan for a punch that didn't count
+  /// because the employee was out of area, and opens the form on a yes.
+  ///
+  /// The punch itself is already logged — the backend stores a rejected punch —
+  /// but a rejected one never becomes the day's record, so the scan request is
+  /// how the time gets counted. The form opens on the direction that was just
+  /// refused, so the request lands on the session the employee actually meant.
+  ///
+  /// Declining still gets the warning: the punch didn't pass its location
+  /// check, and saying nothing would read as success.
+  static Future<void> _offerOffsiteRequest(
+    BuildContext context,
+    ClockAction action,
+    String warning,
+    AppLocalizations l10n,
+  ) async {
+    final confirmed = await AppDialog.ask(
+      context,
+      title: l10n.offsiteOfferTitle,
+      message: switch (action) {
+        ClockAction.clockIn => l10n.offsiteOfferClockIn,
+        ClockAction.clockOut => l10n.offsiteOfferClockOut,
+      },
+      confirmLabel: l10n.offsiteOfferConfirm,
+    );
+    if (!context.mounted) return;
+
+    if (!confirmed) return AppToast.warning(warning);
+
+    await context.push(
+      AppRoutes.offsiteRequest,
+      extra: OffsiteMethod.forAction(action),
+    );
+  }
+
   /// Refusals the user must read and act on elsewhere — contacting HR, or
   /// changing a device setting — rather than glance at.
   static const Set<AttendanceRule> _needsAcknowledgement = {
@@ -162,5 +208,4 @@ class PunchFlow {
     AttendanceRule.employeeNotFound,
     AttendanceRule.noShiftAssigned,
   };
-
 }
