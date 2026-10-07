@@ -106,7 +106,7 @@ void main() {
     },
   );
 
-  testWidgets('tapping view all navigates to the history page', (
+  testWidgets('tapping view details navigates to the history page', (
     tester,
   ) async {
     repository.monthSummary = const Result.success(AttendanceSummary.empty);
@@ -114,7 +114,7 @@ void main() {
     await pumpCard(tester);
     await tester.pump();
 
-    await tester.tap(find.text('View all'));
+    await tester.tap(find.text('View details'));
     await tester.pumpAndSettle();
 
     expect(find.text('HISTORY'), findsOneWidget);

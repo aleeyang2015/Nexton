@@ -351,6 +351,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navList => 'List';
 
   @override
+  String get homeServicesTitle => 'Lists & Services';
+
+  @override
   String menuItemCount(int count) {
     return '$count items';
   }
@@ -386,7 +389,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attendanceHistoryTitle => 'Attendance History';
 
   @override
-  String get viewAll => 'View all';
+  String get homeMonthStatsTitle => 'This Month\'s Work Stats';
+
+  @override
+  String get viewDetails => 'View details';
 
   @override
   String get daysPresent => 'Days present';

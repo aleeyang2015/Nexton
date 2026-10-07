@@ -30,7 +30,7 @@ void main() {
 
     final lo = lookupAppLocalizations(const Locale('lo'));
     expect(tester.takeException(), isNull);
-    expect(find.text(lo.navList), findsOneWidget);
+    expect(find.text(lo.homeServicesTitle), findsOneWidget);
     expect(find.text(lo.menuItemCount(7)), findsOneWidget);
     expect(find.text(lo.salaryHistoryMenu), findsOneWidget);
     // The standalone "ອະນຸມັດແກ້ໄຂເວລາ" tile was folded into the combined

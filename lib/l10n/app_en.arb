@@ -132,6 +132,7 @@
   "attendanceLoadFailed": "Could not load today\u0027s attendance.",
   "noTimeYet": "--:--",
   "navList": "List",
+  "homeServicesTitle": "Lists \u0026 Services",
   "menuItemCount": "{count} items",
   "@menuItemCount": {
     "placeholders": {"count": {"type": "int"}}
@@ -148,7 +149,8 @@
   "profileStatusActive": "Active",
 
   "attendanceHistoryTitle": "Attendance History",
-  "viewAll": "View all",
+  "homeMonthStatsTitle": "This Month\u0027s Work Stats",
+  "viewDetails": "View details",
   "daysPresent": "Days present",
   "daysLate": "Days late",
   "daysAbsent": "Days absent",

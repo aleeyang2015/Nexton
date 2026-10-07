@@ -348,6 +348,9 @@ class AppLocalizationsLo extends AppLocalizations {
   String get navList => 'ລາຍການ';
 
   @override
+  String get homeServicesTitle => 'ລາຍການ & ບໍລິການ (Services)';
+
+  @override
   String menuItemCount(int count) {
     return '$count ລາຍການ';
   }
@@ -362,7 +365,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get comingSoon => 'ກຳລັງພັດທະນາ';
 
   @override
-  String get workHours => 'ຊົ່ວໂມງເຮັດວຽກ';
+  String get workHours => 'ຊົ່ວໂມງວຽກ';
 
   @override
   String get lateArrivals => 'ມາຊ້າ';
@@ -383,13 +386,16 @@ class AppLocalizationsLo extends AppLocalizations {
   String get attendanceHistoryTitle => 'ປະຫວັດການເຂົ້າວຽກ';
 
   @override
-  String get viewAll => 'ເບິ່ງທັງໝົດ';
+  String get homeMonthStatsTitle => 'ສະຖິຕິການເຮັດວຽກເດືອນນີ້';
 
   @override
-  String get daysPresent => 'ມື້ມາວຽກ';
+  String get viewDetails => 'ເບິ່ງລາຍລະອຽດ';
 
   @override
-  String get daysLate => 'ມາວຽກຊ້າ';
+  String get daysPresent => 'ມາວຽກ';
+
+  @override
+  String get daysLate => 'ມາຊ້າ';
 
   @override
   String get daysAbsent => 'ຂາດວຽກ';

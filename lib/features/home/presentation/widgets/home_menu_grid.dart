@@ -7,9 +7,10 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../../list/presentation/widgets/list_menu_entries.dart';
 import '../../../list/presentation/widgets/list_menu_grid.dart';
 
-/// The list shortcuts, shown on the home screen under the attendance history
-/// card with a "ລາຍການ" heading. Entries come from [buildListMenuEntries],
-/// the same source as the "ລາຍການ" tab.
+/// The list shortcuts, shown on the home screen under the month stats with a
+/// "ລາຍການ & ບໍລິການ" heading — its own title, since the "ລາຍການ" of [navList]
+/// also labels the bottom-nav tab. Entries come from [buildListMenuEntries],
+/// the same source as that tab.
 class HomeMenuGrid extends ConsumerWidget {
   const HomeMenuGrid({super.key});
 
@@ -21,8 +22,8 @@ class HomeMenuGrid extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _MenuHeader(title: l10n.navList, count: entries.length),
-        heightBx(h: 14),
+        _MenuHeader(title: l10n.homeServicesTitle, count: entries.length),
+        heightBx(h: 10),
         ListMenuGrid(entries: entries, compact: true),
       ],
     );
@@ -44,31 +45,31 @@ class _MenuHeader extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 5,
-          height: 18,
+          width: 4,
+          height: 16,
           decoration: BoxDecoration(
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(3),
           ),
         ),
-        widthBx(w: 10),
+        widthBx(w: 8),
         Expanded(
           child: customText(
             title,
-            fontSize: 18,
+            fontSize: 15,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(999),
           ),
           child: customText(
             l10n.menuItemCount(count),
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.w500,
             color: AppColors.secondaryTxt,
           ),

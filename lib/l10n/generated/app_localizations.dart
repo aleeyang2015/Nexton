@@ -710,6 +710,12 @@ abstract class AppLocalizations {
   /// **'List'**
   String get navList;
 
+  /// No description provided for @homeServicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists & Services'**
+  String get homeServicesTitle;
+
   /// No description provided for @menuItemCount.
   ///
   /// In en, this message translates to:
@@ -776,11 +782,17 @@ abstract class AppLocalizations {
   /// **'Attendance History'**
   String get attendanceHistoryTitle;
 
-  /// No description provided for @viewAll.
+  /// No description provided for @homeMonthStatsTitle.
   ///
   /// In en, this message translates to:
-  /// **'View all'**
-  String get viewAll;
+  /// **'This Month\'s Work Stats'**
+  String get homeMonthStatsTitle;
+
+  /// No description provided for @viewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get viewDetails;
 
   /// No description provided for @daysPresent.
   ///

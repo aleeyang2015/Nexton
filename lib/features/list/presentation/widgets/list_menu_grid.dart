@@ -20,10 +20,12 @@ class ListMenuEntry {
   });
 }
 
-/// Grid of list shortcuts: 3 columns per row, sized to fit its entries.
+/// Grid of list shortcuts, sized to fit its entries.
 ///
-/// [compact] switches to the shorter, smaller-radius tiles the home screen
-/// uses; the "ລາຍການ" tab keeps the default tall tiles.
+/// [compact] switches to the home screen's style: four smaller tiles per row
+/// instead of three, so the menu reads as a shortcut strip under the
+/// attendance stats rather than a second full page. The "ລາຍການ" tab keeps
+/// the default three tall tiles.
 class ListMenuGrid extends StatelessWidget {
   final List<ListMenuEntry> entries;
   final bool compact;
@@ -37,10 +39,10 @@ class ListMenuGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: compact ? 12 : 14,
-        mainAxisSpacing: compact ? 12 : 14,
-        childAspectRatio: compact ? 0.9 : 0.8,
+        crossAxisCount: compact ? 4 : 3,
+        crossAxisSpacing: compact ? 9 : 14,
+        mainAxisSpacing: compact ? 9 : 14,
+        childAspectRatio: compact ? 0.82 : 0.8,
       ),
       itemCount: entries.length,
       itemBuilder: (context, index) => compact
@@ -59,7 +61,7 @@ class _CompactMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(18);
+    final radius = BorderRadius.circular(14);
     final color = entry.color;
 
     return Material(
@@ -87,28 +89,28 @@ class _CompactMenuItem extends StatelessWidget {
           onTap: entry.onTap,
           borderRadius: radius,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(6, 14, 6, 10),
+            padding: const EdgeInsets.fromLTRB(4, 10, 4, 8),
             child: Column(
               children: [
                 Container(
-                  height: 50,
-                  width: 50,
+                  height: 38,
+                  width: 38,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: color.withValues(alpha: 0.6),
-                      width: 1.5,
+                      width: 1.2,
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: color.withValues(alpha: 0.18),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: Icon(entry.icon, size: 24, color: color),
+                  child: Icon(entry.icon, size: 19, color: color),
                 ),
                 // Labels sit centred in the space under the icon, so one-
                 // and two-line labels still line up across a row.
@@ -117,10 +119,10 @@ class _CompactMenuItem extends StatelessWidget {
                     child: Text(
                       entry.label,
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textPrimary,
-                        height: 1.3,
+                        height: 1.25,
                       ),
                       textAlign: TextAlign.center,
                       maxLines: 2,
