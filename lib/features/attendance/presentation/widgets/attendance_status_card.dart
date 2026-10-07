@@ -197,7 +197,7 @@ class _LiveClockState extends ConsumerState<_LiveClock> {
     return customText(
       AttendanceCopy.hourMinuteSecond(_now),
       fontWeight: FontWeight.w800,
-      fontSize: 46,
+      fontSize: 38,
       color: const Color(0xFF111827),
     );
   }
