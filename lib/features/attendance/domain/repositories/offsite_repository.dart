@@ -4,7 +4,7 @@ import '../entities/offsite_outcome.dart';
 import '../entities/offsite_request.dart';
 import '../entities/time_correction_status.dart';
 
-/// Contract for the off-site scan requests ("ສະແກນນອກພື້ນທີ່").
+/// Contract for the off-site scan requests ("ລົງເວລານອກພື້ນທີ່").
 ///
 /// Kept apart from `AttendanceRepository` rather than added to it: the two
 /// speak to different endpoint groups, and §2's seven off-site routes would

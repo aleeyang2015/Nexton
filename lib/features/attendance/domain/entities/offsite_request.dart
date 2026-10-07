@@ -18,7 +18,7 @@ class OffsiteFields {
 }
 
 /// An off-site scan request as `POST /attendance/offsite-requests` takes it —
-/// the "ສະແກນນອກພື້ນທີ່" form, already reduced to plain values.
+/// the "ລົງເວລານອກພື້ນທີ່" form, already reduced to plain values.
 ///
 /// The scan *time* is deliberately absent: §3 says the server stamps it when
 /// the request is filed and ignores anything the client sends, so the app

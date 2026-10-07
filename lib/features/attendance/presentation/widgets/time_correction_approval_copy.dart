@@ -26,7 +26,7 @@ class TimeCorrectionApprovalCopy {
     color: TimeCorrectionDetailCopy.statusColor(status),
   );
 
-  /// The correction-type chip: "ລືມສະແກນອອກ (Missing Out)" in red, the
+  /// The correction-type chip: "ລືມລົງເວລາອອກ (Missing Out)" in red, the
   /// in-side in green, both in blue.
   static ({String label, IconData icon, Color color}) type(
     AppLocalizations l10n,

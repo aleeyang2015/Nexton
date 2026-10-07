@@ -1386,20 +1386,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get approvalsTimeCorrectionTab => 'Approve Corrections';
 
   @override
-  String get offsiteMenu => 'Off-site Scan';
+  String get offsiteMenu => 'Off-site Clock-in';
 
   @override
-  String get offsiteTitle => 'Off-site Scan';
+  String get offsiteTitle => 'Off-site Clock-in';
 
   @override
-  String get offsiteNoticeTitle => 'Scanning outside the work area';
+  String get offsiteNoticeTitle => 'Clocking in outside the work area';
 
   @override
   String get offsiteNoticeBody =>
       'Your position is outside every work area. Attach a photo and a reason: if you are cleared for off-site work your punch is recorded at once, otherwise HR reviews the request first.';
 
   @override
-  String get offsiteMethodLabel => 'Scan type';
+  String get offsiteMethodLabel => 'Clock-in type';
 
   @override
   String get offsiteMethodCheckIn => 'Clock in';
@@ -1423,7 +1423,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offsiteReasonHint =>
-      'Why are you scanning from outside the work area?';
+      'Why are you clocking in from outside the work area?';
 
   @override
   String get offsiteReasonRequired => 'Please enter a reason.';
@@ -1453,7 +1453,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offsiteSubmit => 'Send request';
 
   @override
-  String get offsiteSubmitApproved => 'Off-site scan recorded';
+  String get offsiteSubmitApproved => 'Off-site clock-in recorded';
 
   @override
   String get offsiteSubmitPending => 'Request sent — waiting for approval';
@@ -1471,28 +1471,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String ruleTooEarlyCheckinAt(String time) {
-    return 'It isn\'t time to clock in yet — scanning opens at $time.';
+    return 'It isn\'t time to clock in yet — clock-in opens at $time.';
   }
 
   @override
   String get approvalsOffsiteTab => 'Approve Off-site';
 
   @override
-  String get offsiteHistoryTitle => 'Off-site Scan History';
+  String get offsiteHistoryTitle => 'Off-site Clock-in History';
 
   @override
-  String get offsiteHistoryEmpty => 'No off-site scan requests';
+  String get offsiteHistoryEmpty => 'No off-site clock-in requests';
 
   @override
   String get offsiteHistoryLoadFailed =>
-      'Could not load your off-site scan requests.';
+      'Could not load your off-site clock-in requests.';
 
   @override
-  String get offsiteNewRequestTitle => 'New off-site scan';
+  String get offsiteNewRequestTitle => 'New off-site clock-in';
 
   @override
   String get offsiteNewRequestSubtitle =>
-      'File a scan taken outside the work area';
+      'File a clock-in taken outside the work area';
 
   @override
   String get offsiteOfferTitle => 'Outside the work area';
@@ -1514,14 +1514,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'You are outside every work area, so this clock-out was not accepted and nothing was recorded. Do you want to request an off-site clock-out from here?';
 
   @override
-  String get offsiteOfferConfirm => 'Request off-site scan';
+  String get offsiteOfferConfirm => 'Request off-site clock-in';
 
   @override
   String get offsiteCancelAction => 'Cancel request';
 
   @override
   String get offsiteCancelConfirm =>
-      'Withdraw this off-site scan request? You will have to file the scan again.';
+      'Withdraw this off-site clock-in request? You will have to file the clock-in again.';
 
   @override
   String get offsiteCancelled => 'Request withdrawn';
@@ -1531,7 +1531,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'This request can no longer be withdrawn — it has already been decided.';
 
   @override
-  String get offsiteApprovalScannedAt => 'Scanned at';
+  String get offsiteApprovalScannedAt => 'Clocked in at';
 
   @override
   String get offsiteApprovalPosition => 'Position';
@@ -1540,7 +1540,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offsiteApprovalNoFix => 'No position';
 
   @override
-  String get offsiteApprovalNoScanDate => 'No scan date';
+  String get offsiteApprovalNoScanDate => 'No clock-in date';
 
   @override
   String get offsiteApprovalApproved => 'Request approved';
@@ -1550,10 +1550,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offsiteApprovalsLoadFailed =>
-      'Couldn\'t load the off-site scan requests.';
+      'Couldn\'t load the off-site clock-in requests.';
 
   @override
-  String get offsiteApprovalsEmpty => 'No off-site scan requests';
+  String get offsiteApprovalsEmpty => 'No off-site clock-in requests';
 
   @override
   String get offsiteTooEarlyCheckin =>

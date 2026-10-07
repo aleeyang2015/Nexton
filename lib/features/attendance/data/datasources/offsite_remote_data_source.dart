@@ -17,7 +17,7 @@ import '../models/punch_block_details_model.dart';
 import 'attendance_api_paths.dart';
 import 'offsite_error_code.dart';
 
-/// The off-site scan request calls ("ສະແກນນອກພື້ນທີ່").
+/// The off-site scan request calls ("ລົງເວລານອກພື້ນທີ່").
 ///
 /// Like the punch endpoints, filing a request answers an [OffsiteOutcome]
 /// rather than throwing on a business refusal: a 409 from here is a normal

@@ -8,7 +8,7 @@ import 'offsite_form_state.dart';
 import 'offsite_photo_notifier.dart';
 
 /// Fields, rules and submission of the off-site scan request form
-/// ("ສະແກນນອກພື້ນທີ່").
+/// ("ລົງເວລານອກພື້ນທີ່").
 ///
 /// The position is read when the form opens, because the employee is standing
 /// where the scan happened *now* — asking them to press a button for it first

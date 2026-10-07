@@ -22,7 +22,7 @@ import '../widgets/offsite_photo_field.dart';
 import '../widgets/offsite_copy.dart';
 import '../widgets/time_correction_section_card.dart';
 
-/// "ສະແກນນອກພື້ນທີ່" — the off-site scan request form behind its menu tile.
+/// "ລົງເວລານອກພື້ນທີ່" — the off-site scan request form behind its menu tile.
 ///
 /// Reached when a punch lands outside every geofence: the employee files the
 /// scan with their position, a photo and a reason, and the backend either

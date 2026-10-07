@@ -186,7 +186,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'timeCorrectionApprovals',
         builder: (context, state) => const TimeCorrectionApprovalsPage(),
       ),
-      // The off-site scans already filed — the "ສະແກນນອກພື້ນທີ່" menu tile
+      // The off-site scans already filed — the "ລົງເວລານອກພື້ນທີ່" menu tile
       // opens this, with the form one tap behind it.
       GoRoute(
         path: AppRoutes.offsiteHistory,

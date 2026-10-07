@@ -4,7 +4,7 @@ import '../entities/offsite_detail.dart';
 import '../repositories/offsite_repository.dart';
 
 /// Loads the off-site scan requests the employee has filed, for the history
-/// page that fronts the "ສະແກນນອກພື້ນທີ່" menu.
+/// page that fronts the "ລົງເວລານອກພື້ນທີ່" menu.
 ///
 /// No status parameter, unlike [GetOffsiteApprovalsUseCase]: on an employee's
 /// own list the status is the request's own, so the page filters and counts the

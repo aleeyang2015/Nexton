@@ -11,16 +11,15 @@ import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/offsite_detail.dart';
-import '../../domain/entities/time_correction_status.dart';
 import '../providers/offsite_history_notifier.dart';
 import '../widgets/offsite_record_card.dart';
 import '../widgets/time_correction_history_summary.dart';
 import '../widgets/time_correction_image_viewer.dart';
 
-/// "ປະຫວັດການສະແກນນອກພື້ນທີ່" — the off-site scan requests the employee has
+/// "ປະຫວັດລົງເວລານອກພື້ນທີ່" — the off-site scan requests the employee has
 /// filed, and the way in to filing another.
 ///
-/// This is what the "ສະແກນນອກພື້ນທີ່" menu tile now opens: a scan request's
+/// This is what the "ລົງເວລານອກພື້ນທີ່" menu tile now opens: a scan request's
 /// answer arrives later (HR has to approve it unless the employee holds
 /// `can_work_offsite`, §3), so the list of what is still waiting is what they
 /// come back for, and [OffsiteRequestPage] sits one tap behind it. The same
@@ -52,12 +51,6 @@ class OffsiteHistoryPage extends ConsumerWidget {
                     padding: const EdgeInsets.fromLTRB(15, 16, 15, 32),
                     children: [
                       const _NewRequestBanner(),
-                      heightBx(h: 16),
-                      TimeCorrectionSummaryRow(
-                        total: state.countOf(null),
-                        pending: state.countOf(TimeCorrectionStatus.pending),
-                        approved: state.countOf(TimeCorrectionStatus.approved),
-                      ),
                       heightBx(h: 16),
                       TimeCorrectionFilterDropdown(
                         selected: state.filter,
@@ -238,7 +231,7 @@ class _Message extends StatelessWidget {
   }
 }
 
-/// "ສະແກນນອກພື້ນທີ່ໃໝ່" — opens the request form, and reloads the list when it
+/// "ລົງເວລານອກພື້ນທີ່ໃໝ່" — opens the request form, and reloads the list when it
 /// closes so a scan just filed shows up with the status the backend gave it.
 class _NewRequestBanner extends ConsumerWidget {
   const _NewRequestBanner();

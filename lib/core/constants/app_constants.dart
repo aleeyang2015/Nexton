@@ -31,7 +31,7 @@ class AppConstants {
   /// Longest reason a correction request accepts.
   static const int timeCorrectionReasonMaxLength = 200;
 
-  // Off-site scan requests ("ສະແກນນອກພື້ນທີ່")
+  // Off-site scan requests ("ລົງເວລານອກພື້ນທີ່")
   /// Longest reason an off-site scan request accepts. The endpoint only asks
   /// for it to be non-empty; the cap is the app's, so the card stays readable.
   static const int offsiteReasonMaxLength = 200;

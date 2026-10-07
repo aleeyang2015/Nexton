@@ -962,10 +962,10 @@ class AppLocalizationsLo extends AppLocalizations {
   String get timeCorrectionTypeLabel => 'ປະເພດການແກ້ໄຂ';
 
   @override
-  String get timeCorrectionTypeForgotIn => 'ລືມສະແກນເຂົ້າ';
+  String get timeCorrectionTypeForgotIn => 'ລືມລົງເວລາເຂົ້າ';
 
   @override
-  String get timeCorrectionTypeForgotOut => 'ລືມສະແກນອອກ';
+  String get timeCorrectionTypeForgotOut => 'ລືມລົງເວລາອອກ';
 
   @override
   String get timeCorrectionTypeBoth => 'ທັງສອງ (ເຂົ້າ & ອອກ)';
@@ -1312,11 +1312,11 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get timeCorrectionApprovalTypeMissingIn =>
-      'ລືມສະແກນເຂົ້າ (Missing In)';
+      'ລືມລົງເວລາເຂົ້າ (Missing In)';
 
   @override
   String get timeCorrectionApprovalTypeMissingOut =>
-      'ລືມສະແກນອອກ (Missing Out)';
+      'ລືມລົງເວລາອອກ (Missing Out)';
 
   @override
   String get timeCorrectionApprovalTypeBoth => 'ແກ້ໄຂທັງ ເຂົ້າ ແລະ ອອກ (Both)';
@@ -1377,20 +1377,20 @@ class AppLocalizationsLo extends AppLocalizations {
   String get approvalsTimeCorrectionTab => 'ອະນຸມັດແກ້ໄຂເວລາ';
 
   @override
-  String get offsiteMenu => 'ສະແກນນອກພື້ນທີ່';
+  String get offsiteMenu => 'ລົງເວລານອກພື້ນທີ່';
 
   @override
-  String get offsiteTitle => 'ສະແກນນອກພື້ນທີ່';
+  String get offsiteTitle => 'ລົງເວລານອກພື້ນທີ່';
 
   @override
-  String get offsiteNoticeTitle => 'ການສະແກນນອກພື້ນທີ່ວຽກ';
+  String get offsiteNoticeTitle => 'ການລົງເວລານອກພື້ນທີ່ວຽກ';
 
   @override
   String get offsiteNoticeBody =>
       'ຕຳແໜ່ງຂອງທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ. ກະລຸນາແນບຮູບຖ່າຍ ແລະ ເຫດຜົນ: ຖ້າທ່ານມີສິດເຮັດວຽກນອກພື້ນທີ່ ລະບົບຈະບັນທຶກເວລາທັນທີ, ຖ້າບໍ່ມີ ຝ່າຍບຸຄຄົນຈະພິຈາລະນາອະນຸມັດກ່ອນ';
 
   @override
-  String get offsiteMethodLabel => 'ປະເພດການສະແກນ';
+  String get offsiteMethodLabel => 'ປະເພດການລົງເວລາ';
 
   @override
   String get offsiteMethodCheckIn => 'ລົງເວລາເຂົ້າ';
@@ -1413,7 +1413,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get offsiteReasonLabel => 'ເຫດຜົນ';
 
   @override
-  String get offsiteReasonHint => 'ລະບຸເຫດຜົນທີ່ສະແກນຢູ່ນອກພື້ນທີ່';
+  String get offsiteReasonHint => 'ລະບຸເຫດຜົນທີ່ລົງເວລາຢູ່ນອກພື້ນທີ່';
 
   @override
   String get offsiteReasonRequired => 'ກະລຸນາລະບຸເຫດຜົນ';
@@ -1443,7 +1443,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get offsiteSubmit => 'ສົ່ງຄຳຮ້ອງ';
 
   @override
-  String get offsiteSubmitApproved => 'ບັນທຶກການສະແກນນອກພື້ນທີ່ແລ້ວ';
+  String get offsiteSubmitApproved => 'ບັນທຶກການລົງເວລານອກພື້ນທີ່ແລ້ວ';
 
   @override
   String get offsiteSubmitPending => 'ສົ່ງຄຳຮ້ອງແລ້ວ — ລໍຖ້າການອະນຸມັດ';
@@ -1454,34 +1454,34 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get ruleOffsiteRequestExists =>
-      'ທ່ານມີຄຳຮ້ອງສະແກນນອກພື້ນທີ່ຂອງຊ່ວງເວລານີ້ຢູ່ແລ້ວ ກະລຸນາລໍຖ້າຜົນການອະນຸມັດ';
+      'ທ່ານມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່ຂອງຊ່ວງເວລານີ້ຢູ່ແລ້ວ ກະລຸນາລໍຖ້າຜົນການອະນຸມັດ';
 
   @override
   String get ruleTooEarlyCheckin => 'ຍັງບໍ່ເຖິງເວລາລົງເວລາເຂົ້າ';
 
   @override
   String ruleTooEarlyCheckinAt(String time) {
-    return 'ຍັງບໍ່ເຖິງເວລາລົງເວລາເຂົ້າ — ເປີດໃຫ້ສະແກນເວລາ $time';
+    return 'ຍັງບໍ່ເຖິງເວລາລົງເວລາເຂົ້າ — ເປີດໃຫ້ລົງເວລາຕອນ $time';
   }
 
   @override
   String get approvalsOffsiteTab => 'ອະນຸມັດນອກພື້ນທີ່';
 
   @override
-  String get offsiteHistoryTitle => 'ປະຫວັດການສະແກນນອກພື້ນທີ່';
+  String get offsiteHistoryTitle => 'ປະຫວັດລົງເວລານອກພື້ນທີ່';
 
   @override
-  String get offsiteHistoryEmpty => 'ບໍ່ມີຄຳຮ້ອງສະແກນນອກພື້ນທີ່';
+  String get offsiteHistoryEmpty => 'ບໍ່ມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
 
   @override
   String get offsiteHistoryLoadFailed =>
-      'ບໍ່ສາມາດໂຫຼດຄຳຮ້ອງສະແກນນອກພື້ນທີ່ໄດ້.';
+      'ບໍ່ສາມາດໂຫຼດຄຳຮ້ອງລົງເວລານອກພື້ນທີ່ໄດ້.';
 
   @override
-  String get offsiteNewRequestTitle => 'ສະແກນນອກພື້ນທີ່ໃໝ່';
+  String get offsiteNewRequestTitle => 'ລົງເວລານອກພື້ນທີ່ໃໝ່';
 
   @override
-  String get offsiteNewRequestSubtitle => 'ຍື່ນຄຳຮ້ອງການສະແກນນອກພື້ນທີ່ວຽກ';
+  String get offsiteNewRequestSubtitle => 'ຍື່ນຄຳຮ້ອງການລົງເວລານອກພື້ນທີ່ວຽກ';
 
   @override
   String get offsiteOfferTitle => 'ຢູ່ນອກພື້ນທີ່ວຽກ';
@@ -1503,14 +1503,14 @@ class AppLocalizationsLo extends AppLocalizations {
       'ທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ ການລົງເວລາອອກຈຶ່ງບໍ່ຖືກຮັບ ແລະ ບໍ່ມີການບັນທຶກ. ຕ້ອງການຍື່ນຄຳຮ້ອງລົງເວລາອອກນອກພື້ນທີ່ຈາກຈຸດນີ້ບໍ?';
 
   @override
-  String get offsiteOfferConfirm => 'ຍື່ນຄຳຮ້ອງສະແກນນອກພື້ນທີ່';
+  String get offsiteOfferConfirm => 'ຍື່ນຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
 
   @override
   String get offsiteCancelAction => 'ຍົກເລີກຄຳຮ້ອງ';
 
   @override
   String get offsiteCancelConfirm =>
-      'ຕ້ອງການຍົກເລີກຄຳຮ້ອງສະແກນນອກພື້ນທີ່ນີ້ບໍ? ທ່ານຈະຕ້ອງຍື່ນຄຳຮ້ອງໃໝ່ອີກຄັ້ງ.';
+      'ຕ້ອງການຍົກເລີກຄຳຮ້ອງລົງເວລານອກພື້ນທີ່ນີ້ບໍ? ທ່ານຈະຕ້ອງຍື່ນຄຳຮ້ອງໃໝ່ອີກຄັ້ງ.';
 
   @override
   String get offsiteCancelled => 'ຍົກເລີກຄຳຮ້ອງແລ້ວ';
@@ -1520,7 +1520,7 @@ class AppLocalizationsLo extends AppLocalizations {
       'ຄຳຮ້ອງນີ້ຍົກເລີກບໍ່ໄດ້ແລ້ວ — ຖືກພິຈາລະນາໄປແລ້ວ.';
 
   @override
-  String get offsiteApprovalScannedAt => 'ເວລາສະແກນ';
+  String get offsiteApprovalScannedAt => 'ເວລາທີ່ລົງເວລາ';
 
   @override
   String get offsiteApprovalPosition => 'ຕຳແໜ່ງ';
@@ -1529,7 +1529,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get offsiteApprovalNoFix => 'ບໍ່ມີຕຳແໜ່ງ';
 
   @override
-  String get offsiteApprovalNoScanDate => 'ບໍ່ມີວັນທີສະແກນ';
+  String get offsiteApprovalNoScanDate => 'ບໍ່ມີວັນທີລົງເວລາ';
 
   @override
   String get offsiteApprovalApproved => 'ອະນຸມັດຄຳຮ້ອງແລ້ວ';
@@ -1539,10 +1539,10 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get offsiteApprovalsLoadFailed =>
-      'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງສະແກນນອກພື້ນທີ່ໄດ້.';
+      'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງລົງເວລານອກພື້ນທີ່ໄດ້.';
 
   @override
-  String get offsiteApprovalsEmpty => 'ບໍ່ມີຄຳຮ້ອງສະແກນນອກພື້ນທີ່';
+  String get offsiteApprovalsEmpty => 'ບໍ່ມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
 
   @override
   String get offsiteTooEarlyCheckin =>

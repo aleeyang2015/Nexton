@@ -2591,19 +2591,19 @@ abstract class AppLocalizations {
   /// No description provided for @offsiteMenu.
   ///
   /// In en, this message translates to:
-  /// **'Off-site Scan'**
+  /// **'Off-site Clock-in'**
   String get offsiteMenu;
 
   /// No description provided for @offsiteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Off-site Scan'**
+  /// **'Off-site Clock-in'**
   String get offsiteTitle;
 
   /// No description provided for @offsiteNoticeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Scanning outside the work area'**
+  /// **'Clocking in outside the work area'**
   String get offsiteNoticeTitle;
 
   /// No description provided for @offsiteNoticeBody.
@@ -2615,7 +2615,7 @@ abstract class AppLocalizations {
   /// No description provided for @offsiteMethodLabel.
   ///
   /// In en, this message translates to:
-  /// **'Scan type'**
+  /// **'Clock-in type'**
   String get offsiteMethodLabel;
 
   /// No description provided for @offsiteMethodCheckIn.
@@ -2657,7 +2657,7 @@ abstract class AppLocalizations {
   /// No description provided for @offsiteReasonHint.
   ///
   /// In en, this message translates to:
-  /// **'Why are you scanning from outside the work area?'**
+  /// **'Why are you clocking in from outside the work area?'**
   String get offsiteReasonHint;
 
   /// No description provided for @offsiteReasonRequired.
@@ -2711,7 +2711,7 @@ abstract class AppLocalizations {
   /// No description provided for @offsiteSubmitApproved.
   ///
   /// In en, this message translates to:
-  /// **'Off-site scan recorded'**
+  /// **'Off-site clock-in recorded'**
   String get offsiteSubmitApproved;
 
   /// No description provided for @offsiteSubmitPending.
@@ -2741,7 +2741,7 @@ abstract class AppLocalizations {
   /// No description provided for @ruleTooEarlyCheckinAt.
   ///
   /// In en, this message translates to:
-  /// **'It isn\'t time to clock in yet — scanning opens at {time}.'**
+  /// **'It isn\'t time to clock in yet — clock-in opens at {time}.'**
   String ruleTooEarlyCheckinAt(String time);
 
   /// No description provided for @approvalsOffsiteTab.
@@ -2753,31 +2753,31 @@ abstract class AppLocalizations {
   /// No description provided for @offsiteHistoryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Off-site Scan History'**
+  /// **'Off-site Clock-in History'**
   String get offsiteHistoryTitle;
 
   /// No description provided for @offsiteHistoryEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No off-site scan requests'**
+  /// **'No off-site clock-in requests'**
   String get offsiteHistoryEmpty;
 
   /// No description provided for @offsiteHistoryLoadFailed.
   ///
   /// In en, this message translates to:
-  /// **'Could not load your off-site scan requests.'**
+  /// **'Could not load your off-site clock-in requests.'**
   String get offsiteHistoryLoadFailed;
 
   /// No description provided for @offsiteNewRequestTitle.
   ///
   /// In en, this message translates to:
-  /// **'New off-site scan'**
+  /// **'New off-site clock-in'**
   String get offsiteNewRequestTitle;
 
   /// No description provided for @offsiteNewRequestSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'File a scan taken outside the work area'**
+  /// **'File a clock-in taken outside the work area'**
   String get offsiteNewRequestSubtitle;
 
   /// No description provided for @offsiteOfferTitle.
@@ -2813,7 +2813,7 @@ abstract class AppLocalizations {
   /// No description provided for @offsiteOfferConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Request off-site scan'**
+  /// **'Request off-site clock-in'**
   String get offsiteOfferConfirm;
 
   /// No description provided for @offsiteCancelAction.
@@ -2825,7 +2825,7 @@ abstract class AppLocalizations {
   /// No description provided for @offsiteCancelConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Withdraw this off-site scan request? You will have to file the scan again.'**
+  /// **'Withdraw this off-site clock-in request? You will have to file the clock-in again.'**
   String get offsiteCancelConfirm;
 
   /// No description provided for @offsiteCancelled.
@@ -2843,7 +2843,7 @@ abstract class AppLocalizations {
   /// No description provided for @offsiteApprovalScannedAt.
   ///
   /// In en, this message translates to:
-  /// **'Scanned at'**
+  /// **'Clocked in at'**
   String get offsiteApprovalScannedAt;
 
   /// No description provided for @offsiteApprovalPosition.
@@ -2861,7 +2861,7 @@ abstract class AppLocalizations {
   /// No description provided for @offsiteApprovalNoScanDate.
   ///
   /// In en, this message translates to:
-  /// **'No scan date'**
+  /// **'No clock-in date'**
   String get offsiteApprovalNoScanDate;
 
   /// No description provided for @offsiteApprovalApproved.
@@ -2879,13 +2879,13 @@ abstract class AppLocalizations {
   /// No description provided for @offsiteApprovalsLoadFailed.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t load the off-site scan requests.'**
+  /// **'Couldn\'t load the off-site clock-in requests.'**
   String get offsiteApprovalsLoadFailed;
 
   /// No description provided for @offsiteApprovalsEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No off-site scan requests'**
+  /// **'No off-site clock-in requests'**
   String get offsiteApprovalsEmpty;
 
   /// No description provided for @offsiteTooEarlyCheckin.

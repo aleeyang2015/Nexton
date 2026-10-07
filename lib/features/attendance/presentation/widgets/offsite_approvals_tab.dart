@@ -16,7 +16,7 @@ import 'time_correction_approval_filters.dart';
 import 'time_correction_history_summary.dart';
 import 'time_correction_image_viewer.dart';
 
-/// "ຄຳຮ້ອງສະແກນນອກພື້ນທີ່" — the off-site scan requests the signed-in approver
+/// "ຄຳຮ້ອງລົງເວລານອກພື້ນທີ່" — the off-site scan requests the signed-in approver
 /// decides on (§5). A search box and a status dropdown narrow the list; each
 /// pending card approves or rejects inline. Everything comes from
 /// [offsiteApprovalsNotifierProvider].

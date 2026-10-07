@@ -33,7 +33,7 @@ class AttendancePaths {
   static String rejectCorrectionRequest(String id) =>
       '$correctionRequests/$id/reject';
 
-  /// Off-site scan requests — the "ສະແກນນອກພື້ນທີ່" menu
+  /// Off-site scan requests — the "ລົງເວລານອກພື້ນທີ່" menu
   /// (attendance-offsite-requests.md §2). The detail route comes with the menu
   /// that calls it.
   static const String offsiteRequests = '$_prefix/offsite-requests';
