@@ -1,4 +1,4 @@
-package com.example.next_on
+package next.on.hr.com
 
 import io.flutter.embedding.android.FlutterActivity
 
