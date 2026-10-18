@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "366749782275",
+    "project_id": "project-nexton-hr",
+    "storage_bucket": "project-nexton-hr.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:366749782275:android:f0ae4e569858fb028e9936",
+        "android_client_info": {
+          "package_name": "next.on.hr.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbhndF1NsaGdvVLLwAEPoBsxkTnDkP8Ec"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:366749782275:android:b6ae006d4efdf8dc8e9936",
+        "android_client_info": {
+          "package_name": "nexton.hr"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbhndF1NsaGdvVLLwAEPoBsxkTnDkP8Ec"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
