@@ -1,8 +1,19 @@
 # Nexton App
 
 Flutter phone App for the Nexton HR product: the employee and department-head side (clock in and out, leave, OT,
-payslips, approvals). HR works in the web portal (`vongsavanh-dev/nexton_web_admin`). Both talk to the Go backend
-`Nexton-Backend` (`phoudssp/Nexton-Backend`).
+payslips, approvals).
+
+## The three Nexton repos
+
+| Repo | What | Runs at |
+|------|------|---------|
+| `Nexton` (`aleeyang2015/Nexton`) — this repo | Flutter phone App: staff and department heads | phones, calling the same API |
+| `Nexton-Backend` (`phoudssp/Nexton-Backend`) | Go API + worker | `api.nexton.work`; a merge to `main` deploys and migrates |
+| `nexton_web_admin` (`vongsavanh-dev/nexton_web_admin`) | Next.js HR web (the company portal) | `*.nexton.work`; a merge to `main` deploys |
+
+What the server sends: the backend's handler or struct (the code wins over its docs); its guides are in
+`docs/integration/`. Something the backend must add → an issue on `phoudssp/Nexton-Backend`. Staff ask here; HR
+decides in the web.
 
 ## Working on an issue
 
