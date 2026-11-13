@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Application-wide constants
 class AppConstants {
   AppConstants._();
@@ -8,20 +10,37 @@ class AppConstants {
 
   // API Configuration
   //
-  // `https://app.nexton.work/api` + `/v1` resolves to the `/api/v1/auth`
-  // route group auth.md documents.
+  // The base URL + `/v1` resolves to the `/api/v1/auth` route group auth.md
+  // documents. Which host a build talks to:
   //
-  // In production the backend resolves the tenant from the leftmost label of
-  // the Host header, and `api.` / `admin.` are RESERVED labels that bypass
-  // tenant resolution entirely — a login against `api.nexton.work` is rejected
-  // 400 SUBDOMAIN_REQUIRED under TenantStrictMode (verified live), so never
-  // point this at the reserved host. Point a different tenant build at its own
-  // subdomain without a code change:
-  // `--dart-define=NEXTON_API_BASE_URL=https://acme.nexton.work/api`.
-  static const String baseUrl = String.fromEnvironment(
+  // - `--dart-define=NEXTON_API_BASE_URL=<url>` wins in every build mode.
+  // - A debug build with no define uses the test company,
+  //   `nexton-demo.nexton.work`. The App talks to the live server, so a plain
+  //   `flutter run` must never be able to write into a real company.
+  // - A profile or release build (the store build) uses `app.nexton.work`,
+  //   the mobile host: one App for every company, and the company comes from
+  //   the login email.
+  //
+  // Never point a build at `api.nexton.work`: it is a reserved host, and a
+  // login there is an admin login, not a staff one.
+  static const String _definedBaseUrl = String.fromEnvironment(
     'NEXTON_API_BASE_URL',
-    defaultValue: 'https://app.nexton.work/api',
   );
+  static const String _debugBaseUrl = 'https://nexton-demo.nexton.work/api';
+  static const String _releaseBaseUrl = 'https://app.nexton.work/api';
+
+  /// The API base URL of this build. See the note above.
+  static String get baseUrl =>
+      resolveBaseUrl(defined: _definedBaseUrl, debug: kDebugMode);
+
+  /// Picks the base URL: [defined] (the dart-define) when it is set, else the
+  /// test company for a [debug] build, else the store host.
+  @visibleForTesting
+  static String resolveBaseUrl({required String defined, required bool debug}) {
+    if (defined.isNotEmpty) return defined;
+    return debug ? _debugBaseUrl : _releaseBaseUrl;
+  }
+
   static const String apiVersion = 'v1';
 
   // Time-correction requests ("ລືມລົງເວລາ")
@@ -53,14 +72,11 @@ class AppConstants {
   /// tenant is the leftmost label of the Host header). See auth.md.
   static const String tenantSlugHeader = 'X-Tenant-Slug';
 
-  /// Mirrors the RN app's `EXPO_PUBLIC_TENANT_SLUG`; override per build with
-  /// `--dart-define=NEXTON_TENANT_SLUG=<slug>`. Kept in step with the leftmost
-  /// label of [baseUrl] so a dev server honouring the header resolves the same
-  /// tenant the host would resolve in production.
-  static const String tenantSlug = String.fromEnvironment(
-    'NEXTON_TENANT_SLUG',
-    defaultValue: 'nexton-demo',
-  );
+  /// Dev servers only: the live server ignores the header and takes the
+  /// company from the host. Empty unless a build sets
+  /// `--dart-define=NEXTON_TENANT_SLUG=<slug>`, and then it is sent as
+  /// [tenantSlugHeader] on every request.
+  static const String tenantSlug = String.fromEnvironment('NEXTON_TENANT_SLUG');
 
   // Content Types
   static const String jsonContentType = 'application/json';
