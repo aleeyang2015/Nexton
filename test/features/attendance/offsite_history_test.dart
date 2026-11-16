@@ -153,7 +153,7 @@ void main() {
         final repository = await pumpPage(tester, Result.success([scan()]));
         expect(repository.mineCalls, 1);
 
-        await tester.tap(find.text('New off-site scan'));
+        await tester.tap(find.text('New off-site clock-in'));
         await tester.pumpAndSettle();
         expect(find.text('FORM'), findsOneWidget);
 
@@ -240,9 +240,9 @@ void main() {
     ) async {
       await pumpPage(tester, const Result.success([]));
 
-      expect(find.text('No off-site scan requests'), findsOneWidget);
+      expect(find.text('No off-site clock-in requests'), findsOneWidget);
       expect(
-        find.text('Could not load your off-site scan requests.'),
+        find.text('Could not load your off-site clock-in requests.'),
         findsNothing,
       );
     });
@@ -254,7 +254,7 @@ void main() {
       );
 
       expect(
-        find.text('Could not load your off-site scan requests.'),
+        find.text('Could not load your off-site clock-in requests.'),
         findsOneWidget,
       );
 
