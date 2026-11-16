@@ -47,7 +47,7 @@ class SalaryHistoryNotifier extends AutoDisposeNotifier<SalaryHistoryState> {
     // filter — that's a display preference, not tied to any one year.
     state = SalaryHistoryState(year: year, filter: state.filter);
 
-    final result = await ref.read(getPayslipHistoryUseCaseProvider)(year);
+    final result = await ref.read(getMyPayslipsUseCaseProvider)(year);
     if (_disposed || state.year != year) return;
     state = state.copyWith(payslips: _toAsync(result));
   }

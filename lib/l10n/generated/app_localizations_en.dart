@@ -455,16 +455,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryBaseSalary => 'Base Salary';
 
   @override
-  String get salaryAllowance => 'Allowance / Others';
-
-  @override
   String get salarySocialSecurity => 'Social Security';
 
   @override
   String get salaryIncomeTax => 'Income Tax';
-
-  @override
-  String get salaryOtherDeductions => 'Other Deductions';
 
   @override
   String get salaryWorkingDaysLabel => 'Working Days';
@@ -473,7 +467,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryOvertimeLabel => 'OT Hours';
 
   @override
-  String get salaryUnpaidLeaveLabel => 'Unpaid Leave';
+  String get salaryUnpaidLeaveLabel => 'Unpaid leave (days)';
 
   @override
   String get salaryDownloadPdf => 'Download Payslip (PDF)';
@@ -1706,4 +1700,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String leaveWaitingForStep(String role) {
     return 'Waiting for $role';
   }
+
+  @override
+  String get salaryStatusApproved => 'Approved';
+
+  @override
+  String get salaryPaymentFailed => 'Payment failed';
+
+  @override
+  String get salaryPaymentFailedContactHr =>
+      'The payment failed. Please contact HR.';
 }

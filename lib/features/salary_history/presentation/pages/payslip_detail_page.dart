@@ -18,20 +18,33 @@ import '../widgets/salary_history_copy.dart';
 /// "ໃບເງິນເດືອນ" — the full breakdown behind a month's card on
 /// [SalaryHistoryPage].
 ///
-/// The list row rides along as the route's `extra` and is rendered at once —
-/// its header, identity and totals are the same backend figures the detail
-/// call returns — while [payslipDetailNotifierProvider] fetches the line
-/// items for that payslip's id and fills in the sections below.
+/// Opened by the payslip's id: [payslipDetailNotifierProvider] loads the
+/// payslip, and the page shows a placeholder until it arrives. [initial] is
+/// a copy a caller already holds, shown at once when there is one.
+///
+/// This page still reads the old `Payslip` entity. Until it moves to the
+/// server's own record, its month is the one that entity works out.
 class PayslipDetailPage extends ConsumerWidget {
-  final Payslip payslip;
+  final String payslipId;
+  final Payslip? initial;
 
-  const PayslipDetailPage({super.key, required this.payslip});
+  const PayslipDetailPage({super.key, required this.payslipId, this.initial});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final detail = ref.watch(payslipDetailNotifierProvider(payslip.id));
-    final shown = detail.valueOrNull ?? payslip;
+    final detail = ref.watch(payslipDetailNotifierProvider(payslipId));
+    final shown = detail.valueOrNull ?? initial;
+
+    // Nothing to show yet: the page was opened by id alone.
+    if (shown == null) {
+      return _DetailLoadingPage(
+        failed: detail.hasError && !detail.isLoading,
+        error: detail.error,
+        onRetry: () =>
+            ref.read(payslipDetailNotifierProvider(payslipId).notifier).refresh(),
+      );
+    }
 
     return Container(
       color: AppColors.homeBackground,
@@ -57,7 +70,7 @@ class PayslipDetailPage extends ConsumerWidget {
                         onRetry: () => ref
                             .read(
                               payslipDetailNotifierProvider(
-                                payslip.id,
+                                payslipId,
                               ).notifier,
                             )
                             .refresh(),
@@ -205,7 +218,13 @@ class _SaveButton extends ConsumerWidget {
     });
 
     return GestureDetector(
-      onTap: () => ref.read(provider.notifier).download(payslip),
+      onTap: () => ref
+          .read(provider.notifier)
+          .download(
+            defaultFileName:
+                'payslip-${payslip.year}-'
+                '${payslip.month.toString().padLeft(2, '0')}.pdf',
+          ),
       child: Container(
         width: 40,
         height: 40,
@@ -762,6 +781,73 @@ class _FooterRow extends StatelessWidget {
           fontSize: 15,
         ),
       ],
+    );
+  }
+}
+
+/// The page before its payslip has arrived: a back arrow, and a placeholder
+/// or, when the load failed, the reason with a Retry.
+class _DetailLoadingPage extends StatelessWidget {
+  final bool failed;
+  final Object? error;
+  final VoidCallback onRetry;
+
+  const _DetailLoadingPage({
+    required this.failed,
+    required this.error,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      color: AppColors.homeBackground,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: AppColors.homeBackground,
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              heightBx(h: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => context.pop(),
+                      child: popBack(),
+                    ),
+                    widthBx(w: 4),
+                    Expanded(
+                      child: customText(
+                        l10n.payslipDetailTitle,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: failed
+                    ? SalaryErrorBlock.forFailure(
+                        l10n: l10n,
+                        error: error,
+                        fallbackMessage: l10n.payslipDetailLoadFailed,
+                        onRetry: onRetry,
+                      )
+                    : const Padding(
+                        padding: EdgeInsets.fromLTRB(15, 14, 15, 20),
+                        child: _SectionsPlaceholder(),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

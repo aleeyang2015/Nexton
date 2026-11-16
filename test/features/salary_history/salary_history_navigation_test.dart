@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
-import 'package:next_on/features/salary_history/domain/entities/payslip.dart';
+import 'package:next_on/features/salary_history/domain/entities/payslip_record.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip_pdf.dart';
 import 'package:next_on/features/salary_history/presentation/pages/payslip_detail_page.dart';
 import 'package:next_on/features/salary_history/presentation/pages/salary_history_page.dart';
@@ -20,24 +20,31 @@ import '../../support/salary_test_doubles.dart';
 void main() {
   final now = DateTime.now();
 
-  /// What the history call returns: aggregates only, no line items — the
-  /// detail call is the one that itemises.
-  final listRow = samplePayslip(year: now.year, withSections: false);
-  final detailRow = samplePayslip(year: now.year);
-  final pendingRow = samplePayslip(
-    id: 'pending-id',
-    year: now.year,
-    month: 9,
-    status: PayslipStatus.pending,
-    withSections: false,
+  /// What the list call returns: the server's rows, totals only. August is
+  /// paid; September is approved and not paid yet.
+  final listRow = samplePayslipRecord(periodYear: now.year, periodMonth: 8);
+  final approvedRow = samplePayslipRecord(
+    id: 'approved-id',
+    periodYear: now.year,
+    periodMonth: 9,
+    status: PayslipRunStatus.approved,
+    paymentStatus: PayslipPaymentStatus.pending,
+    paid: false,
   );
+
+  /// What the detail call returns (the detail page still reads the old
+  /// entity).
+  final detailRow = samplePayslip(year: now.year);
 
   late FakeSalaryRepository repository;
   late FakePayslipPdfSaver saver;
 
   setUp(() {
     repository = FakeSalaryRepository()
-      ..historyResult = Result.success([listRow, pendingRow])
+      // Only this year has payslips.
+      ..myPayslipsByYear = ((year) => Result.success(
+        year == now.year ? [listRow, approvedRow] : const <PayslipRecord>[],
+      ))
       ..detailResult = Result.success(detailRow)
       ..pdfResult = Result.success(
         PayslipPdf(bytes: Uint8List.fromList([0x25, 0x50, 0x44, 0x46, 0x2d])),
@@ -56,7 +63,7 @@ void main() {
         GoRoute(
           path: AppRoutes.payslipDetail,
           builder: (_, state) =>
-              PayslipDetailPage(payslip: state.extra as Payslip),
+              PayslipDetailPage(payslipId: state.extra as String),
         ),
       ],
     );
@@ -84,7 +91,7 @@ void main() {
     ) async {
       await pumpPage(tester);
 
-      expect(repository.historyYears, [now.year]);
+      expect(repository.myPayslipsYears, [now.year]);
       // Headline net on the summary card and on each row — wire value.
       expect(find.text('₭ 7,426,674'), findsNWidgets(3));
       expect(find.text('August ${now.year}'), findsOneWidget);
@@ -99,42 +106,40 @@ void main() {
       await tester.tap(find.byIcon(Icons.chevron_left));
       await tester.pumpAndSettle();
 
-      expect(repository.historyYears, [now.year, now.year - 1]);
+      expect(repository.myPayslipsYears, [now.year, now.year - 1]);
       expect(find.text('No salary records'), findsOneWidget);
     });
 
-    testWidgets('the Paid / Pending chips filter on payment_status', (
-      tester,
-    ) async {
+    testWidgets('the Paid chip keeps the paid payslips, with no request; '
+        'there is no Pending chip', (tester) async {
       await pumpPage(tester);
+      expect(find.text('Pending'), findsNothing);
 
-      // The chips sit above the list, so they're the first "Paid" /
-      // "Pending" InkWells in tree order; the status pills come later.
+      // The chips sit above the list, so the chip is the first "Paid"
+      // InkWell in tree order; the status pills come later.
       await tester.tap(find.widgetWithText(InkWell, 'Paid').first);
       await tester.pumpAndSettle();
       expect(find.text('August ${now.year}'), findsOneWidget);
       expect(find.text('September ${now.year}'), findsNothing);
 
-      await tester.tap(find.widgetWithText(InkWell, 'Pending').first);
+      await tester.tap(find.widgetWithText(InkWell, 'All').first);
       await tester.pumpAndSettle();
-      expect(find.text('August ${now.year}'), findsNothing);
       expect(find.text('September ${now.year}'), findsOneWidget);
 
       // One call served every chip — filtering is local.
-      expect(repository.historyYears, [now.year]);
+      expect(repository.myPayslipsYears, [now.year]);
     });
 
     testWidgets('a failed load shows the error state and retries', (
       tester,
     ) async {
-      repository.historyResult = const Result.failure(
-        Failure.network(message: 'offline'),
-      );
+      repository.myPayslipsByYear = (_) =>
+          const Result.failure(Failure.network(message: 'offline'));
       await pumpPage(tester);
 
       expect(find.text('Unable to load salary records.'), findsOneWidget);
 
-      repository.historyResult = Result.success([listRow]);
+      repository.myPayslipsByYear = (_) => Result.success([listRow]);
       await tester.tap(find.text('Retry'));
       await tester.pumpAndSettle();
 
@@ -152,9 +157,8 @@ void main() {
       // Still on the history page: the chevron flipped, no detail page pushed.
       expect(find.byType(PayslipDetailPage), findsNothing);
       expect(find.byIcon(Icons.keyboard_arrow_up), findsOneWidget);
-      expect(find.text('Gross'), findsNothing);
       // The inline breakdown reads the wire aggregates.
-      expect(find.text('Unpaid Leave'), findsOneWidget);
+      expect(find.text('Unpaid leave (days)'), findsOneWidget);
       expect(find.text('22'), findsOneWidget);
     });
 
@@ -197,9 +201,8 @@ void main() {
       expect(find.text('Position allowance'), findsOneWidget);
     });
 
-    testWidgets('renders the list row while the detail call is in flight', (
-      tester,
-    ) async {
+    testWidgets('shows a placeholder, and no figures, while the payslip is '
+        'on its way', (tester) async {
       repository.hangDetail = true;
       await pumpPage(tester);
 
@@ -207,8 +210,9 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
-      expect(find.text('Payslip – August ${now.year}'), findsOneWidget);
-      expect(find.text('₭7,426,674'), findsOneWidget);
+      expect(find.byType(PayslipDetailPage), findsOneWidget);
+      expect(find.text('Payslip'), findsOneWidget);
+      expect(find.text('₭7,426,674'), findsNothing);
       expect(find.text('Welfare / Allowances'), findsNothing);
     });
 
@@ -224,8 +228,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Unable to load the payslip.'), findsOneWidget);
-      // The header and totals still stand — they came with the list row.
-      expect(find.text('₭7,426,674'), findsOneWidget);
 
       repository.detailResult = Result.success(detailRow);
       await tester.tap(find.text('Retry'));
@@ -233,6 +235,7 @@ void main() {
 
       expect(repository.detailIds, [listRow.id, listRow.id]);
       expect(find.text('Welfare / Allowances'), findsOneWidget);
+      expect(find.text('₭7,426,674'), findsOneWidget);
     });
 
     testWidgets('the save icon fetches this payslip\'s PDF', (tester) async {
@@ -280,7 +283,7 @@ void main() {
             locale: const Locale('en'),
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
-            home: PayslipDetailPage(payslip: listRow),
+            home: PayslipDetailPage(payslipId: detailRow.id, initial: detailRow),
           ),
         ),
       );

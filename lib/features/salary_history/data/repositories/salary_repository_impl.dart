@@ -13,9 +13,6 @@ class SalaryRepositoryImpl extends BaseRepository implements SalaryRepository {
   SalaryRepositoryImpl({required SalaryRemoteDataSource remote}) : _remote = remote;
 
   @override
-  FutureResult<List<Payslip>> history(int year) => guard(() => _remote.history(year));
-
-  @override
   FutureResult<Payslip> detail(String id) => guard(() => _remote.detail(id));
 
   @override

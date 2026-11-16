@@ -313,16 +313,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SalaryHistoryPage(),
       ),
 
-      // Payslip detail — reached by tapping a month's card; the payslip
-      // rides along as `extra`, so a direct hit with nothing to show falls
-      // through to the 404 page.
+      // Payslip detail — reached by tapping a month's card. `extra` is the
+      // payslip's id (the page loads it), or a payslip a caller already
+      // holds; a direct hit with neither falls through to the 404 page.
       GoRoute(
         path: AppRoutes.payslipDetail,
         name: 'payslipDetail',
         builder: (context, state) {
-          final payslip = state.extra;
-          if (payslip is! Payslip) return const NotFoundPage();
-          return PayslipDetailPage(payslip: payslip);
+          return switch (state.extra) {
+            final String id when id.isNotEmpty => PayslipDetailPage(
+              payslipId: id,
+            ),
+            final Payslip payslip => PayslipDetailPage(
+              payslipId: payslip.id,
+              initial: payslip,
+            ),
+            _ => const NotFoundPage(),
+          };
         },
       ),
 

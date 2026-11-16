@@ -148,13 +148,11 @@
   "salaryIncomeSection": "ລາຍຮັບ",
   "salaryDeductionsSection": "ລາຍການຫັກ",
   "salaryBaseSalary": "ເງິນເດືອນພື້ນຖານ",
-  "salaryAllowance": "ເບ້ຍລ້ຽງ / ອື່ນໆ",
   "salarySocialSecurity": "ປະກັນສັງຄົມ",
   "salaryIncomeTax": "ອາກອນເງິນເດືອນ",
-  "salaryOtherDeductions": "ຫັກອື່ນໆ",
   "salaryWorkingDaysLabel": "ມື້ເຮັດວຽກ",
   "salaryOvertimeLabel": "ຊົ່ວໂມງໂອທີ",
-  "salaryUnpaidLeaveLabel": "ລາພັກບໍ່ຮັບເງິນ",
+  "salaryUnpaidLeaveLabel": "ລາພັກບໍ່ໄດ້ຮັບເງິນ (ວັນ)",
   "salaryDownloadPdf": "ດາວໂຫລດໃບເງິນເດືອນ (PDF)",
   "payslipDetailTitle": "ໃບເງິນເດືອນ",
   "salaryGrossLabel": "ລາຍຮັບລວມ",
@@ -530,5 +528,8 @@
   "leaveOwnRequestNoActions": "ນີ້ແມ່ນຄຳຮ້ອງຂອງທ່ານເອງ. ຕ້ອງໃຫ້ຄົນອື່ນເປັນຜູ້ຕັດສິນ.",
   "leaveDecidedByMeApproved": "ທີ່ຂ້ອຍອະນຸມັດ",
   "leaveDecidedByMeRejected": "ທີ່ຂ້ອຍປະຕິເສດ",
-  "leaveWaitingForStep": "ລໍຖ້າ{role}"
+  "leaveWaitingForStep": "ລໍຖ້າ{role}",
+  "salaryStatusApproved": "ອະນຸມັດແລ້ວ",
+  "salaryPaymentFailed": "ໂອນເງິນບໍ່ສຳເລັດ",
+  "salaryPaymentFailedContactHr": "ການໂອນເງິນບໍ່ສຳເລັດ, ກະລຸນາຕິດຕໍ່ຝ່າຍບຸກຄະລາກອນ"
 }

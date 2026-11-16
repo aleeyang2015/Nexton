@@ -177,13 +177,11 @@
   "salaryIncomeSection": "Income",
   "salaryDeductionsSection": "Deductions",
   "salaryBaseSalary": "Base Salary",
-  "salaryAllowance": "Allowance / Others",
   "salarySocialSecurity": "Social Security",
   "salaryIncomeTax": "Income Tax",
-  "salaryOtherDeductions": "Other Deductions",
   "salaryWorkingDaysLabel": "Working Days",
   "salaryOvertimeLabel": "OT Hours",
-  "salaryUnpaidLeaveLabel": "Unpaid Leave",
+  "salaryUnpaidLeaveLabel": "Unpaid leave (days)",
   "salaryDownloadPdf": "Download Payslip (PDF)",
   "payslipDetailTitle": "Payslip",
   "salaryGrossLabel": "Gross",
@@ -711,5 +709,8 @@
   "leaveDecidedByMeApproved": "I approved",
   "leaveDecidedByMeRejected": "I rejected",
   "leaveWaitingForStep": "Waiting for {role}",
-  "@leaveWaitingForStep": {"placeholders": {"role": {"type": "String"}}}
+  "@leaveWaitingForStep": {"placeholders": {"role": {"type": "String"}}},
+  "salaryStatusApproved": "Approved",
+  "salaryPaymentFailed": "Payment failed",
+  "salaryPaymentFailedContactHr": "The payment failed. Please contact HR."
 }
