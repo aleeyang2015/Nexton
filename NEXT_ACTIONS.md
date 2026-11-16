@@ -16,7 +16,23 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #21 is merged; #22 is next in work order.
+1. #22 is built and pushed (`22-payslip-line-names`), waiting for the owner's say to merge. #23 is next in the
+   work order and is on the owner's BLOCKED list; its backend dependency (the payslip month) is live since 13 Nov.
+   Open after #22, none built there:
+   - #22 is done at function level only. The issue's comment asks to move the payslip page's grouping, titles
+     and captions onto the new functions ("one place, not two"); that page still reads the old `Payslip` entity,
+     so the move is left to #23. Until then the page still shows "LATE · 86 ນາທີ" (code, no h + min), the bare
+     code at zero, ຄັ້ງ / ມື້, no Lao title for OT, MISSED-PART, UNPAID-LEAVE, ATT-SETTLE and LOAN, and loans
+     under "by law / other". Do not close #22 until #23 has moved the page;
+   - #23 must also: show `PayslipSections.unplaced` (lines whose type the App does not know) or they vanish from
+     the page; retire the old `salaryUnit*`, `salaryComponent*` and section keys, two of which now have the same
+     Lao text as new keys;
+   - the reused keys read "Base Salary", "Social Security", "Income Tax" and "Income" in English; the issue's
+     table says "Basic salary", "Social security", "Income tax", "Earnings". Lao is as the issue has it;
+   - English captions read "1 times", "1 days", "1 hours": that is the issue's table. Lao is not affected;
+   - category, code and unit are matched exactly as the server writes them (`penalty`, `LATE`, `minutes`); another
+     case or a space would put a line in "other deductions" or show the server's name. To confirm with the backend;
+   - a count is shown to two decimal places at most (0.125 days reads 0.13).
    #23 is still on the owner's BLOCKED list; its backend dependency is the same one #21 had, now live.
    Open after #21, none built there:
    - product question for the owner: the Paid chip goes by the run's status, as the issue says, so a paid run
@@ -173,7 +189,7 @@ count), #56 (sign-out ends the session).
 | 18 | #19 | approvals: leave lists keep what I decided, hide buttons on my own request, and load more | `19-approvals-decided-own-load-more` | `88c9004`, `47d9f67` | merged to main directly (`4327616`) | analyze clean, 1,046 tests, debug APK | MERGED — two-login check on `nexton-demo` pending |
 | 19 | #20 | payslip: read real payslips from the server (data layer) | `20-payslip-data-layer` | `62302e6`, `dd7400d` | merged to main directly (`bc25ec2`) | analyze clean, 1,101 tests, debug APK | MERGED — a real `nexton-demo` payslip to be checked against the reader |
 | 20 | #21 | payslip: the salary list shows real payslips, paid and failed | `21-salary-list-real-payslips` | `a8455eb`, `a6ed9fb` | merged to main directly (`cf7c936`) | analyze clean, 1,139 tests, debug APK | MERGED, phone check on `nexton-demo` pending — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
-| 21 | #22 | payslip: name, group and caption every payslip line | | | | | NOT STARTED |
+| 21 | #22 | payslip: name, group and caption every payslip line | `22-payslip-line-names` | `123e7d3`, `c8626d5` | none yet: branch pushed, waiting for the owner's say to merge | analyze clean, 1,225 tests, debug APK | IN REVIEW — functions and strings only; no screen uses them until #23 |
 | 22 | #23 | payslip: the payslip page opens by id and shows the real lines | | | | | BLOCKED: backend, payslip month |
 | 23 | #24 | payslip: tap the OT line to see what each OT paid | | | | | NOT STARTED |
 | 24 | #25 | payslip: open the PDF in the App and share it | | | | | NOT STARTED |
