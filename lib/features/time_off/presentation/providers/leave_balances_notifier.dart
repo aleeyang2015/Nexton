@@ -3,13 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/leave_balance.dart';
 import '../../time_off_providers.dart';
 
-/// The per-type quota rollup (`GET /leave/balances/my`) for the current year,
-/// shown on the request form's balance card. Invalidated after a submit /
-/// edit / cancel so the reserved days stay accurate.
+/// The per-type quota rollup (`GET /leave/balances/my?year=…`) for one year,
+/// shown on the request form's balance card.
+///
+/// The family key is the year. A request is charged to the year of its first
+/// leave day, so a form asking for days next January reads next year's
+/// balances, not this year's. Invalidating the provider (after a submit, an
+/// edit or a cancel) refreshes every year that is on screen, so the reserved
+/// days stay accurate.
 class LeaveBalancesNotifier
-    extends AutoDisposeAsyncNotifier<List<LeaveBalance>> {
+    extends AutoDisposeFamilyAsyncNotifier<List<LeaveBalance>, int> {
   @override
-  Future<List<LeaveBalance>> build() => _load();
+  Future<List<LeaveBalance>> build(int arg) => _load();
 
   Future<void> refresh() async {
     state = const AsyncValue.loading();
@@ -17,17 +22,16 @@ class LeaveBalancesNotifier
   }
 
   Future<List<LeaveBalance>> _load() async {
-    final result = await ref.read(getLeaveBalancesUseCaseProvider)(
-      DateTime.now().year,
-    );
+    final result = await ref.read(getLeaveBalancesUseCaseProvider)(arg);
     return result.fold((failure) => throw failure, (balances) => balances);
   }
 }
 
 final leaveBalancesNotifierProvider =
-    AsyncNotifierProvider.autoDispose<
+    AsyncNotifierProvider.autoDispose.family<
       LeaveBalancesNotifier,
-      List<LeaveBalance>
+      List<LeaveBalance>,
+      int
     >(LeaveBalancesNotifier.new);
 
 /// The balance for one leave type, or null while the list is loading / absent.

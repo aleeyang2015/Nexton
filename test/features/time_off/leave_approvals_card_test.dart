@@ -19,6 +19,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          // The cards look the leave type's Lao name up in the type list.
+          leaveRepositoryProvider.overrideWithValue(FakeLeaveRepository()),
           getLeaveApprovalsUseCaseProvider.overrideWithValue(
             FakeGetLeaveApprovals(pending: Result.success(pending)),
           ),

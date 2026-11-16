@@ -6,6 +6,7 @@ import 'package:next_on/features/time_off/domain/entities/leave_duration_type.da
 import 'package:next_on/features/time_off/domain/entities/uploaded_attachment.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_attachment_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_balances_notifier.dart';
+import 'package:next_on/features/time_off/presentation/providers/leave_form_rules.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_history_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_request_form_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_request_form_state.dart';
@@ -97,6 +98,51 @@ void main() {
         ..removeDate(DateTime(2026, 11, 18));
 
       expect(stateOf(container).dates, [DateTime(2026, 11, 19)]);
+    });
+  });
+
+  group('setLeaveType', () {
+    test('a type that takes whole days only resets a half day to a full day, '
+        'in the same step', () {
+      final container = containerWith();
+      formOf(container)
+        ..setLeaveType('lt-personal', allowHalfDay: true)
+        ..setDurationType(LeaveDurationType.firstHalf)
+        ..setDates([DateTime(2026, 11, 18)]);
+      expect(stateOf(container).durationType, LeaveDurationType.firstHalf);
+
+      formOf(container).setLeaveType('lt-annual', allowHalfDay: false);
+
+      final state = stateOf(container);
+      expect(state.leaveTypeId, 'lt-annual');
+      expect(state.durationType, LeaveDurationType.fullDay);
+      expect(state.totalDays, 1);
+    });
+
+    test('a type that takes half days keeps the half day', () {
+      final container = containerWith();
+      formOf(container)
+        ..setLeaveType('lt-personal', allowHalfDay: true)
+        ..setDurationType(LeaveDurationType.secondHalf)
+        ..setLeaveType('lt-sick', allowHalfDay: true);
+
+      expect(stateOf(container).durationType, LeaveDurationType.secondHalf);
+    });
+
+    test('after the reset, what is sent is full_day', () async {
+      final container = containerWith();
+      final form = formOf(container)
+        ..setLeaveType('lt-personal', allowHalfDay: true)
+        ..setDurationType(LeaveDurationType.firstHalf)
+        ..setDates([DateTime(2026, 11, 18)])
+        ..setLeaveType('lt-annual', allowHalfDay: false);
+
+      await form.submit();
+
+      expect(
+        repository.submitCalls.single.durationType,
+        LeaveDurationType.fullDay,
+      );
     });
   });
 
@@ -252,6 +298,42 @@ void main() {
       expect(state.reason, 'Trip');
     });
 
+    test('seed records the type and the day count the request had', () {
+      final container = containerWith();
+
+      formOf(container, 'req-7').seed(existing);
+
+      final state = stateOf(container, 'req-7');
+      expect(state.originalLeaveTypeId, existing.leaveType.id);
+      expect(state.originalTotalDays, 2);
+    });
+
+    test('a new request has no original type or day count', () {
+      final state = stateOf(containerWith());
+
+      expect(state.originalLeaveTypeId, isNull);
+      expect(state.originalTotalDays, isNull);
+    });
+
+    test('the year the balance is checked in is the first leave day\'s, or '
+        'this year\'s before any is picked', () {
+      final container = containerWith();
+      final now = DateTime(2026, 12, 20);
+
+      expect(LeaveFormRules.balanceYear(stateOf(container), now), 2026);
+
+      formOf(
+        container,
+      ).setDates([DateTime(2027, 1, 6), DateTime(2027, 1, 5)]);
+      expect(LeaveFormRules.balanceYear(stateOf(container), now), 2027);
+
+      // Across the new year: the first year only.
+      formOf(
+        container,
+      ).setDates([DateTime(2027, 1, 2), DateTime(2026, 12, 31)]);
+      expect(LeaveFormRules.balanceYear(stateOf(container), now), 2026);
+    });
+
     test('seed runs once: a second call does not undo the user\'s edits', () {
       final container = containerWith();
       formOf(container, 'req-7')
@@ -338,8 +420,8 @@ void main() {
       // Both lists are on screen, as they are on the time-off page.
       container
         ..listen(leaveHistoryNotifierProvider, (_, _) {})
-        ..listen(leaveBalancesNotifierProvider, (_, _) {});
-      await container.read(leaveBalancesNotifierProvider.future);
+        ..listen(leaveBalancesNotifierProvider(2026), (_, _) {});
+      await container.read(leaveBalancesNotifierProvider(2026).future);
       await Future<void>.delayed(Duration.zero);
       return container;
     }
@@ -353,7 +435,7 @@ void main() {
         ..setLeaveType('lt-annual')
         ..setDates([DateTime(2026, 11, 18)]);
       await form.submit();
-      await container.read(leaveBalancesNotifierProvider.future);
+      await container.read(leaveBalancesNotifierProvider(2026).future);
       await Future<void>.delayed(Duration.zero);
 
       expect(repository.myRequestsCalls, hasLength(2));
@@ -365,11 +447,28 @@ void main() {
 
       final form = formOf(container, 'req-7')..seed(sampleLeaveRequest(id: 'req-7'));
       await form.submit();
-      await container.read(leaveBalancesNotifierProvider.future);
+      await container.read(leaveBalancesNotifierProvider(2026).future);
       await Future<void>.delayed(Duration.zero);
 
       expect(repository.myRequestsCalls, hasLength(2));
       expect(repository.balancesCalls, hasLength(2));
+    });
+
+    test('every year\'s balances on screen are loaded again, not only one',
+        () async {
+      final container = await watched();
+      container.listen(leaveBalancesNotifierProvider(2027), (_, _) {});
+      await container.read(leaveBalancesNotifierProvider(2027).future);
+      expect(repository.balancesCalls, [2026, 2027]);
+
+      final form = formOf(container)
+        ..setLeaveType('lt-annual')
+        ..setDates([DateTime(2026, 11, 18)]);
+      await form.submit();
+      await container.read(leaveBalancesNotifierProvider(2026).future);
+      await container.read(leaveBalancesNotifierProvider(2027).future);
+
+      expect(repository.balancesCalls, unorderedEquals([2026, 2027, 2026, 2027]));
     });
 
     test('a failed submit loads neither again', () async {

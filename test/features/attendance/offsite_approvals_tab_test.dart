@@ -162,6 +162,8 @@ void main() {
             attendanceRepositoryProvider.overrideWithValue(
               FakeAttendanceRepository(),
             ),
+            // The cards look the leave type's Lao name up in the type list.
+            leaveRepositoryProvider.overrideWithValue(FakeLeaveRepository()),
             getLeaveApprovalsUseCaseProvider.overrideWithValue(
               FakeGetLeaveApprovals(pending: const Result.success([])),
             ),
@@ -218,6 +220,8 @@ void main() {
             attendanceRepositoryProvider.overrideWithValue(
               FakeAttendanceRepository(),
             ),
+            // The cards look the leave type's Lao name up in the type list.
+            leaveRepositoryProvider.overrideWithValue(FakeLeaveRepository()),
             getLeaveApprovalsUseCaseProvider.overrideWithValue(
               FakeGetLeaveApprovals(pending: const Result.success([])),
             ),

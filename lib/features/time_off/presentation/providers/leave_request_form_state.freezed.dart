@@ -24,6 +24,15 @@ mixin _$LeaveRequestFormState {
   LeaveDurationType get durationType => throw _privateConstructorUsedError;
   DateTime? get returnToWorkOverride => throw _privateConstructorUsedError;
   String get reason => throw _privateConstructorUsedError;
+
+  /// Edit mode only: the leave type the request had when it was opened. The
+  /// form keeps offering it even after HR switched it off.
+  String? get originalLeaveTypeId => throw _privateConstructorUsedError;
+
+  /// Edit mode only: how many days the request asked for when it was
+  /// opened. The balance is checked on an edit only when the count grows
+  /// past this, as the server does.
+  double? get originalTotalDays => throw _privateConstructorUsedError;
   AsyncValue<LeaveRequest?> get submission =>
       throw _privateConstructorUsedError;
 
@@ -46,6 +55,8 @@ abstract class $LeaveRequestFormStateCopyWith<$Res> {
     LeaveDurationType durationType,
     DateTime? returnToWorkOverride,
     String reason,
+    String? originalLeaveTypeId,
+    double? originalTotalDays,
     AsyncValue<LeaveRequest?> submission,
   });
 }
@@ -72,6 +83,8 @@ class _$LeaveRequestFormStateCopyWithImpl<
     Object? durationType = null,
     Object? returnToWorkOverride = freezed,
     Object? reason = null,
+    Object? originalLeaveTypeId = freezed,
+    Object? originalTotalDays = freezed,
     Object? submission = null,
   }) {
     return _then(
@@ -100,6 +113,14 @@ class _$LeaveRequestFormStateCopyWithImpl<
                 ? _value.reason
                 : reason // ignore: cast_nullable_to_non_nullable
                       as String,
+            originalLeaveTypeId: freezed == originalLeaveTypeId
+                ? _value.originalLeaveTypeId
+                : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            originalTotalDays: freezed == originalTotalDays
+                ? _value.originalTotalDays
+                : originalTotalDays // ignore: cast_nullable_to_non_nullable
+                      as double?,
             submission: null == submission
                 ? _value.submission
                 : submission // ignore: cast_nullable_to_non_nullable
@@ -126,6 +147,8 @@ abstract class _$$LeaveRequestFormStateImplCopyWith<$Res>
     LeaveDurationType durationType,
     DateTime? returnToWorkOverride,
     String reason,
+    String? originalLeaveTypeId,
+    double? originalTotalDays,
     AsyncValue<LeaveRequest?> submission,
   });
 }
@@ -149,6 +172,8 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
     Object? durationType = null,
     Object? returnToWorkOverride = freezed,
     Object? reason = null,
+    Object? originalLeaveTypeId = freezed,
+    Object? originalTotalDays = freezed,
     Object? submission = null,
   }) {
     return _then(
@@ -177,6 +202,14 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
             ? _value.reason
             : reason // ignore: cast_nullable_to_non_nullable
                   as String,
+        originalLeaveTypeId: freezed == originalLeaveTypeId
+            ? _value.originalLeaveTypeId
+            : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        originalTotalDays: freezed == originalTotalDays
+            ? _value.originalTotalDays
+            : originalTotalDays // ignore: cast_nullable_to_non_nullable
+                  as double?,
         submission: null == submission
             ? _value.submission
             : submission // ignore: cast_nullable_to_non_nullable
@@ -196,6 +229,8 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     this.durationType = LeaveDurationType.fullDay,
     this.returnToWorkOverride,
     this.reason = '',
+    this.originalLeaveTypeId,
+    this.originalTotalDays,
     this.submission = const AsyncValue<LeaveRequest?>.data(null),
   }) : _dates = dates,
        super._();
@@ -222,13 +257,24 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   @override
   @JsonKey()
   final String reason;
+
+  /// Edit mode only: the leave type the request had when it was opened. The
+  /// form keeps offering it even after HR switched it off.
+  @override
+  final String? originalLeaveTypeId;
+
+  /// Edit mode only: how many days the request asked for when it was
+  /// opened. The balance is checked on an edit only when the count grows
+  /// past this, as the server does.
+  @override
+  final double? originalTotalDays;
   @override
   @JsonKey()
   final AsyncValue<LeaveRequest?> submission;
 
   @override
   String toString() {
-    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, dates: $dates, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, submission: $submission)';
+    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, dates: $dates, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, originalLeaveTypeId: $originalLeaveTypeId, originalTotalDays: $originalTotalDays, submission: $submission)';
   }
 
   @override
@@ -246,6 +292,10 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
             (identical(other.returnToWorkOverride, returnToWorkOverride) ||
                 other.returnToWorkOverride == returnToWorkOverride) &&
             (identical(other.reason, reason) || other.reason == reason) &&
+            (identical(other.originalLeaveTypeId, originalLeaveTypeId) ||
+                other.originalLeaveTypeId == originalLeaveTypeId) &&
+            (identical(other.originalTotalDays, originalTotalDays) ||
+                other.originalTotalDays == originalTotalDays) &&
             (identical(other.submission, submission) ||
                 other.submission == submission));
   }
@@ -259,6 +309,8 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     durationType,
     returnToWorkOverride,
     reason,
+    originalLeaveTypeId,
+    originalTotalDays,
     submission,
   );
 
@@ -281,6 +333,8 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
     final LeaveDurationType durationType,
     final DateTime? returnToWorkOverride,
     final String reason,
+    final String? originalLeaveTypeId,
+    final double? originalTotalDays,
     final AsyncValue<LeaveRequest?> submission,
   }) = _$LeaveRequestFormStateImpl;
   const _LeaveRequestFormState._() : super._();
@@ -298,6 +352,15 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   DateTime? get returnToWorkOverride;
   @override
   String get reason;
+  @override
+  /// Edit mode only: the leave type the request had when it was opened. The
+  /// form keeps offering it even after HR switched it off.
+  String? get originalLeaveTypeId;
+  @override
+  /// Edit mode only: how many days the request asked for when it was
+  /// opened. The balance is checked on an edit only when the count grows
+  /// past this, as the server does.
+  double? get originalTotalDays;
   @override
   AsyncValue<LeaveRequest?> get submission;
   @override

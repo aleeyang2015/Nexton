@@ -14,8 +14,14 @@ class LeaveType extends Equatable {
   final String name;
   final String? nameLo;
   final String? color;
-  final int? maxDaysPerRequest;
-  final int? maxConsecutiveDays;
+
+  /// False once HR has switched the type off. It is still in the list, so an
+  /// old request can be named, but the form no longer offers it.
+  final bool isActive;
+
+  /// Decimals on the wire: a type can allow 2.5 days.
+  final double? maxDaysPerRequest;
+  final double? maxConsecutiveDays;
   final int? minNoticeDays;
   final bool allowHalfDay;
   final bool requiresAttachment;
@@ -28,6 +34,7 @@ class LeaveType extends Equatable {
     required this.name,
     this.nameLo,
     this.color,
+    this.isActive = true,
     this.maxDaysPerRequest,
     this.maxConsecutiveDays,
     this.minNoticeDays,
@@ -44,6 +51,7 @@ class LeaveType extends Equatable {
     name,
     nameLo,
     color,
+    isActive,
     maxDaysPerRequest,
     maxConsecutiveDays,
     minNoticeDays,

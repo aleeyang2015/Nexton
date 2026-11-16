@@ -16,7 +16,7 @@ Map<String, dynamic> _request({
   'employee': {
     'name': 'Noy Phommachanh',
     'employee_number': 'EMP-001',
-    'department_name': 'Sales',
+    'department': {'id': 'dep-1', 'name': 'Sales'},
   },
   'leave_type': {
     'id': 'lt-annual',
@@ -86,6 +86,29 @@ void main() {
       expect(request.totalDays, 3);
       expect(request.durationType, LeaveDurationType.fullDay);
       expect(request.currentStepNo, 1);
+    });
+
+    test('the department is employee.department.name; null when the employee '
+        'has none', () {
+      final none = _request()
+        ..['employee'] = {'name': 'Noy Phommachanh', 'department': null};
+      final flat = _request()
+        ..['employee'] = {
+          'name': 'Noy Phommachanh',
+          'department_name': 'Sales',
+        };
+
+      expect(LeaveRequestModel.fromJson(_request()).departmentName, 'Sales');
+      expect(LeaveRequestModel.fromJson(none).departmentName, isNull);
+      // `department_name` is not a key the backend sends.
+      expect(LeaveRequestModel.fromJson(flat).departmentName, isNull);
+    });
+
+    test('the request\'s own leave type has no Lao name', () {
+      final json = _request();
+      (json['leave_type'] as Map).remove('name_lo');
+
+      expect(LeaveRequestModel.fromJson(json).leaveType.nameLo, isNull);
     });
 
     test('reads request_days and return_date as calendar days', () {
@@ -310,7 +333,8 @@ void main() {
         'name': 'Sick Leave',
         'name_lo': 'ລາປ່ວຍ',
         'color': '#F44336',
-        'max_days_per_request': 5,
+        'is_active': false,
+        'max_days_per_request': 2.5,
         'max_consecutive_days': 3,
         'min_notice_days': 0,
         'allow_half_day': true,
@@ -324,8 +348,10 @@ void main() {
       expect(type.name, 'Sick Leave');
       expect(type.nameLo, 'ລາປ່ວຍ');
       expect(type.color, '#F44336');
-      expect(type.maxDaysPerRequest, 5);
-      expect(type.maxConsecutiveDays, 3);
+      expect(type.isActive, isFalse);
+      // A decimal on the wire: a type can allow two and a half days.
+      expect(type.maxDaysPerRequest, 2.5);
+      expect(type.maxConsecutiveDays, 3.0);
       expect(type.minNoticeDays, 0);
       expect(type.allowHalfDay, isTrue);
       expect(type.requiresAttachment, isTrue);
@@ -345,6 +371,8 @@ void main() {
       expect(type.requiresAttachment, isFalse);
       expect(type.allowNegativeBalance, isFalse);
       expect(type.isPaid, isTrue);
+      // A list with no is_active reads as switched on.
+      expect(type.isActive, isTrue);
       expect(type.nameLo, isNull);
       expect(type.maxDaysPerRequest, isNull);
     });

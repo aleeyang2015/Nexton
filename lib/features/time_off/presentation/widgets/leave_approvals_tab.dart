@@ -8,8 +8,10 @@ import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_status.dart';
+import '../../domain/entities/leave_type.dart';
 import '../providers/leave_approvals_notifier.dart';
 import '../providers/leave_approvals_state.dart';
+import '../providers/leave_types_notifier.dart';
 import 'leave_copy.dart';
 import 'leave_reject_reason_dialog.dart';
 
@@ -196,6 +198,9 @@ class _PendingApprovalCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    // Requests carry no Lao type name; the loaded list has it.
+    final types =
+        ref.watch(leaveTypesNotifierProvider).valueOrNull ?? const <LeaveType>[];
     final untouched = request.awaitsFirstApproval;
 
     return Container(
@@ -225,7 +230,7 @@ class _PendingApprovalCard extends ConsumerWidget {
                     ),
                     heightBx(h: 2),
                     customText(
-                      '${LeaveCopy.leaveTypeLabel(l10n, request.leaveType)} • '
+                      '${LeaveCopy.leaveTypeLabel(l10n, request.leaveType, types: types)} • '
                       '${LeaveCopy.dateLine(l10n, startDate: request.startDate, endDate: request.endDate, totalDays: request.totalDays)}',
                       fontSize: 12,
                       color: AppColors.subTitle,
@@ -468,14 +473,16 @@ class _DecisionButton extends StatelessWidget {
   }
 }
 
-class _HistoryApprovalRow extends StatelessWidget {
+class _HistoryApprovalRow extends ConsumerWidget {
   final LeaveRequest request;
 
   const _HistoryApprovalRow({required this.request});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final types =
+        ref.watch(leaveTypesNotifierProvider).valueOrNull ?? const <LeaveType>[];
     final pill = LeaveCopy.statusPill(l10n, request.status);
 
     return Container(
@@ -496,7 +503,7 @@ class _HistoryApprovalRow extends StatelessWidget {
               children: [
                 customText(
                   '${request.employeeName} • '
-                  '${LeaveCopy.leaveTypeLabel(l10n, request.leaveType)}',
+                  '${LeaveCopy.leaveTypeLabel(l10n, request.leaveType, types: types)}',
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
                 ),

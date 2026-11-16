@@ -78,16 +78,41 @@ class LeaveCopy {
       _isLao(l10n) ? _weekdayInitialsLo : _weekdayInitialsEn;
 
   /// The Lao name when the UI is in Lao and one exists, otherwise the default.
-  static String leaveTypeLabel(AppLocalizations l10n, LeaveType type) {
-    if (_isLao(l10n) && (type.nameLo ?? '').isNotEmpty) return type.nameLo!;
+  ///
+  /// The type inside a request carries no Lao name of its own, so a card
+  /// showing a request passes the loaded [types] too: the name is then looked
+  /// up by the type's id, falling back to what the request itself carries
+  /// when the list has not loaded or no longer has that type.
+  static String leaveTypeLabel(
+    AppLocalizations l10n,
+    LeaveType type, {
+    List<LeaveType> types = const [],
+  }) {
+    if (!_isLao(l10n)) return type.name;
+
+    if ((type.nameLo ?? '').isNotEmpty) return type.nameLo!;
+    for (final known in types) {
+      if (known.id == type.id && (known.nameLo ?? '').isNotEmpty) {
+        return known.nameLo!;
+      }
+    }
     return type.name;
   }
 
-  /// "3 days" / "0.5 days" — a whole count of days, or the half-day wording.
+  /// "3 days" / "7.5 days" — or the half-day wording for exactly half a day.
   static String daysLabel(AppLocalizations l10n, double days) {
     if (days == 0.5) return l10n.leaveHalfDayLabel;
-    return l10n.leaveDaysSuffix(days.round());
+    return l10n.leaveDaysSuffix(dayCount(days));
   }
+
+  /// A count of days as it is written: whole when it is whole (`3`), with one
+  /// decimal when it is not (`7.5`). Latin digits in every language, formatted
+  /// by hand like the dates, and never rounded to a number the user does not
+  /// have.
+  static String dayCount(double days) =>
+      days == days.roundToDouble()
+      ? days.round().toString()
+      : days.toStringAsFixed(1);
 
   /// The date line under a history/approval card's title: a single date for a
   /// one-day request, a "start – end" range otherwise, each followed by the

@@ -42,6 +42,7 @@ abstract class LeaveRemoteDataSource {
 class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
   /// A calendar month of leave never has more rows than this, so one page is
   /// always the whole answer — same choice as `AttendanceRemoteDataSourceImpl`.
+  /// It is also the most the leave-type list will send in one page.
   static const int _pageSize = 100;
 
   final ApiClient _client;
@@ -50,7 +51,13 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
 
   @override
   Future<List<LeaveType>> types() async {
-    final response = await _client.get<dynamic>(LeavePaths.types);
+    // The endpoint sends 20 rows unless asked for more, and a company can
+    // have more types than that. No `is_active` filter: a switched-off type is
+    // still needed to name the requests made on it.
+    final response = await _client.get<dynamic>(
+      LeavePaths.types,
+      queryParameters: {'per_page': _pageSize},
+    );
     return ApiEnvelope.unwrapList(
       response.data,
     ).map(LeaveTypeModel.fromJson).toList();

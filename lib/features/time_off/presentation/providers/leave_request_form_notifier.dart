@@ -29,11 +29,20 @@ class LeaveRequestFormNotifier
       durationType: request.durationType,
       returnToWorkOverride: request.returnDate,
       reason: request.reason,
+      originalLeaveTypeId: request.leaveType.id,
+      originalTotalDays: request.totalDays,
     );
   }
 
-  void setLeaveType(String leaveTypeId) =>
-      state = state.copyWith(leaveTypeId: leaveTypeId);
+  /// Picks the leave type. [allowHalfDay] is that type's own flag: a type
+  /// that takes whole days only puts the form back on a full day in the same
+  /// step, so a half day chosen under the previous type is never sent on it.
+  void setLeaveType(String leaveTypeId, {bool allowHalfDay = true}) {
+    state = state.copyWith(
+      leaveTypeId: leaveTypeId,
+      durationType: allowHalfDay ? state.durationType : LeaveDurationType.fullDay,
+    );
+  }
 
   /// Replaces the picked leave days with [dates] (from the calendar dialog),
   /// each normalized to midnight, de-duplicated and sorted. A half-day request

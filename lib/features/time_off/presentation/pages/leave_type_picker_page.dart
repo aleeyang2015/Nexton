@@ -7,6 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_type.dart';
+import '../providers/leave_form_rules.dart';
 import '../providers/leave_types_notifier.dart';
 import '../widgets/leave_copy.dart';
 
@@ -124,7 +125,14 @@ class _LeaveTypePickerPageState extends ConsumerState<LeaveTypePickerPage> {
                     ),
                   ),
                   data: (types) {
-                    final filtered = _filter(types);
+                    // Types HR switched off are not offered; the one already
+                    // selected stays, so it can still be seen and kept.
+                    final filtered = _filter(
+                      LeaveFormRules.offered(
+                        types,
+                        keepId: widget.selectedTypeId,
+                      ),
+                    );
                     if (filtered.isEmpty && !widget.allowClear) {
                       return Center(
                         child: customText(
