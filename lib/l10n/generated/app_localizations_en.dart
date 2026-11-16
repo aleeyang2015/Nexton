@@ -9,10 +9,13 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Next On';
+  String get appTitle => 'NEXTON';
 
   @override
   String get login => 'Login';
+
+  @override
+  String get loginSubtitle => 'Enter your credentials to sign in to NEXTON';
 
   @override
   String get email => 'Email';
@@ -33,10 +36,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rememberMe => 'Remember my email';
 
   @override
+  String get loginOrLoginWith => 'Or log in with';
+
+  @override
+  String loginFooter(Object version) {
+    return 'NEXTON v$version • Human resource management system';
+  }
+
+  @override
   String get genericError => 'Something went wrong. Please try again.';
 
   @override
   String get changePassword => 'Change Password';
+
+  @override
+  String get changePasswordSecurityTitle => 'Keep your account secure';
 
   @override
   String get changePasswordForcedNotice =>
@@ -95,6 +109,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryHistoryMenu => 'Salary History';
 
   @override
+  String get forgotClockInMenu => 'Forgot to Clock In';
+
+  @override
   String get activities => 'Activities';
 
   @override
@@ -139,16 +156,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get regularTimeBadge => 'REG - Regular Time';
 
   @override
-  String get shiftHoursPlaceholder =>
-      'Morning: 08:00 - 12:00 | Afternoon: 13:00 - 17:00';
-
-  @override
   String get slideToClockIn => 'Slide to check in';
 
   @override
-  String clockMethodsLabel(String methods) {
-    return 'Clock methods: $methods';
-  }
+  String get clockMethodsLabel => 'Clock methods:';
+
+  @override
+  String get sessionClockInLabel => 'In';
+
+  @override
+  String get sessionClockOutLabel => 'Out';
+
+  @override
+  String get sessionAwaitingClockOut => '(waiting)';
 
   @override
   String get methodGps => 'GPS';
@@ -296,11 +316,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationPermissionDenied =>
-      'Next On needs your location to check you in. Please allow location access and try again.';
+      'NEXTON needs your location to check you in. Please allow location access and try again.';
 
   @override
   String get locationPermissionDeniedForever =>
-      'Location access is blocked. Open Settings, allow location for Next On, then try again.';
+      'Location access is blocked. Open Settings, allow location for NEXTON, then try again.';
 
   @override
   String get locationTimeout =>
@@ -331,6 +351,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navList => 'List';
 
   @override
+  String get homeServicesTitle => 'Lists & Services';
+
+  @override
+  String menuItemCount(int count) {
+    return '$count items';
+  }
+
+  @override
   String get navHome => 'Home';
 
   @override
@@ -343,10 +371,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workHours => 'Work Hours';
 
   @override
-  String get leaveDays => 'Leave Days';
+  String get lateArrivals => 'Late Arrivals';
 
   @override
-  String get tasksDone => 'Tasks Done';
+  String get absences => 'Absences';
 
   @override
   String get personal => 'Personal';
@@ -355,10 +383,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get help => 'Help';
 
   @override
+  String get profileStatusActive => 'Active';
+
+  @override
   String get attendanceHistoryTitle => 'Attendance History';
 
   @override
-  String get viewAll => 'View all';
+  String get homeMonthStatsTitle => 'This Month\'s Work Stats';
+
+  @override
+  String get viewDetails => 'View details';
 
   @override
   String get daysPresent => 'Days present';
@@ -451,7 +485,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryOvertimeLabel => 'OT Hours';
 
   @override
-  String get salaryPaidLeaveLabel => 'Paid Leave';
+  String get salaryUnpaidLeaveLabel => 'Unpaid Leave';
 
   @override
   String get salaryDownloadPdf => 'Download Payslip (PDF)';
@@ -479,13 +513,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryTaxableIncomeLabel => 'Taxable income';
 
   @override
-  String get salarySocialSecurityBaseLabel => 'Social security base';
+  String get salaryEmployerSocialSecurityLabel => 'Social security (employer)';
+
+  @override
+  String get salaryComponentOtherDeduction => 'Other deduction';
+
+  @override
+  String salaryPayslipLineBase(String amount) {
+    return 'on base $amount';
+  }
 
   @override
   String get salaryHistoryEmpty => 'No salary records';
 
   @override
   String get salaryHistoryLoadFailed => 'Unable to load salary records.';
+
+  @override
+  String get payslipDetailLoadFailed => 'Unable to load the payslip.';
+
+  @override
+  String get salaryPdfSaved => 'Payslip saved';
+
+  @override
+  String get salaryPdfInvalid => 'The payslip PDF could not be read.';
+
+  @override
+  String get salaryComponentLate => 'Late arrival penalty';
+
+  @override
+  String get salaryComponentAbsentLate => 'Absent-late penalty';
+
+  @override
+  String get salaryComponentEarlyOut => 'Early leave penalty';
+
+  @override
+  String get salaryComponentAbsence => 'Absence penalty';
+
+  @override
+  String get salaryUnitMinutes => 'minutes';
+
+  @override
+  String get salaryUnitTimes => 'times';
+
+  @override
+  String get salaryUnitDays => 'days';
+
+  @override
+  String get salaryUnitHours => 'hours';
 
   @override
   String get language => 'Language';
@@ -708,6 +783,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveChooseFileButton => 'Choose file';
 
   @override
+  String get leaveAttachNoFiles => 'No file attached yet';
+
+  @override
+  String get leaveAttachUploading => 'Uploading…';
+
+  @override
+  String get leaveAttachUploaded => 'File uploaded';
+
+  @override
+  String get leaveAttachUploadFailed =>
+      'Couldn\'t upload the file. Please try again.';
+
+  @override
   String get timeOffApprovalsTab => 'Team Approvals';
 
   @override
@@ -723,6 +811,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leaveApprovalApproveAction => 'Approve';
+
+  @override
+  String get leaveApprovalFinalAction => 'Final approval';
+
+  @override
+  String get leaveApprovalClearedNotice => 'Approved by the department head';
 
   @override
   String get leaveApprovalRejectAction => 'Reject';
@@ -865,4 +959,609 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leaveTypeSearchEmpty => 'No matching leave types';
+
+  @override
+  String get timeCorrectionTitle => 'Time Correction';
+
+  @override
+  String get timeCorrectionNoticeTitle => 'System notice';
+
+  @override
+  String get timeCorrectionNoticeBody =>
+      'Your request will be sent to your manager for approval.';
+
+  @override
+  String get timeCorrectionDateLabel => 'Date to correct';
+
+  @override
+  String get timeCorrectionTypeLabel => 'Correction type';
+
+  @override
+  String get timeCorrectionTypeForgotIn => 'Missed clock-in';
+
+  @override
+  String get timeCorrectionTypeForgotOut => 'Missed clock-out';
+
+  @override
+  String get timeCorrectionTypeBoth => 'Both (in & out)';
+
+  @override
+  String get timeCorrectionTypeWrongTime => 'Wrong time';
+
+  @override
+  String get timeCorrectionShiftLabel => 'Related shift';
+
+  @override
+  String get timeCorrectionClockInLabel => 'Corrected clock-in';
+
+  @override
+  String get timeCorrectionClockOutLabel => 'Corrected clock-out';
+
+  @override
+  String get timeCorrectionMorning => 'morning';
+
+  @override
+  String get timeCorrectionAfternoon => 'afternoon';
+
+  @override
+  String get timeCorrectionEvening => 'evening';
+
+  @override
+  String get timeCorrectionInvalidTimes => 'Clock-out must be after clock-in.';
+
+  @override
+  String get timeCorrectionReasonLabel => 'Reason / details';
+
+  @override
+  String get timeCorrectionReasonHint => 'Describe what happened';
+
+  @override
+  String get timeCorrectionAttachmentLabel => 'File or photo';
+
+  @override
+  String get timeCorrectionUploadTitle =>
+      'Tap to upload or take a photo of your evidence';
+
+  @override
+  String get timeCorrectionUploadHint =>
+      'Request form photos or evidence: JPG, PNG, PDF\n(max 5MB)';
+
+  @override
+  String get timeCorrectionTakePhoto => 'Take photo';
+
+  @override
+  String get timeCorrectionChooseFile => 'Choose file';
+
+  @override
+  String get timeCorrectionFileTooLarge => 'The file is larger than 5MB.';
+
+  @override
+  String get timeCorrectionSubmit => 'Submit correction';
+
+  @override
+  String get timeCorrectionNoShift => 'No shift is assigned to you yet.';
+
+  @override
+  String get timeCorrectionPickSegment => 'Select a shift segment';
+
+  @override
+  String get timeCorrectionDateInFuture => 'The date can\'t be in the future.';
+
+  @override
+  String timeCorrectionDateTooOld(int days) {
+    return 'You can only correct the last $days days.';
+  }
+
+  @override
+  String get timeCorrectionShiftRequired =>
+      'No shift is assigned to you, so a correction can\'t be filed.';
+
+  @override
+  String get timeCorrectionTimeRequired => 'Please pick the corrected time.';
+
+  @override
+  String get timeCorrectionReasonRequired => 'Please enter a reason.';
+
+  @override
+  String timeCorrectionReasonTooLong(int max) {
+    return 'The reason can be at most $max characters.';
+  }
+
+  @override
+  String get timeCorrectionSubmitSuccess => 'Correction request submitted';
+
+  @override
+  String get cameraUnavailable => 'No camera was found on this device.';
+
+  @override
+  String get cameraPermissionDenied =>
+      'Allow camera access in Settings to take a photo.';
+
+  @override
+  String get cameraCaptureFailed =>
+      'Couldn\'t take the photo. Please try again.';
+
+  @override
+  String get cameraRetake => 'Retake';
+
+  @override
+  String get cameraUsePhoto => 'Use photo';
+
+  @override
+  String get timeCorrectionHistoryMenu => 'Time Correction History';
+
+  @override
+  String get timeCorrectionHistoryTitle => 'Time Correction History';
+
+  @override
+  String get timeCorrectionSummaryTotal => 'Total';
+
+  @override
+  String get timeCorrectionSummaryTotalUnit => 'items';
+
+  @override
+  String get timeCorrectionSummaryPending => 'Awaiting review';
+
+  @override
+  String get timeCorrectionSummaryPendingUnit => 'pending';
+
+  @override
+  String get timeCorrectionSummaryApproved => 'Approved';
+
+  @override
+  String get timeCorrectionSummaryApprovedUnit => 'done';
+
+  @override
+  String timeCorrectionFilterAll(int count) {
+    return 'All ($count)';
+  }
+
+  @override
+  String timeCorrectionFilterPending(int count) {
+    return 'Pending ($count)';
+  }
+
+  @override
+  String timeCorrectionFilterApproved(int count) {
+    return 'Approved ($count)';
+  }
+
+  @override
+  String timeCorrectionFilterRejected(int count) {
+    return 'Rejected ($count)';
+  }
+
+  @override
+  String get timeCorrectionStatusPending => 'Awaiting approval';
+
+  @override
+  String get timeCorrectionStatusApproved => 'Approved';
+
+  @override
+  String get timeCorrectionStatusRejected => 'Rejected';
+
+  @override
+  String timeCorrectionClockInAt(String time) {
+    return 'In $time';
+  }
+
+  @override
+  String timeCorrectionClockOutAt(String time) {
+    return 'Out $time';
+  }
+
+  @override
+  String get timeCorrectionHistoryEmpty => 'No correction requests';
+
+  @override
+  String get timeCorrectionNewRequestTitle => 'New request';
+
+  @override
+  String get timeCorrectionNewRequestSubtitle =>
+      'Request a clock-in/out time correction';
+
+  @override
+  String get timeCorrectionHistoryLoadFailed =>
+      'Could not load your correction requests.';
+
+  @override
+  String get timeCorrectionStatusCancelled => 'Cancelled';
+
+  @override
+  String get timeCorrectionDetailTitle => 'Request Details';
+
+  @override
+  String get timeCorrectionDetailLoadFailed => 'Could not load this request.';
+
+  @override
+  String timeCorrectionSubmittedOn(String date) {
+    return 'Submitted: $date';
+  }
+
+  @override
+  String get timeCorrectionRequestDateLabel => 'Request date';
+
+  @override
+  String get timeCorrectionDetailsSection => 'Correction details';
+
+  @override
+  String get timeCorrectionRequestedIn => 'Clock in (Requested)';
+
+  @override
+  String get timeCorrectionRequestedOut => 'Clock out (Requested)';
+
+  @override
+  String timeCorrectionNormalTime(String time) {
+    return 'Normal: $time';
+  }
+
+  @override
+  String get timeCorrectionTotalHours => 'Total corrected hours:';
+
+  @override
+  String timeCorrectionHoursValue(String hours) {
+    return '$hours h';
+  }
+
+  @override
+  String get timeCorrectionShiftGroup => 'Shift group (SHIFT)';
+
+  @override
+  String get timeCorrectionOtEligible => 'OT Eligible';
+
+  @override
+  String timeCorrectionShiftBreak(String hours, int minutes) {
+    return '$hours ($minutes min break)';
+  }
+
+  @override
+  String timeCorrectionShiftType(String type) {
+    return 'Type: $type';
+  }
+
+  @override
+  String get timeCorrectionReasonSection => 'Reason';
+
+  @override
+  String get timeCorrectionAttachmentsSection => 'Attachments';
+
+  @override
+  String timeCorrectionFileCount(int count) {
+    return '$count file(s)';
+  }
+
+  @override
+  String get timeCorrectionEvidencePhoto => 'Evidence photo';
+
+  @override
+  String get timeCorrectionEvidenceDocument => 'Evidence document';
+
+  @override
+  String get timeCorrectionWorkflowSection => 'Approval Workflow';
+
+  @override
+  String timeCorrectionStepOf(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get timeCorrectionRoleDeptHead => 'Department Head';
+
+  @override
+  String get timeCorrectionRoleHr => 'Human Resources (HR)';
+
+  @override
+  String get timeCorrectionRoleOther => 'Approver';
+
+  @override
+  String get timeCorrectionStepReviewing => 'Reviewing';
+
+  @override
+  String timeCorrectionStepWaitingFor(int step) {
+    return 'Waiting for step $step';
+  }
+
+  @override
+  String get timeCorrectionStepApproved => 'Approved';
+
+  @override
+  String get timeCorrectionStepRejected => 'Rejected';
+
+  @override
+  String get timeCorrectionApproverUnassigned => 'To be assigned';
+
+  @override
+  String timeCorrectionSentAt(String time) {
+    return 'Sent: $time';
+  }
+
+  @override
+  String timeCorrectionActedAt(String time) {
+    return 'Decided: $time';
+  }
+
+  @override
+  String get timeCorrectionCancelAction => 'Cancel Request';
+
+  @override
+  String get timeCorrectionCancelConfirm =>
+      'Cancel this time correction request?';
+
+  @override
+  String get timeCorrectionCancelled => 'Request cancelled';
+
+  @override
+  String get timeCorrectionCancelFailed => 'Couldn\'t cancel the request.';
+
+  @override
+  String get timeCorrectionContactNote =>
+      'Questions? Contact your department head or HR directly.';
+
+  @override
+  String get timeCorrectionAttachmentSaved => 'File saved';
+
+  @override
+  String get timeCorrectionAttachmentSaveFailed =>
+      'Couldn\'t download the file.';
+
+  @override
+  String get timeCorrectionApprovalsMenu => 'Approve Time Corrections';
+
+  @override
+  String get timeCorrectionApprovalsTitle => 'Time Correction Requests';
+
+  @override
+  String get timeCorrectionApprovalsSearchHint =>
+      'Search by employee name or ID (EMP-007)...';
+
+  @override
+  String get timeCorrectionApprovalStatusPending => 'Awaiting review';
+
+  @override
+  String timeCorrectionApprovalDepartment(String name) {
+    return 'Department: $name';
+  }
+
+  @override
+  String timeCorrectionApprovalShift(String name, String hours) {
+    return 'Shift $name ($hours)';
+  }
+
+  @override
+  String get timeCorrectionApprovalTypeMissingIn => 'Missing In';
+
+  @override
+  String get timeCorrectionApprovalTypeMissingOut => 'Missing Out';
+
+  @override
+  String get timeCorrectionApprovalTypeBoth => 'Both in & out';
+
+  @override
+  String get timeCorrectionApprovalTypeWrongTime => 'Wrong time';
+
+  @override
+  String get timeCorrectionApprovalClockIn => 'Clock in (In)';
+
+  @override
+  String get timeCorrectionApprovalClockOut => 'Clock out (Out)';
+
+  @override
+  String get timeCorrectionApprovalNewIn => 'Requested in (New In)';
+
+  @override
+  String get timeCorrectionApprovalNewOut => 'Requested out (New Out)';
+
+  @override
+  String get timeCorrectionApprovalReason => 'Reason:';
+
+  @override
+  String get timeCorrectionApprovalNoAttachment => 'No attachment';
+
+  @override
+  String get timeCorrectionApprovalAttachmentSubtitle => 'Attached evidence';
+
+  @override
+  String get timeCorrectionApprovalViewImage => 'View';
+
+  @override
+  String get timeCorrectionApprovalApprove => 'Approve';
+
+  @override
+  String get timeCorrectionApprovalReject => 'Reject';
+
+  @override
+  String get timeCorrectionApprovalApproved => 'Request approved';
+
+  @override
+  String get timeCorrectionApprovalRejected => 'Request rejected';
+
+  @override
+  String get timeCorrectionApprovalsLoadFailed =>
+      'Couldn\'t load the correction requests.';
+
+  @override
+  String get timeCorrectionApprovalsEmpty => 'No correction requests';
+
+  @override
+  String get approvalsMenu => 'Approvals';
+
+  @override
+  String get approvalsLeaveTab => 'Approve Leave';
+
+  @override
+  String get approvalsTimeCorrectionTab => 'Approve Corrections';
+
+  @override
+  String get offsiteMenu => 'Off-site Clock-in';
+
+  @override
+  String get offsiteTitle => 'Off-site Clock-in';
+
+  @override
+  String get offsiteNoticeTitle => 'Clocking in outside the work area';
+
+  @override
+  String get offsiteNoticeBody =>
+      'Your position is outside every work area. Attach a photo and a reason: if you are cleared for off-site work your punch is recorded at once, otherwise HR reviews the request first.';
+
+  @override
+  String get offsiteMethodLabel => 'Clock-in type';
+
+  @override
+  String get offsiteMethodCheckIn => 'Clock in';
+
+  @override
+  String get offsiteMethodCheckOut => 'Clock out';
+
+  @override
+  String get offsiteLocationLabel => 'Your position';
+
+  @override
+  String get offsiteLocating => 'Reading your position…';
+
+  @override
+  String offsiteAccuracy(int metres) {
+    return 'Accurate to about $metres m';
+  }
+
+  @override
+  String get offsiteReasonLabel => 'Reason';
+
+  @override
+  String get offsiteReasonHint =>
+      'Why are you clocking in from outside the work area?';
+
+  @override
+  String get offsiteReasonRequired => 'Please enter a reason.';
+
+  @override
+  String offsiteReasonTooLong(int max) {
+    return 'The reason can be at most $max characters.';
+  }
+
+  @override
+  String get offsitePhotoLabel => 'Photo';
+
+  @override
+  String get offsitePhotoTitle => 'Tap to take a photo of where you are';
+
+  @override
+  String get offsitePhotoHint =>
+      'A photo is required: JPG, PNG, HEIC or WEBP\n(max 5MB)';
+
+  @override
+  String get offsiteChooseImage => 'Choose image';
+
+  @override
+  String get offsitePhotoRequired => 'Please attach a photo.';
+
+  @override
+  String get offsiteSubmit => 'Send request';
+
+  @override
+  String get offsiteSubmitApproved => 'Off-site clock-in recorded';
+
+  @override
+  String get offsiteSubmitPending => 'Request sent — waiting for approval';
+
+  @override
+  String get ruleOutsideWorkArea =>
+      'You are outside every work area, so this punch was not accepted.';
+
+  @override
+  String get ruleOffsiteRequestExists =>
+      'You already have an off-site request for this session. Please wait for the decision.';
+
+  @override
+  String get ruleTooEarlyCheckin => 'It isn\'t time to clock in yet.';
+
+  @override
+  String ruleTooEarlyCheckinAt(String time) {
+    return 'It isn\'t time to clock in yet — clock-in opens at $time.';
+  }
+
+  @override
+  String get approvalsOffsiteTab => 'Approve Off-site';
+
+  @override
+  String get offsiteHistoryTitle => 'Off-site Clock-in History';
+
+  @override
+  String get offsiteHistoryEmpty => 'No off-site clock-in requests';
+
+  @override
+  String get offsiteHistoryLoadFailed =>
+      'Could not load your off-site clock-in requests.';
+
+  @override
+  String get offsiteNewRequestTitle => 'New off-site clock-in';
+
+  @override
+  String get offsiteNewRequestSubtitle =>
+      'File a clock-in taken outside the work area';
+
+  @override
+  String get offsiteOfferTitle => 'Outside the work area';
+
+  @override
+  String get offsiteOfferClockIn =>
+      'You are outside every work area, so this clock-in was recorded but not accepted. Do you want to request an off-site clock-in from here?';
+
+  @override
+  String get offsiteOfferClockOut =>
+      'You are outside every work area, so this clock-out was recorded but not accepted. Do you want to request an off-site clock-out from here?';
+
+  @override
+  String get offsiteOfferRefusedClockIn =>
+      'You are outside every work area, so this clock-in was not accepted and nothing was recorded. Do you want to request an off-site clock-in from here?';
+
+  @override
+  String get offsiteOfferRefusedClockOut =>
+      'You are outside every work area, so this clock-out was not accepted and nothing was recorded. Do you want to request an off-site clock-out from here?';
+
+  @override
+  String get offsiteOfferConfirm => 'Request off-site clock-in';
+
+  @override
+  String get offsiteCancelAction => 'Cancel request';
+
+  @override
+  String get offsiteCancelConfirm =>
+      'Withdraw this off-site clock-in request? You will have to file the clock-in again.';
+
+  @override
+  String get offsiteCancelled => 'Request withdrawn';
+
+  @override
+  String get offsiteCannotCancel =>
+      'This request can no longer be withdrawn — it has already been decided.';
+
+  @override
+  String get offsiteApprovalScannedAt => 'Clocked in at';
+
+  @override
+  String get offsiteApprovalPosition => 'Position';
+
+  @override
+  String get offsiteApprovalNoFix => 'No position';
+
+  @override
+  String get offsiteApprovalNoScanDate => 'No clock-in date';
+
+  @override
+  String get offsiteApprovalApproved => 'Request approved';
+
+  @override
+  String get offsiteApprovalRejected => 'Request rejected';
+
+  @override
+  String get offsiteApprovalsLoadFailed =>
+      'Couldn\'t load the off-site clock-in requests.';
+
+  @override
+  String get offsiteApprovalsEmpty => 'No off-site clock-in requests';
+
+  @override
+  String get offsiteTooEarlyCheckin =>
+      'Approved, but it isn\'t time to clock in yet — the punch was not recorded.';
 }

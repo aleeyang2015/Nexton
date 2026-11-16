@@ -43,6 +43,7 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       await _local.writeTokens(
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
+        expiresAt: tokens.expiresAt,
       );
 
       // Only the login response reports this, and only once — persist it so a

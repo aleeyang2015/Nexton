@@ -1,5 +1,9 @@
-import 'package:dio/dio.dart';
+import 'dart:convert';
 
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+
+import '../../../../core/errors/failure.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_response.dart';
 import '../../domain/entities/attendance_day.dart';
@@ -7,11 +11,20 @@ import '../../domain/entities/attendance_summary.dart';
 import '../../domain/entities/date_range.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../../domain/entities/punch_request.dart';
+import '../../domain/entities/time_correction_detail.dart';
+import '../../domain/entities/time_correction_record.dart';
+import '../../domain/entities/time_correction_request.dart';
+import '../../domain/entities/time_correction_status.dart';
 import '../models/attendance_record_model.dart';
 import '../models/attendance_summary_model.dart';
 import '../models/clock_request_model.dart';
+import '../models/punch_block_details_model.dart';
 import '../models/punch_receipt_model.dart';
+import '../models/time_correction_detail_model.dart';
+import '../models/time_correction_record_model.dart';
+import '../models/time_correction_request_model.dart';
 import 'attendance_api_paths.dart';
+import 'time_correction_error_code.dart';
 
 /// The attendance calls the home screen can trigger.
 ///
@@ -33,16 +46,63 @@ abstract class AttendanceRemoteDataSource {
 
   /// The history page's stat cards over [range].
   Future<AttendanceSummary> summary(DateRange range);
+
+  /// Files a time-correction request. The created record isn't used, so the
+  /// response body is not read.
+  Future<void> submitTimeCorrection(TimeCorrectionRequest request);
+
+  /// The employee's own time-correction requests, newest first.
+  Future<List<TimeCorrectionRecord>> myTimeCorrections();
+
+  /// One of the employee's requests in full.
+  Future<TimeCorrectionDetail> timeCorrectionDetail(String id);
+
+  /// Withdraws a pending request. The body isn't read.
+  Future<void> cancelTimeCorrection(String id);
+
+  /// The requests the signed-in approver decides on, newest first — the
+  /// endpoint scopes to the caller, so a non-approver gets an empty list.
+  ///
+  /// [status] is passed straight to the endpoint, which reads it against the
+  /// caller's own step rather than the request as a whole (§4.4):
+  /// `pending` is what still waits on *this* approver, `approved`/`rejected`
+  /// what they have already decided. That distinction can't be made on the
+  /// client — a request this approver cleared stays `pending` overall while
+  /// it sits with HR — so the filter belongs on the query.
+  Future<List<TimeCorrectionDetail>> timeCorrectionApprovals({
+    TimeCorrectionStatus? status,
+  });
+
+  /// Approves the request's current step. [stepId] is the step the caller
+  /// saw pending; the backend refuses with `STEP_CHANGED` when it has moved
+  /// on since. The body isn't read.
+  Future<void> approveTimeCorrection(String id, {String? stepId});
+
+  /// Rejects a pending request. [note] is required by the endpoint — it is
+  /// what the employee is told. The body isn't read.
+  Future<void> rejectTimeCorrection(
+    String id, {
+    required String note,
+    String? stepId,
+  });
+
+  /// Downloads an evidence file from its storage URL.
+  Future<Uint8List> fetchFile(String url);
 }
 
 class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
-  /// Enough to cover a day split into several sessions; the endpoint is
-  /// queried for a single date, so one page is always the whole answer.
-  static const int _todayPageSize = 5;
+  /// The history page shows one unpaged list; corrections are limited to
+  /// the last 90 days, so this comfortably covers them.
+  static const int _correctionPageSize = 100;
 
   final ApiClient _client;
 
-  AttendanceRemoteDataSourceImpl(this._client);
+  /// For evidence files: they live on the object store, not the API, so they
+  /// are fetched without the API client's session token.
+  final Dio _files;
+
+  AttendanceRemoteDataSourceImpl(this._client, {Dio? files})
+    : _files = files ?? Dio();
 
   @override
   Future<PunchOutcome> clockIn(PunchRequest request) =>
@@ -52,24 +112,21 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   Future<PunchOutcome> clockOut(PunchRequest request) =>
       _punch(AttendancePaths.clockOut, request);
 
+  /// Read from the same `month` query the history page uses — the param
+  /// `records/my` is known to honour — then narrowed to today's record by
+  /// its `date`, so the card and the history list always agree. A record
+  /// with no `date` can't be placed in the month, so it is skipped.
   @override
   Future<AttendanceDay> todayRecord() async {
-    final today = _isoDate(DateTime.now());
+    final now = DateTime.now();
+    final today = _isoDate(now);
 
-    final response = await _client.get<dynamic>(
-      AttendancePaths.myRecords,
-      queryParameters: {
-        'start_date': today,
-        'end_date': today,
-        'page': 1,
-        'per_page': _todayPageSize,
-      },
-    );
-
-    final records = ApiEnvelope.unwrapList(response.data);
-    if (records.isEmpty) return AttendanceDay.empty;
-
-    return AttendanceRecordModel.fromJson(records.first);
+    final days = await records(DateRange.month(now));
+    for (final day in days) {
+      final date = day.date;
+      if (date != null && _isoDate(date) == today) return day;
+    }
+    return AttendanceDay.empty;
   }
 
   @override
@@ -77,8 +134,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     final response = await _client.get<dynamic>(
       AttendancePaths.myRecords,
       queryParameters: {
-        'start_date': _isoDate(range.start),
-        'end_date': _isoDate(range.end),
+        'month': _isoMonth(range.start),
         'page': 1,
         // Max per the spec (§6.2) — a calendar month never has more days
         // than this, so one page is always the whole range.
@@ -104,15 +160,171 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   Future<AttendanceSummary> summary(DateRange range) async {
     final response = await _client.get<dynamic>(
       AttendancePaths.mySummary,
-      queryParameters: {
-        'start_date': _isoDate(range.start),
-        'end_date': _isoDate(range.end),
-      },
+      queryParameters: {'month': _isoMonth(range.start)},
     );
 
     return AttendanceSummaryModel.fromJson(
       ApiEnvelope.unwrapObject(response.data),
     );
+  }
+
+  @override
+  Future<void> submitTimeCorrection(TimeCorrectionRequest request) async {
+    final body = TimeCorrectionRequestModel(request).toJson();
+    _debugLog('POST ${AttendancePaths.correctionRequests} body', body);
+
+    try {
+      final response = await _client.post<dynamic>(
+        AttendancePaths.correctionRequests,
+        data: body,
+      );
+      _debugLog('response ${response.statusCode}', response.data);
+    } on DioException catch (error) {
+      _debugLog('error ${error.response?.statusCode}', error.response?.data);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<TimeCorrectionRecord>> myTimeCorrections() async {
+    final response = await _client.get<dynamic>(
+      AttendancePaths.myCorrectionRequests,
+      queryParameters: {'page': 1, 'per_page': _correctionPageSize},
+    );
+    _debugLog(
+      'GET ${AttendancePaths.myCorrectionRequests} response',
+      response.data,
+    );
+
+    final records = ApiEnvelope.unwrapList(response.data)
+        .map(TimeCorrectionRecordModel.fromJson)
+        .whereType<TimeCorrectionRecord>()
+        .toList();
+    records.sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
+    return records;
+  }
+
+  @override
+  Future<TimeCorrectionDetail> timeCorrectionDetail(String id) async {
+    final path = AttendancePaths.correctionRequest(id);
+    final response = await _client.get<dynamic>(path);
+    _debugLog('GET $path response', response.data);
+
+    return TimeCorrectionDetailModel.fromJson(
+      ApiEnvelope.unwrapObject(response.data),
+    );
+  }
+
+  @override
+  Future<void> cancelTimeCorrection(String id) async {
+    final path = AttendancePaths.cancelCorrectionRequest(id);
+    try {
+      final response = await _client.put<dynamic>(path);
+      _debugLog('PUT $path response ${response.statusCode}', response.data);
+    } on DioException catch (error) {
+      _debugLog(
+        'PUT $path error ${error.response?.statusCode}',
+        error.response?.data,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<TimeCorrectionDetail>> timeCorrectionApprovals({
+    TimeCorrectionStatus? status,
+  }) async {
+    final response = await _client.get<dynamic>(
+      AttendancePaths.myCorrectionApprovals,
+      queryParameters: {
+        if (status != null) 'status': status.wireValue,
+        'page': 1,
+        'per_page': _correctionPageSize,
+      },
+    );
+    _debugLog(
+      'GET ${AttendancePaths.myCorrectionApprovals} response',
+      response.data,
+    );
+
+    final requests = ApiEnvelope.unwrapList(
+      response.data,
+    ).map(_approvalOrNull).whereType<TimeCorrectionDetail>().toList();
+    requests.sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
+    return requests;
+  }
+
+  @override
+  Future<void> approveTimeCorrection(String id, {String? stepId}) => _decide(
+    AttendancePaths.approveCorrectionRequest(id),
+    {if (stepId != null) 'step_id': stepId},
+  );
+
+  /// §4.8 names the rejection reason `note`, and rejects the call with a 422
+  /// without it.
+  @override
+  Future<void> rejectTimeCorrection(
+    String id, {
+    required String note,
+    String? stepId,
+  }) => _decide(AttendancePaths.rejectCorrectionRequest(id), {
+    'note': note.trim(),
+    if (stepId != null) 'step_id': stepId,
+  });
+
+  @override
+  Future<Uint8List> fetchFile(String url) async {
+    final response = await _files.get<List<int>>(
+      url,
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(response.data ?? const []);
+  }
+
+  /// An approval-list entry carries the same fields as the detail response;
+  /// one missing its id, date or type is dropped rather than shown
+  /// half-empty — same policy as [TimeCorrectionRecordModel].
+  static TimeCorrectionDetail? _approvalOrNull(Map<String, dynamic> json) {
+    try {
+      return TimeCorrectionDetailModel.fromJson(json);
+    } on FormatException {
+      return null;
+    }
+  }
+
+  /// `PUT` an approver's decision, logging the answer either way.
+  ///
+  /// A refusal the spec documents (§6) leaves as a
+  /// `Failure.validation(message: <token>)` the localizer can translate —
+  /// the same contract `LeaveRemoteDataSourceImpl._business` uses. Anything
+  /// else rethrows for the repository to map.
+  Future<void> _decide(String path, Map<String, dynamic> body) async {
+    _debugLog('PUT $path body', body);
+    try {
+      final response = await _client.put<dynamic>(path, data: body);
+      _debugLog('PUT $path response ${response.statusCode}', response.data);
+    } on DioException catch (error) {
+      _debugLog(
+        'PUT $path error ${error.response?.statusCode}',
+        error.response?.data,
+      );
+
+      final code = ApiError.tryParse(error.response?.data)?.code;
+      final token = TimeCorrectionErrorCode.tokenByWire[code];
+      if (token != null) throw Failure.validation(message: token);
+      rethrow;
+    }
+  }
+
+  /// Pretty-prints a time-correction payload under one tag, so it can be
+  /// found among the client's general request log. Debug builds only — the
+  /// body carries the employee's reason and evidence URL.
+  static void _debugLog(String label, Object? data) {
+    if (!kDebugMode) return;
+    final text = data is Map || data is List
+        ? const JsonEncoder.withIndent('  ').convert(data)
+        : '$data';
+    debugPrint('[TimeCorrection] $label:\n$text', wrapWidth: 1024);
   }
 
   /// A 200 here still needs its body read: §3 warns that `status` — not the
@@ -173,45 +385,18 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     'AFTER_CHECKOUT_WINDOW': AttendanceRule.afterCheckoutWindow,
     'EARLY_CHECKOUT_REQUIRES_REASON':
         AttendanceRule.earlyCheckoutRequiresReason,
+    // Undocumented: §3 describes out-of-area as a *stored* punch — 200 with
+    // `rejection_reason: "outside_geofence"` — but the deployed API refuses
+    // it, promoting that reason to an error code and omitting `data`, so
+    // nothing is written. Both shapes are handled; whichever the backend
+    // settles on, the employee is offered the off-site scan request.
+    'OUTSIDE_GEOFENCE': AttendanceRule.outsideWorkArea,
   };
 
-  /// Lifts `error.details` out of the envelope. §7 rule 7 asks for these to
-  /// be shown instead of generic copy, so they are parsed rather than dropped.
-  static PunchBlockDetails _detailsOf(dynamic body) {
-    if (body is! Map) return PunchBlockDetails.empty;
-
-    final error = body['error'];
-    if (error is! Map) return PunchBlockDetails.empty;
-
-    final details = error['details'];
-    if (details is! Map) return PunchBlockDetails.empty;
-
-    final raw = Map<String, dynamic>.from(details);
-
-    return PunchBlockDetails(
-      sessionLabel: _text(raw['session_label']),
-      sessionOrder: (raw['session_order'] as num?)?.toInt(),
-      earliestCheckout: _text(raw['earliest_checkout']),
-      latestCheckout: _text(raw['latest_checkout']),
-      // §5.2 spells this `next_session_*`; both spellings seen in the wild.
-      nextSessionStart: _text(
-        raw['next_session_start'] ?? raw['next_session_starts'],
-      ),
-      lastShiftEnd: _text(raw['last_shift_end']),
-      endedAt: _text(raw['ended_at']),
-      nextStarts: _text(raw['next_starts']),
-      employeeId: _text(raw['employee_id']),
-      raw: raw,
-    );
-  }
-
-  /// Details values are interpolated straight into user copy, so a number or
-  /// a timestamp is accepted as readily as a string.
-  static String? _text(dynamic value) {
-    if (value == null) return null;
-    final text = value.toString();
-    return text.isEmpty ? null : text;
-  }
+  /// Lifts `error.details` out of the envelope — shared with the off-site
+  /// scan request, which the same session guard refuses with the same details.
+  static PunchBlockDetails _detailsOf(dynamic body) =>
+      PunchBlockDetailsModel.fromErrorBody(body);
 
   /// `YYYY-MM-DD` in the device's own timezone.
   ///
@@ -223,4 +408,9 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     final day = date.day.toString().padLeft(2, '0');
     return '${date.year}-$month-$day';
   }
+
+  /// `YYYY-MM`, for the `month` query param on the records and summary
+  /// endpoints.
+  static String _isoMonth(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}';
 }

@@ -8,14 +8,32 @@ import 'package:next_on/features/auth/data/models/login_response_model.dart';
 import 'package:next_on/features/auth/data/models/user_model.dart';
 import 'package:next_on/features/auth/domain/auth_failure_x.dart';
 
-DioException _badResponse(int status, dynamic body) => DioException(
+DioException _badResponse(
+  int status,
+  dynamic body, {
+  Map<String, List<String>>? headers,
+}) => DioException(
   requestOptions: RequestOptions(path: '/auth/login'),
   type: DioExceptionType.badResponse,
   response: Response(
     requestOptions: RequestOptions(path: '/auth/login'),
     statusCode: status,
     data: body,
+    headers: headers == null ? null : Headers.fromMap(headers),
   ),
+);
+
+/// A throttled login, with whatever `Retry-After` the server chose to send.
+DioException _throttled({Map<String, List<String>>? headers}) => _badResponse(
+  429,
+  {
+    'success': false,
+    'error': {
+      'code': 'TOO_MANY_LOGIN_ATTEMPTS',
+      'message': 'Too many attempts',
+    },
+  },
+  headers: headers,
 );
 
 void main() {
@@ -107,6 +125,63 @@ void main() {
       expect(failure.message, 'Too many attempts');
     });
 
+    test('429 carries the Retry-After the server asked for', () {
+      final failure = ApiErrorMapper.fromDioException(
+        _throttled(headers: {'retry-after': ['45']}),
+      );
+
+      expect(failure, isA<NetworkFailure>());
+      expect((failure as NetworkFailure).retryAfter, const Duration(seconds: 45));
+      // Reachable without matching on the variant.
+      expect(failure.retryAfter, const Duration(seconds: 45));
+      // Still not a credential failure: the typed password must survive.
+      expect(failure.isCredentialFailure, isFalse);
+    });
+
+    test('a throttle with no Retry-After leaves the delay unknown', () {
+      final failure = ApiErrorMapper.fromDioException(_throttled());
+
+      expect(failure.retryAfter, isNull);
+    });
+
+    test('an unusable Retry-After is unknown, never a zero wait', () {
+      // An HTTP-date (RFC 9110's other form), junk, zero and a negative value
+      // must all read as "the server did not say" rather than "retry now".
+      for (final raw in const [
+        'Wed, 21 Oct 2026 07:28:00 GMT',
+        'soon',
+        '',
+        '0',
+        '-30',
+      ]) {
+        final failure = ApiErrorMapper.fromDioException(
+          _throttled(headers: {'retry-after': [raw]}),
+        );
+
+        expect(failure.retryAfter, isNull, reason: 'Retry-After: "\$raw"');
+      }
+    });
+
+    test('Retry-After is read case-insensitively', () {
+      final failure = ApiErrorMapper.fromDioException(
+        _throttled(headers: {'Retry-After': ['15']}),
+      );
+
+      expect(failure.retryAfter, const Duration(seconds: 15));
+    });
+
+    test('a failure that is not a throttle has no retryAfter', () {
+      final failure = ApiErrorMapper.fromDioException(
+        _badResponse(401, {
+          'success': false,
+          'error': {'code': 'INVALID_CREDENTIALS', 'message': 'nope'},
+        }),
+      );
+
+      expect(failure, isA<AuthFailure>());
+      expect(failure.retryAfter, isNull);
+    });
+
     test('5xx is a server failure', () {
       final failure = ApiErrorMapper.fromDioException(
         _badResponse(500, {
@@ -120,7 +195,7 @@ void main() {
   });
 
   group('LoginResponseModel', () {
-    test('reads the token pair and ignores expires_at', () {
+    test('reads the token pair and the expiry', () {
       final model = LoginResponseModel.fromJson({
         'access_token': 'access',
         'refresh_token': 'refresh',
@@ -131,6 +206,55 @@ void main() {
       expect(model.accessToken, 'access');
       expect(model.refreshToken, 'refresh');
       expect(model.mustChangePassword, isTrue);
+      expect(
+        model.expiresAt,
+        DateTime.fromMillisecondsSinceEpoch(1773504662 * 1000, isUtc: true),
+      );
+    });
+
+    test('treats a missing or unusable expires_at as unknown', () {
+      for (final value in const [null, 0, -1, 'later', '']) {
+        final model = LoginResponseModel.fromJson({
+          'access_token': 'access',
+          'refresh_token': 'refresh',
+          'expires_at': value,
+        });
+
+        expect(model.expiresAt, isNull, reason: 'expires_at: \$value');
+        // An unknown expiry must never read as an expired one.
+        expect(model.isExpired, isFalse, reason: 'expires_at: \$value');
+      }
+    });
+
+    test('reads an expires_at sent as a numeric string', () {
+      final model = LoginResponseModel.fromJson({
+        'access_token': 'access',
+        'refresh_token': 'refresh',
+        'expires_at': '1773504662',
+      });
+
+      expect(
+        model.expiresAt,
+        DateTime.fromMillisecondsSinceEpoch(1773504662 * 1000, isUtc: true),
+      );
+    });
+
+    test('isExpired tracks the clock', () {
+      final past = LoginResponseModel.fromJson({
+        'access_token': 'a',
+        'refresh_token': 'r',
+        'expires_at':
+            DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000 - 60,
+      });
+      final future = LoginResponseModel.fromJson({
+        'access_token': 'a',
+        'refresh_token': 'r',
+        'expires_at':
+            DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000 + 3600,
+      });
+
+      expect(past.isExpired, isTrue);
+      expect(future.isExpired, isFalse);
     });
 
     test('fails loudly when a token is missing', () {

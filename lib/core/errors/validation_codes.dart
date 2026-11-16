@@ -27,4 +27,19 @@ class ValidationCode {
   static const String wifiUnavailable = 'wifiUnavailable';
   static const String fieldReasonRequired = 'fieldReasonRequired';
   static const String mockLocationDetected = 'mockLocationDetected';
+
+  /// Time-correction request form (`TimeCorrectionRequest.validate`).
+  static const String correctionDateInFuture = 'correctionDateInFuture';
+  static const String correctionDateTooOld = 'correctionDateTooOld';
+  static const String correctionShiftRequired = 'correctionShiftRequired';
+  static const String correctionTimeRequired = 'correctionTimeRequired';
+  static const String correctionInvalidTimes = 'correctionInvalidTimes';
+  static const String correctionReasonRequired = 'correctionReasonRequired';
+  static const String correctionReasonTooLong = 'correctionReasonTooLong';
+
+  /// Off-site scan request form (`OffsiteRequest.validate`). The location
+  /// codes above are reused for a scan with no position.
+  static const String offsiteReasonRequired = 'offsiteReasonRequired';
+  static const String offsiteReasonTooLong = 'offsiteReasonTooLong';
+  static const String offsitePhotoRequired = 'offsitePhotoRequired';
 }

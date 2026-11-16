@@ -6,13 +6,22 @@ import 'package:equatable/equatable.dart';
 /// `startTime`/`endTime` arrive as the backend's raw `HH:mm[:ss]` strings,
 /// not `DateTime`s: they describe a schedule, not a moment that happened.
 class ShiftDetail extends Equatable {
+  /// The segment's id — what a time-correction request sends as
+  /// `shift_detail_id`.
+  final String? id;
   final String? name;
   final String? nameLo;
   final String? startTime;
   final String? endTime;
 
-  const ShiftDetail({this.name, this.nameLo, this.startTime, this.endTime});
+  const ShiftDetail({
+    this.id,
+    this.name,
+    this.nameLo,
+    this.startTime,
+    this.endTime,
+  });
 
   @override
-  List<Object?> get props => [name, nameLo, startTime, endTime];
+  List<Object?> get props => [id, name, nameLo, startTime, endTime];
 }

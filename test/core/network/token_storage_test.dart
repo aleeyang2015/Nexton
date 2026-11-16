@@ -43,6 +43,78 @@ void main() {
       expect(await storage.readRefreshToken(), isNull);
       expect(store.values, isEmpty);
     });
+
+    test('round-trips the access-token expiry as Unix seconds', () async {
+      final expiry = DateTime.fromMillisecondsSinceEpoch(
+        1773504662 * 1000,
+        isUtc: true,
+      );
+
+      await storage.writeAccessTokenExpiry(expiry);
+
+      expect(await storage.readAccessTokenExpiry(), expiry);
+      // Stored in the same Unix-seconds form the wire uses, not a Dart string.
+      expect(store.values[AppConstants.expiresAtKey], '1773504662');
+    });
+
+    test('reads an expiry written by an earlier session', () async {
+      store.values[AppConstants.expiresAtKey] = '1773504662';
+
+      expect(
+        await SecureTokenStorage(store).readAccessTokenExpiry(),
+        DateTime.fromMillisecondsSinceEpoch(1773504662 * 1000, isUtc: true),
+      );
+    });
+
+    test('a null expiry drops the stored one', () async {
+      await storage.writeAccessTokenExpiry(
+        DateTime.now().toUtc().add(const Duration(hours: 1)),
+      );
+
+      await storage.writeAccessTokenExpiry(null);
+
+      expect(await storage.readAccessTokenExpiry(), isNull);
+      expect(store.values.containsKey(AppConstants.expiresAtKey), isFalse);
+    });
+
+    test('an unusable stored expiry reads as unknown', () async {
+      store.values[AppConstants.expiresAtKey] = 'not-a-timestamp';
+
+      expect(await SecureTokenStorage(store).readAccessTokenExpiry(), isNull);
+    });
+
+    test('clear drops the expiry with the tokens', () async {
+      await storage.writeAccessToken('access-1');
+      await storage.writeRefreshToken('refresh-1');
+      await storage.writeAccessTokenExpiry(
+        DateTime.now().toUtc().add(const Duration(hours: 1)),
+      );
+
+      await storage.clear();
+
+      // An expiry must never outlive the token it described.
+      expect(await storage.readAccessTokenExpiry(), isNull);
+      expect(store.values, isEmpty);
+    });
+  });
+
+  group('tokenExpiryFromUnixSeconds', () {
+    test('reads the int and numeric-string forms', () {
+      final expected = DateTime.fromMillisecondsSinceEpoch(
+        1773504662 * 1000,
+        isUtc: true,
+      );
+
+      expect(tokenExpiryFromUnixSeconds(1773504662), expected);
+      expect(tokenExpiryFromUnixSeconds('1773504662'), expected);
+      expect(tokenExpiryFromUnixSeconds(1773504662.0), expected);
+    });
+
+    test('reads a missing or unusable value as unknown', () {
+      for (final value in [null, 0, -1, '', 'later', <String>[]]) {
+        expect(tokenExpiryFromUnixSeconds(value), isNull, reason: '\$value');
+      }
+    });
   });
 
   group('LegacySessionMigration', () {

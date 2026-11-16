@@ -53,6 +53,7 @@ class EmployeeProfileModel {
         .whereType<Map>()
         .map(
           (raw) => ShiftDetail(
+            id: _nonEmpty(_string(raw['id'])),
             name: _nonEmpty(_string(raw['name'])),
             nameLo: _nonEmpty(_string(raw['name_lo'])),
             startTime: _nonEmpty(_string(raw['start_time'])),

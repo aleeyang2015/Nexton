@@ -62,7 +62,10 @@ final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(dio: ref.watch(dioProvider));
 });
 
-/// Connectivity check
+/// Connectivity check. Runs on its own bare Dio so the probe carries no auth
+/// or tenant headers and never enters [AuthInterceptor]'s refresh handling.
 final networkInfoProvider = Provider<NetworkInfo>((ref) {
-  return NetworkInfoImpl(ref.watch(dioProvider));
+  return NetworkInfoImpl(
+    Dio(BaseOptions(connectTimeout: const Duration(seconds: 3))),
+  );
 });

@@ -149,9 +149,12 @@ UserModel testUserModel({String id = 'cce14a0e'}) => UserModel(
 
 User testUser({String id = 'cce14a0e'}) => testUserModel(id: id).toEntity();
 
-LoginResponseModel testTokens({bool mustChangePassword = false}) =>
-    LoginResponseModel(
-      accessToken: 'access-1',
-      refreshToken: 'refresh-1',
-      mustChangePassword: mustChangePassword,
-    );
+LoginResponseModel testTokens({
+  bool mustChangePassword = false,
+  DateTime? expiresAt,
+}) => LoginResponseModel(
+  accessToken: 'access-1',
+  refreshToken: 'refresh-1',
+  mustChangePassword: mustChangePassword,
+  expiresAt: expiresAt,
+);

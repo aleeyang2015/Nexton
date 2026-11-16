@@ -23,12 +23,12 @@ class HomeShimmer extends StatelessWidget {
               _headerRow(),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(15, 15, 15, 60),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
                   children: [
                     ShimmerBox(
                       width: double.infinity,
                       height: 160,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(24),
                     ),
                   ],
                 ),
@@ -43,9 +43,13 @@ class HomeShimmer extends StatelessWidget {
   Widget _headerRow() {
     return Row(
       children: [
-        widthBx(w: 15),
-        const ShimmerBox.circle(size: 60),
-        widthBx(),
+        widthBx(w: 20),
+        ShimmerBox(
+          width: 56,
+          height: 56,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        widthBx(w: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,8 +63,12 @@ class HomeShimmer extends StatelessWidget {
         ),
         widthBx(),
         Padding(
-          padding: const EdgeInsets.only(top: 10, right: 15),
-          child: const ShimmerBox(width: 30, height: 30),
+          padding: const EdgeInsets.only(right: 20),
+          child: ShimmerBox(
+            width: 44,
+            height: 44,
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
       ],
     );

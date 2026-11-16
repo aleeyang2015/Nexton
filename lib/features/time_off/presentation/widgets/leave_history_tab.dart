@@ -13,9 +13,8 @@ import '../providers/leave_history_notifier.dart';
 import '../providers/leave_types_notifier.dart';
 import 'leave_approval_timeline.dart';
 import 'leave_copy.dart';
-import 'leave_filter_chip.dart';
 
-/// "ປະຫວັດການລາພັກ" — leave-type filter chips, a from/to date range and the
+/// "ປະຫວັດການລາພັກ" — a leave-type dropdown, a from/to date range and the
 /// fetched list of leave requests, each with its real approval-chain timeline
 /// and a tap-through to the detail page. Everything comes from
 /// [leaveHistoryNotifierProvider].
@@ -31,7 +30,7 @@ class LeaveHistoryTab extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(15, 15, 15, 40),
         children: [
-          _LeaveTypeFilterRow(selectedId: state.leaveTypeId),
+          _LeaveTypeFilter(selectedId: state.leaveTypeId),
           heightBx(h: 16),
           _DateRangeRow(from: state.from, to: state.to),
           heightBx(h: 20),
@@ -42,10 +41,14 @@ class LeaveHistoryTab extends ConsumerWidget {
   }
 }
 
-class _LeaveTypeFilterRow extends ConsumerWidget {
+/// Leave-type filter. Tapping the field opens the shared full-screen
+/// [LeaveTypePickerPage] (scrollable + searchable, with an "All" row), and its
+/// result drives [LeaveHistoryNotifier.filterByLeaveType]. Styled to match
+/// [_DateField] below it.
+class _LeaveTypeFilter extends ConsumerWidget {
   final String? selectedId;
 
-  const _LeaveTypeFilterRow({required this.selectedId});
+  const _LeaveTypeFilter({required this.selectedId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,26 +56,60 @@ class _LeaveTypeFilterRow extends ConsumerWidget {
     final notifier = ref.read(leaveHistoryNotifierProvider.notifier);
     final types = ref.watch(leaveTypesNotifierProvider).valueOrNull ?? const [];
 
-    final chips = <(String, String?)>[
-      (l10n.leaveFilterAll, null),
-      for (final t in types) (LeaveCopy.leaveTypeLabel(l10n, t), t.id),
-    ];
+    final selected = types.where((t) => t.id == selectedId).firstOrNull;
+    final label = selected == null
+        ? l10n.leaveFilterAll
+        : LeaveCopy.leaveTypeLabel(l10n, selected);
 
-    return SizedBox(
-      height: 38,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: chips.length,
-        separatorBuilder: (_, _) => widthBx(w: 8),
-        itemBuilder: (context, i) {
-          final (label, id) = chips[i];
-          return LeaveFilterChip(
-            label: label,
-            selected: id == selectedId,
-            onTap: () => notifier.filterByLeaveType(id),
-          );
-        },
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        customText(
+          l10n.leaveRequestCategoryLabel,
+          fontSize: 13,
+          color: AppColors.subTitle,
+          fontWeight: FontWeight.w600,
+        ),
+        heightBx(h: 6),
+        InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () async {
+            final picked = await context.push<String>(
+              AppRoutes.timeOffLeaveTypePicker,
+              extra: (selectedTypeId: selectedId, allowClear: true),
+            );
+            // Nothing chosen (backed out) — leave the filter as it was.
+            if (picked == null) return;
+            // The "All" row pops with an empty string.
+            notifier.filterByLeaveType(picked.isEmpty ? null : picked);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: customText(
+                    label,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                widthBx(w: 4),
+                const Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 20,
+                  color: AppColors.gray500,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

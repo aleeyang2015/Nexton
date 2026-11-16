@@ -27,9 +27,32 @@ PunchReceipt _receipt({
 
 AttendanceDay _openDay() => AttendanceDay(
   sessions: [
-    AttendanceSession(label: '08:00–12:00', clockIn: DateTime(2026, 8, 24, 8)),
+    AttendanceSession(
+      label: '08:00–12:00',
+      clockIn: DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+        8,
+      ),
+    ),
   ],
 );
+
+/// A session opened yesterday and never closed — the forgotten-clock-out
+/// case: the employee should be able to clock in fresh today rather than
+/// have the button hang on "clock out".
+AttendanceDay _openDayFromYesterday() {
+  final yesterday = DateTime.now().subtract(const Duration(days: 1));
+  return AttendanceDay(
+    sessions: [
+      AttendanceSession(
+        label: '08:00–12:00',
+        clockIn: DateTime(yesterday.year, yesterday.month, yesterday.day, 8),
+      ),
+    ],
+  );
+}
 
 void main() {
   group('PunchRequest.validate', () {
@@ -269,50 +292,45 @@ void main() {
     // stay on screen indefinitely because nothing re-read `today` once the
     // provider was built — neither on resume, nor when the calendar day
     // quietly rolled over underneath a foregrounded app.
-    testWidgets(
-      're-reads today when the app resumes from the background',
-      (tester) async {
-        repository.today = Result.success(_openDay());
+    testWidgets('re-reads today when the app resumes from the background', (
+      tester,
+    ) async {
+      repository.today = Result.success(_openDay());
 
-        // A container of its own, disposed before this body returns: the
-        // shared `container`/`tearDown` pair disposes *after* Flutter's
-        // pending-timer check for this test already ran, which would catch
-        // the still-armed midnight timer as a leak.
-        final localContainer = ProviderContainer(
-          overrides: [
-            attendanceRepositoryProvider.overrideWithValue(repository),
-            punchLocationSourceProvider.overrideWithValue(location),
-          ],
-        );
+      // A container of its own, disposed before this body returns: the
+      // shared `container`/`tearDown` pair disposes *after* Flutter's
+      // pending-timer check for this test already ran, which would catch
+      // the still-armed midnight timer as a leak.
+      final localContainer = ProviderContainer(
+        overrides: [
+          attendanceRepositoryProvider.overrideWithValue(repository),
+          punchLocationSourceProvider.overrideWithValue(location),
+        ],
+      );
 
-        // Not `ready()`: testWidgets runs the body in a fake-async zone, so
-        // the microtask-deferred first load needs a pump to flush, not a
-        // real delay.
-        //
-        // The provider is `autoDispose`, so it needs a listener to survive
-        // past this line the same way a widget's `ref.watch` would keep it
-        // alive.
-        localContainer.listen(attendanceNotifierProvider, (_, _) {});
-        localContainer.read(attendanceNotifierProvider.notifier);
-        await tester.pump();
-        expect(repository.todayCalls, 1);
+      // Not `ready()`: testWidgets runs the body in a fake-async zone, so
+      // the microtask-deferred first load needs a pump to flush, not a
+      // real delay.
+      //
+      // The provider is `autoDispose`, so it needs a listener to survive
+      // past this line the same way a widget's `ref.watch` would keep it
+      // alive.
+      localContainer.listen(attendanceNotifierProvider, (_, _) {});
+      localContainer.read(attendanceNotifierProvider.notifier);
+      await tester.pump();
+      expect(repository.todayCalls, 1);
 
-        // A real backgrounding is resumed -> inactive -> ... -> paused, then
-        // back out the same way; only the round trip through a non-resumed
-        // state counts as a resume.
-        tester.binding.handleAppLifecycleStateChanged(
-          AppLifecycleState.inactive,
-        );
-        tester.binding.handleAppLifecycleStateChanged(
-          AppLifecycleState.resumed,
-        );
-        await tester.pump();
+      // A real backgrounding is resumed -> inactive -> ... -> paused, then
+      // back out the same way; only the round trip through a non-resumed
+      // state counts as a resume.
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
 
-        expect(repository.todayCalls, 2);
+      expect(repository.todayCalls, 2);
 
-        localContainer.dispose();
-      },
-    );
+      localContainer.dispose();
+    });
 
     test('refreshIfNewDay does nothing on the day it already loaded', () async {
       repository.today = Result.success(_openDay());
@@ -323,5 +341,24 @@ void main() {
 
       expect(repository.todayCalls, 1);
     });
+
+    test(
+      'a session left open from yesterday does not block a fresh clock-in',
+      () async {
+        repository.today = Result.success(_openDayFromYesterday());
+        repository.clockInResult = Result.success(PunchRecorded(_receipt()));
+
+        final notifier = await ready();
+        final state = container.read(attendanceNotifierProvider);
+
+        expect(state.isClockedIn, isFalse);
+        expect(state.nextAction, ClockAction.clockIn);
+
+        await notifier.punch();
+
+        expect(repository.clockInRequests, hasLength(1));
+        expect(repository.clockOutRequests, isEmpty);
+      },
+    );
   });
 }

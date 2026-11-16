@@ -20,9 +20,13 @@ abstract class AuthLocalDataSource {
 
   Future<void> writeUser(UserModel user);
 
+  /// [expiresAt] is the access token's expiry when the response reported one.
+  /// Passing null clears any expiry a previous session left behind, so a
+  /// stored expiry can never describe a token that is no longer there.
   Future<void> writeTokens({
     required String accessToken,
     required String refreshToken,
+    DateTime? expiresAt,
   });
 
   /// True when an access token is on disk — the cheap "might be signed in"
@@ -33,7 +37,8 @@ abstract class AuthLocalDataSource {
 
   Future<void> writeMustChangePassword(bool value);
 
-  /// Drops the tokens, the cached profile and the pending-change flag.
+  /// Drops the tokens, the access-token expiry, the cached profile and the
+  /// pending-change flag.
   Future<void> clear();
 }
 
@@ -69,9 +74,11 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<void> writeTokens({
     required String accessToken,
     required String refreshToken,
+    DateTime? expiresAt,
   }) async {
     await _tokenStorage.writeAccessToken(accessToken);
     await _tokenStorage.writeRefreshToken(refreshToken);
+    await _tokenStorage.writeAccessTokenExpiry(expiresAt);
   }
 
   @override

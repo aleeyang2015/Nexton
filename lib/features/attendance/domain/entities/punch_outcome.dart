@@ -44,12 +44,39 @@ enum AttendanceRule {
   /// 409 — clock-out only, and the one rule with a recovery path: collect a
   /// reason from the user and send the same punch again with `notes` set
   /// (§4 rule 4, §7 rule 6).
-  earlyCheckoutRequiresReason;
+  earlyCheckoutRequiresReason,
+
+  /// The punch was refused because the employee is outside every work area.
+  ///
+  /// Not in the spec's error tables: §3 documents out-of-area as a *stored*
+  /// punch — HTTP 200 with `status: "rejected"` and
+  /// `rejection_reason: "outside_geofence"` — which arrives as a
+  /// [PunchRecorded] whose receipt reports [PunchReceipt.isOutsideWorkArea].
+  /// The deployed backend refuses it outright instead, so the same situation
+  /// can reach the app down either path and both must offer the off-site
+  /// scan request. [isResolvableOffsite] is what the UI keys on, so neither
+  /// path has to be recognised twice.
+  outsideWorkArea,
+
+  /// 409 — an off-site scan request for this session and direction is already
+  /// pending or approved. Only the off-site endpoint raises it
+  /// (`OFFSITE_REQUEST_EXISTS`, attendance-offsite-requests.md §3); a punch
+  /// never does, which is why it is absent from the punch endpoints' table.
+  offsiteRequestExists,
+
+  /// 409 — the clock-in window hasn't opened yet. `details.clock_in_opens`
+  /// says when it will (`TOO_EARLY_CHECKIN`, §3). Off-site only, as above.
+  tooEarlyCheckin;
 
   /// True when re-sending the punch with `notes` clears the refusal. Only
   /// [earlyCheckoutRequiresReason] is recoverable this way — every other rule
   /// needs a different time, a different day, or HR.
   bool get isResolvableWithReason => this == earlyCheckoutRequiresReason;
+
+  /// True when an off-site scan request is the way forward. The employee is
+  /// in the wrong place, which no retry from here can change — but the scan
+  /// request is exactly the form for recording work done elsewhere.
+  bool get isResolvableOffsite => this == outsideWorkArea;
 }
 
 /// The `error.details` a refusal carries (§5.2).
@@ -82,6 +109,9 @@ class PunchBlockDetails extends Equatable {
   /// `NO_SHIFT_ASSIGNED`.
   final String? employeeId;
 
+  /// `TOO_EARLY_CHECKIN` — when clocking in starts being accepted.
+  final String? clockInOpens;
+
   /// Everything the backend sent, so a detail added server-side is never
   /// silently dropped before it reaches a log.
   final Map<String, dynamic> raw;
@@ -96,6 +126,7 @@ class PunchBlockDetails extends Equatable {
     this.endedAt,
     this.nextStarts,
     this.employeeId,
+    this.clockInOpens,
     this.raw = const {},
   });
 
@@ -112,6 +143,7 @@ class PunchBlockDetails extends Equatable {
     endedAt,
     nextStarts,
     employeeId,
+    clockInOpens,
     raw,
   ];
 }

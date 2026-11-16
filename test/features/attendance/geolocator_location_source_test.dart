@@ -9,10 +9,15 @@ import 'package:next_on/features/attendance/domain/datasources/punch_location_so
 import 'package:next_on/features/attendance/domain/entities/clock_method.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_request.dart';
 
-Position _position({double accuracy = 8.0, bool isMocked = false}) => Position(
-  latitude: 17.9757,
+Position _position({
+  double accuracy = 8.0,
+  bool isMocked = false,
+  DateTime? timestamp,
+  double latitude = 17.9757,
+}) => Position(
+  latitude: latitude,
   longitude: 102.6331,
-  timestamp: DateTime.utc(2026, 8, 24, 1, 15),
+  timestamp: timestamp ?? DateTime.utc(2026, 8, 24, 1, 15),
   accuracy: accuracy,
   altitude: 0,
   altitudeAccuracy: 0,
@@ -30,8 +35,11 @@ class _FakeGeolocatorApi implements GeolocatorApi {
   LocationPermission permissionAfterRequest = LocationPermission.whileInUse;
   Position? position;
   Object? positionError;
+  Position? lastKnownPosition;
+  Object? lastKnownError;
 
   int requestCalls = 0;
+  int lastKnownCalls = 0;
   LocationSettings? lastSettings;
 
   @override
@@ -52,7 +60,18 @@ class _FakeGeolocatorApi implements GeolocatorApi {
     if (positionError != null) throw positionError!;
     return position ?? _position();
   }
+
+  @override
+  Future<Position?> getLastKnownPosition() async {
+    lastKnownCalls++;
+    if (lastKnownError != null) throw lastKnownError!;
+    return lastKnownPosition;
+  }
 }
+
+/// A cached fix of a given age, measured against the clock the source uses.
+Position _cachedFix(Duration age, {double latitude = 18.1}) =>
+    _position(timestamp: DateTime.now().subtract(age), latitude: latitude);
 
 void main() {
   late _FakeGeolocatorApi api;
@@ -197,6 +216,85 @@ void main() {
       ).copyWith(reading: reading).validate().isSuccess,
       isTrue,
     );
+  });
+
+  group('when no fresh fix arrives in time', () {
+    setUp(() => api.positionError = TimeoutException('no fix'));
+
+    test('falls back to a recent cached fix', () async {
+      api.lastKnownPosition = _cachedFix(const Duration(seconds: 30));
+
+      final reading = await source().read(ClockMethod.gps);
+
+      expect(reading.hasCoordinates, isTrue);
+      expect(reading.latitude, 18.1);
+      expect(reading.gpsAccuracy, 8.0);
+      expect(reading.unavailableReason, isNull);
+      // The punch this unblocks must actually pass validation.
+      const request = PunchRequest(method: ClockMethod.gps);
+      expect(request.copyWith(reading: reading).validate().isSuccess, isTrue);
+    });
+
+    test('refuses a cached fix older than the age limit', () async {
+      api.lastKnownPosition = _cachedFix(
+        GeolocatorPunchLocationSource.maxCachedFixAge +
+            const Duration(seconds: 1),
+      );
+
+      final reading = await source().read(ClockMethod.gps);
+
+      expect(reading.hasCoordinates, isFalse);
+      expect(reading.unavailableReason, LocationUnavailableReason.timeout);
+    });
+
+    test('refuses a cached fix stamped in the future', () async {
+      api.lastKnownPosition = _position(
+        timestamp: DateTime.now().add(const Duration(minutes: 5)),
+      );
+
+      final reading = await source().read(ClockMethod.gps);
+
+      expect(reading.unavailableReason, LocationUnavailableReason.timeout);
+    });
+
+    test('stays a timeout when nothing is cached', () async {
+      api.lastKnownPosition = null;
+
+      final reading = await source().read(ClockMethod.gps);
+
+      expect(api.lastKnownCalls, 1);
+      expect(reading.unavailableReason, LocationUnavailableReason.timeout);
+    });
+
+    test('stays a timeout when the cache lookup itself fails', () async {
+      api.lastKnownError = Exception('cache unavailable');
+
+      final reading = await source().read(ClockMethod.gps);
+
+      expect(reading.unavailableReason, LocationUnavailableReason.timeout);
+    });
+
+    test('a mocked cached fix is still reported as mocked', () async {
+      api.lastKnownPosition = _position(
+        isMocked: true,
+        timestamp: DateTime.now(),
+      );
+
+      final reading = await source().read(ClockMethod.gps);
+
+      expect(reading.isMockConfirmed, isTrue);
+      // §7 rule 1 — the cache must not become a way to launder a spoof.
+      const request = PunchRequest(method: ClockMethod.gps);
+      expect(request.copyWith(reading: reading).validate().isFailure, isTrue);
+    });
+  });
+
+  test('a fresh fix never consults the cache', () async {
+    api.position = _position();
+
+    await source().read(ClockMethod.gps);
+
+    expect(api.lastKnownCalls, 0);
   });
 
   test('asks for a high-accuracy fix with a bounded wait', () async {

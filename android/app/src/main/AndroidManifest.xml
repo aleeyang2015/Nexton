@@ -1,12 +1,27 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Every API call goes over the network. The debug/profile manifests
+         already declare this, which is why only release builds broke. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <!-- Attendance clock-in verifies the employee is inside the site
          geofence. Foreground only: the app never reads a position
          except while the user is punching. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
+    <!-- The time-correction form photographs its evidence. CAMERA comes in
+         from the camera plugin's own manifest; the plugin also asks for
+         RECORD_AUDIO, which the app never uses (photos only, audio off). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"
+        tools:node="remove"/>
+
+    <!-- Push notifications from the backend. Android 13+ asks the user at
+         runtime; older versions grant it on install. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
-        android:label="Next on"
+        android:label="NEXTON"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -36,6 +51,12 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Pushes that arrive while the app is in the background or closed
+             land on the same high-importance channel the app creates for
+             foreground banners (PushNotificationConstants.androidChannelId). -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="nexton_push" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

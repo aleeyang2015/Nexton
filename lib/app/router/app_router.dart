@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/approvals/approvals_page.dart';
 import '../../features/attendance/presentation/pages/attendance_history_page.dart';
+import '../../features/attendance/presentation/pages/camera_capture_page.dart';
+import '../../features/attendance/domain/entities/offsite_method.dart';
+import '../../features/attendance/presentation/pages/offsite_history_page.dart';
+import '../../features/attendance/presentation/pages/offsite_request_page.dart';
+import '../../features/attendance/presentation/pages/time_correction_approvals_page.dart';
+import '../../features/attendance/presentation/pages/time_correction_history_detail_page.dart';
+import '../../features/attendance/presentation/pages/time_correction_history_page.dart';
+import '../../features/attendance/presentation/pages/time_correction_request_page.dart';
 import '../../features/auth/domain/entities/auth_session.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/change_password/presentation/pages/change_password_page.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/salary_history/domain/entities/payslip.dart';
 import '../../features/salary_history/presentation/pages/payslip_detail_page.dart';
 import '../../features/salary_history/presentation/pages/salary_history_page.dart';
@@ -25,14 +35,26 @@ class AppRoutes {
   static const String home = '/';
   static const String login = '/login';
   static const String changePassword = '/change-password';
+  static const String profile = '/profile';
   static const String settings = '/settings';
   static const String attendanceHistory = '/attendance-history';
+  static const String timeCorrectionRequest = '/attendance/time-correction';
+  static const String timeCorrectionHistory =
+      '/attendance/time-correction/history';
+  static const String timeCorrectionHistoryDetail =
+      '/attendance/time-correction/history/detail';
+  static const String timeCorrectionApprovals =
+      '/attendance/time-correction/approvals';
+  static const String offsiteHistory = '/attendance/offsite/history';
+  static const String offsiteRequest = '/attendance/offsite';
+  static const String cameraCapture = '/attendance/camera';
   static const String timeOff = '/time-off';
   static const String timeOffRequestDetail = '/time-off/request';
   static const String timeOffRequestEdit = '/time-off/request/edit';
   static const String timeOffLeaveTypePicker = '/time-off/leave-type';
   static const String salaryHistory = '/salary-history';
   static const String payslipDetail = '/salary-history/payslip';
+  static const String approvals = '/approvals';
   static const String notFound = '/404';
 }
 
@@ -115,6 +137,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ChangePasswordPage(),
       ),
 
+      // Profile — pushed from the home header's avatar or name
+      GoRoute(
+        path: AppRoutes.profile,
+        name: 'profile',
+        builder: (context, state) => const ProfilePage(),
+      ),
+
       // Settings
       GoRoute(
         path: AppRoutes.settings,
@@ -127,6 +156,68 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.attendanceHistory,
         name: 'attendanceHistory',
         builder: (context, state) => const AttendanceHistoryPage(),
+      ),
+      // Time-correction request — the "ລືມລົງເວລາ" menu tile
+      GoRoute(
+        path: AppRoutes.timeCorrectionRequest,
+        name: 'timeCorrectionRequest',
+        builder: (context, state) => const TimeCorrectionRequestPage(),
+      ),
+      // The requests filed from it
+      GoRoute(
+        path: AppRoutes.timeCorrectionHistory,
+        name: 'timeCorrectionHistory',
+        builder: (context, state) => const TimeCorrectionHistoryPage(),
+      ),
+      // One of those requests — its id rides along as `extra`, so a direct
+      // hit without one falls through to the 404 page.
+      GoRoute(
+        path: AppRoutes.timeCorrectionHistoryDetail,
+        name: 'timeCorrectionHistoryDetail',
+        builder: (context, state) {
+          final id = state.extra;
+          if (id is! String) return const NotFoundPage();
+          return TimeCorrectionHistoryDetailPage(id: id);
+        },
+      ),
+      // The requests an approver decides on — the "ອະນຸມັດແກ້ໄຂເວລາ" menu tile
+      GoRoute(
+        path: AppRoutes.timeCorrectionApprovals,
+        name: 'timeCorrectionApprovals',
+        builder: (context, state) => const TimeCorrectionApprovalsPage(),
+      ),
+      // The off-site scans already filed — the "ລົງເວລານອກພື້ນທີ່" menu tile
+      // opens this, with the form one tap behind it.
+      GoRoute(
+        path: AppRoutes.offsiteHistory,
+        name: 'offsiteHistory',
+        builder: (context, state) => const OffsiteHistoryPage(),
+      ),
+      // The off-site scan request form itself. `extra` carries the direction
+      // the form opens on when a refused punch sent the employee here; without
+      // one the page picks its own default.
+      GoRoute(
+        path: AppRoutes.offsiteRequest,
+        name: 'offsiteRequest',
+        builder: (context, state) {
+          final method = state.extra;
+          return method is OffsiteMethod
+              ? OffsiteRequestPage(method: method)
+              : const OffsiteRequestPage();
+        },
+      ),
+      // Its "ຖ່າຍຮູບ" button — pops with the photo as a `LocalFile`.
+      GoRoute(
+        path: AppRoutes.cameraCapture,
+        name: 'cameraCapture',
+        builder: (context, state) => const CameraCapturePage(),
+      ),
+
+      // Approvals — the "ອະນຸມັດ" menu tile
+      GoRoute(
+        path: AppRoutes.approvals,
+        name: 'approvals',
+        builder: (context, state) => const ApprovalsPage(),
       ),
 
       // Time off
@@ -163,15 +254,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
 
       // Leave-type chooser — pushed from the request form's "Leave type" card
-      // and popped with the selected `leave_type_id`. The currently-selected id
-      // rides along as `extra` so the list can tick it; a direct hit with
-      // nothing selected is fine and just shows the list untouched.
+      // and the history tab's filter, popped with the selected `leave_type_id`
+      // (or `''` from the filter's "All" row). `extra` is a
+      // [LeaveTypePickerArgs] record; a bare String or nothing is still
+      // accepted and just ticks that id with no "All" row.
       GoRoute(
         path: AppRoutes.timeOffLeaveTypePicker,
         name: 'timeOffLeaveTypePicker',
-        builder: (context, state) => LeaveTypePickerPage(
-          selectedTypeId: state.extra is String ? state.extra as String : null,
-        ),
+        builder: (context, state) {
+          final extra = state.extra;
+          return LeaveTypePickerPage(
+            selectedTypeId: switch (extra) {
+              LeaveTypePickerArgs(:final selectedTypeId) => selectedTypeId,
+              final String id => id,
+              _ => null,
+            },
+            allowClear: extra is LeaveTypePickerArgs && extra.allowClear,
+          );
+        },
       ),
 
       // Salary history

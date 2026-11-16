@@ -104,6 +104,19 @@ class PunchReceipt extends Equatable {
   /// Stored but not confirmed — show the amber path (§7 rule 5).
   bool get needsWarning => !isVerified;
 
+  /// The punch was logged but didn't count *because the employee was outside
+  /// every work area* — the one rejection an off-site scan request can put
+  /// right (attendance-offsite-requests.md's opening context).
+  ///
+  /// Deliberately narrower than [needsWarning]. A `pending` check is a backend
+  /// hiccup, not a place; `missing_coordinates` means there was no fix to file
+  /// a request with; and the two Wi-Fi reasons belong to a punch method the
+  /// off-site endpoint doesn't accept. Offering the off-site form for any of
+  /// those would send the employee to a screen that can't help them.
+  bool get isOutsideWorkArea =>
+      verification == PunchVerification.rejected &&
+      rejectionReason == PunchRejectionReason.outsideGeofence;
+
   @override
   List<Object?> get props => [
     checkinId,

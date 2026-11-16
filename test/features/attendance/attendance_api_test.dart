@@ -236,6 +236,40 @@ void main() {
     );
 
     test(
+      'OUTSIDE_GEOFENCE is the rule that offers the off-site request',
+      () async {
+        // The deployed API's actual answer, verbatim: no `data`, so nothing
+        // was stored, and `outside_geofence` arrives as an error code rather
+        // than the receipt field §3 documents.
+        adapter
+          ..status = 409
+          ..body = {
+            'success': false,
+            'error': {
+              'code': 'OUTSIDE_GEOFENCE',
+              'message':
+                  'Clock-in rejected: you are outside all work locations',
+            },
+          };
+
+        final outcome = await source.clockIn(gpsRequest);
+
+        expect(outcome, isA<PunchBlocked>());
+        final blocked = outcome as PunchBlocked;
+        expect(blocked.rule, AttendanceRule.outsideWorkArea);
+        expect(blocked.rule.isResolvableOffsite, isTrue);
+        // No reason dialog: being in the wrong place is not fixed by typing.
+        expect(blocked.rule.isResolvableWithReason, isFalse);
+        expect(
+          blocked.message,
+          'Clock-in rejected: you are outside all work locations',
+        );
+        // The refusal carries no details, so nothing is invented from them.
+        expect(blocked.details, PunchBlockDetails.empty);
+      },
+    );
+
+    test(
       'an unknown 409 code stays an error rather than a made-up rule',
       () async {
         adapter
@@ -275,7 +309,7 @@ void main() {
           'success': true,
           'data': [
             {
-              'date': '2026-08-24',
+              'date': _today(),
               'status': 'present',
               'sessions': [
                 {
@@ -304,6 +338,78 @@ void main() {
       expect(day.lastClockOut!.toUtc(), DateTime.utc(2026, 8, 24, 5));
     });
 
+    test(
+      'reads the month the history page reads and picks today out of it',
+      () async {
+        adapter
+          ..status = 200
+          ..body = {
+            'success': true,
+            'data': [
+              {
+                'date': '2020-01-01',
+                'sessions': [
+                  {'session_label': '08:00–12:00'},
+                ],
+              },
+              {
+                'date': _today(),
+                'sessions': [
+                  {'session_label': '13:00–17:00'},
+                ],
+              },
+            ],
+          };
+
+        final day = await source.todayRecord();
+
+        final now = DateTime.now();
+        expect(
+          adapter.lastRequest!.queryParameters['month'],
+          '${now.year}-${now.month.toString().padLeft(2, '0')}',
+        );
+        expect(day.sessions.single.label, '13:00–17:00');
+      },
+    );
+
+    test('skips a record with no date, since it cannot be placed', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            {
+              'sessions': [
+                {'clock_in': '2026-08-24T01:05:00Z'},
+              ],
+            },
+          ],
+        };
+
+      expect(await source.todayRecord(), AttendanceDay.empty);
+    });
+
+    test('ignores a record that is not dated today', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            {
+              'date': '2020-01-01',
+              'sessions': [
+                {'clock_in': '2020-01-01T01:05:00Z'},
+              ],
+            },
+          ],
+        };
+
+      final day = await source.todayRecord();
+
+      expect(day, AttendanceDay.empty);
+      expect(day.nextAction, ClockAction.clockIn);
+    });
+
     test('a day with no records is empty, not a failure', () async {
       adapter
         ..status = 200
@@ -322,6 +428,7 @@ void main() {
           'success': true,
           'data': [
             {
+              'date': _today(),
               'sessions': [
                 {
                   'clock_in': '2026-08-24T01:05:00Z',
@@ -338,7 +445,7 @@ void main() {
       expect(day.nextAction, ClockAction.clockIn);
     });
 
-    test('queries a single local date', () async {
+    test('queries the current month in ASCII digits', () async {
       adapter
         ..status = 200
         ..body = {'success': true, 'data': []};
@@ -346,9 +453,9 @@ void main() {
       await source.todayRecord();
 
       final query = adapter.lastRequest!.queryParameters;
-      expect(query['start_date'], query['end_date']);
+      expect(query.containsKey('start_date'), isFalse);
       // ASCII digits, never the active locale's numerals.
-      expect(query['start_date'], matches(r'^\d{4}-\d{2}-\d{2}$'));
+      expect(query['month'], matches(r'^\d{4}-\d{2}$'));
     });
   });
 }
@@ -363,4 +470,12 @@ class PunchLocationReadingStub {
     gpsAccuracy: 12.5,
     isMockLocation: false,
   );
+}
+
+/// Today as `YYYY-MM-DD`, the date `todayRecord()` accepts.
+String _today() {
+  final now = DateTime.now();
+  final month = now.month.toString().padLeft(2, '0');
+  final day = now.day.toString().padLeft(2, '0');
+  return '${now.year}-$month-$day';
 }

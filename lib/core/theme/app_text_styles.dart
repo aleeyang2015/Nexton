@@ -288,4 +288,14 @@ class AppTextStyles {
     color: AppColors.textHint,
     fontFamily: fontFamily,
   );
+
+  /// Typed text in a white-filled field. Its color is explicit because the
+  /// dark theme's body text is white, which vanishes on the white fill when
+  /// the device is in dark mode.
+  static TextStyle inputStyle = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+    fontFamily: fontFamily,
+  );
 }

@@ -135,9 +135,14 @@ class AuthInterceptor extends Interceptor {
         throw const FormatException('Refresh response missing tokens');
       }
 
-      // Both tokens rotate on every refresh.
+      // Both tokens rotate on every refresh, and so does the expiry that
+      // describes the access token — writing it unconditionally is what stops
+      // the previous token's expiry from outliving it.
       await _tokenStorage.writeAccessToken(access);
       await _tokenStorage.writeRefreshToken(rotated);
+      await _tokenStorage.writeAccessTokenExpiry(
+        tokenExpiryFromUnixSeconds(data['expires_at']),
+      );
       return access;
     } catch (_) {
       await _tokenStorage.clear();

@@ -23,7 +23,20 @@ class AttendanceCopy {
     final serverMessage = blocked.message.trim();
     if (serverMessage.isNotEmpty) return serverMessage;
 
-    return switch (blocked.rule) {
+    return ruleFallback(l10n, blocked.rule, blocked.details);
+  }
+
+  /// The app's own wording for [rule], for when the backend sent none.
+  ///
+  /// Public because the off-site scan form is refused by the same rules (its
+  /// POST is gated by the same session guard) and must not invent a second set
+  /// of words for them.
+  static String ruleFallback(
+    AppLocalizations l10n,
+    AttendanceRule rule,
+    PunchBlockDetails details,
+  ) {
+    return switch (rule) {
       AttendanceRule.mockLocationDetected => l10n.ruleMockLocationDetected,
       AttendanceRule.employeeNotFound => l10n.ruleEmployeeNotFound,
       AttendanceRule.noShiftAssigned => l10n.ruleNoShiftAssigned,
@@ -38,6 +51,16 @@ class AttendanceCopy {
       AttendanceRule.afterCheckoutWindow => l10n.ruleAfterCheckoutWindow,
       AttendanceRule.earlyCheckoutRequiresReason =>
         l10n.ruleEarlyCheckoutRequiresReason,
+      AttendanceRule.outsideWorkArea => l10n.ruleOutsideWorkArea,
+      AttendanceRule.offsiteRequestExists => l10n.ruleOffsiteRequestExists,
+      // §3 asks for the opening time to be named so the user knows when to
+      // come back; without it the message can only say "not yet".
+      AttendanceRule.tooEarlyCheckin => switch (detailTime(
+        details.clockInOpens,
+      )) {
+        final String opens => l10n.ruleTooEarlyCheckinAt(opens),
+        null => l10n.ruleTooEarlyCheckin,
+      },
     };
   }
 
@@ -117,30 +140,16 @@ class AttendanceCopy {
     return hourMinute(at);
   }
 
-  /// The card header's badge, from the real `is_late` flag `records/my`
-  /// reports on today's sessions.
+  /// The card header's badge: the employee's assigned shift name
+  /// (`/core_hr/employees/me`'s `shift.name`/`shift.name_lo`), already
+  /// resolved to the app's language by the caller.
   ///
-  /// `attendance_status` (`present`/`late`/`absent`) would be the more
-  /// direct source, but the spec is explicit that it's clock-in-only —
-  /// `records/my` never carries it (§6.2/§3's field table) — so `is_late`
-  /// is the closest real signal available for a day that's already loaded.
-  ///
-  /// On time, the badge names the employee's actual assigned shift
-  /// (`/core_hr/employees/me`'s `shift.name`/`shift.name_lo`) rather than a
-  /// generic "on time" label — [AppLocalizations.regularTimeBadge] is only
-  /// the fallback for when that hasn't loaded or no shift is assigned.
+  /// It never reports lateness — [AppLocalizations.regularTimeBadge] is only
+  /// the fallback for when the shift hasn't loaded or none is assigned.
   static ({String label, Color color}) statusBadge(
-    AppLocalizations l10n,
-    AttendanceDay day, {
+    AppLocalizations l10n, {
     String? shiftName,
   }) {
-    if (day.isLate) {
-      return (
-        label: l10n.attendanceLateStatus,
-        color: AppColors.attendanceLate,
-      );
-    }
-
     final label = (shiftName != null && shiftName.isNotEmpty)
         ? shiftName
         : l10n.regularTimeBadge;
@@ -159,54 +168,23 @@ class AttendanceCopy {
     return picked.isEmpty ? null : picked;
   }
 
-  /// Today's shift-hours line for the card, from the real `session_label`s
-  /// `records/my` returns (§6.2's note recommends showing this rather than
-  /// the raw session order).
-  ///
-  /// Before the first punch of the day there are no sessions to read a label
-  /// from, so this falls back to the employee's assigned shift
-  /// (`/core_hr/employees/me`'s `shift.shift_details[]`) — the real "ກະເຊົ້າ
-  /// 08:00-12:00 | ກະແລງ 13:00-17:00" for *this* employee, not a canned
-  /// example. [AppLocalizations.shiftHoursPlaceholder] is the last resort,
-  /// for when even that hasn't loaded.
-  static String shiftHoursLine(
-    AppLocalizations l10n,
-    Locale locale,
-    List<AttendanceSession> sessions,
-    List<ShiftDetail> shiftDetails,
-  ) {
-    final labels = sessions
-        .map((s) => s.label)
-        .whereType<String>()
-        .where((label) => label.isNotEmpty)
-        .toList(growable: false);
-
-    if (labels.isNotEmpty) return labels.join(' | ');
-
-    final shiftLines = shiftDetails
-        .map((detail) => shiftDetailLine(locale, detail))
-        .where((line) => line.isNotEmpty)
-        .toList(growable: false);
-
-    return shiftLines.isEmpty
-        ? l10n.shiftHoursPlaceholder
-        : shiftLines.join(' | ');
-  }
-
   /// One shift segment as shown on screen — its localized name, plus its
   /// scheduled hours when the backend sent them (e.g. `"ກະເຊົ້າ: 08:00 -
   /// 12:00"`).
   static String shiftDetailLine(Locale locale, ShiftDetail detail) {
     final name = shiftDetailName(locale, detail);
-    final start = _shiftClockTime(detail.startTime);
-    final end = _shiftClockTime(detail.endTime);
-    final range = [
-      if (start != null) start,
-      if (end != null) end,
-    ].join(' - ');
+    final range = shiftDetailHours(detail);
 
     if (name.isEmpty) return range;
     return range.isEmpty ? name : '$name: $range';
+  }
+
+  /// A shift segment's scheduled hours, e.g. `"08:00 - 12:00"`, or empty when
+  /// the backend sent neither end.
+  static String shiftDetailHours(ShiftDetail detail) {
+    final start = _shiftClockTime(detail.startTime);
+    final end = _shiftClockTime(detail.endTime);
+    return [if (start != null) start, if (end != null) end].join(' - ');
   }
 
   /// `name` or `name_lo`, following the app's language — Lao prefers

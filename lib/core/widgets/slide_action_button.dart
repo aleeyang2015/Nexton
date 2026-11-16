@@ -39,10 +39,13 @@ class SlideActionButton extends StatefulWidget {
 
 class _SlideActionButtonState extends State<SlideActionButton>
     with SingleTickerProviderStateMixin {
-  static const double _height = 60;
-  static const double _thumbSize = 48;
+  static const double _height = 56;
+  static const double _thumbSize = 44;
   static const double _pad = 6;
+  static const double _radius = 16;
+  static const double _thumbRadius = 12;
   static const double _thresholdRatio = 0.85;
+  static const double _labelEndPad = 12;
 
   late final AnimationController _controller = AnimationController.unbounded(
     vsync: this,
@@ -119,8 +122,17 @@ class _SlideActionButtonState extends State<SlideActionButton>
           height: _height,
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(_height / 2),
+            gradient: const LinearGradient(
+              colors: [AppColors.primary, Color(0xFF5B47E0)],
+            ),
+            borderRadius: BorderRadius.circular(_radius),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.25),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: AnimatedBuilder(
             animation: _controller,
@@ -146,59 +158,53 @@ class _SlideActionButtonState extends State<SlideActionButton>
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(_height / 2),
+                          borderRadius: BorderRadius.circular(_radius),
                         ),
                       ),
                     ),
                   ),
-                  // Directional chevron hint, right-anchored.
-                  Positioned(
-                    right: 18,
-                    child: IgnorePointer(
-                      child: Opacity(
-                        opacity: labelOpacity,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: List.generate(
-                            3,
-                            (i) => Icon(
-                              Icons.chevron_right,
-                              size: 18,
-                              color: Colors.white.withValues(
-                                alpha: 0.35 + (i * 0.25),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Centered label, fading with drag progress.
+                  // Label and directional chevron hint, centered in the space
+                  // right of the resting thumb and fading with drag progress.
+                  // Only the left side clears the thumb — reserving the same
+                  // width on the right squeezed long labels into an ellipsis.
                   Positioned.fill(
                     child: IgnorePointer(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: _thumbSize + _pad * 2,
+                        padding: const EdgeInsets.only(
+                          left: _thumbSize + _pad * 2,
+                          right: _labelEndPad,
                         ),
                         child: Opacity(
                           opacity: labelOpacity,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                widget.icon,
-                                size: 17,
-                                color: Colors.white,
-                              ),
+                              Icon(widget.icon, size: 17, color: Colors.white),
                               const SizedBox(width: 8),
+                              // Shrinks rather than truncates: the word that
+                              // tells "in" from "out" sits at the end of the
+                              // label, exactly where an ellipsis would cut.
                               Flexible(
-                                child: Text(
-                                  widget.label,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    widget.label,
+                                    maxLines: 1,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              ...List.generate(
+                                3,
+                                (i) => Icon(
+                                  Icons.chevron_right,
+                                  size: 14,
+                                  color: Colors.white.withValues(
+                                    alpha: 0.4 + (i * 0.2),
                                   ),
                                 ),
                               ),
@@ -230,7 +236,7 @@ class _SlideActionButtonState extends State<SlideActionButton>
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(_thumbRadius),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.12),

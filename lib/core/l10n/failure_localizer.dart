@@ -13,7 +13,9 @@ import '../../l10n/generated/app_localizations.dart';
 /// no code to look up), so nothing is ever hidden from the user.
 extension FailureLocalization on Failure {
   String localize(AppLocalizations l10n) => when(
-    network: (message, statusCode, errorCode) =>
+    // The `Retry-After` a throttled response carries is state for a caller to
+    // act on, not copy — the message stays the same either way.
+    network: (message, statusCode, errorCode, _) =>
         _byErrorCode(l10n, errorCode) ??
         _byStatusCode(l10n, statusCode) ??
         message,
@@ -71,6 +73,38 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.fieldReasonRequired;
     case ValidationCode.mockLocationDetected:
       return l10n.mockLocationDetected;
+    case ValidationCode.correctionDateInFuture:
+      return l10n.timeCorrectionDateInFuture;
+    case ValidationCode.correctionDateTooOld:
+      return l10n.timeCorrectionDateTooOld(
+        AppConstants.timeCorrectionMaxAgeDays,
+      );
+    case ValidationCode.correctionShiftRequired:
+      return l10n.timeCorrectionShiftRequired;
+    case ValidationCode.correctionTimeRequired:
+      return l10n.timeCorrectionTimeRequired;
+    case ValidationCode.correctionInvalidTimes:
+      return l10n.timeCorrectionInvalidTimes;
+    case ValidationCode.correctionReasonRequired:
+      return l10n.timeCorrectionReasonRequired;
+    case ValidationCode.correctionReasonTooLong:
+      return l10n.timeCorrectionReasonTooLong(
+        AppConstants.timeCorrectionReasonMaxLength,
+      );
+    case ValidationCode.offsiteReasonRequired:
+      return l10n.offsiteReasonRequired;
+    case ValidationCode.offsiteReasonTooLong:
+      return l10n.offsiteReasonTooLong(AppConstants.offsiteReasonMaxLength);
+    case ValidationCode.offsitePhotoRequired:
+      return l10n.offsitePhotoRequired;
+    // Off-site approvals — the datasource encodes the one refusal a decision
+    // can hit that the correction workflow doesn't share
+    // (`attendance/data/datasources/offsite_error_code.dart`).
+    case 'offsiteTooEarlyCheckin':
+      return l10n.offsiteTooEarlyCheckin;
+    // Off-site withdrawal — §9's one refusal, raised by the same datasource.
+    case 'offsiteCannotCancel':
+      return l10n.offsiteCannotCancel;
     // Leave (time-off) business rules — the leave datasource encodes a
     // recognised `error.code` as one of these tokens
     // (see `time_off/data/datasources/leave_error_code.dart`).
@@ -88,6 +122,10 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.leaveInvalidStatus;
     case 'leaveEmployeeNotFound':
       return l10n.leaveEmployeeNotFound;
+    // Salary history — raised by the payroll datasource when the PDF
+    // endpoint answers with something that isn't a PDF.
+    case 'salaryPdfInvalid':
+      return l10n.salaryPdfInvalid;
     default:
       return null;
   }
