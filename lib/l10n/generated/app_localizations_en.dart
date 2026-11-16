@@ -1564,4 +1564,30 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get offsiteTooEarlyCheckin =>
       'Approved, but it isn\'t time to clock in yet — the punch was not recorded.';
+
+  @override
+  String get errorWrongServer =>
+      'This App is connected to the wrong address. Please update the App.';
+
+  @override
+  String get errorTenantNotFound => 'This company was not found.';
+
+  @override
+  String get errorTenantInactive =>
+      'Your company\'s account is switched off. Please contact HR.';
+
+  @override
+  String get errorTenantUnavailable =>
+      'Your company\'s system is not ready. Please try again in a few minutes.';
+
+  @override
+  String get errorTenantMismatch =>
+      'This login belongs to another company. Please sign out and sign in again.';
+
+  @override
+  String get errorModuleNotActive => 'Your company has not turned this on.';
+
+  @override
+  String get errorRateLimited =>
+      'Too many requests. Please wait a minute and try again.';
 }

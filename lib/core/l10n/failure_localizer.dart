@@ -23,7 +23,10 @@ extension FailureLocalization on Failure {
         _byErrorCode(l10n, errorCode) ??
         _byStatusCode(l10n, statusCode) ??
         message,
-    validation: (message, _) => _byValidationCode(l10n, message) ?? message,
+    validation: (message, _, code) =>
+        _byValidationCode(l10n, message) ??
+        _byErrorCode(l10n, code) ??
+        message,
     cache: (message, _) => message,
     auth: (message, code) => _byErrorCode(l10n, code) ?? message,
     unknown: (message, _) => message,
@@ -131,7 +134,8 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
   }
 }
 
-/// Backend error codes from [ApiErrorCodes] (auth.md).
+/// Backend error codes from [ApiErrorCodes]: the auth routes (auth.md) and the
+/// company, session, permission and module codes any route can answer with.
 String? _byErrorCode(AppLocalizations l10n, String? code) {
   switch (code) {
     case ApiErrorCodes.timeout:
@@ -154,7 +158,30 @@ String? _byErrorCode(AppLocalizations l10n, String? code) {
       return l10n.serverError;
     case ApiErrorCodes.sessionExpired:
     case ApiErrorCodes.invalidToken:
+    case ApiErrorCodes.missingToken:
+    case ApiErrorCodes.invalidTokenFormat:
+    case ApiErrorCodes.invalidTokenType:
+    case ApiErrorCodes.missingTenant:
       return l10n.sessionExpired;
+    case ApiErrorCodes.subdomainRequired:
+      return l10n.errorWrongServer;
+    case ApiErrorCodes.tenantNotFound:
+      return l10n.errorTenantNotFound;
+    case ApiErrorCodes.tenantInactive:
+      return l10n.errorTenantInactive;
+    case ApiErrorCodes.tenantLookupFailed:
+    case ApiErrorCodes.tenantUnavailable:
+      return l10n.errorTenantUnavailable;
+    case ApiErrorCodes.tenantMismatch:
+      return l10n.errorTenantMismatch;
+    case ApiErrorCodes.forbidden:
+      return l10n.accessForbidden;
+    case ApiErrorCodes.moduleNotActive:
+      return l10n.errorModuleNotActive;
+    case ApiErrorCodes.rateLimited:
+      return l10n.errorRateLimited;
+    case ApiErrorCodes.employeeNotFound:
+      return l10n.ruleEmployeeNotFound;
     default:
       return null;
   }

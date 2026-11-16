@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 
 import '../constants/app_constants.dart';
+import 'api_error_mapper.dart';
 import 'api_paths.dart';
 import 'api_response.dart';
 import 'token_storage.dart';
@@ -18,7 +19,10 @@ import 'token_storage.dart';
 /// * a failed refresh, a `401` from `/auth/refresh` itself, or a second `401`
 ///   on `/auth/me` clears the tokens and emits on [onSessionExpired]. A second
 ///   `401` on any other path propagates as a normal error and leaves the
-///   session alone.
+///   session alone;
+/// * a `403 TENANT_INACTIVE` on a signed-in request (the company was switched
+///   off) ends the session the same way, with no refresh: the refresh call
+///   answers the same 403.
 class AuthInterceptor extends Interceptor {
   static const String _retriedFlag = 'auth_retried';
 
@@ -74,6 +78,11 @@ class AuthInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     final request = err.requestOptions;
+
+    if (_isCompanySwitchedOff(err)) {
+      await _expireSession();
+      return handler.next(err);
+    }
 
     if (err.response?.statusCode != 401) {
       return handler.next(err);
@@ -164,6 +173,20 @@ class AuthInterceptor extends Interceptor {
   Future<void> _expireSession() async {
     await _tokenStorage.clear();
     if (!_sessionExpired.isClosed) _sessionExpired.add(null);
+  }
+
+  /// A signed-in request refused because the company is switched off. A login
+  /// can get the same answer, but it carries no token and has no session to
+  /// end: the login screen shows the message itself.
+  bool _isCompanySwitchedOff(DioException err) {
+    if (err.response?.statusCode != 403) return false;
+    if (!err.requestOptions.headers.containsKey(
+      AppConstants.authorizationHeader,
+    )) {
+      return false;
+    }
+    final code = ApiError.tryParse(err.response?.data)?.code;
+    return code == ApiErrorCodes.tenantInactive;
   }
 
   bool _isRefreshCall(RequestOptions options) =>

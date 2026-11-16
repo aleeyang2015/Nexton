@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/constants/app_constants.dart';
+import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/api_client.dart';
 import 'package:next_on/core/network/api_paths.dart';
 import 'package:next_on/core/network/auth_interceptor.dart';
@@ -362,6 +363,68 @@ void main() {
       );
 
       expect(h.requestsTo(ApiPaths.refresh), isEmpty);
+      expect(h.sessionExpiredEvents, isEmpty);
+    });
+  });
+
+  group('403 handling', () {
+    const companyOff = _Reply(403, {
+      'success': false,
+      'error': {'code': 'TENANT_INACTIVE', 'message': 'Tenant is not active'},
+    });
+
+    test('TENANT_INACTIVE on a signed-in call ends the session, with no '
+        'refresh', () async {
+      final h = await _Harness.create();
+      h.adapter.queue('/core_hr/employees', [companyOff]);
+
+      Object? thrown;
+      try {
+        await h.client.get<dynamic>('/core_hr/employees');
+      } on DioException catch (e) {
+        thrown = e.error;
+      }
+
+      // The caller still gets the failure, with the code the Lao text hangs on.
+      expect(thrown, isA<AuthFailure>());
+      expect((thrown as AuthFailure).code, 'TENANT_INACTIVE');
+      expect(h.requestsTo(ApiPaths.refresh), isEmpty);
+      expect(await h.tokens.readAccessToken(), isNull);
+      expect(await h.tokens.readRefreshToken(), isNull);
+      expect(h.sessionExpiredEvents, hasLength(1));
+    });
+
+    test('TENANT_INACTIVE on a login has no session to end', () async {
+      final h = await _Harness.create(accessToken: null, refreshToken: null);
+      h.adapter.queue(ApiPaths.login, [companyOff]);
+
+      await expectLater(
+        h.client.post<dynamic>(ApiPaths.login, data: const {}),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(h.sessionExpiredEvents, isEmpty);
+    });
+
+    test('any other 403 leaves the session alone', () async {
+      final h = await _Harness.create();
+      h.adapter.queue('/core_hr/employees', [
+        const _Reply(403, {
+          'success': false,
+          'error': {'code': 'MODULE_NOT_ACTIVE', 'message': 'not bought'},
+        }),
+      ]);
+
+      Object? thrown;
+      try {
+        await h.client.get<dynamic>('/core_hr/employees');
+      } on DioException catch (e) {
+        thrown = e.error;
+      }
+
+      expect(thrown, isA<ValidationFailure>());
+      expect((thrown as ValidationFailure).code, 'MODULE_NOT_ACTIVE');
+      expect(await h.tokens.readAccessToken(), 'access-1');
       expect(h.sessionExpiredEvents, isEmpty);
     });
   });

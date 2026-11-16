@@ -653,5 +653,12 @@
   "offsiteApprovalRejected": "Request rejected",
   "offsiteApprovalsLoadFailed": "Couldn't load the off-site clock-in requests.",
   "offsiteApprovalsEmpty": "No off-site clock-in requests",
-  "offsiteTooEarlyCheckin": "Approved, but it isn't time to clock in yet \u2014 the punch was not recorded."
+  "offsiteTooEarlyCheckin": "Approved, but it isn't time to clock in yet \u2014 the punch was not recorded.",
+  "errorWrongServer": "This App is connected to the wrong address. Please update the App.",
+  "errorTenantNotFound": "This company was not found.",
+  "errorTenantInactive": "Your company's account is switched off. Please contact HR.",
+  "errorTenantUnavailable": "Your company's system is not ready. Please try again in a few minutes.",
+  "errorTenantMismatch": "This login belongs to another company. Please sign out and sign in again.",
+  "errorModuleNotActive": "Your company has not turned this on.",
+  "errorRateLimited": "Too many requests. Please wait a minute and try again."
 }

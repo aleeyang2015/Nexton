@@ -25,7 +25,8 @@ mixin _$Failure {
     required TResult Function(
             String message, int? statusCode, String? errorCode)
         server,
-    required TResult Function(String message, String? field) validation,
+    required TResult Function(String message, String? field, String? code)
+        validation,
     required TResult Function(String message, String? operation) cache,
     required TResult Function(String message, String? code) auth,
     required TResult Function(String message, dynamic error) unknown,
@@ -38,7 +39,7 @@ mixin _$Failure {
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult? Function(String message, String? field)? validation,
+    TResult? Function(String message, String? field, String? code)? validation,
     TResult? Function(String message, String? operation)? cache,
     TResult? Function(String message, String? code)? auth,
     TResult? Function(String message, dynamic error)? unknown,
@@ -51,7 +52,7 @@ mixin _$Failure {
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult Function(String message, String? field)? validation,
+    TResult Function(String message, String? field, String? code)? validation,
     TResult Function(String message, String? operation)? cache,
     TResult Function(String message, String? code)? auth,
     TResult Function(String message, dynamic error)? unknown,
@@ -239,7 +240,8 @@ class _$NetworkFailureImpl implements NetworkFailure {
     required TResult Function(
             String message, int? statusCode, String? errorCode)
         server,
-    required TResult Function(String message, String? field) validation,
+    required TResult Function(String message, String? field, String? code)
+        validation,
     required TResult Function(String message, String? operation) cache,
     required TResult Function(String message, String? code) auth,
     required TResult Function(String message, dynamic error) unknown,
@@ -255,7 +257,7 @@ class _$NetworkFailureImpl implements NetworkFailure {
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult? Function(String message, String? field)? validation,
+    TResult? Function(String message, String? field, String? code)? validation,
     TResult? Function(String message, String? operation)? cache,
     TResult? Function(String message, String? code)? auth,
     TResult? Function(String message, dynamic error)? unknown,
@@ -271,7 +273,7 @@ class _$NetworkFailureImpl implements NetworkFailure {
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult Function(String message, String? field)? validation,
+    TResult Function(String message, String? field, String? code)? validation,
     TResult Function(String message, String? operation)? cache,
     TResult Function(String message, String? code)? auth,
     TResult Function(String message, dynamic error)? unknown,
@@ -440,7 +442,8 @@ class _$ServerFailureImpl implements ServerFailure {
     required TResult Function(
             String message, int? statusCode, String? errorCode)
         server,
-    required TResult Function(String message, String? field) validation,
+    required TResult Function(String message, String? field, String? code)
+        validation,
     required TResult Function(String message, String? operation) cache,
     required TResult Function(String message, String? code) auth,
     required TResult Function(String message, dynamic error) unknown,
@@ -456,7 +459,7 @@ class _$ServerFailureImpl implements ServerFailure {
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult? Function(String message, String? field)? validation,
+    TResult? Function(String message, String? field, String? code)? validation,
     TResult? Function(String message, String? operation)? cache,
     TResult? Function(String message, String? code)? auth,
     TResult? Function(String message, dynamic error)? unknown,
@@ -472,7 +475,7 @@ class _$ServerFailureImpl implements ServerFailure {
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult Function(String message, String? field)? validation,
+    TResult Function(String message, String? field, String? code)? validation,
     TResult Function(String message, String? operation)? cache,
     TResult Function(String message, String? code)? auth,
     TResult Function(String message, dynamic error)? unknown,
@@ -552,7 +555,7 @@ abstract class _$$ValidationFailureImplCopyWith<$Res>
       __$$ValidationFailureImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String message, String? field});
+  $Res call({String message, String? field, String? code});
 }
 
 /// @nodoc
@@ -568,6 +571,7 @@ class __$$ValidationFailureImplCopyWithImpl<$Res>
   $Res call({
     Object? message = null,
     Object? field = freezed,
+    Object? code = freezed,
   }) {
     return _then(_$ValidationFailureImpl(
       message: null == message
@@ -578,6 +582,10 @@ class __$$ValidationFailureImplCopyWithImpl<$Res>
           ? _value.field
           : field // ignore: cast_nullable_to_non_nullable
               as String?,
+      code: freezed == code
+          ? _value.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -585,16 +593,22 @@ class __$$ValidationFailureImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$ValidationFailureImpl implements ValidationFailure {
-  const _$ValidationFailureImpl({required this.message, this.field});
+  const _$ValidationFailureImpl({required this.message, this.field, this.code});
 
   @override
   final String message;
   @override
   final String? field;
 
+  /// The server's `error.code` when the refusal came from the API, so the
+  /// localizer and the features can tell refusals apart. Null for the
+  /// client's own rules.
+  @override
+  final String? code;
+
   @override
   String toString() {
-    return 'Failure.validation(message: $message, field: $field)';
+    return 'Failure.validation(message: $message, field: $field, code: $code)';
   }
 
   @override
@@ -603,11 +617,12 @@ class _$ValidationFailureImpl implements ValidationFailure {
         (other.runtimeType == runtimeType &&
             other is _$ValidationFailureImpl &&
             (identical(other.message, message) || other.message == message) &&
-            (identical(other.field, field) || other.field == field));
+            (identical(other.field, field) || other.field == field) &&
+            (identical(other.code, code) || other.code == code));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, message, field);
+  int get hashCode => Object.hash(runtimeType, message, field, code);
 
   @JsonKey(ignore: true)
   @override
@@ -625,12 +640,13 @@ class _$ValidationFailureImpl implements ValidationFailure {
     required TResult Function(
             String message, int? statusCode, String? errorCode)
         server,
-    required TResult Function(String message, String? field) validation,
+    required TResult Function(String message, String? field, String? code)
+        validation,
     required TResult Function(String message, String? operation) cache,
     required TResult Function(String message, String? code) auth,
     required TResult Function(String message, dynamic error) unknown,
   }) {
-    return validation(message, field);
+    return validation(message, field, code);
   }
 
   @override
@@ -641,12 +657,12 @@ class _$ValidationFailureImpl implements ValidationFailure {
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult? Function(String message, String? field)? validation,
+    TResult? Function(String message, String? field, String? code)? validation,
     TResult? Function(String message, String? operation)? cache,
     TResult? Function(String message, String? code)? auth,
     TResult? Function(String message, dynamic error)? unknown,
   }) {
-    return validation?.call(message, field);
+    return validation?.call(message, field, code);
   }
 
   @override
@@ -657,14 +673,14 @@ class _$ValidationFailureImpl implements ValidationFailure {
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult Function(String message, String? field)? validation,
+    TResult Function(String message, String? field, String? code)? validation,
     TResult Function(String message, String? operation)? cache,
     TResult Function(String message, String? code)? auth,
     TResult Function(String message, dynamic error)? unknown,
     required TResult orElse(),
   }) {
     if (validation != null) {
-      return validation(message, field);
+      return validation(message, field, code);
     }
     return orElse();
   }
@@ -716,11 +732,17 @@ class _$ValidationFailureImpl implements ValidationFailure {
 abstract class ValidationFailure implements Failure {
   const factory ValidationFailure(
       {required final String message,
-      final String? field}) = _$ValidationFailureImpl;
+      final String? field,
+      final String? code}) = _$ValidationFailureImpl;
 
   @override
   String get message;
   String? get field;
+
+  /// The server's `error.code` when the refusal came from the API, so the
+  /// localizer and the features can tell refusals apart. Null for the
+  /// client's own rules.
+  String? get code;
   @override
   @JsonKey(ignore: true)
   _$$ValidationFailureImplCopyWith<_$ValidationFailureImpl> get copyWith =>
@@ -808,7 +830,8 @@ class _$CacheFailureImpl implements CacheFailure {
     required TResult Function(
             String message, int? statusCode, String? errorCode)
         server,
-    required TResult Function(String message, String? field) validation,
+    required TResult Function(String message, String? field, String? code)
+        validation,
     required TResult Function(String message, String? operation) cache,
     required TResult Function(String message, String? code) auth,
     required TResult Function(String message, dynamic error) unknown,
@@ -824,7 +847,7 @@ class _$CacheFailureImpl implements CacheFailure {
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult? Function(String message, String? field)? validation,
+    TResult? Function(String message, String? field, String? code)? validation,
     TResult? Function(String message, String? operation)? cache,
     TResult? Function(String message, String? code)? auth,
     TResult? Function(String message, dynamic error)? unknown,
@@ -840,7 +863,7 @@ class _$CacheFailureImpl implements CacheFailure {
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult Function(String message, String? field)? validation,
+    TResult Function(String message, String? field, String? code)? validation,
     TResult Function(String message, String? operation)? cache,
     TResult Function(String message, String? code)? auth,
     TResult Function(String message, dynamic error)? unknown,
@@ -990,7 +1013,8 @@ class _$AuthFailureImpl implements AuthFailure {
     required TResult Function(
             String message, int? statusCode, String? errorCode)
         server,
-    required TResult Function(String message, String? field) validation,
+    required TResult Function(String message, String? field, String? code)
+        validation,
     required TResult Function(String message, String? operation) cache,
     required TResult Function(String message, String? code) auth,
     required TResult Function(String message, dynamic error) unknown,
@@ -1006,7 +1030,7 @@ class _$AuthFailureImpl implements AuthFailure {
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult? Function(String message, String? field)? validation,
+    TResult? Function(String message, String? field, String? code)? validation,
     TResult? Function(String message, String? operation)? cache,
     TResult? Function(String message, String? code)? auth,
     TResult? Function(String message, dynamic error)? unknown,
@@ -1022,7 +1046,7 @@ class _$AuthFailureImpl implements AuthFailure {
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult Function(String message, String? field)? validation,
+    TResult Function(String message, String? field, String? code)? validation,
     TResult Function(String message, String? operation)? cache,
     TResult Function(String message, String? code)? auth,
     TResult Function(String message, dynamic error)? unknown,
@@ -1173,7 +1197,8 @@ class _$UnknownFailureImpl implements UnknownFailure {
     required TResult Function(
             String message, int? statusCode, String? errorCode)
         server,
-    required TResult Function(String message, String? field) validation,
+    required TResult Function(String message, String? field, String? code)
+        validation,
     required TResult Function(String message, String? operation) cache,
     required TResult Function(String message, String? code) auth,
     required TResult Function(String message, dynamic error) unknown,
@@ -1189,7 +1214,7 @@ class _$UnknownFailureImpl implements UnknownFailure {
         network,
     TResult? Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult? Function(String message, String? field)? validation,
+    TResult? Function(String message, String? field, String? code)? validation,
     TResult? Function(String message, String? operation)? cache,
     TResult? Function(String message, String? code)? auth,
     TResult? Function(String message, dynamic error)? unknown,
@@ -1205,7 +1230,7 @@ class _$UnknownFailureImpl implements UnknownFailure {
         network,
     TResult Function(String message, int? statusCode, String? errorCode)?
         server,
-    TResult Function(String message, String? field)? validation,
+    TResult Function(String message, String? field, String? code)? validation,
     TResult Function(String message, String? operation)? cache,
     TResult Function(String message, String? code)? auth,
     TResult Function(String message, dynamic error)? unknown,
