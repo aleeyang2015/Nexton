@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/app/app.dart';
 import 'package:next_on/app/router/app_router.dart';
+import 'package:next_on/core/network/session_end_reason.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/auth/auth_providers.dart';
 import 'package:next_on/features/auth/domain/entities/auth_session.dart';
 import 'package:next_on/features/auth/presentation/pages/login_page.dart';
+import 'package:next_on/features/auth/presentation/providers/auth_session_notifier.dart';
 import 'package:next_on/features/auth/presentation/widgets/auth_password_field.dart';
 import 'package:next_on/features/auth/presentation/widgets/login_email_field.dart';
 import 'package:next_on/features/change_password/presentation/pages/change_password_page.dart';
@@ -163,6 +165,10 @@ void main() {
     await signIn(tester);
     expect(find.byType(ChangePasswordPage), findsOneWidget);
 
+    // The App signs in again after the change; the server no longer asks for
+    // one.
+    repository.loginResult = Result.success(AuthSession.signedIn(testUser()));
+
     final fields = find.descendant(
       of: find.byType(AuthPasswordField),
       matching: find.byType(TextField),
@@ -184,7 +190,9 @@ void main() {
 
   testWidgets('a signed-in employee can change their password any time',
       (tester) async {
-    repository.restoreResult = Result.success(AuthSession.signedIn(testUser()));
+    repository
+      ..restoreResult = Result.success(AuthSession.signedIn(testUser()))
+      ..loginResult = Result.success(AuthSession.signedIn(testUser()));
 
     await launch(tester);
     expect(find.byType(HomePage), findsOneWidget);
@@ -222,11 +230,63 @@ void main() {
     await launch(tester);
     expect(find.byType(HomePage), findsOneWidget);
 
-    repository.sessionExpired.add(null);
+    repository.sessionExpired.add(SessionEndReason.expired);
     await tester.pumpAndSettle();
 
     expect(find.byType(LoginPage), findsOneWidget);
     expect(find.byType(HomePage), findsNothing);
+  });
+
+  testWidgets('a disabled account is told why on the login screen, once', (
+    tester,
+  ) async {
+    repository.restoreResult = Result.success(AuthSession.signedIn(testUser()));
+
+    await launch(tester);
+    expect(find.byType(HomePage), findsOneWidget);
+
+    repository.sessionExpired.add(SessionEndReason.accountDisabled);
+    await tester.pumpAndSettle();
+
+    const reason = 'ບັນຊີຂອງທ່ານຖືກປິດການໃຊ້ງານ. ກະລຸນາຕິດຕໍ່ຜູ້ດູແລລະບົບ.';
+    expect(find.byType(LoginPage), findsOneWidget);
+    expect(find.text(reason), findsOneWidget);
+    // Said, then forgotten: nothing is left to repeat it.
+    expect(
+      container.read(authSessionProvider).requireValue.endReason,
+      isNull,
+    );
+  });
+
+  testWidgets('a switched-off company is told why on the login screen', (
+    tester,
+  ) async {
+    repository.restoreResult = Result.success(AuthSession.signedIn(testUser()));
+
+    await launch(tester);
+
+    repository.sessionExpired.add(SessionEndReason.companyInactive);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginPage), findsOneWidget);
+    expect(
+      find.text('ບໍລິສັດຂອງທ່ານຖືກປິດການໃຊ້ງານ. ກະລຸນາຕິດຕໍ່ HR.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a sign-out the user chose says nothing', (tester) async {
+    repository.restoreResult = Result.success(AuthSession.signedIn(testUser()));
+
+    await launch(tester);
+    await container.read(authSessionProvider.notifier).logout();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginPage), findsOneWidget);
+    expect(
+      find.text('ເຊສຊັນຂອງທ່ານໝົດອາຍຸ. ກະລຸນາເຂົ້າສູ່ລະບົບໃໝ່.'),
+      findsNothing,
+    );
   });
 
   testWidgets('signing out from the change screen returns to login', (

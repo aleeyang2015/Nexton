@@ -1,4 +1,5 @@
 import '../../../../core/errors/failure.dart';
+import '../../../../core/network/session_end_reason.dart';
 import '../../../../core/utils/base_repository.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/auth_failure_x.dart';
@@ -17,18 +18,18 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
 
   final AuthRemoteDataSource _remote;
   final AuthLocalDataSource _local;
-  final Stream<void> _sessionExpired;
+  final Stream<SessionEndReason> _sessionExpired;
 
   AuthRepositoryImpl({
     required AuthRemoteDataSource remote,
     required AuthLocalDataSource local,
-    required Stream<void> sessionExpired,
+    required Stream<SessionEndReason> sessionExpired,
   }) : _remote = remote,
        _local = local,
        _sessionExpired = sessionExpired;
 
   @override
-  Stream<void> get onSessionExpired => _sessionExpired;
+  Stream<SessionEndReason> get onSessionExpired => _sessionExpired;
 
   /// Login is atomic: tokens are written first (the profile call needs them),
   /// and rolled back if anything after that fails — so a half-finished login
@@ -132,8 +133,9 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
   }
 
   /// Note: the backend stamps `password_set_at`, which kills every outstanding
-  /// refresh token. The current access token keeps working until it expires,
-  /// and the next 401 will force a re-login.
+  /// refresh token, while the current access token keeps working until it
+  /// expires. [AuthSessionNotifier.changePassword] signs in again with the new
+  /// password straight after, so the stored pair is one that still refreshes.
   @override
   FutureResult<Unit> changePassword({
     required String currentPassword,

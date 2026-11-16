@@ -2947,6 +2947,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Too many requests. Please wait a minute and try again.'**
   String get errorRateLimited;
+
+  /// No description provided for @passwordChangedSignInAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed. Please sign in with your new password.'**
+  String get passwordChangedSignInAgain;
 }
 
 class _AppLocalizationsDelegate

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/network/session_end_reason.dart';
 import 'user.dart';
 
 /// The session state machine from auth.md. Which shell the app shows is a
@@ -24,13 +25,19 @@ class AuthSession extends Equatable {
   final AuthStatus status;
   final User? user;
 
-  const AuthSession({required this.status, this.user});
+  /// Why the App ended the last session, when it was not the user's choice.
+  /// Only ever set on an unauthenticated session; the sign-in screen says it
+  /// once and clears it.
+  final SessionEndReason? endReason;
+
+  const AuthSession({required this.status, this.user, this.endReason});
 
   const AuthSession.bootstrapping()
     : status = AuthStatus.bootstrapping,
-      user = null;
+      user = null,
+      endReason = null;
 
-  const AuthSession.unauthenticated()
+  const AuthSession.unauthenticated({this.endReason})
     : status = AuthStatus.unauthenticated,
       user = null;
 
@@ -39,7 +46,8 @@ class AuthSession extends Equatable {
   const AuthSession.signedIn(User this.user, {bool mustChangePassword = false})
     : status = mustChangePassword
           ? AuthStatus.mustChangePassword
-          : AuthStatus.authenticated;
+          : AuthStatus.authenticated,
+      endReason = null;
 
   /// True once tokens are valid, whether or not a password change is pending.
   bool get hasSession =>
@@ -54,5 +62,5 @@ class AuthSession extends Equatable {
       AuthSession(status: status ?? this.status, user: user ?? this.user);
 
   @override
-  List<Object?> get props => [status, user];
+  List<Object?> get props => [status, user, endReason];
 }
