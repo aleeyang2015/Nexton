@@ -1629,4 +1629,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attSummaryLoadFailed => 'Could not load attendance.';
+
+  @override
+  String get profileLoadFailed => 'Could not load your profile.';
 }
