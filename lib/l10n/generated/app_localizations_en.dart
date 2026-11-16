@@ -1661,4 +1661,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leavePickRangeEnd => 'Pick the last day';
+
+  @override
+  String get leaveChanged =>
+      'This leave just changed. It has been reloaded; please check and try again.';
+
+  @override
+  String get leaveApprovalNoLongerWaiting =>
+      'This request is no longer waiting (someone decided it, or it was cancelled).';
+
+  @override
+  String get leaveRequestGone =>
+      'This request no longer exists, or you cannot view it.';
 }

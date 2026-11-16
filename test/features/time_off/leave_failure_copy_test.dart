@@ -21,12 +21,60 @@ void main() {
     'leaveNotApprover': 'ທ່ານບໍ່ມີສິດອະນຸມັດຂັ້ນຕອນນີ້.',
     'leaveInvalidStatus': 'ຄຳຮ້ອງນີ້ບໍ່ສາມາດປ່ຽນແປງໄດ້ອີກຕໍ່ໄປ.',
     'leaveEmployeeNotFound': 'ບັນຊີຂອງທ່ານຍັງບໍ່ໄດ້ເຊື່ອມກັບຂໍ້ມູນພະນັກງານ.',
+    'leaveChanged':
+        'ຄຳຮ້ອງລານີ້ຫາກໍ່ມີການປ່ຽນແປງ. ໂຫຼດຂໍ້ມູນໃໝ່ແລ້ວ, ກະລຸນາກວດເບິ່ງແລ້ວລອງອີກຄັ້ງ.',
+    'leaveRequestGone': 'ຄຳຮ້ອງນີ້ບໍ່ມີແລ້ວ ຫຼື ທ່ານບໍ່ມີສິດເບິ່ງ.',
   };
 
-  test('the seven tokens here are the seven the data source produces', () {
+  test('the nine tokens here are the nine the data source produces', () {
     expect(
-      LeaveErrorCode.tokenByWire.values.toSet(),
+      {
+        ...LeaveErrorCode.tokenByWire.values,
+        // Not in the table: NOT_FOUND means this only on some calls.
+        LeaveErrorCode.tokenRequestGone,
+      },
       laoByToken.keys.toSet(),
+    );
+  });
+
+  test('every token is recognised as a leave token; other text is not', () {
+    for (final token in laoByToken.keys) {
+      expect(
+        LeaveErrorCode.tokenOf(Failure.validation(message: token)),
+        token,
+      );
+    }
+    expect(
+      LeaveErrorCode.tokenOf(const Failure.validation(message: 'Leave changed')),
+      isNull,
+    );
+    expect(
+      LeaveErrorCode.tokenOf(const Failure.server(message: 'leaveChanged')),
+      isNull,
+    );
+  });
+
+  test('which refusals mean the screen is out of date', () {
+    bool approver(String token) =>
+        LeaveErrorCode.isStaleForApprover(Failure.validation(message: token));
+    bool owner(String token) =>
+        LeaveErrorCode.isStaleForOwner(Failure.validation(message: token));
+
+    expect(laoByToken.keys.where(approver).toSet(), {
+      'leaveStepChanged',
+      'leaveChanged',
+      'leaveInvalidStatus',
+      'leaveNotApprover',
+      'leaveRequestGone',
+    });
+    expect(laoByToken.keys.where(owner).toSet(), {
+      'leaveChanged',
+      'leaveInvalidStatus',
+      'leaveRequestGone',
+    });
+    expect(
+      LeaveErrorCode.isStaleForOwner(const Failure.network(message: 'x')),
+      isFalse,
     );
   });
 

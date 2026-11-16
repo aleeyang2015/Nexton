@@ -835,4 +835,41 @@ void main() {
       expect(stateOf(container).dates, [monday]);
     });
   });
+
+  group('an edit the server called out of date', () {
+    final asOpened = sampleLeaveRequest(id: 'req-7', reason: 'as opened');
+    final asItIsNow = sampleLeaveRequest(id: 'req-7', reason: 'as it is now');
+
+    test('seeding twice keeps the form: the second seed changes nothing', () {
+      final container = containerWith();
+      formOf(container, 'req-7')
+        ..seed(asOpened)
+        ..setReason('typed by the user')
+        ..seed(asItIsNow);
+
+      expect(stateOf(container, 'req-7').reason, 'typed by the user');
+    });
+
+    test('once marked out of date, the next seed starts from the request '
+        'as it now is', () {
+      final container = containerWith();
+      formOf(container, 'req-7')
+        ..seed(asOpened)
+        ..setReason('typed by the user')
+        ..markStale();
+
+      // Still what the user sees while the page closes.
+      expect(stateOf(container, 'req-7').reason, 'typed by the user');
+
+      formOf(container, 'req-7').seed(asItIsNow);
+      expect(stateOf(container, 'req-7').reason, 'as it is now');
+      expect(stateOf(container, 'req-7').submission.hasError, isFalse);
+
+      // And only that once.
+      formOf(container, 'req-7')
+        ..setReason('typed again')
+        ..seed(asOpened);
+      expect(stateOf(container, 'req-7').reason, 'typed again');
+    });
+  });
 }

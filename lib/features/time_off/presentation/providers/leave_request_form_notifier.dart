@@ -35,10 +35,23 @@ class LeaveRequestFormNotifier
     state = state.copyWith(daysOff: daysOff);
   }
 
+  /// Set when the server said the request this form edits is out of date.
+  /// The next [seed] then fills the form again instead of keeping it.
+  bool _stale = false;
+
+  /// Marks the edit as out of date, so the next time the request is opened
+  /// for editing the form starts from the request as it then is.
+  ///
+  /// The form is not emptied here: it is still on screen while its page
+  /// closes, and would show a blank new-request form on the way out.
+  void markStale() => _stale = true;
+
   /// Fills the form from an existing request (edit mode). Safe to call once,
-  /// from the edit page's initState.
+  /// from the edit page's initState: a form already in edit mode is kept,
+  /// unless it was marked out of date.
   void seed(LeaveRequest request) {
-    if (state.isEditing) return;
+    if (state.isEditing && !_stale) return;
+    _stale = false;
     final days = [...request.requestDays]..sort();
     state = LeaveRequestFormState(
       editingRequestId: request.id,

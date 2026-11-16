@@ -311,13 +311,16 @@ class _PendingApprovalCard extends ConsumerWidget {
 
   void _report(BuildContext context, LeaveDecisionOutcome outcome) {
     final l10n = AppLocalizations.of(context)!;
-    switch (outcome) {
-      case LeaveDecisionOutcome.success:
+    final text = LeaveCopy.decisionRefusal(l10n, outcome);
+    if (text == null) return;
+
+    switch (outcome.kind) {
+      case LeaveDecisionKind.success:
         break;
-      case LeaveDecisionOutcome.stepChanged:
-        AppToast.info(l10n.leaveStepRefreshed);
-      case LeaveDecisionOutcome.failed:
-        AppToast.error(l10n.leaveApprovalDecideFailed);
+      case LeaveDecisionKind.reloaded:
+        AppToast.info(text);
+      case LeaveDecisionKind.failed:
+        AppToast.error(text);
     }
   }
 }

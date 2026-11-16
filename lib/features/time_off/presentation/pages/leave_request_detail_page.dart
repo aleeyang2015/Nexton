@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
+import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../data/datasources/leave_error_code.dart';
 import '../../domain/entities/leave_approval_step.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_type.dart';
@@ -241,17 +243,24 @@ class LeaveRequestDetailPage extends ConsumerWidget {
     );
     if (!confirmed || !context.mounted) return;
 
-    final ok = await ref
+    final result = await ref
         .read(leaveHistoryNotifierProvider.notifier)
         .cancel(request.id);
     if (!context.mounted) return;
 
-    if (ok) {
-      AppToast.success(l10n.leaveRequestCancelled);
-      context.pop();
-    } else {
-      AppToast.error(l10n.leaveRequestCancelFailed);
-    }
+    result.fold(
+      (failure) {
+        AppToast.error(failure.localize(l10n));
+        // This page shows the request as it was handed in and cannot reload
+        // it. When the refusal says that copy is out of date, go back to the
+        // history, which has been reloaded.
+        if (LeaveErrorCode.isStaleForOwner(failure)) context.pop();
+      },
+      (_) {
+        AppToast.success(l10n.leaveRequestCancelled);
+        context.pop();
+      },
+    );
   }
 }
 

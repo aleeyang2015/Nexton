@@ -301,9 +301,10 @@ void main() {
       'NOT_APPROVER': 'leaveNotApprover',
       'INVALID_STATUS': 'leaveInvalidStatus',
       'EMPLOYEE_NOT_FOUND': 'leaveEmployeeNotFound',
+      'LEAVE_CHANGED': 'leaveChanged',
     };
 
-    test('the table the data source reads has exactly these seven codes', () {
+    test('the table the data source reads has exactly these eight codes', () {
       expect(LeaveErrorCode.tokenByWire, tokens);
     });
 
@@ -357,8 +358,32 @@ void main() {
       );
     });
 
+    test('NOT_FOUND on a call about one request means that request is gone',
+        () async {
+      refuse(404, 'NOT_FOUND');
+      final isGone = throwsA(
+        isA<ValidationFailure>().having(
+          (f) => f.message,
+          'message',
+          'leaveRequestGone',
+        ),
+      );
+
+      await expectLater(source.update('req-1', draft), isGone);
+      await expectLater(source.cancel('req-1'), isGone);
+      await expectLater(source.approve(id: 'req-1'), isGone);
+      await expectLater(source.reject(id: 'req-1', reason: 'no'), isGone);
+    });
+
+    test('NOT_FOUND on creating a request is not "the request is gone": it '
+        'rethrows', () async {
+      refuse(404, 'NOT_FOUND');
+
+      await expectLater(source.submit(draft), throwsA(isA<DioException>()));
+    });
+
     test('an unknown code rethrows the DioException untouched', () async {
-      refuse(409, 'LEAVE_CHANGED');
+      refuse(409, 'LEAVE_SPAN_TOO_LONG');
 
       await expectLater(
         source.submit(draft),
@@ -442,7 +467,7 @@ void main() {
 
     test('an unknown refusal becomes a failed Result too, never a throw',
         () async {
-      refuse(409, 'LEAVE_CHANGED');
+      refuse(409, 'LEAVE_SPAN_TOO_LONG');
 
       final result = await repository.submit(draft);
 
