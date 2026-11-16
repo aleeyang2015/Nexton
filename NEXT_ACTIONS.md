@@ -16,8 +16,8 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #20 is built and pushed (`20-payslip-data-layer`), waiting for the owner's say to merge. #21 follows in
-   the work order and is on the owner's BLOCKED list (payslip month, waiting on the backend), as is #23.
+1. #20 is merged. #21 follows in the work order and is on the owner's BLOCKED list (payslip month, waiting on
+   the backend), as is #23; #22 is the next one not blocked.
    Open after #20, none built there:
    - the reader has not met a real payslip: no `nexton-demo` login here, so the test JSON is the confirmed list row
      already in `salary_api_test.dart` plus the issue's field table. Check one real list row and one real detail
@@ -155,7 +155,7 @@ count), #56 (sign-out ends the session).
 | 16 | #17 | leave: the request page opens by id, stays fresh, and shows a cancelled request plainly | `17-leave-request-by-id` | `5eb5e50`, `77395b8` | merged to main directly (`4920c50`) | analyze clean, 970 tests, debug APK | MERGED — phone check on `nexton-demo` pending |
 | 17 | #18 | lists: load more as you scroll (leave history first) | `18-lists-load-more` | `a4cf8ad`, `e5b7b5e` | merged to main directly (`65b81bf`) | analyze clean, 1,015 tests, debug APK | MERGED — phone check on `nexton-demo` pending |
 | 18 | #19 | approvals: leave lists keep what I decided, hide buttons on my own request, and load more | `19-approvals-decided-own-load-more` | `88c9004`, `47d9f67` | merged to main directly (`4327616`) | analyze clean, 1,046 tests, debug APK | MERGED — two-login check on `nexton-demo` pending |
-| 19 | #20 | payslip: read real payslips from the server (data layer) | `20-payslip-data-layer` | `62302e6`, HEAD of branch | none yet: branch pushed, waiting for the owner's say to merge | analyze clean, 1,101 tests, debug APK | IN REVIEW — a real `nexton-demo` payslip to be checked against the reader |
+| 19 | #20 | payslip: read real payslips from the server (data layer) | `20-payslip-data-layer` | `62302e6`, `dd7400d` | merged to main directly (`bc25ec2`) | analyze clean, 1,101 tests, debug APK | MERGED — a real `nexton-demo` payslip to be checked against the reader |
 | 20 | #21 | payslip: the salary list shows real payslips, paid and failed | | | | | BLOCKED: backend, payslip month |
 | 21 | #22 | payslip: name, group and caption every payslip line | | | | | NOT STARTED |
 | 22 | #23 | payslip: the payslip page opens by id and shows the real lines | | | | | BLOCKED: backend, payslip month |
