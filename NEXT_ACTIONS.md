@@ -16,7 +16,21 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #17 is next in work order.
+1. #18 is next in work order.
+   Open after #17, none built there:
+   - the request page offers Edit and Cancel by status and date only: `LeaveRequest` has no owner field, so an
+     approver or HR opening someone else's request by id (a push, #53) would see them. The server refuses; the
+     App should hide them. To settle before #53;
+   - "today" for the cancel rule is the phone's date; the server uses the company's. Around midnight the server's
+     `LEAVE_ALREADY_STARTED` decides, and the page then reloads;
+   - the "not available" state has no button of its own; the page's back arrow is the way out (no Back string
+     exists yet);
+   - the decision time under a timeline step is one line at 10 px; with four nodes on a 320 dp phone it may be
+     cut short. To look at on a small phone;
+   - an edit draft left without saving is kept while the request itself has not changed (as before #17);
+   - the history notifier's own `cancel` is no longer called by any screen (the request page cancels through its
+     by-id provider); it is still tested. To remove in a clean-up issue;
+   - Cancel does not appear or disappear by itself when the day changes while the page is open.
    Open after #16, none built there:
    - an edit answered `NOT_FOUND` always reads "request gone" and closes the page, as the issue says; to confirm
      with the backend that an edit never answers `NOT_FOUND` about something else (a leave type);
@@ -106,7 +120,7 @@ count), #56 (sign-out ends the session).
 | 13 | #14 | leave: the form offers only active types and checks the balance the server will charge | `14-leave-form-active-types-balance` | `fbae4aa` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 776 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 14 | #15 | leave: company days off are skipped, not charged | `15-leave-days-off` | `c9b73ee`, `8845610` | merged to main directly (`a103fc4`) | analyze clean, 854 tests, debug APK | MERGED — phone check on `nexton-demo` pending |
 | 15 | #16 | leave: refusals show Lao text and the screen reloads | `16-leave-refusals-reload` | `9d8f1f8`, `d60a2c2` | merged to main directly (`6889f2a`) | analyze clean, 890 tests, debug APK | MERGED — two-login check on `nexton-demo` pending |
-| 16 | #17 | leave: the request page opens by id, stays fresh, and shows a cancelled request plainly | | | | | NOT STARTED |
+| 16 | #17 | leave: the request page opens by id, stays fresh, and shows a cancelled request plainly | `17-leave-request-by-id` | `5eb5e50`, `77395b8` | merged to main directly (`4920c50`) | analyze clean, 970 tests, debug APK | MERGED — phone check on `nexton-demo` pending |
 | 17 | #18 | lists: load more as you scroll (leave history first) | | | | | NOT STARTED |
 | 18 | #19 | approvals: leave lists keep what I decided, hide buttons on my own request, and load more | | | | | NOT STARTED |
 | 19 | #20 | payslip: read real payslips from the server (data layer) | | | | | NOT STARTED |
