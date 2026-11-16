@@ -1695,4 +1695,65 @@ class AppLocalizationsLo extends AppLocalizations {
   @override
   String get salaryPaymentFailedContactHr =>
       'ການໂອນເງິນບໍ່ສຳເລັດ, ກະລຸນາຕິດຕໍ່ຝ່າຍບຸກຄະລາກອນ';
+
+  @override
+  String get payslipLineOvertime => 'ຄ່າລ່ວງເວລາ (ໂອທີ)';
+
+  @override
+  String get payslipLineLate => 'ຫັກມາວຽກຊ້າ';
+
+  @override
+  String get payslipLineAbsentLate => 'ຫັກມື້ມາຊ້າເກີນກຳນົດ';
+
+  @override
+  String get payslipLineEarlyOut => 'ຫັກອອກວຽກກ່ອນເວລາ';
+
+  @override
+  String get payslipLineMissedPart => 'ຫັກບໍ່ໄດ້ເຂົ້າບາງຊ່ວງຂອງກະ';
+
+  @override
+  String get payslipLineAbsence => 'ຫັກຂາດວຽກ';
+
+  @override
+  String get payslipLineUnpaidLeave => 'ລາພັກບໍ່ໄດ້ຮັບເງິນ';
+
+  @override
+  String get payslipLineAttendanceSettlement => 'ປັບຍອດການເຂົ້າວຽກວັນກ່ອນ';
+
+  @override
+  String get payslipLineLoan => 'ຫັກເງິນກູ້';
+
+  @override
+  String payslipCaptionHoursMinutes(String h, String m) {
+    return '$h ຊມ $m ນາທີ';
+  }
+
+  @override
+  String payslipCaptionMinutes(String m) {
+    return '$m ນາທີ';
+  }
+
+  @override
+  String payslipCaptionTimes(String n) {
+    return '$n ເທື່ອ';
+  }
+
+  @override
+  String payslipCaptionDays(String n) {
+    return '$n ວັນ';
+  }
+
+  @override
+  String payslipCaptionHours(String n) {
+    return '$n ຊົ່ວໂມງ';
+  }
+
+  @override
+  String get payslipSectionAttendance => 'ລາຍການຫັກ — ການເຂົ້າວຽກ';
+
+  @override
+  String get payslipSectionStatutory => 'ລາຍການຫັກ — ຕາມກົດໝາຍ';
+
+  @override
+  String get payslipSectionOther => 'ລາຍການຫັກອື່ນໆ';
 }
