@@ -1,12 +1,16 @@
+import 'dart:ui';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
+import 'package:next_on/core/l10n/failure_localizer.dart';
 import 'package:next_on/core/errors/validation_codes.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/auth/auth_providers.dart';
 import 'package:next_on/features/auth/domain/entities/auth_session.dart';
 import 'package:next_on/features/auth/presentation/providers/login_notifier.dart';
 import 'package:next_on/features/auth/presentation/providers/login_state.dart';
+import 'package:next_on/l10n/generated/app_localizations.dart';
 
 import '../../support/auth_test_doubles.dart';
 
@@ -102,6 +106,22 @@ void main() {
       expect(state().passwordClearTick, 1);
       // The email is left so the user only re-types the secret.
       expect(state().email, 'somphone.vilaysone@nexton.la');
+    });
+
+    test('a switched-off company clears the password and says so in Lao', () async {
+      repository.loginResult = const Result.failure(
+        Failure.auth(message: 'Tenant is not active', code: 'TENANT_INACTIVE'),
+      );
+
+      await fillAndSubmit();
+
+      expect(state().password, isEmpty);
+      expect(state().passwordClearTick, 1);
+      final failure = state().submission.error! as Failure;
+      expect(
+        failure.localize(lookupAppLocalizations(const Locale('lo'))),
+        'ບໍລິສັດຂອງທ່ານຖືກປິດການໃຊ້ງານ. ກະລຸນາຕິດຕໍ່ HR.',
+      );
     });
 
     test('a 429 throttle keeps the typed password', () async {

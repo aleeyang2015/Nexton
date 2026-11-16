@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 
 import '../constants/app_constants.dart';
+import 'api_error_mapper.dart';
 import 'api_paths.dart';
 import 'api_response.dart';
 import 'token_storage.dart';
@@ -18,7 +19,10 @@ import 'token_storage.dart';
 /// * a failed refresh, a `401` from `/auth/refresh` itself, or a second `401`
 ///   on `/auth/me` clears the tokens and emits on [onSessionExpired]. A second
 ///   `401` on any other path propagates as a normal error and leaves the
-///   session alone.
+///   session alone;
+/// * a `403 TENANT_INACTIVE` on a signed-in request (the company was switched
+///   off) ends the session the same way, with no refresh: the refresh call
+///   answers the same 403.
 class AuthInterceptor extends Interceptor {
   static const String _retriedFlag = 'auth_retried';
 
@@ -74,6 +78,11 @@ class AuthInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     final request = err.requestOptions;
+
+    if (await _isCompanySwitchedOff(err)) {
+      await _expireSession();
+      return handler.next(err);
+    }
 
     if (err.response?.statusCode != 401) {
       return handler.next(err);
@@ -164,6 +173,24 @@ class AuthInterceptor extends Interceptor {
   Future<void> _expireSession() async {
     await _tokenStorage.clear();
     if (!_sessionExpired.isClosed) _sessionExpired.add(null);
+  }
+
+  /// A request of the *current* session refused because the company is
+  /// switched off.
+  ///
+  /// The token the request went out with must still be the stored one. A login
+  /// can get the same answer, but it has no session to end and the login screen
+  /// shows the message itself; and a slow answer to the previous user's request
+  /// must not sign out whoever signed in since.
+  Future<bool> _isCompanySwitchedOff(DioException err) async {
+    if (err.response?.statusCode != 403) return false;
+
+    final code = ApiError.tryParse(err.response?.data)?.code;
+    if (code != ApiErrorCodes.tenantInactive) return false;
+
+    final sent = err.requestOptions.headers[AppConstants.authorizationHeader];
+    final current = await _tokenStorage.readAccessToken();
+    return current != null && current.isNotEmpty && sent == 'Bearer $current';
   }
 
   bool _isRefreshCall(RequestOptions options) =>

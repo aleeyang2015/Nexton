@@ -283,6 +283,36 @@ void main() {
       expect(store.values, isEmpty);
     });
 
+    for (final code in const [
+      'USER_INACTIVE',
+      'TENANT_INACTIVE',
+      'FORBIDDEN',
+      'TENANT_MISMATCH',
+    ]) {
+      test('a 403 $code on the profile signs out, cache or not', () async {
+        await local.writeTokens(accessToken: 'a', refreshToken: 'r');
+        await local.writeUser(testUserModel());
+        remote.profileError = _mappedError(403, code, 'refused');
+
+        final session = (await repository.restoreSession()).dataOrNull!;
+
+        expect(session.status, AuthStatus.unauthenticated);
+        // No token is left to ride along with the next login.
+        expect(store.values, isEmpty);
+      });
+    }
+
+    test('a 5xx keeps the cached identity: the server will be back', () async {
+      await local.writeTokens(accessToken: 'a', refreshToken: 'r');
+      await local.writeUser(testUserModel());
+      remote.profileError = _mappedError(503, 'TENANT_UNAVAILABLE', 'down');
+
+      final session = (await repository.restoreSession()).dataOrNull!;
+
+      expect(session.hasSession, isTrue);
+      expect(await local.hasTokens(), isTrue);
+    });
+
     test('an offline start with no cache surfaces the failure', () async {
       await local.writeTokens(accessToken: 'a', refreshToken: 'r');
       remote.profileError = DioException(
