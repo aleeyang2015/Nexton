@@ -11,15 +11,20 @@ Last updated: 2026-11-16.
 
 | Step | Branch | Commit | PR | Tests | Status |
 |---|---|---|---|---|---|
-| Bring `clock-in-out-location` into `main` (merge commit, not squash) | `clock-in-out-location` | `307eb46` | to open | merges into `origin/main` with no conflicts | PR OPEN pending |
-| Fix nine off-site tests left stale by `b64a77a` ("scan" became "clock-in") | `fix/offsite-test-strings` | `ff1d17c` | to open | `flutter test`: 369 passed, 0 failed; `flutter analyze lib test`: 1 warning, already on the base | IMPLEMENTED |
+| Bring `clock-in-out-location` into `main` (merge commit) | `clock-in-out-location` | `197ff6c` | none: pushed to `main` directly on the owner's say, 2026-11-16 | 369 passed on the merged result | MERGED |
+| Fix nine off-site tests left stale by `b64a77a` ("scan" became "clock-in") | `fix/offsite-test-strings` | `ae02169` | none: pushed to `main` directly on the owner's say, 2026-11-16 | `flutter test`: 369 passed, 0 failed | MERGED |
 
 ## Next
 
-1. Merge `clock-in-out-location` into `main`, then `fix/offsite-test-strings`.
-2. #2: merge `main` into `2-store-build-hosts`, change `CLAUDE.md` step 7 (a plain debug run uses `nexton-demo`),
-   run the gates, open the PR. Still to try on a phone: a release APK signs in with a `nexton-demo` login.
-3. Read #72 and #73 for their root cause early; they have no work order yet.
+1. #2: open the PR from `2-store-build-hosts` and review it. Still to try on a phone: a release APK signs in with a
+   `nexton-demo` login, and a plain debug run shows `nexton-demo.nexton.work` in the debug log.
+2. #3 after #2 is merged.
+3. #72 and #73 have a known root cause but no work order yet; the owner decides where they go.
+
+Stale docs found while reviewing #2, outside its scope: `lib/features/auth/auth-login.md:11`,
+`lib/features/attendance/attendance-offsite-requests.md:15` and `lib/features/home/attendance-clock-in-out-flutter.md:6`
+still give `api.nexton.work` as the base URL, and `lib/features/auth/auth.md` still describes `X-Tenant-Slug:
+nexton-vientiane` as sent by default.
 
 ## Blocked on the backend
 
@@ -30,7 +35,7 @@ count), #56 (sign-out ends the session).
 
 | Order | Issue | Title | Branch | Commit | PR | Tests | Status |
 |---|---|---|---|---|---|---|---|
-| 1 | #2 | app: a store build reaches the network and signs in at app.nexton.work | `2-store-build-hosts` | `ce97099` | | 366 passed, 9 failed (the nine stale off-site tests, fixed on `fix/offsite-test-strings`) | IMPLEMENTED |
+| 1 | #2 | app: a store build reaches the network and signs in at app.nexton.work | `2-store-build-hosts` | `7af1adb` | to open | analyze: 1 warning already on `main`; `flutter test`: 375 passed, 0 failed; debug and release APK build; release manifest has `INTERNET`; phone sign-in pending | IMPLEMENTED |
 | 2 | #3 | app: final app id next.on.hr.com and a real release key | | | | | NOT STARTED |
 | 3 | #4 | errors: Lao text for sign-in, company, session and module codes (shared table) | | | | | NOT STARTED |
 | 4 | #5 | sign-in: no surprise sign-outs on weak signal, a server restart or after a password change | | | | | NOT STARTED |
