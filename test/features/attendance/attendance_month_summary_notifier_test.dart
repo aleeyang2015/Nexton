@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
+import 'package:next_on/features/attendance/domain/attendance_failure_x.dart';
 import 'package:next_on/features/attendance/domain/entities/attendance_summary.dart';
 import 'package:next_on/features/attendance/domain/entities/date_range.dart';
 import 'package:next_on/features/attendance/presentation/providers/attendance_month_summary_notifier.dart';
@@ -46,60 +47,101 @@ void main() {
       expect(summary.lateDays, 1);
     });
 
-    test(
-      'falls back to zeros instead of surfacing an error the home card '
-      'would have to show a retry for',
-      () async {
-        final repository = FakeAttendanceRepository()
-          ..monthSummary = const Result.failure(
-            Failure.network(message: 'offline'),
-          );
+    test('a failure is an error, never zeros: zeros would read as "you came '
+        '0 days"', () async {
+      const offline = Failure.network(message: 'offline');
+      final repository = FakeAttendanceRepository()
+        ..monthSummary = const Result.failure(offline);
+      final container = ProviderContainer(
+        overrides: [attendanceRepositoryProvider.overrideWithValue(repository)],
+      );
+      addTearDown(container.dispose);
+      container.listen(attendanceMonthSummaryNotifierProvider, (_, _) {});
+
+      await expectLater(
+        container.read(attendanceMonthSummaryNotifierProvider.future),
+        throwsA(offline),
+      );
+
+      final state = container.read(attendanceMonthSummaryNotifierProvider);
+      expect(state.hasError, isTrue);
+      expect(state.error, offline);
+      expect(state.hasValue, isFalse);
+    });
+
+    test('the failure keeps its code, so "not linked to an employee" can be '
+        'told apart', () async {
+      const notLinked = Failure.validation(
+        message: 'employee not found',
+        code: 'EMPLOYEE_NOT_FOUND',
+      );
+      final repository = FakeAttendanceRepository()
+        ..monthSummary = const Result.failure(notLinked);
+      final container = ProviderContainer(
+        overrides: [attendanceRepositoryProvider.overrideWithValue(repository)],
+      );
+      addTearDown(container.dispose);
+      container.listen(attendanceMonthSummaryNotifierProvider, (_, _) {});
+
+      await expectLater(
+        container.read(attendanceMonthSummaryNotifierProvider.future),
+        throwsA(notLinked),
+      );
+      expect(
+        (container.read(attendanceMonthSummaryNotifierProvider).error!
+                as Failure)
+            .isEmployeeNotLinked,
+        isTrue,
+      );
+    });
+
+    test('a backend that never answers is a timeout error, not zeros and not '
+        'a spinner forever', () {
+      fakeAsync((async) {
         final container = ProviderContainer(
           overrides: [
-            attendanceRepositoryProvider.overrideWithValue(repository),
+            attendanceRepositoryProvider.overrideWithValue(
+              _HangingSummaryRepository(),
+            ),
           ],
         );
         addTearDown(container.dispose);
+        container.listen(attendanceMonthSummaryNotifierProvider, (_, _) {});
 
-        final summary = await container.read(
-          attendanceMonthSummaryNotifierProvider.future,
+        // Past the notifier's own timeout, well short of a real 15s wait.
+        async.elapse(const Duration(seconds: 16));
+
+        final state = container.read(attendanceMonthSummaryNotifierProvider);
+        expect(state.hasError, isTrue);
+        expect(state.hasValue, isFalse);
+        expect((state.error! as NetworkFailure).errorCode, 'TIMEOUT');
+      });
+    });
+
+    test('refresh() after a failure loads the real numbers', () async {
+      final repository = FakeAttendanceRepository()
+        ..monthSummary = const Result.failure(
+          Failure.network(message: 'offline'),
         );
+      final container = ProviderContainer(
+        overrides: [attendanceRepositoryProvider.overrideWithValue(repository)],
+      );
+      addTearDown(container.dispose);
+      container.listen(attendanceMonthSummaryNotifierProvider, (_, _) {});
+      await container
+          .read(attendanceMonthSummaryNotifierProvider.future)
+          .then<void>((_) {}, onError: (_) {});
 
-        expect(summary, AttendanceSummary.empty);
-        expect(
-          container.read(attendanceMonthSummaryNotifierProvider).hasError,
-          isFalse,
-        );
-      },
-    );
+      repository.monthSummary = const Result.success(
+        AttendanceSummary(presentDays: 12, leaveDays: 2),
+      );
+      await container
+          .read(attendanceMonthSummaryNotifierProvider.notifier)
+          .refresh();
 
-    test(
-      'falls back to zeros rather than hanging forever when the backend '
-      'never answers',
-      () {
-        fakeAsync((async) {
-          final container = ProviderContainer(
-            overrides: [
-              attendanceRepositoryProvider.overrideWithValue(
-                _HangingSummaryRepository(),
-              ),
-            ],
-          );
-          addTearDown(container.dispose);
-
-          AttendanceSummary? result;
-          unawaited(
-            container
-                .read(attendanceMonthSummaryNotifierProvider.future)
-                .then((value) => result = value),
-          );
-
-          // Past the notifier's own timeout, well short of a real 15s wait.
-          async.elapse(const Duration(seconds: 16));
-
-          expect(result, AttendanceSummary.empty);
-        });
-      },
-    );
+      final state = container.read(attendanceMonthSummaryNotifierProvider);
+      expect(state.hasError, isFalse);
+      expect(state.requireValue.leaveDays, 2);
+    });
   });
 }

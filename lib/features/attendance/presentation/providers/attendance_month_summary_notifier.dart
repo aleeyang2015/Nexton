@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/failure.dart';
+import '../../../../core/network/api_error_mapper.dart';
 import '../../attendance_providers.dart';
 import '../../domain/entities/attendance_summary.dart';
 import '../../domain/entities/date_range.dart';
@@ -15,12 +17,10 @@ import '../../domain/entities/date_range.dart';
 /// full daily record list and tracks which rows are expanded, both of which
 /// the home card has no use for and shouldn't pay the network cost of.
 ///
-/// Unlike [AttendanceHistoryNotifier] — which surfaces a failed load with a
-/// retry, because the history page *is* the attendance record and a wrong
-/// "0" there would read as "you were absent all month" — this is a small
-/// at-a-glance card with a "view all" straight into that same page. A slow
-/// or failing summary here degrades to zeros instead of parking the home
-/// screen behind a spinner or an error row.
+/// A load that fails, or never answers, is an error here, never zeros. Zeros
+/// are numbers: "0 present, 0 late" on the home screen reads as "you came 0
+/// days", which is worse than saying the numbers could not be loaded. The
+/// card shows the failure in a single line, with a Retry when one can help.
 class AttendanceMonthSummaryNotifier
     extends AutoDisposeAsyncNotifier<AttendanceSummary> {
   /// Bounds the wait below Dio's own `receiveTimeout` (§core/constants):
@@ -47,20 +47,24 @@ class AttendanceMonthSummaryNotifier
           .timeout(_timeout);
 
       return result.fold((failure) {
-        _logFallback(range, failure.message);
-        return AttendanceSummary.empty;
+        _logFailure(range, failure.message);
+        // Thrown, so the state is an error the card can tell apart: "not
+        // linked to an employee" gets no Retry, anything else does.
+        throw failure;
       }, (summary) => summary);
     } on TimeoutException {
-      _logFallback(range, 'no response after $_timeout');
-      return AttendanceSummary.empty;
+      _logFailure(range, 'no response after $_timeout');
+      throw const Failure.network(
+        message: 'Request timeout. Please try again.',
+        errorCode: ApiErrorCodes.timeout,
+      );
     }
   }
 
-  void _logFallback(DateRange range, String reason) {
+  void _logFailure(DateRange range, String reason) {
     debugPrint(
       '[AttendanceMonthSummary] GET records/summary/my '
-      '(month=${_isoMonth(range.start)}) $reason — '
-      'showing 0s on the home card instead.',
+      '(month=${_isoMonth(range.start)}) $reason',
     );
   }
 
