@@ -16,8 +16,7 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #5: open the PR from `5-no-surprise-sign-outs` and review it. It carries the switched-off-company message left
-   out of #4 (`SessionEndReason.companyInactive`). #6 is next.
+1. #6 (sign-in: show how long to wait after too many tries, and send the email as typed) is next in work order.
    Still to try by hand for #4 and #5: on a phone against `nexton-demo` (the made-up host check; airplane mode and
    reopen; a password change that stays signed in).
 2. Still to try by hand for #2: a release APK on a phone signs in with a `nexton-demo` login, and a plain debug run
@@ -43,7 +42,7 @@ count), #56 (sign-out ends the session).
 | 1 | #2 | app: a store build reaches the network and signs in at app.nexton.work | `2-store-build-hosts` | `7af1adb` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 375 passed, 0 failed; debug and release APK build; release manifest has `INTERNET`; phone sign-in pending | MERGED |
 | 2 | #3 | app: final app id next.on.hr.com and a real release key | `3-release-signing` | `e970e49` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 369 passed, 0 failed; debug APK builds; release APK without `key.properties` is debug-signed; release bundle with a throwaway key is signed by that key; the real upload key, a phone install and the iOS simulator build are pending | MERGED |
 | 3 | #4 | errors: Lao text for sign-in, company, session and module codes (shared table) | `4-error-codes-lao` | `e83a896` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 418 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
-| 4 | #5 | sign-in: no surprise sign-outs on weak signal, a server restart or after a password change | `5-no-surprise-sign-outs` | `42b4c2b` | to open | analyze: 1 warning already on `main`; `flutter test`: 442 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | IMPLEMENTED |
+| 4 | #5 | sign-in: no surprise sign-outs on weak signal, a server restart or after a password change | `5-no-surprise-sign-outs` | `42b4c2b` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 442 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 5 | #6 | sign-in: show how long to wait after too many tries, and send the email as typed | | | | | NOT STARTED |
 | 6 | #7 | attendance: home card and history read the right month | | | | | NOT STARTED |
 | 7 | #8 | attendance: a refused punch says why in Lao, with no useless Retry | | | | | NOT STARTED |
