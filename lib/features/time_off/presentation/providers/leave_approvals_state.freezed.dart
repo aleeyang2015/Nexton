@@ -17,10 +17,19 @@ final _privateConstructorUsedError = UnsupportedError(
 
 /// @nodoc
 mixin _$LeaveApprovalsState {
-  AsyncValue<List<LeaveRequest>> get pending =>
+  /// What waits for the signed-in approver now, a page at a time.
+  AsyncValue<PagedList<LeaveRequest>> get pending =>
       throw _privateConstructorUsedError;
-  AsyncValue<List<LeaveRequest>> get history =>
+
+  /// What the approver approved, or rejected ([decidedFilter]), a page at
+  /// a time, whatever became of the request afterwards.
+  AsyncValue<PagedList<LeaveRequest>> get decided =>
       throw _privateConstructorUsedError;
+  LeaveDecidedFilter get decidedFilter => throw _privateConstructorUsedError;
+
+  /// The signed-in user's own employee id, to tell their own request from
+  /// someone else's. Null means unknown; then no card counts as their own.
+  String? get ownEmployeeId => throw _privateConstructorUsedError;
   Set<String> get decidingIds => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
@@ -36,8 +45,10 @@ abstract class $LeaveApprovalsStateCopyWith<$Res> {
   ) = _$LeaveApprovalsStateCopyWithImpl<$Res, LeaveApprovalsState>;
   @useResult
   $Res call({
-    AsyncValue<List<LeaveRequest>> pending,
-    AsyncValue<List<LeaveRequest>> history,
+    AsyncValue<PagedList<LeaveRequest>> pending,
+    AsyncValue<PagedList<LeaveRequest>> decided,
+    LeaveDecidedFilter decidedFilter,
+    String? ownEmployeeId,
     Set<String> decidingIds,
   });
 }
@@ -56,7 +67,9 @@ class _$LeaveApprovalsStateCopyWithImpl<$Res, $Val extends LeaveApprovalsState>
   @override
   $Res call({
     Object? pending = null,
-    Object? history = null,
+    Object? decided = null,
+    Object? decidedFilter = null,
+    Object? ownEmployeeId = freezed,
     Object? decidingIds = null,
   }) {
     return _then(
@@ -64,11 +77,19 @@ class _$LeaveApprovalsStateCopyWithImpl<$Res, $Val extends LeaveApprovalsState>
             pending: null == pending
                 ? _value.pending
                 : pending // ignore: cast_nullable_to_non_nullable
-                      as AsyncValue<List<LeaveRequest>>,
-            history: null == history
-                ? _value.history
-                : history // ignore: cast_nullable_to_non_nullable
-                      as AsyncValue<List<LeaveRequest>>,
+                      as AsyncValue<PagedList<LeaveRequest>>,
+            decided: null == decided
+                ? _value.decided
+                : decided // ignore: cast_nullable_to_non_nullable
+                      as AsyncValue<PagedList<LeaveRequest>>,
+            decidedFilter: null == decidedFilter
+                ? _value.decidedFilter
+                : decidedFilter // ignore: cast_nullable_to_non_nullable
+                      as LeaveDecidedFilter,
+            ownEmployeeId: freezed == ownEmployeeId
+                ? _value.ownEmployeeId
+                : ownEmployeeId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             decidingIds: null == decidingIds
                 ? _value.decidingIds
                 : decidingIds // ignore: cast_nullable_to_non_nullable
@@ -89,8 +110,10 @@ abstract class _$$LeaveApprovalsStateImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    AsyncValue<List<LeaveRequest>> pending,
-    AsyncValue<List<LeaveRequest>> history,
+    AsyncValue<PagedList<LeaveRequest>> pending,
+    AsyncValue<PagedList<LeaveRequest>> decided,
+    LeaveDecidedFilter decidedFilter,
+    String? ownEmployeeId,
     Set<String> decidingIds,
   });
 }
@@ -108,7 +131,9 @@ class __$$LeaveApprovalsStateImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? pending = null,
-    Object? history = null,
+    Object? decided = null,
+    Object? decidedFilter = null,
+    Object? ownEmployeeId = freezed,
     Object? decidingIds = null,
   }) {
     return _then(
@@ -116,11 +141,19 @@ class __$$LeaveApprovalsStateImplCopyWithImpl<$Res>
         pending: null == pending
             ? _value.pending
             : pending // ignore: cast_nullable_to_non_nullable
-                  as AsyncValue<List<LeaveRequest>>,
-        history: null == history
-            ? _value.history
-            : history // ignore: cast_nullable_to_non_nullable
-                  as AsyncValue<List<LeaveRequest>>,
+                  as AsyncValue<PagedList<LeaveRequest>>,
+        decided: null == decided
+            ? _value.decided
+            : decided // ignore: cast_nullable_to_non_nullable
+                  as AsyncValue<PagedList<LeaveRequest>>,
+        decidedFilter: null == decidedFilter
+            ? _value.decidedFilter
+            : decidedFilter // ignore: cast_nullable_to_non_nullable
+                  as LeaveDecidedFilter,
+        ownEmployeeId: freezed == ownEmployeeId
+            ? _value.ownEmployeeId
+            : ownEmployeeId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         decidingIds: null == decidingIds
             ? _value._decidingIds
             : decidingIds // ignore: cast_nullable_to_non_nullable
@@ -132,19 +165,34 @@ class __$$LeaveApprovalsStateImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$LeaveApprovalsStateImpl implements _LeaveApprovalsState {
+class _$LeaveApprovalsStateImpl extends _LeaveApprovalsState {
   const _$LeaveApprovalsStateImpl({
-    this.pending = const AsyncValue<List<LeaveRequest>>.loading(),
-    this.history = const AsyncValue<List<LeaveRequest>>.loading(),
+    this.pending = const AsyncValue<PagedList<LeaveRequest>>.loading(),
+    this.decided = const AsyncValue<PagedList<LeaveRequest>>.loading(),
+    this.decidedFilter = LeaveDecidedFilter.approved,
+    this.ownEmployeeId,
     final Set<String> decidingIds = const <String>{},
-  }) : _decidingIds = decidingIds;
+  }) : _decidingIds = decidingIds,
+       super._();
 
+  /// What waits for the signed-in approver now, a page at a time.
   @override
   @JsonKey()
-  final AsyncValue<List<LeaveRequest>> pending;
+  final AsyncValue<PagedList<LeaveRequest>> pending;
+
+  /// What the approver approved, or rejected ([decidedFilter]), a page at
+  /// a time, whatever became of the request afterwards.
   @override
   @JsonKey()
-  final AsyncValue<List<LeaveRequest>> history;
+  final AsyncValue<PagedList<LeaveRequest>> decided;
+  @override
+  @JsonKey()
+  final LeaveDecidedFilter decidedFilter;
+
+  /// The signed-in user's own employee id, to tell their own request from
+  /// someone else's. Null means unknown; then no card counts as their own.
+  @override
+  final String? ownEmployeeId;
   final Set<String> _decidingIds;
   @override
   @JsonKey()
@@ -156,7 +204,7 @@ class _$LeaveApprovalsStateImpl implements _LeaveApprovalsState {
 
   @override
   String toString() {
-    return 'LeaveApprovalsState(pending: $pending, history: $history, decidingIds: $decidingIds)';
+    return 'LeaveApprovalsState(pending: $pending, decided: $decided, decidedFilter: $decidedFilter, ownEmployeeId: $ownEmployeeId, decidingIds: $decidingIds)';
   }
 
   @override
@@ -165,7 +213,11 @@ class _$LeaveApprovalsStateImpl implements _LeaveApprovalsState {
         (other.runtimeType == runtimeType &&
             other is _$LeaveApprovalsStateImpl &&
             (identical(other.pending, pending) || other.pending == pending) &&
-            (identical(other.history, history) || other.history == history) &&
+            (identical(other.decided, decided) || other.decided == decided) &&
+            (identical(other.decidedFilter, decidedFilter) ||
+                other.decidedFilter == decidedFilter) &&
+            (identical(other.ownEmployeeId, ownEmployeeId) ||
+                other.ownEmployeeId == ownEmployeeId) &&
             const DeepCollectionEquality().equals(
               other._decidingIds,
               _decidingIds,
@@ -176,7 +228,9 @@ class _$LeaveApprovalsStateImpl implements _LeaveApprovalsState {
   int get hashCode => Object.hash(
     runtimeType,
     pending,
-    history,
+    decided,
+    decidedFilter,
+    ownEmployeeId,
     const DeepCollectionEquality().hash(_decidingIds),
   );
 
@@ -190,17 +244,29 @@ class _$LeaveApprovalsStateImpl implements _LeaveApprovalsState {
       );
 }
 
-abstract class _LeaveApprovalsState implements LeaveApprovalsState {
+abstract class _LeaveApprovalsState extends LeaveApprovalsState {
   const factory _LeaveApprovalsState({
-    final AsyncValue<List<LeaveRequest>> pending,
-    final AsyncValue<List<LeaveRequest>> history,
+    final AsyncValue<PagedList<LeaveRequest>> pending,
+    final AsyncValue<PagedList<LeaveRequest>> decided,
+    final LeaveDecidedFilter decidedFilter,
+    final String? ownEmployeeId,
     final Set<String> decidingIds,
   }) = _$LeaveApprovalsStateImpl;
+  const _LeaveApprovalsState._() : super._();
 
   @override
-  AsyncValue<List<LeaveRequest>> get pending;
+  /// What waits for the signed-in approver now, a page at a time.
+  AsyncValue<PagedList<LeaveRequest>> get pending;
   @override
-  AsyncValue<List<LeaveRequest>> get history;
+  /// What the approver approved, or rejected ([decidedFilter]), a page at
+  /// a time, whatever became of the request afterwards.
+  AsyncValue<PagedList<LeaveRequest>> get decided;
+  @override
+  LeaveDecidedFilter get decidedFilter;
+  @override
+  /// The signed-in user's own employee id, to tell their own request from
+  /// someone else's. Null means unknown; then no card counts as their own.
+  String? get ownEmployeeId;
   @override
   Set<String> get decidingIds;
   @override

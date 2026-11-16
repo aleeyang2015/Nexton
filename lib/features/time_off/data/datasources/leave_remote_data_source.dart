@@ -39,7 +39,13 @@ abstract class LeaveRemoteDataSource {
   Future<LeaveRequest> submit(LeaveRequestDraft draft);
   Future<LeaveRequest> update(String id, LeaveRequestDraft draft);
   Future<LeaveRequest> cancel(String id);
-  Future<List<LeaveRequest>> myApprovals({LeaveStatus? status});
+  /// One page of the requests the caller decides, newest updated first.
+  /// [status] filters by the caller's own step, not the request's status;
+  /// [cursor] is the page before's `nextCursor`.
+  Future<CursorPage<LeaveRequest>> myApprovals({
+    LeaveStatus? status,
+    String? cursor,
+  });
   Future<LeaveRequest> approve({
     required String id,
     String? stepId,
@@ -54,8 +60,11 @@ abstract class LeaveRemoteDataSource {
 }
 
 class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
+  /// How many requests each approvals list asks for at a time.
+  static const int approvalsPageSize = 20;
+
   /// The most the server sends in one page. Used by the lists read in one go
-  /// (leave types, rest days, approvals).
+  /// (leave types, rest days).
   static const int _pageSize = 100;
 
   /// How many requests the history asks for at a time; it loads the next
@@ -210,16 +219,20 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
   }
 
   @override
-  Future<List<LeaveRequest>> myApprovals({LeaveStatus? status}) async {
+  Future<CursorPage<LeaveRequest>> myApprovals({
+    LeaveStatus? status,
+    String? cursor,
+  }) async {
     final response = await _client.get<dynamic>(
       LeavePaths.myApprovals,
       queryParameters: {
         if (status != null) 'status': status.name,
-        'page': 1,
-        'per_page': _pageSize,
+        // Sending `limit` puts the endpoint in cursor mode.
+        'limit': approvalsPageSize,
+        if (cursor != null) 'cursor': cursor,
       },
     );
-    return _parseList(response.data);
+    return CursorPage.fromBody(response.data, LeaveRequestModel.fromJson);
   }
 
   @override

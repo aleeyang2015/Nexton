@@ -55,8 +55,10 @@ class LeaveRepositoryImpl extends BaseRepository implements LeaveRepository {
       guard(() => _remote.cancel(id));
 
   @override
-  FutureResult<List<LeaveRequest>> myApprovals({LeaveStatus? status}) =>
-      guard(() => _remote.myApprovals(status: status));
+  FutureResult<CursorPage<LeaveRequest>> myApprovals({
+    LeaveStatus? status,
+    String? cursor,
+  }) => guard(() => _remote.myApprovals(status: status, cursor: cursor));
 
   @override
   FutureResult<LeaveRequest> approve({

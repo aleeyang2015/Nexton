@@ -9,7 +9,7 @@ void main() {
     'data': [
       for (final i in ids) {'id': i},
     ],
-    'meta': ?meta,
+    if (meta != null) 'meta': meta,
   };
 
   group('CursorPage.fromBody', () {
@@ -108,6 +108,25 @@ void main() {
       expect(list.loadingMore, isFalse);
       expect(list.loadMoreError, isNull);
       expect(list.canLoadMore, isTrue);
+    });
+
+    test('a first page with no rows is the whole list, even if it says '
+        'there is more: no "0+"', () {
+      final list = PagedList<int>.first(
+        const CursorPage(items: [], nextCursor: 'c-2', hasMore: true),
+      );
+
+      expect(list.hasMore, isFalse);
+      expect(list.canLoadMore, isFalse);
+      expect(list.countLabel, '0');
+    });
+
+    test('the count is the rows loaded, with + while there are more', () {
+      expect(PagedList.first(first).countLabel, '2+');
+      expect(
+        PagedList.first(first).append(const CursorPage(items: [3])).countLabel,
+        '3',
+      );
     });
 
     test('append keeps the order and moves the cursor on', () {

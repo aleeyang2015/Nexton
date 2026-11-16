@@ -45,9 +45,16 @@ abstract class LeaveRepository {
   /// `PUT /leave/requests/:id/cancel` — cancels a pending/approved request.
   FutureResult<LeaveRequest> cancel(String id);
 
-  /// `GET /leave/requests/my-approvals` — the approvals tab's list, scoped to
-  /// the caller's role. [status] filters by the whole request's status.
-  FutureResult<List<LeaveRequest>> myApprovals({LeaveStatus? status});
+  /// `GET /leave/requests/my-approvals` — one page of an approvals list,
+  /// scoped to the caller's role. [status] filters by **the caller's own
+  /// step**, not the request's status: `pending` is what waits for the
+  /// caller now, `approved` / `rejected` what the caller approved or
+  /// rejected, whatever happened to the request later. [cursor] is the page
+  /// before's `nextCursor`.
+  FutureResult<CursorPage<LeaveRequest>> myApprovals({
+    LeaveStatus? status,
+    String? cursor,
+  });
 
   /// `PUT /leave/requests/:id/approve` — approves the current step.
   FutureResult<LeaveRequest> approve({

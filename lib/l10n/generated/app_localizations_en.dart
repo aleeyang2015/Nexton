@@ -787,7 +787,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timeOffApprovalsTab => 'Team Approvals';
 
   @override
-  String leaveApprovalsPendingHeader(int count) {
+  String leaveApprovalsPendingHeader(String count) {
     return 'Needs your approval ($count)';
   }
 
@@ -1691,4 +1691,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get listLoadMoreFailed => 'Could not load more.';
+
+  @override
+  String get leaveOwnRequestNoActions =>
+      'This is your own request. Someone else must decide it.';
+
+  @override
+  String get leaveDecidedByMeApproved => 'I approved';
+
+  @override
+  String get leaveDecidedByMeRejected => 'I rejected';
+
+  @override
+  String leaveWaitingForStep(String role) {
+    return 'Waiting for $role';
+  }
 }

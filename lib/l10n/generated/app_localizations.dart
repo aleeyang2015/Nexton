@@ -1536,7 +1536,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Needs your approval ({count})'**
-  String leaveApprovalsPendingHeader(int count);
+  String leaveApprovalsPendingHeader(String count);
 
   /// No description provided for @leaveApprovalsHistoryHeader.
   ///
@@ -3115,6 +3115,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load more.'**
   String get listLoadMoreFailed;
+
+  /// No description provided for @leaveOwnRequestNoActions.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your own request. Someone else must decide it.'**
+  String get leaveOwnRequestNoActions;
+
+  /// No description provided for @leaveDecidedByMeApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'I approved'**
+  String get leaveDecidedByMeApproved;
+
+  /// No description provided for @leaveDecidedByMeRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'I rejected'**
+  String get leaveDecidedByMeRejected;
+
+  /// No description provided for @leaveWaitingForStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {role}'**
+  String leaveWaitingForStep(String role);
 }
 
 class _AppLocalizationsDelegate

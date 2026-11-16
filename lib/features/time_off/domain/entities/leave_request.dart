@@ -13,6 +13,11 @@ import 'leave_type.dart';
 /// the history tab, the detail page and the approvals tab all render from this.
 class LeaveRequest extends Equatable {
   final String id;
+
+  /// Who asked for the leave (`employee.id`). Null when the server sent
+  /// none. Compared with the signed-in user's own employee id to tell an
+  /// approver's own request from someone else's.
+  final String? employeeId;
   final String employeeName;
   final String? employeeNumber;
   final String? departmentName;
@@ -37,6 +42,7 @@ class LeaveRequest extends Equatable {
 
   const LeaveRequest({
     required this.id,
+    this.employeeId,
     required this.employeeName,
     this.employeeNumber,
     this.departmentName,
@@ -152,6 +158,7 @@ class LeaveRequest extends Equatable {
   @override
   List<Object?> get props => [
     id,
+    employeeId,
     employeeName,
     employeeNumber,
     departmentName,

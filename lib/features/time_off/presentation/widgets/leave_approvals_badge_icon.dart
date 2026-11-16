@@ -26,21 +26,25 @@ class LeaveApprovalsBadgeIcon extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final count = ref.watch(
-      leaveApprovalsNotifierProvider.select(
-        (state) => state.pending.valueOrNull?.length ?? 0,
-      ),
+    // The list comes a page at a time, so the count is what has been loaded,
+    // with a `+` while there is more: "20+", the same words as the header.
+    final label = ref.watch(
+      leaveApprovalsNotifierProvider.select((state) {
+        final pending = state.pending.valueOrNull;
+        if (pending == null || pending.items.isEmpty) return null;
+        // Past 99 the exact number stops being the point, and a longer
+        // badge would bleed over the neighbouring tab.
+        return pending.items.length > 99 ? '99+' : pending.countLabel;
+      }),
     );
 
     const icon = Icon(Icons.approval);
-    if (count == 0) return icon;
+    if (label == null) return icon;
 
     return Badge(
       backgroundColor: AppColors.danger,
       textColor: AppColors.textWhite,
-      // Past 99 the exact number stops being the point, and a 3-digit badge
-      // would bleed over the neighbouring tab.
-      label: Text(count > 99 ? '99+' : '$count'),
+      label: Text(label),
       child: icon,
     );
   }

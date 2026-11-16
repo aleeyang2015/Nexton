@@ -1,27 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/network/paged_list.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
+import '../../../../core/widgets/load_more_footer.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_request.dart';
-import '../../domain/entities/leave_status.dart';
 import '../../domain/entities/leave_type.dart';
 import '../providers/leave_approvals_notifier.dart';
 import '../providers/leave_approvals_state.dart';
 import '../providers/leave_types_notifier.dart';
 import 'leave_copy.dart';
+import 'leave_filter_chip.dart';
 import 'leave_reject_reason_dialog.dart';
 
 /// "ອະນຸມັດຂໍລາພັກ" — the requests awaiting the signed-in approver's
 /// decision (`my-approvals?status=pending`), each approvable / rejectable
-/// inline, followed by everything already decided. Everything comes from
-/// [leaveApprovalsNotifierProvider].
+/// inline, followed by the ones they approved or rejected. Everything comes
+/// from [leaveApprovalsNotifierProvider].
 ///
 /// The endpoint scopes to the caller's role, so a non-approver simply sees an
 /// empty pending list — there is no role gate here.
+///
+/// Both lists come a page at a time. Each asks for its next page when the
+/// end of its own rows comes near the screen ([_LoadMoreWhenShown]); whether
+/// there is one is the notifier's to decide.
 class LeaveApprovalsTab extends ConsumerWidget {
   const LeaveApprovalsTab({super.key});
 
@@ -29,7 +35,9 @@ class LeaveApprovalsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final state = ref.watch(leaveApprovalsNotifierProvider);
-    final pendingCount = state.pending.valueOrNull?.length ?? 0;
+    final notifier = ref.read(leaveApprovalsNotifierProvider.notifier);
+    final pending = state.pending.valueOrNull;
+    final decided = state.decided.valueOrNull;
 
     return Container(
       color: AppColors.background,
@@ -37,50 +45,175 @@ class LeaveApprovalsTab extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(15, 15, 15, 40),
         children: [
           customText(
-            l10n.leaveApprovalsPendingHeader(pendingCount),
+            // The loaded count, with a `+` while there is more to load.
+            l10n.leaveApprovalsPendingHeader(pending?.countLabel ?? '0'),
             fontWeight: FontWeight.w700,
             fontSize: 16,
           ),
           heightBx(h: 12),
           _ApprovalList(
             value: state.pending,
+            onRetry: notifier.retryPending,
             emptyMessage: l10n.leaveApprovalsPendingEmpty,
             itemBuilder: (request) => _PendingApprovalCard(
               request: request,
               deciding: state.decidingIds.contains(request.id),
+              own: state.isOwn(request),
             ),
           ),
+          if (pending != null && !state.pending.isLoading)
+            _ListEnd(
+              list: pending,
+              onLoadMore: notifier.loadMorePending,
+              onRetry: notifier.retryLoadMorePending,
+            ),
           heightBx(h: 24),
           customText(
             l10n.leaveApprovalsHistoryHeader,
             fontWeight: FontWeight.w700,
             fontSize: 16,
           ),
+          heightBx(h: 10),
+          _DecidedFilterChips(
+            selected: state.decidedFilter,
+            onSelect: notifier.setDecidedFilter,
+          ),
           heightBx(h: 12),
           _ApprovalList(
-            value: state.history,
+            value: state.decided,
+            onRetry: notifier.retryDecided,
             emptyMessage: l10n.leaveApprovalsHistoryEmpty,
-            itemBuilder: (request) => _HistoryApprovalRow(request: request),
+            itemBuilder: (request) => _DecidedApprovalRow(
+              request: request,
+              filter: state.decidedFilter,
+            ),
           ),
+          if (decided != null && !state.decided.isLoading)
+            _ListEnd(
+              list: decided,
+              onLoadMore: notifier.loadMoreDecided,
+              onRetry: notifier.retryLoadMoreDecided,
+            ),
         ],
       ),
     );
   }
 }
 
-class _ApprovalList extends ConsumerWidget {
-  final AsyncValue<List<LeaveRequest>> value;
+/// "I approved" / "I rejected": which of the approver's own decisions the
+/// list below shows.
+class _DecidedFilterChips extends StatelessWidget {
+  final LeaveDecidedFilter selected;
+  final ValueChanged<LeaveDecidedFilter> onSelect;
+
+  const _DecidedFilterChips({required this.selected, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        LeaveFilterChip(
+          label: l10n.leaveDecidedByMeApproved,
+          selected: selected == LeaveDecidedFilter.approved,
+          onTap: () => onSelect(LeaveDecidedFilter.approved),
+        ),
+        LeaveFilterChip(
+          label: l10n.leaveDecidedByMeRejected,
+          selected: selected == LeaveDecidedFilter.rejected,
+          onTap: () => onSelect(LeaveDecidedFilter.rejected),
+        ),
+      ],
+    );
+  }
+}
+
+/// What sits under a list's last row: the trigger that asks for its next
+/// page when it comes near the screen, and the footer that shows how that
+/// page is doing.
+class _ListEnd extends StatelessWidget {
+  final PagedList<LeaveRequest> list;
+  final VoidCallback onLoadMore;
+  final VoidCallback onRetry;
+
+  const _ListEnd({
+    required this.list,
+    required this.onLoadMore,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (list.canLoadMore)
+          // A new one for each length, so a page that lands and leaves the
+          // end still in view asks for the one after it.
+          _LoadMoreWhenShown(
+            key: ValueKey(list.items.length),
+            onShown: onLoadMore,
+          ),
+        LoadMoreFooter(
+          loadingMore: list.loadingMore,
+          failed: list.loadMoreError != null,
+          onRetry: onRetry,
+        ),
+      ],
+    );
+  }
+}
+
+/// Calls [onShown] once, when it is first built.
+///
+/// A `ListView` builds a child only when it comes within reach of the
+/// screen, so placing this after a list's last row means "the user is near
+/// the end of this list": the moment to ask for its next page. That works
+/// for a list in the middle of the page too, which the page's own scroll
+/// position cannot tell from the one below it.
+class _LoadMoreWhenShown extends StatefulWidget {
+  final VoidCallback onShown;
+
+  const _LoadMoreWhenShown({super.key, required this.onShown});
+
+  @override
+  State<_LoadMoreWhenShown> createState() => _LoadMoreWhenShownState();
+}
+
+class _LoadMoreWhenShownState extends State<_LoadMoreWhenShown> {
+  @override
+  void initState() {
+    super.initState();
+    // After this frame: asking changes the notifier's state, which may not
+    // happen while the list is being built.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.onShown();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
+}
+
+class _ApprovalList extends StatelessWidget {
+  final AsyncValue<PagedList<LeaveRequest>> value;
+
+  /// Loads this list again after it failed; the other list is left as it is.
+  final VoidCallback onRetry;
   final String emptyMessage;
   final Widget Function(LeaveRequest) itemBuilder;
 
   const _ApprovalList({
     required this.value,
+    required this.onRetry,
     required this.emptyMessage,
     required this.itemBuilder,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final loading = value.isLoading && !value.hasValue;
 
@@ -99,12 +232,11 @@ class _ApprovalList extends ConsumerWidget {
     if (value.hasError) {
       return _ErrorBlock(
         message: l10n.leaveApprovalsLoadFailed,
-        onRetry: () =>
-            ref.read(leaveApprovalsNotifierProvider.notifier).retry(),
+        onRetry: onRetry,
       );
     }
 
-    final items = value.valueOrNull ?? const [];
+    final items = value.valueOrNull?.items ?? const <LeaveRequest>[];
     if (items.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -193,7 +325,15 @@ class _PendingApprovalCard extends ConsumerWidget {
   final LeaveRequest request;
   final bool deciding;
 
-  const _PendingApprovalCard({required this.request, required this.deciding});
+  /// The approver's own request. Nobody decides their own: no buttons, and
+  /// a line saying why.
+  final bool own;
+
+  const _PendingApprovalCard({
+    required this.request,
+    required this.deciding,
+    required this.own,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -265,29 +405,37 @@ class _PendingApprovalCard extends ConsumerWidget {
             ),
           ],
           heightBx(h: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _DecisionButton(
-                  label: LeaveCopy.approveActionLabel(l10n, request),
-                  icon: Icons.check,
-                  filled: true,
-                  enabled: !deciding,
-                  onTap: () => _approve(context, ref),
+          if (own)
+            customText(
+              l10n.leaveOwnRequestNoActions,
+              fontSize: 12.5,
+              color: AppColors.subTitle,
+              maxLine: 3,
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: _DecisionButton(
+                    label: LeaveCopy.approveActionLabel(l10n, request),
+                    icon: Icons.check,
+                    filled: true,
+                    enabled: !deciding,
+                    onTap: () => _approve(context, ref),
+                  ),
                 ),
-              ),
-              widthBx(w: 12),
-              Expanded(
-                child: _DecisionButton(
-                  label: l10n.leaveApprovalRejectAction,
-                  icon: Icons.close,
-                  filled: false,
-                  enabled: !deciding,
-                  onTap: () => _reject(context, ref),
+                widthBx(w: 12),
+                Expanded(
+                  child: _DecisionButton(
+                    label: l10n.leaveApprovalRejectAction,
+                    icon: Icons.close,
+                    filled: false,
+                    enabled: !deciding,
+                    onTap: () => _reject(context, ref),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );
@@ -305,14 +453,19 @@ class _PendingApprovalCard extends ConsumerWidget {
     _report(l10n, outcome);
   }
 
+  // Everything the reject needs is taken before the dialog opens. While the
+  // approver types a reason the lists may reload (another card was decided)
+  // and take this card off the screen; the reason they typed is still sent,
+  // and the answer still reported. If the request is no longer theirs to
+  // reject, the server says so.
   Future<void> _reject(BuildContext context, WidgetRef ref) async {
-    final reason = await LeaveRejectReasonDialog.show(context);
-    if (reason == null || !context.mounted) return;
     final l10n = AppLocalizations.of(context)!;
-    final outcome = await ref
-        .read(leaveApprovalsNotifierProvider.notifier)
-        .reject(request, reason);
-    _report(l10n, outcome);
+    final notifier = ref.read(leaveApprovalsNotifierProvider.notifier);
+
+    final reason = await LeaveRejectReasonDialog.show(context);
+    if (reason == null) return;
+
+    _report(l10n, await notifier.reject(request, reason));
   }
 
   void _report(AppLocalizations l10n, LeaveDecisionOutcome outcome) {
@@ -481,10 +634,15 @@ class _DecisionButton extends StatelessWidget {
   }
 }
 
-class _HistoryApprovalRow extends ConsumerWidget {
+/// One request the approver approved or rejected, shown as it stands now:
+/// the request's own status, and when it is still pending, the step it
+/// waits for. The icon says what the approver did (the chip), which a
+/// request cancelled since would not.
+class _DecidedApprovalRow extends ConsumerWidget {
   final LeaveRequest request;
+  final LeaveDecidedFilter filter;
 
-  const _HistoryApprovalRow({required this.request});
+  const _DecidedApprovalRow({required this.request, required this.filter});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -492,6 +650,7 @@ class _HistoryApprovalRow extends ConsumerWidget {
     final types =
         ref.watch(leaveTypesNotifierProvider).valueOrNull ?? const <LeaveType>[];
     final pill = LeaveCopy.statusPill(l10n, request.status);
+    final waitingFor = request.isPending ? request.currentStep : null;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -526,6 +685,17 @@ class _HistoryApprovalRow extends ConsumerWidget {
                   fontSize: 12,
                   color: AppColors.subTitle,
                 ),
+                if (waitingFor != null) ...[
+                  heightBx(h: 2),
+                  customText(
+                    l10n.leaveWaitingForStep(
+                      LeaveCopy.stepRoleLabel(l10n, waitingFor.role),
+                    ),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ],
               ],
             ),
           ),
@@ -540,7 +710,7 @@ class _HistoryApprovalRow extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  request.status == LeaveStatus.rejected
+                  filter == LeaveDecidedFilter.rejected
                       ? Icons.close
                       : Icons.check,
                   size: 13,
