@@ -70,7 +70,7 @@ No bearer is required (the route has no JWT middleware). Login is **not** exempt
 > - **No resolved tenant, mobile host** (`app.nexton.work`, what store builds use) → the user is found by email alone and a **tenant-audience** token is minted.
 > - **No resolved tenant, other reserved host** (`api.`/`admin.`) → this is the admin login: under `TenantStrictMode` the request is rejected **400 `SUBDOMAIN_REQUIRED`**; otherwise the lookup runs against `platform_users` and an **admin-audience** token is minted. Staff cannot sign in here.
 
-**Request** — the store trims + lowercases the email before sending (`rawEmail.trim().toLowerCase()`). Backend validation: `email` is `required,email`; `password` is `required,min=8`.
+**Request** — the App trims the email and sends it as typed (`email.trim()`), like the web login. Backend validation: `email` is `required,email`; `password` is `required,min=8`.
 
 ```json
 {

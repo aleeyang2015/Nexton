@@ -31,6 +31,16 @@ mixin _$LoginState {
   /// password survives a retry.
   int get passwordClearTick => throw _privateConstructorUsedError;
 
+  /// When the login throttle lets this network try again: the moment a
+  /// `429 TOO_MANY_LOGIN_ATTEMPTS` asked us to wait until, from its
+  /// `Retry-After` (at most `LoginNotifier.maxWait`). Null when nothing is
+  /// being waited for; the notifier clears it as soon as the moment passes.
+  DateTime? get retryAt => throw _privateConstructorUsedError;
+
+  /// Whole minutes left until [retryAt], rounded up and never below 1 while
+  /// waiting. The notifier keeps it current; 0 when not waiting.
+  int get waitMinutesLeft => throw _privateConstructorUsedError;
+
   @JsonKey(ignore: true)
   $LoginStateCopyWith<LoginState> get copyWith =>
       throw _privateConstructorUsedError;
@@ -52,6 +62,8 @@ abstract class $LoginStateCopyWith<$Res> {
     String? passwordError,
     AsyncValue<AuthSession?> submission,
     int passwordClearTick,
+    DateTime? retryAt,
+    int waitMinutesLeft,
   });
 }
 
@@ -76,6 +88,8 @@ class _$LoginStateCopyWithImpl<$Res, $Val extends LoginState>
     Object? passwordError = freezed,
     Object? submission = null,
     Object? passwordClearTick = null,
+    Object? retryAt = freezed,
+    Object? waitMinutesLeft = null,
   }) {
     return _then(
       _value.copyWith(
@@ -111,6 +125,14 @@ class _$LoginStateCopyWithImpl<$Res, $Val extends LoginState>
                 ? _value.passwordClearTick
                 : passwordClearTick // ignore: cast_nullable_to_non_nullable
                       as int,
+            retryAt: freezed == retryAt
+                ? _value.retryAt
+                : retryAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            waitMinutesLeft: null == waitMinutesLeft
+                ? _value.waitMinutesLeft
+                : waitMinutesLeft // ignore: cast_nullable_to_non_nullable
+                      as int,
           )
           as $Val,
     );
@@ -135,6 +157,8 @@ abstract class _$$LoginStateImplCopyWith<$Res>
     String? passwordError,
     AsyncValue<AuthSession?> submission,
     int passwordClearTick,
+    DateTime? retryAt,
+    int waitMinutesLeft,
   });
 }
 
@@ -158,6 +182,8 @@ class __$$LoginStateImplCopyWithImpl<$Res>
     Object? passwordError = freezed,
     Object? submission = null,
     Object? passwordClearTick = null,
+    Object? retryAt = freezed,
+    Object? waitMinutesLeft = null,
   }) {
     return _then(
       _$LoginStateImpl(
@@ -193,6 +219,14 @@ class __$$LoginStateImplCopyWithImpl<$Res>
             ? _value.passwordClearTick
             : passwordClearTick // ignore: cast_nullable_to_non_nullable
                   as int,
+        retryAt: freezed == retryAt
+            ? _value.retryAt
+            : retryAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        waitMinutesLeft: null == waitMinutesLeft
+            ? _value.waitMinutesLeft
+            : waitMinutesLeft // ignore: cast_nullable_to_non_nullable
+                  as int,
       ),
     );
   }
@@ -210,6 +244,8 @@ class _$LoginStateImpl extends _LoginState {
     this.passwordError = null,
     this.submission = const AsyncValue.data(null),
     this.passwordClearTick = 0,
+    this.retryAt = null,
+    this.waitMinutesLeft = 0,
   }) : super._();
 
   @override
@@ -242,9 +278,23 @@ class _$LoginStateImpl extends _LoginState {
   @JsonKey()
   final int passwordClearTick;
 
+  /// When the login throttle lets this network try again: the moment a
+  /// `429 TOO_MANY_LOGIN_ATTEMPTS` asked us to wait until, from its
+  /// `Retry-After` (at most `LoginNotifier.maxWait`). Null when nothing is
+  /// being waited for; the notifier clears it as soon as the moment passes.
+  @override
+  @JsonKey()
+  final DateTime? retryAt;
+
+  /// Whole minutes left until [retryAt], rounded up and never below 1 while
+  /// waiting. The notifier keeps it current; 0 when not waiting.
+  @override
+  @JsonKey()
+  final int waitMinutesLeft;
+
   @override
   String toString() {
-    return 'LoginState(email: $email, password: $password, obscurePassword: $obscurePassword, rememberMe: $rememberMe, emailError: $emailError, passwordError: $passwordError, submission: $submission, passwordClearTick: $passwordClearTick)';
+    return 'LoginState(email: $email, password: $password, obscurePassword: $obscurePassword, rememberMe: $rememberMe, emailError: $emailError, passwordError: $passwordError, submission: $submission, passwordClearTick: $passwordClearTick, retryAt: $retryAt, waitMinutesLeft: $waitMinutesLeft)';
   }
 
   @override
@@ -266,7 +316,10 @@ class _$LoginStateImpl extends _LoginState {
             (identical(other.submission, submission) ||
                 other.submission == submission) &&
             (identical(other.passwordClearTick, passwordClearTick) ||
-                other.passwordClearTick == passwordClearTick));
+                other.passwordClearTick == passwordClearTick) &&
+            (identical(other.retryAt, retryAt) || other.retryAt == retryAt) &&
+            (identical(other.waitMinutesLeft, waitMinutesLeft) ||
+                other.waitMinutesLeft == waitMinutesLeft));
   }
 
   @override
@@ -280,6 +333,8 @@ class _$LoginStateImpl extends _LoginState {
     passwordError,
     submission,
     passwordClearTick,
+    retryAt,
+    waitMinutesLeft,
   );
 
   @JsonKey(ignore: true)
@@ -299,6 +354,8 @@ abstract class _LoginState extends LoginState {
     final String? passwordError,
     final AsyncValue<AuthSession?> submission,
     final int passwordClearTick,
+    final DateTime? retryAt,
+    final int waitMinutesLeft,
   }) = _$LoginStateImpl;
   const _LoginState._() : super._();
 
@@ -322,6 +379,16 @@ abstract class _LoginState extends LoginState {
   /// a network blip (or a 429 throttle) never bumps it, so the typed
   /// password survives a retry.
   int get passwordClearTick;
+  @override
+  /// When the login throttle lets this network try again: the moment a
+  /// `429 TOO_MANY_LOGIN_ATTEMPTS` asked us to wait until, from its
+  /// `Retry-After` (at most `LoginNotifier.maxWait`). Null when nothing is
+  /// being waited for; the notifier clears it as soon as the moment passes.
+  DateTime? get retryAt;
+  @override
+  /// Whole minutes left until [retryAt], rounded up and never below 1 while
+  /// waiting. The notifier keeps it current; 0 when not waiting.
+  int get waitMinutesLeft;
   @override
   @JsonKey(ignore: true)
   _$$LoginStateImplCopyWith<_$LoginStateImpl> get copyWith =>

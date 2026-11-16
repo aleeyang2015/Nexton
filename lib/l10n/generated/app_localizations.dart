@@ -125,7 +125,7 @@ abstract class AppLocalizations {
   /// No description provided for @emailHint.
   ///
   /// In en, this message translates to:
-  /// **'Example@gmail.com'**
+  /// **'example@gmail.com'**
   String get emailHint;
 
   /// No description provided for @password.
@@ -2953,6 +2953,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Password changed. Please sign in with your new password.'**
   String get passwordChangedSignInAgain;
+
+  /// No description provided for @tooManyAttemptsWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. You can try again in {minutes} min.'**
+  String tooManyAttemptsWait(int minutes);
 }
 
 class _AppLocalizationsDelegate

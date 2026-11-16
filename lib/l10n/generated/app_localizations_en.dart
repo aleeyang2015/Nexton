@@ -21,7 +21,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get email => 'Email';
 
   @override
-  String get emailHint => 'Example@gmail.com';
+  String get emailHint => 'example@gmail.com';
 
   @override
   String get password => 'Password';
@@ -1594,4 +1594,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get passwordChangedSignInAgain =>
       'Password changed. Please sign in with your new password.';
+
+  @override
+  String tooManyAttemptsWait(int minutes) {
+    return 'Too many attempts. You can try again in $minutes min.';
+  }
 }

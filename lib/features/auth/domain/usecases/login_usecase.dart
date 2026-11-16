@@ -68,8 +68,9 @@ class LoginParams extends BaseParams {
 
 /// Validates credentials, then signs the user in.
 ///
-/// The email is trimmed **and lower-cased** before it goes to the backend, so
-/// the same account can't be created twice by capitalisation.
+/// The email goes to the backend as the user typed it, trimmed only — the
+/// same as the web login. The backend matches it ignoring capitals; the App
+/// does not second-guess what HR saved.
 class LoginUseCase implements BaseUseCase<AuthSession, LoginParams> {
   final AuthRepository _repository;
 
@@ -83,7 +84,7 @@ class LoginUseCase implements BaseUseCase<AuthSession, LoginParams> {
     }
 
     return _repository.login(
-      email: params.email.trim().toLowerCase(),
+      email: params.email.trim(),
       password: params.password,
     );
   }
