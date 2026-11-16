@@ -54,15 +54,18 @@ class LeaveHistoryNotifier extends AutoDisposeNotifier<LeaveHistoryState> {
     final result = await ref.read(cancelLeaveRequestUseCaseProvider)(requestId);
     if (_disposed) return result;
 
-    state = state.copyWith(
-      cancellingIds: {...state.cancellingIds}..remove(requestId),
-    );
-
+    // The request stays marked as cancelling until the list is back, so its
+    // Cancel button cannot be tapped a second time while the page waits.
     final stale = result.fold(LeaveErrorCode.isStaleForOwner, (_) => false);
     if (result.isSuccess || stale) {
       ref.invalidate(leaveBalancesNotifierProvider);
       await _load();
+      if (_disposed) return result;
     }
+
+    state = state.copyWith(
+      cancellingIds: {...state.cancellingIds}..remove(requestId),
+    );
     return result;
   }
 

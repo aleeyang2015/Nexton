@@ -88,6 +88,26 @@ void main() {
       });
     }
 
+    test('the request stays marked as cancelling until the reload is back, '
+        'so Cancel cannot be tapped twice', () async {
+      repository.cancelResult = const Result.failure(
+        Failure.validation(message: 'leaveChanged'),
+      );
+      await settle();
+      final marks = <bool>[];
+      container.listen(leaveHistoryNotifierProvider, (_, next) {
+        if (next.requests.isLoading) {
+          marks.add(next.cancellingIds.contains('req-1'));
+        }
+      });
+
+      await notifier().cancel('req-1');
+
+      expect(marks, isNotEmpty);
+      expect(marks, everyElement(isTrue));
+      expect(state().cancellingIds, isEmpty);
+    });
+
     test('any other failure returns the failure and leaves the list alone',
         () async {
       for (final failure in const [

@@ -26,11 +26,25 @@ class LeaveDecisionOutcome {
   final LeaveDecisionKind kind;
 
   /// The refusal behind [LeaveDecisionKind.reloaded] or
-  /// [LeaveDecisionKind.failed]. Null on success, and for a decision whose
-  /// screen was closed before the answer came.
+  /// [LeaveDecisionKind.failed]. Null on success.
   final Failure? failure;
 
-  const LeaveDecisionOutcome._(this.kind, this.failure);
+  /// True when the approvals screen was closed before the answer came:
+  /// there is nobody to tell.
+  final bool abandoned;
+
+  const LeaveDecisionOutcome._(
+    this.kind,
+    this.failure, {
+    this.abandoned = false,
+  });
+
+  /// The screen was closed before the answer came.
+  static const gone = LeaveDecisionOutcome._(
+    LeaveDecisionKind.failed,
+    null,
+    abandoned: true,
+  );
 
   static const success = LeaveDecisionOutcome._(
     LeaveDecisionKind.success,

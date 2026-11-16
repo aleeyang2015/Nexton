@@ -18,7 +18,6 @@ import '../providers/company_days_off_notifier.dart';
 import '../providers/leave_attachment_notifier.dart';
 import '../providers/leave_balances_notifier.dart';
 import '../providers/leave_form_rules.dart';
-import '../providers/leave_history_notifier.dart';
 import '../providers/leave_request_form_notifier.dart';
 import '../providers/leave_request_form_state.dart';
 import '../providers/leave_types_notifier.dart';
@@ -394,15 +393,11 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       error is Failure ? error.localize(l10n) : l10n.genericError,
     );
 
-    // The request being edited is not what the form shows any more (its days
-    // changed, it was decided or cancelled, or it is gone). Saving again
-    // would fail the same way, so leave: reload the history, let the next
-    // edit start from the request as it now is, and close the page.
+    // The request being edited is out of date; the notifier has reloaded
+    // the lists. Saving again would fail the same way, so close the page.
     if (wasEditing &&
         error is Failure &&
         LeaveErrorCode.isStaleForOwner(error)) {
-      ref.invalidate(leaveHistoryNotifierProvider);
-      _notifier.markStale();
       widget.onSubmitted?.call();
     }
   }

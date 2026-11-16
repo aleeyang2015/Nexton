@@ -88,7 +88,7 @@ class LeaveApprovalsNotifier extends AutoDisposeNotifier<LeaveApprovalsState> {
     state = state.copyWith(decidingIds: {...state.decidingIds, requestId});
 
     final result = await action();
-    if (_disposed) return const LeaveDecisionOutcome.failed();
+    if (_disposed) return LeaveDecisionOutcome.gone;
 
     state = state.copyWith(
       decidingIds: {...state.decidingIds}..remove(requestId),

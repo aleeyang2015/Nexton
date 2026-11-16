@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/datasources/leave_error_code.dart';
 import '../../domain/entities/company_days_off.dart';
 import '../../domain/entities/leave_duration_type.dart';
 import '../../domain/entities/leave_request.dart';
@@ -35,16 +36,12 @@ class LeaveRequestFormNotifier
     state = state.copyWith(daysOff: daysOff);
   }
 
-  /// Set when the server said the request this form edits is out of date.
-  /// The next [seed] then fills the form again instead of keeping it.
+  /// Set when the server said the request this form edits is out of date
+  /// (see [submit]). The next [seed] then fills the form again instead of
+  /// keeping it. The form is not emptied at once: it is still on screen
+  /// while its page closes, and would show a blank new-request form on the
+  /// way out.
   bool _stale = false;
-
-  /// Marks the edit as out of date, so the next time the request is opened
-  /// for editing the form starts from the request as it then is.
-  ///
-  /// The form is not emptied here: it is still on screen while its page
-  /// closes, and would show a blank new-request form on the way out.
-  void markStale() => _stale = true;
 
   /// Fills the form from an existing request (edit mode). Safe to call once,
   /// from the edit page's initState: a form already in edit mode is kept,
@@ -231,6 +228,15 @@ class LeaveRequestFormNotifier
         state = state.copyWith(
           submission: AsyncValue.error(failure, StackTrace.current),
         );
+        // The request being edited is not what this form shows any more (its
+        // days changed, it was decided or cancelled, or it is gone). Saving
+        // again would fail the same way: the lists reload, and the next edit
+        // starts from the request as it then is. The form closes its page.
+        if (editingId != null && LeaveErrorCode.isStaleForOwner(failure)) {
+          _stale = true;
+          ref.invalidate(leaveHistoryNotifierProvider);
+          ref.invalidate(leaveBalancesNotifierProvider);
+        }
         return false;
       },
       (request) {

@@ -850,13 +850,47 @@ void main() {
       expect(stateOf(container, 'req-7').reason, 'typed by the user');
     });
 
-    test('once marked out of date, the next seed starts from the request '
-        'as it now is', () {
+    test('a refusal that is not about the request being out of date keeps '
+        'the form for the next seed', () async {
       final container = containerWith();
-      formOf(container, 'req-7')
+      repository.updateResult = const Result.failure(
+        Failure.validation(message: 'leaveInsufficientBalance'),
+      );
+      final form = formOf(container, 'req-7')
         ..seed(asOpened)
-        ..setReason('typed by the user')
-        ..markStale();
+        ..setReason('typed by the user');
+      await form.submit();
+
+      form.seed(asItIsNow);
+
+      expect(stateOf(container, 'req-7').reason, 'typed by the user');
+    });
+
+    test('a new request refused with the same code is not an edit: nothing '
+        'is marked', () async {
+      final container = containerWith();
+      repository.submitResult = const Result.failure(
+        Failure.validation(message: 'leaveInvalidStatus'),
+      );
+      final form = formOf(container)
+        ..setLeaveType('lt-annual')
+        ..setDates([DateTime(2026, 11, 18)])
+        ..setReason('kept');
+      await form.submit();
+
+      expect(stateOf(container).reason, 'kept');
+    });
+
+    test('once the server calls the edit out of date, the next seed starts '
+        'from the request as it now is', () async {
+      final container = containerWith();
+      repository.updateResult = const Result.failure(
+        Failure.validation(message: 'leaveChanged'),
+      );
+      final form = formOf(container, 'req-7')
+        ..seed(asOpened)
+        ..setReason('typed by the user');
+      expect(await form.submit(), isFalse);
 
       // Still what the user sees while the page closes.
       expect(stateOf(container, 'req-7').reason, 'typed by the user');

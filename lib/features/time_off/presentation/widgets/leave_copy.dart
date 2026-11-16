@@ -103,7 +103,8 @@ class LeaveCopy {
   }
 
   /// What to tell an approver whose approve or reject was refused, or null
-  /// when there is nothing to tell (it went through).
+  /// when there is nothing to tell (it went through) or nobody to tell (the
+  /// approvals screen was closed before the answer came).
   ///
   /// The server's own reason, in the user's language. `INVALID_STATUS` reads
   /// differently here than on an edit: to an approver it means the request
@@ -113,7 +114,9 @@ class LeaveCopy {
     AppLocalizations l10n,
     LeaveDecisionOutcome outcome,
   ) {
-    if (outcome.kind == LeaveDecisionKind.success) return null;
+    if (outcome.kind == LeaveDecisionKind.success || outcome.abandoned) {
+      return null;
+    }
 
     final failure = outcome.failure;
     if (failure == null) return l10n.leaveApprovalDecideFailed;
