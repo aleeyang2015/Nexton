@@ -51,6 +51,9 @@ class FakeLeaveRepository implements LeaveRepository {
   /// [balancesResult] — for a form that looks at more than one year.
   final Map<int, Result<List<LeaveBalance>>> balancesByYear = {};
   Result<List<LeaveRequest>> myRequestsResult = const Result.success([]);
+  /// The caller's waiting request; none by default.
+  Result<LeaveRequest?> pendingRequestResult = const Result.success(null);
+  int pendingRequestCalls = 0;
   Result<LeaveRequest> requestDetailResult = Result.success(
     sampleLeaveRequest(),
   );
@@ -101,6 +104,12 @@ class FakeLeaveRepository implements LeaveRepository {
   FutureResult<List<LeaveBalance>> balances(int year) async {
     balancesCalls.add(year);
     return balancesByYear[year] ?? balancesResult;
+  }
+
+  @override
+  FutureResult<LeaveRequest?> pendingRequest() async {
+    pendingRequestCalls++;
+    return pendingRequestResult;
   }
 
   @override

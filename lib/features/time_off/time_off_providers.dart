@@ -14,6 +14,7 @@ import 'domain/usecases/get_leave_approvals_usecase.dart';
 import 'domain/usecases/get_leave_balances_usecase.dart';
 import 'domain/usecases/get_leave_history_usecase.dart';
 import 'domain/usecases/get_leave_request_detail_usecase.dart';
+import 'domain/usecases/get_pending_leave_request_usecase.dart';
 import 'domain/usecases/get_leave_types_usecase.dart';
 import 'domain/usecases/reject_leave_step_usecase.dart';
 import 'domain/usecases/submit_leave_request_usecase.dart';
@@ -47,6 +48,12 @@ final getLeaveBalancesUseCaseProvider = Provider<GetLeaveBalancesUseCase>(
 final getLeaveHistoryUseCaseProvider = Provider<GetLeaveHistoryUseCase>(
   (ref) => GetLeaveHistoryUseCase(ref.watch(leaveRepositoryProvider)),
 );
+
+final getPendingLeaveRequestUseCaseProvider =
+    Provider<GetPendingLeaveRequestUseCase>(
+      (ref) =>
+          GetPendingLeaveRequestUseCase(ref.watch(leaveRepositoryProvider)),
+    );
 
 final getLeaveRequestDetailUseCaseProvider =
     Provider<GetLeaveRequestDetailUseCase>(

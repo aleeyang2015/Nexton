@@ -23,8 +23,13 @@ class LeavePaths {
   /// reads it.
   static const String restDays = '/core_hr/rest-days';
 
-  static String request(String id) => '$_prefix/requests/$id';
-  static String cancel(String id) => '$_prefix/requests/$id/cancel';
-  static String approve(String id) => '$_prefix/requests/$id/approve';
-  static String reject(String id) => '$_prefix/requests/$id/reject';
+  // The id is one path segment, whatever it holds: an id that came in from
+  // a link is not trusted to be a UUID, and `../my` must not become another
+  // endpoint.
+  static String request(String id) => '$_prefix/requests/${_segment(id)}';
+  static String cancel(String id) => '${request(id)}/cancel';
+  static String approve(String id) => '${request(id)}/approve';
+  static String reject(String id) => '${request(id)}/reject';
+
+  static String _segment(String id) => Uri.encodeComponent(id);
 }

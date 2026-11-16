@@ -24,9 +24,11 @@ void main() {
     'leaveChanged':
         'ຄຳຮ້ອງລານີ້ຫາກໍ່ມີການປ່ຽນແປງ. ໂຫຼດຂໍ້ມູນໃໝ່ແລ້ວ, ກະລຸນາກວດເບິ່ງແລ້ວລອງອີກຄັ້ງ.',
     'leaveRequestGone': 'ຄຳຮ້ອງນີ້ບໍ່ມີແລ້ວ ຫຼື ທ່ານບໍ່ມີສິດເບິ່ງ.',
+    'leaveStartedContactHr':
+        'ການລານີ້ເລີ່ມແລ້ວ ຈຶ່ງຍົກເລີກໃນແອັບບໍ່ໄດ້. ຖ້າຕ້ອງການປ່ຽນ, ກະລຸນາຕິດຕໍ່ HR.',
   };
 
-  test('the nine tokens here are the nine the data source produces', () {
+  test('the ten tokens here are the ten the data source produces', () {
     expect(
       {
         ...LeaveErrorCode.tokenByWire.values,
@@ -71,6 +73,7 @@ void main() {
       'leaveChanged',
       'leaveInvalidStatus',
       'leaveRequestGone',
+      'leaveStartedContactHr',
     });
     expect(
       LeaveErrorCode.isStaleForOwner(const Failure.network(message: 'x')),

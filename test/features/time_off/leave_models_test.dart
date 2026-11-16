@@ -190,6 +190,92 @@ void main() {
       ]);
     });
 
+    test('a decided step reads updated_at as when it was decided, in local '
+        'time', () {
+      final request = LeaveRequestModel.fromJson(
+        _request(
+          status: 'rejected',
+          steps: [
+            {
+              'id': 'step-1',
+              'step_no': 1,
+              'step_role': 'dept_head',
+              'approver': {'name': 'Bounmy Sisavath'},
+              'status': 'approved',
+              'updated_at': '2026-11-12T07:05:00Z',
+            },
+            {
+              'id': 'step-2',
+              'step_no': 2,
+              'step_role': 'hr',
+              // HR with no staff record decided it: no approver is saved.
+              'approver': null,
+              'status': 'rejected',
+              'updated_at': '2026-11-13T02:30:00Z',
+            },
+          ],
+        ),
+      );
+
+      final decided = DateTime.utc(2026, 11, 12, 7, 5).toLocal();
+      expect(request.steps[0].decidedAt, decided);
+      expect(request.steps[0].decidedAt!.isUtc, isFalse);
+      expect(request.steps[0].isDecided, isTrue);
+      expect(
+        request.steps[1].decidedAt,
+        DateTime.utc(2026, 11, 13, 2, 30).toLocal(),
+      );
+      expect(request.steps[1].approverName, isNull);
+    });
+
+    test('a step not decided yet has no decision time, whatever its '
+        'updated_at says', () {
+      final request = LeaveRequestModel.fromJson(
+        _request(
+          steps: [
+            {
+              'id': 'step-1',
+              'step_no': 1,
+              'step_role': 'dept_head',
+              'status': 'pending',
+              'updated_at': '2026-11-12T07:05:00Z',
+            },
+            {
+              'id': 'step-2',
+              'step_no': 2,
+              'step_role': 'hr',
+              'status': 'waiting',
+              'updated_at': '2026-11-12T07:05:00Z',
+            },
+          ],
+        ),
+      );
+
+      expect(request.steps[0].decidedAt, isNull);
+      expect(request.steps[0].isDecided, isFalse);
+      expect(request.steps[1].decidedAt, isNull);
+    });
+
+    test('a decided step with no updated_at, or one that is not a time, has '
+        'no decision time', () {
+      final request = LeaveRequestModel.fromJson(
+        _request(
+          steps: [
+            {'step_no': 1, 'step_role': 'dept_head', 'status': 'approved'},
+            {
+              'step_no': 2,
+              'step_role': 'hr',
+              'status': 'approved',
+              'updated_at': 'yesterday',
+            },
+          ],
+        ),
+      );
+
+      expect(request.steps[0].decidedAt, isNull);
+      expect(request.steps[1].decidedAt, isNull);
+    });
+
     test('a step with "approver": null gives a null name', () {
       final request = LeaveRequestModel.fromJson(_request());
 
