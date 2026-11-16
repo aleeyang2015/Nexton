@@ -16,11 +16,12 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #2: open the PR from `2-store-build-hosts` and review it. Still to try on a phone: a release APK signs in with a
-   `nexton-demo` login, and a plain debug run shows `nexton-demo.nexton.work` in the debug log.
-2. #3: open the PR from `3-release-signing` (built beside #2, no shared files). The lead still makes the upload key
-   and tries a release bundle with it. #4 waits until #3 is merged.
-3. #72 and #73 have a known root cause but no work order yet; the owner decides where they go.
+1. #4 (errors: Lao text for sign-in, company, session and module codes) is next in work order.
+2. Still to try by hand for #2: a release APK on a phone signs in with a `nexton-demo` login, and a plain debug run
+   shows `nexton-demo.nexton.work` in the debug log.
+3. Still to do by hand for #3: the lead makes the upload key and builds a release bundle with it; a phone install; the
+   iOS simulator build.
+4. #72 and #73 have a known root cause but no work order yet; the owner decides where they go.
 
 Stale docs found while reviewing #2, outside its scope: `lib/features/auth/auth-login.md:11`,
 `lib/features/attendance/attendance-offsite-requests.md:15` and `lib/features/home/attendance-clock-in-out-flutter.md:6`
@@ -36,8 +37,8 @@ count), #56 (sign-out ends the session).
 
 | Order | Issue | Title | Branch | Commit | PR | Tests | Status |
 |---|---|---|---|---|---|---|---|
-| 1 | #2 | app: a store build reaches the network and signs in at app.nexton.work | `2-store-build-hosts` | `7af1adb` | to open | analyze: 1 warning already on `main`; `flutter test`: 375 passed, 0 failed; debug and release APK build; release manifest has `INTERNET`; phone sign-in pending | IMPLEMENTED |
-| 2 | #3 | app: final app id next.on.hr.com and a real release key | `3-release-signing` | `e970e49` | to open | analyze: 1 warning already on `main`; `flutter test`: 369 passed, 0 failed; debug APK builds; release APK without `key.properties` is debug-signed; release bundle with a throwaway key is signed by that key; the real upload key, a phone install and the iOS simulator build are pending | IMPLEMENTED |
+| 1 | #2 | app: a store build reaches the network and signs in at app.nexton.work | `2-store-build-hosts` | `7af1adb` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 375 passed, 0 failed; debug and release APK build; release manifest has `INTERNET`; phone sign-in pending | MERGED |
+| 2 | #3 | app: final app id next.on.hr.com and a real release key | `3-release-signing` | `e970e49` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 369 passed, 0 failed; debug APK builds; release APK without `key.properties` is debug-signed; release bundle with a throwaway key is signed by that key; the real upload key, a phone install and the iOS simulator build are pending | MERGED |
 | 3 | #4 | errors: Lao text for sign-in, company, session and module codes (shared table) | | | | | NOT STARTED |
 | 4 | #5 | sign-in: no surprise sign-outs on weak signal, a server restart or after a password change | | | | | NOT STARTED |
 | 5 | #6 | sign-in: show how long to wait after too many tries, and send the email as typed | | | | | NOT STARTED |
