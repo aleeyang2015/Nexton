@@ -89,7 +89,7 @@ void main() {
   Map<String, dynamic> query() => adapter.lastRequest!.queryParameters;
 
   group('each call\'s path and method', () {
-    test('types: GET /core_hr/leave/types', () async {
+    test('types: GET /core_hr/leave/types, 100 a page and unfiltered', () async {
       adapter.body = {
         'success': true,
         'data': [
@@ -101,6 +101,9 @@ void main() {
 
       expect(method(), 'GET');
       expect(path(), '/core_hr/leave/types');
+      // The endpoint sends 20 by default; a company can have more types. No
+      // is_active filter: switched-off types still name old requests.
+      expect(query(), {'per_page': 100});
       expect(types.single.id, 'lt-annual');
     });
 

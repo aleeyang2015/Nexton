@@ -9,6 +9,7 @@ import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_status.dart';
+import '../../domain/entities/leave_type.dart';
 import '../providers/leave_history_notifier.dart';
 import '../providers/leave_types_notifier.dart';
 import 'leave_approval_timeline.dart';
@@ -76,7 +77,12 @@ class _LeaveTypeFilter extends ConsumerWidget {
           onTap: () async {
             final picked = await context.push<String>(
               AppRoutes.timeOffLeaveTypePicker,
-              extra: (selectedTypeId: selectedId, allowClear: true),
+              extra: (
+                selectedTypeId: selectedId,
+                allowClear: true,
+                // A filter already set to a type stays able to show it.
+                keepTypeId: selectedId,
+              ),
             );
             // Nothing chosen (backed out) — leave the filter as it was.
             if (picked == null) return;
@@ -304,14 +310,17 @@ class _ErrorBlock extends StatelessWidget {
   }
 }
 
-class _LeaveCard extends StatelessWidget {
+class _LeaveCard extends ConsumerWidget {
   final LeaveRequest request;
 
   const _LeaveCard({required this.request});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    // Requests carry no Lao type name; the loaded list has it.
+    final types =
+        ref.watch(leaveTypesNotifierProvider).valueOrNull ?? const <LeaveType>[];
     final pill = LeaveCopy.statusPill(l10n, request.status);
     final note = request.rejectionNote;
     final showNote =
@@ -335,7 +344,11 @@ class _LeaveCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: customText(
-                    LeaveCopy.leaveTypeLabel(l10n, request.leaveType),
+                    LeaveCopy.leaveTypeLabel(
+                      l10n,
+                      request.leaveType,
+                      types: types,
+                    ),
                     fontWeight: FontWeight.w700,
                     fontSize: 16,
                   ),

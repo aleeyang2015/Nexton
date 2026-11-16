@@ -706,7 +706,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveHistoryEmpty => 'No leave requests found';
 
   @override
-  String leaveDaysSuffix(int days) {
+  String leaveDaysSuffix(String days) {
     return '$days days';
   }
 
@@ -737,7 +737,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveBalanceRemainingLabel => 'Leave days remaining';
 
   @override
-  String leaveBalanceUsedLabel(int days) {
+  String leaveBalanceUsedLabel(String days) {
     return 'Used $days days';
   }
 
@@ -865,7 +865,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'The return-to-work date must be after your last leave day.';
 
   @override
-  String leaveMaxDaysHint(int days) {
+  String leaveMaxDaysHint(String days) {
     return 'This leave type allows at most $days days per request.';
   }
 

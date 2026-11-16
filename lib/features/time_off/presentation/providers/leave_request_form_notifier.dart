@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/leave_duration_type.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_request_draft.dart';
+import '../../domain/entities/leave_type.dart';
 import '../../time_off_providers.dart';
 import 'leave_attachment_notifier.dart';
 import 'leave_balances_notifier.dart';
 import 'leave_history_notifier.dart';
 import 'leave_request_form_state.dart';
+import 'leave_types_notifier.dart';
 
 /// Owns one request-leave form's fields and its submission.
 ///
@@ -22,18 +24,41 @@ class LeaveRequestFormNotifier
   /// from the edit page's initState.
   void seed(LeaveRequest request) {
     if (state.isEditing) return;
+    final days = [...request.requestDays]..sort();
     state = LeaveRequestFormState(
       editingRequestId: request.id,
       leaveTypeId: request.leaveType.id,
-      dates: [...request.requestDays]..sort(),
+      dates: days,
       durationType: request.durationType,
       returnToWorkOverride: request.returnDate,
       reason: request.reason,
+      originalLeaveTypeId: request.leaveType.id,
+      originalTotalDays: request.totalDays,
+      originalBalanceYear: (days.isEmpty ? request.startDate : days.first).year,
     );
   }
 
-  void setLeaveType(String leaveTypeId) =>
-      state = state.copyWith(leaveTypeId: leaveTypeId);
+  /// Picks the leave type. A type that takes whole days only puts the form
+  /// back on a full day in the same step, so a half day chosen under the
+  /// previous type is never sent on it.
+  ///
+  /// The type's own `allow_half_day` is read from the loaded type list here,
+  /// not handed in by the caller, so no caller can forget it. A type that is
+  /// not in the list (it has not loaded) changes nothing but the selection.
+  void setLeaveType(String leaveTypeId) {
+    final types =
+        ref.read(leaveTypesNotifierProvider).valueOrNull ?? const <LeaveType>[];
+    final wholeDaysOnly = types.any(
+      (type) => type.id == leaveTypeId && !type.allowHalfDay,
+    );
+
+    state = state.copyWith(
+      leaveTypeId: leaveTypeId,
+      durationType: wholeDaysOnly
+          ? LeaveDurationType.fullDay
+          : state.durationType,
+    );
+  }
 
   /// Replaces the picked leave days with [dates] (from the calendar dialog),
   /// each normalized to midnight, de-duplicated and sorted. A half-day request

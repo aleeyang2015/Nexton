@@ -40,6 +40,10 @@ class FixedLeaveAttachment extends LeaveAttachmentNotifier {
 class FakeLeaveRepository implements LeaveRepository {
   Result<List<LeaveType>> leaveTypesResult = Result.success([sampleLeaveType()]);
   Result<List<LeaveBalance>> balancesResult = const Result.success([]);
+
+  /// Answers `balances(year)` for the years set here, in place of
+  /// [balancesResult] — for a form that looks at more than one year.
+  final Map<int, Result<List<LeaveBalance>>> balancesByYear = {};
   Result<List<LeaveRequest>> myRequestsResult = const Result.success([]);
   Result<LeaveRequest> requestDetailResult = Result.success(
     sampleLeaveRequest(),
@@ -84,7 +88,7 @@ class FakeLeaveRepository implements LeaveRepository {
   @override
   FutureResult<List<LeaveBalance>> balances(int year) async {
     balancesCalls.add(year);
-    return balancesResult;
+    return balancesByYear[year] ?? balancesResult;
   }
 
   @override
@@ -147,16 +151,17 @@ class FakeLeaveRepository implements LeaveRepository {
   }
 }
 
-/// A leave type with sane defaults: paid annual leave, whole days only, no
-/// file needed. Override what the test is about.
+/// A leave type with sane defaults: paid annual leave, switched on, whole
+/// days only, no file needed. Override what the test is about.
 LeaveType sampleLeaveType({
   String id = 'lt-annual',
   String code = 'annual',
   String name = 'Annual Leave',
   String? nameLo = 'ລາພັກປະຈຳປີ',
   String? color,
-  int? maxDaysPerRequest,
-  int? maxConsecutiveDays,
+  bool isActive = true,
+  double? maxDaysPerRequest,
+  double? maxConsecutiveDays,
   int? minNoticeDays,
   bool allowHalfDay = false,
   bool requiresAttachment = false,
@@ -168,6 +173,7 @@ LeaveType sampleLeaveType({
   name: name,
   nameLo: nameLo,
   color: color,
+  isActive: isActive,
   maxDaysPerRequest: maxDaysPerRequest,
   maxConsecutiveDays: maxConsecutiveDays,
   minNoticeDays: minNoticeDays,
@@ -232,6 +238,26 @@ LeaveRequest sampleLeaveRequest({
 /// * pending or cancelled — waiting on the department head;
 /// * approved — both steps approved;
 /// * rejected — the department head rejected it, and HR never saw it.
+/// One leave type's balance for a year, with sane defaults: annual leave in
+/// 2026, 15 days given, 5 used, 10 left.
+LeaveBalance sampleLeaveBalance({
+  String leaveTypeId = 'lt-annual',
+  String leaveTypeName = 'Annual Leave',
+  int year = 2026,
+  double totalDays = 15,
+  double usedDays = 5,
+  double pendingDays = 0,
+  double? remainingDays,
+}) => LeaveBalance(
+  leaveTypeId: leaveTypeId,
+  leaveTypeName: leaveTypeName,
+  year: year,
+  totalDays: totalDays,
+  usedDays: usedDays,
+  pendingDays: pendingDays,
+  remainingDays: remainingDays ?? totalDays - usedDays,
+);
+
 List<LeaveApprovalStep> sampleLeaveSteps([
   LeaveStatus status = LeaveStatus.pending,
 ]) {

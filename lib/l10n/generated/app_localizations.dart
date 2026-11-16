@@ -1392,7 +1392,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{days} days'**
-  String leaveDaysSuffix(int days);
+  String leaveDaysSuffix(String days);
 
   /// No description provided for @leaveTotalDaysSuffix.
   ///
@@ -1446,7 +1446,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Used {days} days'**
-  String leaveBalanceUsedLabel(int days);
+  String leaveBalanceUsedLabel(String days);
 
   /// No description provided for @leaveYearLabel.
   ///
@@ -1680,7 +1680,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'This leave type allows at most {days} days per request.'**
-  String leaveMaxDaysHint(int days);
+  String leaveMaxDaysHint(String days);
 
   /// No description provided for @leaveEditAction.
   ///

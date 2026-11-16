@@ -78,15 +78,47 @@ class LeaveCopy {
       _isLao(l10n) ? _weekdayInitialsLo : _weekdayInitialsEn;
 
   /// The Lao name when the UI is in Lao and one exists, otherwise the default.
-  static String leaveTypeLabel(AppLocalizations l10n, LeaveType type) {
-    if (_isLao(l10n) && (type.nameLo ?? '').isNotEmpty) return type.nameLo!;
+  ///
+  /// The type inside a request carries no Lao name of its own, so a card
+  /// showing a request passes the loaded [types] too: the name is then looked
+  /// up by the type's id, falling back to what the request itself carries
+  /// when the list has not loaded or no longer has that type.
+  static String leaveTypeLabel(
+    AppLocalizations l10n,
+    LeaveType type, {
+    List<LeaveType> types = const [],
+  }) {
+    if (!_isLao(l10n)) return type.name;
+
+    if ((type.nameLo ?? '').isNotEmpty) return type.nameLo!;
+    for (final known in types) {
+      if (known.id == type.id && (known.nameLo ?? '').isNotEmpty) {
+        return known.nameLo!;
+      }
+    }
     return type.name;
   }
 
-  /// "3 days" / "0.5 days" — a whole count of days, or the half-day wording.
+  /// "3 days" / "7.5 days" — or the half-day wording for exactly half a day.
   static String daysLabel(AppLocalizations l10n, double days) {
     if (days == 0.5) return l10n.leaveHalfDayLabel;
-    return l10n.leaveDaysSuffix(days.round());
+    return l10n.leaveDaysSuffix(dayCount(days));
+  }
+
+  /// A count of days as it is written: whole when it is whole (`3`), with its
+  /// decimals when it has them (`7.5`, `7.25`), to two places at most. Latin
+  /// digits in every language, formatted by hand like the dates.
+  ///
+  /// A balance is never rounded to a whole number the user does not have:
+  /// 7.5 days left is not "8". Something that is not a number at all is a
+  /// dash.
+  static String dayCount(double days) {
+    if (!days.isFinite) return '-';
+
+    final text = days.toStringAsFixed(2);
+    if (!text.contains('.')) return text;
+    // "7.50" → "7.5", "3.00" → "3".
+    return text.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 
   /// The date line under a history/approval card's title: a single date for a

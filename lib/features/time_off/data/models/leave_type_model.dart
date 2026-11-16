@@ -12,8 +12,10 @@ class LeaveTypeModel {
       name: LeaveJson.str(json['name']) ?? '',
       nameLo: LeaveJson.nonEmpty(json['name_lo']),
       color: LeaveJson.nonEmpty(json['color']),
-      maxDaysPerRequest: LeaveJson.intOf(json['max_days_per_request']),
-      maxConsecutiveDays: LeaveJson.intOf(json['max_consecutive_days']),
+      // Always sent; a list that predates the field reads as switched on.
+      isActive: LeaveJson.boolOf(json['is_active'], fallback: true),
+      maxDaysPerRequest: LeaveJson.doubleOf(json['max_days_per_request']),
+      maxConsecutiveDays: LeaveJson.doubleOf(json['max_consecutive_days']),
       minNoticeDays: LeaveJson.intOf(json['min_notice_days']),
       allowHalfDay: LeaveJson.boolOf(json['allow_half_day']),
       requiresAttachment: LeaveJson.boolOf(json['requires_attachment']),

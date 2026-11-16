@@ -270,6 +270,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               _ => null,
             },
             allowClear: extra is LeaveTypePickerArgs && extra.allowClear,
+            keepTypeId: extra is LeaveTypePickerArgs ? extra.keepTypeId : null,
           );
         },
       ),
