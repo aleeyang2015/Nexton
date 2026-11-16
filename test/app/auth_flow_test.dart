@@ -284,6 +284,47 @@ void main() {
     );
   });
 
+  testWidgets('a wait that ran out while the phone slept ends when the App '
+      'comes back', (tester) async {
+    repository.loginResult = const Result.failure(
+      Failure.network(
+        message: 'Too many attempts',
+        statusCode: 429,
+        errorCode: 'TOO_MANY_LOGIN_ATTEMPTS',
+        retryAfter: Duration(seconds: 600),
+      ),
+    );
+    var asleepFor = Duration.zero;
+    now = () => tester.binding.clock.now().add(asleepFor);
+
+    await launch(tester);
+    await signIn(tester);
+    expect(
+      tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+      isNull,
+    );
+
+    // No timer runs while the phone sleeps; only the clock moves.
+    asleepFor = const Duration(minutes: 30);
+    for (final lifecycle in const [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(lifecycle);
+    }
+    await tester.pump();
+
+    expect(find.textContaining('ພະຍາຍາມຫຼາຍເກີນໄປ'), findsNothing);
+    expect(
+      tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+      isNotNull,
+    );
+  });
+
   testWidgets('an unrecoverable 401 drops the user back to login', (
     tester,
   ) async {

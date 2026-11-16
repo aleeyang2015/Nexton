@@ -354,6 +354,119 @@ void main() {
       });
     });
 
+    test('only the login throttle starts a wait: another failure with a '
+        'Retry-After surfaces as an error', () {
+      withClock((async, repository, notifier, state) {
+        for (final failure in const [
+          Failure.network(
+            message: 'slow down',
+            statusCode: 429,
+            errorCode: 'RATE_LIMITED',
+            retryAfter: Duration(seconds: 120),
+          ),
+          Failure.network(
+            message: 'no such company',
+            statusCode: 404,
+            errorCode: 'TENANT_NOT_FOUND',
+            retryAfter: Duration(seconds: 120),
+          ),
+        ]) {
+          repository.loginResult = Result.failure(failure);
+          notifier.submit();
+          async.flushMicrotasks();
+
+          expect(state().isWaiting, isFalse);
+          expect(state().submission.hasError, isTrue);
+        }
+        expect(async.pendingTimers, isEmpty);
+      });
+    });
+
+    test('an enormous Retry-After is held to an hour, and the form does not '
+        'hang', () {
+      withClock((async, repository, notifier, state) {
+        repository.loginResult = Result.failure(throttled(9000000000000));
+        notifier.submit();
+        async.flushMicrotasks();
+
+        expect(state().isSubmitting, isFalse);
+        expect(state().waitMinutesLeft, 60);
+        expect(state().retryAt, start.add(const Duration(hours: 1)));
+
+        async.elapse(const Duration(hours: 1));
+        expect(state().isWaiting, isFalse);
+      });
+    });
+
+    test('coming back to the App after the wait ran out ends it at once', () {
+      var now = start;
+      final repository = FakeAuthRepository()
+        ..loginResult = Result.failure(throttled(600));
+      fakeAsync((async) {
+        final container = ProviderContainer(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(repository),
+            clockProvider.overrideWithValue(() => now),
+          ],
+        );
+        container.listen(loginNotifierProvider, (_, _) {});
+        final notifier = container.read(loginNotifierProvider.notifier)
+          ..emailChanged('somphone.vilaysone@nexton.la')
+          ..passwordChanged('password1')
+          ..submit();
+        async.flushMicrotasks();
+
+        // The phone slept: the clock moved on, no timer ran.
+        now = start.add(const Duration(minutes: 30));
+        expect(container.read(loginNotifierProvider).isWaiting, isTrue);
+
+        notifier.syncWait();
+
+        expect(container.read(loginNotifierProvider).isWaiting, isFalse);
+        expect(async.pendingTimers, isEmpty);
+
+        container.dispose();
+        repository.sessionExpired.close();
+      });
+    });
+
+    test('a device clock set back cannot stretch the wait', () {
+      var skew = Duration.zero;
+      final repository = FakeAuthRepository()
+        ..loginResult = Result.failure(throttled(600));
+      fakeAsync((async) {
+        final container = ProviderContainer(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(repository),
+            clockProvider.overrideWithValue(
+              () => start.add(async.elapsed).add(skew),
+            ),
+          ],
+        );
+        container.listen(loginNotifierProvider, (_, _) {});
+        LoginState state() => container.read(loginNotifierProvider);
+        container.read(loginNotifierProvider.notifier)
+          ..emailChanged('somphone.vilaysone@nexton.la')
+          ..passwordChanged('password1')
+          ..submit();
+        async.flushMicrotasks();
+        expect(state().waitMinutesLeft, 10);
+
+        skew = const Duration(days: -1);
+
+        async.elapse(const Duration(minutes: 1));
+        expect(state().waitMinutesLeft, 9);
+
+        // Ten real minutes after the answer, the wait is over.
+        async.elapse(const Duration(minutes: 9));
+        expect(state().isWaiting, isFalse);
+        expect(async.pendingTimers, isEmpty);
+
+        container.dispose();
+        repository.sessionExpired.close();
+      });
+    });
+
     test('a second throttle restarts the wait from the new answer', () {
       withClock((async, repository, notifier, state) {
         repository.loginResult = Result.failure(throttled(60));

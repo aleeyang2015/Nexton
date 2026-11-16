@@ -28,8 +28,8 @@ class LoginState with _$LoginState {
 
     /// When the login throttle lets this network try again: the moment a
     /// `429 TOO_MANY_LOGIN_ATTEMPTS` asked us to wait until, from its
-    /// `Retry-After`. Null when nothing is being waited for; the notifier
-    /// clears it as soon as the moment passes.
+    /// `Retry-After` (at most `LoginNotifier.maxWait`). Null when nothing is
+    /// being waited for; the notifier clears it as soon as the moment passes.
     @Default(null) DateTime? retryAt,
 
     /// Whole minutes left until [retryAt], rounded up and never below 1 while

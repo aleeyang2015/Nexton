@@ -36,9 +36,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  /// Tells the notifier when the App is back in front, so a login wait that
+  /// ran out while the phone slept ends at once.
+  late final AppLifecycleListener _lifecycle;
+
   @override
   void initState() {
     super.initState();
+    _lifecycle = AppLifecycleListener(
+      onResume: () => ref.read(loginNotifierProvider.notifier).syncWait(),
+    );
     // A forced sign-out lands here with its reason. Say it once, whether the
     // page is just opening or was already on screen.
     ref.listenManual(
@@ -67,6 +74,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -201,11 +209,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         // in a toast that is gone before the wait is.
         if (state.isWaiting) ...[
           heightBx(h: 12),
-          customText(
-            l10n.tooManyAttemptsWait(state.waitMinutesLeft),
-            color: AppColors.error,
-            fontSize: 13,
-            alight: TextAlign.center,
+          SizedBox(
+            width: double.infinity,
+            child: customText(
+              l10n.tooManyAttemptsWait(state.waitMinutesLeft),
+              color: AppColors.error,
+              fontSize: 13,
+              maxLine: 2,
+              alight: TextAlign.center,
+            ),
           ),
         ],
       ],
