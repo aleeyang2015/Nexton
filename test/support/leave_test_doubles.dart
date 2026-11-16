@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_attachment.dart';
@@ -8,14 +10,33 @@ import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request_draft.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_type.dart';
+import 'package:next_on/features/time_off/domain/entities/uploaded_attachment.dart';
 import 'package:next_on/features/time_off/domain/repositories/leave_repository.dart';
 import 'package:next_on/features/time_off/domain/usecases/get_leave_approvals_usecase.dart';
+import 'package:next_on/features/time_off/presentation/providers/leave_attachment_notifier.dart';
+
+/// The leave form's attachment slot, already holding [initial] — so a test
+/// never opens a file chooser or uploads anything. Use it to override
+/// `leaveAttachmentNotifierProvider`, which the form reads on submit.
+class FixedLeaveAttachment extends LeaveAttachmentNotifier {
+  FixedLeaveAttachment(this.initial);
+
+  final UploadedAttachment? initial;
+
+  @override
+  FutureOr<UploadedAttachment?> build(String? arg) => initial;
+}
 
 /// Repository stand-in for the leave notifiers and widgets.
 ///
 /// Same style as `FakeAttendanceRepository`: one settable [Result] per method,
-/// answered every time that method is called, and a list of what each call
-/// was given, so a test can assert on the arguments as well as the count.
+/// answered every time that method is called (set it again between calls to
+/// change the answer), and a list of what each call was given, so a test can
+/// assert on the arguments as well as the count.
+///
+/// The default answers are fixed samples: `update` and `approve` answer
+/// `req-1` whatever id they were sent. A test that reads the answer back sets
+/// its own result.
 class FakeLeaveRepository implements LeaveRepository {
   Result<List<LeaveType>> leaveTypesResult = Result.success([sampleLeaveType()]);
   Result<List<LeaveBalance>> balancesResult = const Result.success([]);
@@ -157,11 +178,15 @@ LeaveType sampleLeaveType({
 );
 
 /// A leave request with sane defaults: two full days of annual leave, 18–19
-/// November 2026, pending at the first of two steps. Override what the test
-/// is about.
+/// November 2026 (one day, the 18th, for a half day), with the usual two-step
+/// chain in the state that matches [status] — see [sampleLeaveSteps].
+/// Override what the test is about.
 LeaveRequest sampleLeaveRequest({
   String id = 'req-1',
   String employeeName = 'Noy Phommachanh',
+  String? employeeNumber,
+  String? departmentName,
+  DateTime? createdAt,
   LeaveType? leaveType,
   List<DateTime>? requestDays,
   DateTime? returnDate,
@@ -174,12 +199,18 @@ LeaveRequest sampleLeaveRequest({
   List<LeaveAttachment> attachments = const [],
 }) {
   final days =
-      requestDays ?? [DateTime(2026, 11, 18), DateTime(2026, 11, 19)];
+      requestDays ??
+      (durationType.isHalfDay
+          ? [DateTime(2026, 11, 18)]
+          : [DateTime(2026, 11, 18), DateTime(2026, 11, 19)]);
   final sorted = [...days]..sort();
 
   return LeaveRequest(
     id: id,
     employeeName: employeeName,
+    employeeNumber: employeeNumber,
+    departmentName: departmentName,
+    createdAt: createdAt,
     leaveType: leaveType ?? sampleLeaveType(),
     startDate: sorted.first,
     endDate: sorted.last,
@@ -190,27 +221,43 @@ LeaveRequest sampleLeaveRequest({
     reason: reason,
     status: status,
     currentStepNo: currentStepNo ?? (status == LeaveStatus.pending ? 1 : null),
-    steps: steps ?? sampleLeaveSteps(),
+    steps: steps ?? sampleLeaveSteps(status),
     attachments: attachments,
   );
 }
 
-/// The usual chain: the department head first (pending), then HR (waiting).
-List<LeaveApprovalStep> sampleLeaveSteps() => const [
-  LeaveApprovalStep(
-    id: 'step-1',
-    stepNo: 1,
-    role: LeaveStepRole.deptHead,
-    approverName: 'Bounmy Sisavath',
-    status: LeaveStepStatus.pending,
-  ),
-  LeaveApprovalStep(
-    id: 'step-2',
-    stepNo: 2,
-    role: LeaveStepRole.hr,
-    status: LeaveStepStatus.waiting,
-  ),
-];
+/// The usual chain, the department head then HR, in the state a request with
+/// [status] is in:
+///
+/// * pending or cancelled — waiting on the department head;
+/// * approved — both steps approved;
+/// * rejected — the department head rejected it, and HR never saw it.
+List<LeaveApprovalStep> sampleLeaveSteps([
+  LeaveStatus status = LeaveStatus.pending,
+]) {
+  final (first, second) = switch (status) {
+    LeaveStatus.approved => (LeaveStepStatus.approved, LeaveStepStatus.approved),
+    LeaveStatus.rejected => (LeaveStepStatus.rejected, LeaveStepStatus.waiting),
+    LeaveStatus.pending ||
+    LeaveStatus.cancelled => (LeaveStepStatus.pending, LeaveStepStatus.waiting),
+  };
+
+  return [
+    LeaveApprovalStep(
+      id: 'step-1',
+      stepNo: 1,
+      role: LeaveStepRole.deptHead,
+      approverName: 'Bounmy Sisavath',
+      status: first,
+    ),
+    LeaveApprovalStep(
+      id: 'step-2',
+      stepNo: 2,
+      role: LeaveStepRole.hr,
+      status: second,
+    ),
+  ];
+}
 
 /// Answers the approvals tab's two queries: [pending] for
 /// `status == pending`, [history] for the unfiltered call the notifier makes
@@ -229,6 +276,8 @@ class FakeGetLeaveApprovals implements GetLeaveApprovalsUseCase {
 }
 
 /// A pending request sitting at the given point of the dept-head → HR chain.
+/// Older than [sampleLeaveRequest] and kept for the approval-card tests that
+/// use it; new tests should prefer [sampleLeaveRequest].
 ///
 /// [clearedByDeptHead] false leaves it with its first approver; true marks
 /// the dept-head step approved and hands it to HR, which is the shape that

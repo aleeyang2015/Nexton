@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
@@ -14,17 +12,6 @@ import 'package:next_on/features/time_off/presentation/providers/leave_request_f
 import 'package:next_on/features/time_off/time_off_providers.dart';
 
 import '../../support/leave_test_doubles.dart';
-
-/// The form's attachment slot, already holding [initial] — so a test never
-/// opens a file chooser or uploads anything.
-class _FixedAttachment extends LeaveAttachmentNotifier {
-  _FixedAttachment(this.initial);
-
-  final UploadedAttachment? initial;
-
-  @override
-  FutureOr<UploadedAttachment?> build(String? arg) => initial;
-}
 
 const _uploaded = UploadedAttachment(
   url: 'https://files.nexton.work/a/medical.pdf',
@@ -44,7 +31,7 @@ void main() {
       overrides: [
         leaveRepositoryProvider.overrideWithValue(repository),
         leaveAttachmentNotifierProvider.overrideWith(
-          () => _FixedAttachment(attachment),
+          () => FixedLeaveAttachment(attachment),
         ),
       ],
     );
@@ -317,6 +304,30 @@ void main() {
       await form.submit();
 
       expect(repository.updateCalls.single.draft.attachment, isNull);
+    });
+
+    test('a file attached on the edit page goes with the update', () async {
+      final container = containerWith(attachment: _uploaded);
+      await container.read(leaveAttachmentNotifierProvider('req-7').future);
+      final form = formOf(container, 'req-7')..seed(existing);
+
+      await form.submit();
+
+      expect(repository.updateCalls.single.draft.attachment, _uploaded);
+    });
+
+    test('an edit leaves the attachment slot as it is, unlike a new request',
+        () async {
+      final container = containerWith(attachment: _uploaded);
+      await container.read(leaveAttachmentNotifierProvider('req-7').future);
+      final form = formOf(container, 'req-7')..seed(existing);
+
+      await form.submit();
+
+      expect(
+        container.read(leaveAttachmentNotifierProvider('req-7')).valueOrNull,
+        _uploaded,
+      );
     });
   });
 

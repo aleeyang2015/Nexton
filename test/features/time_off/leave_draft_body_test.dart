@@ -147,12 +147,13 @@ void main() {
       draft(returnDate: DateTime(2026, 11, 19), reason: 'Trip'),
     );
 
-    expect(body.keys, [
+    // Which keys, not their order.
+    expect(body.keys.toSet(), {
       'leave_type_id',
       'dates',
       'duration_type',
       'return_date',
       'reason',
-    ]);
+    });
   });
 }

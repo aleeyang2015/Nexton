@@ -101,6 +101,8 @@ void main() {
       expect(request.returnDate, DateTime(2026, 11, 23));
     });
 
+    // This can only catch a zone shift on a machine that is not on UTC, where
+    // "local" and UTC are different days for these times.
     test('a date sent with a time is still that calendar day, with no zone '
         'shift', () {
       final json = _request()

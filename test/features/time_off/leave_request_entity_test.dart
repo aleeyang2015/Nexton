@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
+import 'package:next_on/features/time_off/domain/entities/leave_duration_type.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
 
 import '../../support/leave_test_doubles.dart';
@@ -150,6 +151,26 @@ void main() {
       expect(request.totalDays, 2);
       expect(request.isPending, isTrue);
       expect(request.currentStepNo, 1);
+    });
+
+    test('give a decided request a chain that matches its status', () {
+      final approved = sampleLeaveRequest(status: LeaveStatus.approved);
+      final rejected = sampleLeaveRequest(status: LeaveStatus.rejected);
+
+      expect(approved.currentStep, isNull);
+      expect(approved.currentStepNo, isNull);
+      expect(approved.lastApprovedStep?.id, 'step-2');
+      expect(rejected.currentStep, isNull);
+      expect(rejected.steps.first.status, LeaveStepStatus.rejected);
+    });
+
+    test('give a half-day request one day', () {
+      final half = sampleLeaveRequest(
+        durationType: LeaveDurationType.firstHalf,
+      );
+
+      expect(half.requestDays, [DateTime(2026, 11, 18)]);
+      expect(half.totalDays, 0.5);
     });
 
     test('give a leave type that asks for nothing special', () {

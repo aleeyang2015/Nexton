@@ -7,6 +7,7 @@ import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/api_client.dart';
 import 'package:next_on/features/time_off/data/datasources/leave_error_code.dart';
 import 'package:next_on/features/time_off/data/datasources/leave_remote_data_source.dart';
+import 'package:next_on/features/time_off/data/repositories/leave_repository_impl.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_history_query.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request_draft.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
@@ -371,6 +372,71 @@ void main() {
         throwsA(isA<DioException>()),
       );
       await expectLater(source.myApprovals(), throwsA(isA<DioException>()));
+    });
+  });
+
+  group('LeaveRepositoryImpl, over the same data source', () {
+    late LeaveRepositoryImpl repository;
+
+    setUp(() => repository = LeaveRepositoryImpl(remote: source));
+
+    test('approve passes the id, the step id and the note through', () async {
+      answerOne();
+
+      final result = await repository.approve(
+        id: 'req-1',
+        stepId: 'step-1',
+        note: 'ok',
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(path(), '/core_hr/leave/requests/req-1/approve');
+      expect(adapter.lastBody, {'step_id': 'step-1', 'approver_note': 'ok'});
+    });
+
+    test('reject passes the id, the reason and the step id through', () async {
+      answerOne();
+
+      await repository.reject(id: 'req-1', reason: 'no', stepId: 'step-1');
+
+      expect(path(), '/core_hr/leave/requests/req-1/reject');
+      expect(adapter.lastBody, {'reason': 'no', 'step_id': 'step-1'});
+    });
+
+    test('update and cancel reach their own request', () async {
+      answerOne();
+
+      await repository.update('req-7', draft);
+      expect(path(), '/core_hr/leave/requests/req-7');
+
+      await repository.cancel('req-7');
+      expect(path(), '/core_hr/leave/requests/req-7/cancel');
+    });
+
+    test('a refusal token thrown by the data source becomes a failed Result '
+        'with that token', () async {
+      refuse(409, 'STEP_CHANGED');
+
+      final result = await repository.approve(id: 'req-1', stepId: 'step-1');
+
+      expect(result.isFailure, isTrue);
+      expect(
+        result.failureOrNull,
+        isA<ValidationFailure>().having(
+          (f) => f.message,
+          'message',
+          'leaveStepChanged',
+        ),
+      );
+    });
+
+    test('an unknown refusal becomes a failed Result too, never a throw',
+        () async {
+      refuse(409, 'LEAVE_CHANGED');
+
+      final result = await repository.submit(draft);
+
+      expect(result.isFailure, isTrue);
     });
   });
 }

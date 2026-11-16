@@ -105,6 +105,19 @@ void main() {
       expect(state().history.requireValue, [approved, rejected]);
     });
 
+    test('a failed decided-list load is an error, not an empty list; the '
+        'pending list still shows', () async {
+      const offline = Failure.network(message: 'offline');
+      repository.allApprovalsResult = const Result.failure(offline);
+
+      await settle();
+
+      expect(state().history.hasError, isTrue);
+      expect(state().history.error, offline);
+      expect(state().history.hasValue, isFalse);
+      expect(state().pending.requireValue, [waiting]);
+    });
+
     test('retry loads both lists again', () async {
       await settle();
 
