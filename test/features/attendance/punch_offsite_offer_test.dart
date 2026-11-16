@@ -128,7 +128,7 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.text('Request off-site scan'));
+      await tester.tap(find.text('Request off-site clock-in'));
       await tester.pumpAndSettle();
 
       // Straight to the form, opened as a check-in — the punch that failed.
@@ -152,7 +152,7 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.text('Request off-site scan'));
+      await tester.tap(find.text('Request off-site clock-in'));
       await tester.pumpAndSettle();
 
       expect(find.text('FORM:${OffsiteMethod.checkOut}'), findsOneWidget);
@@ -258,7 +258,7 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.text('Request off-site scan'));
+      await tester.tap(find.text('Request off-site clock-in'));
       await tester.pumpAndSettle();
 
       expect(find.text('FORM:${OffsiteMethod.checkOut}'), findsOneWidget);

@@ -118,7 +118,7 @@ void main() {
     ) async {
       await pumpTab(tester, []);
 
-      expect(find.text('No off-site scan requests'), findsOneWidget);
+      expect(find.text('No off-site clock-in requests'), findsOneWidget);
       expect(find.text('Approve'), findsNothing);
     });
 
@@ -201,7 +201,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(OffsiteApprovalsTab), findsOneWidget);
-      expect(find.text('No off-site scan requests'), findsOneWidget);
+      expect(find.text('No off-site clock-in requests'), findsOneWidget);
     });
 
     testWidgets('can be opened straight on the off-site tab', (tester) async {
@@ -232,7 +232,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('No off-site scan requests'), findsOneWidget);
+      expect(find.text('No off-site clock-in requests'), findsOneWidget);
     });
   });
 }
