@@ -3109,6 +3109,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This leave has started, so it cannot be cancelled in the App. To change it, contact HR.'**
   String get leaveStartedContactHr;
+
+  /// No description provided for @listLoadMoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load more.'**
+  String get listLoadMoreFailed;
 }
 
 class _AppLocalizationsDelegate

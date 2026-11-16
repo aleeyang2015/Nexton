@@ -140,10 +140,10 @@ void main() {
     });
 
     test('myRequests: GET /core_hr/leave/requests/my with the range, the '
-        'filters and one page of 100', () async {
+        'filters and limit=20, and no cursor for the first page', () async {
       answerList();
 
-      final requests = await source.myRequests(
+      final page = await source.myRequests(
         LeaveHistoryQuery(
           leaveTypeId: 'lt-annual',
           status: LeaveStatus.approved,
@@ -159,10 +159,52 @@ void main() {
         'end_date': '2026-11-30',
         'leave_type_id': 'lt-annual',
         'status': 'approved',
-        'page': 1,
-        'per_page': 100,
+        'limit': 20,
       });
-      expect(requests.single.id, 'req-1');
+      expect(page.items.single.id, 'req-1');
+      // No meta in the answer: one page, nothing after it.
+      expect(page.hasMore, isFalse);
+      expect(page.nextCursor, isNull);
+    });
+
+    test('myRequests sends the cursor with the same filters for a later '
+        'page, and reads where to go on from', () async {
+      adapter.body = {
+        'success': true,
+        'data': [_requestJson],
+        'meta': {'per_page': 20, 'has_more': true, 'next_cursor': 'c-3'},
+      };
+
+      final page = await source.myRequests(
+        LeaveHistoryQuery(
+          leaveTypeId: 'lt-annual',
+          from: DateTime(2026, 11, 1),
+          to: DateTime(2026, 11, 30),
+        ),
+        cursor: 'c-2',
+      );
+
+      expect(query(), {
+        'start_date': '2026-11-01',
+        'end_date': '2026-11-30',
+        'leave_type_id': 'lt-annual',
+        'limit': 20,
+        'cursor': 'c-2',
+      });
+      expect(page.hasMore, isTrue);
+      expect(page.nextCursor, 'c-3');
+    });
+
+    test('myRequests: a cursor the server refuses is a failed page, with '
+        'the server\'s code, through the repository', () async {
+      refuse(400, 'VALIDATION_ERROR');
+
+      final result = await LeaveRepositoryImpl(remote: source).myRequests(
+        LeaveHistoryQuery(from: DateTime(2026, 11, 1), to: DateTime(2026, 11, 30)),
+        cursor: 'broken',
+      );
+
+      expect(result.failureOrNull, isA<ValidationFailure>());
     });
 
     test('myRequests leaves out the filters that are not set', () async {

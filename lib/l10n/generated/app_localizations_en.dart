@@ -1688,4 +1688,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get leaveStartedContactHr =>
       'This leave has started, so it cannot be cancelled in the App. To change it, contact HR.';
+
+  @override
+  String get listLoadMoreFailed => 'Could not load more.';
 }

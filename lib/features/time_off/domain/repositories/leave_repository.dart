@@ -1,3 +1,4 @@
+import '../../../../core/network/paged_list.dart';
 import '../../../../core/utils/result.dart';
 import '../entities/company_days_off.dart';
 import '../entities/leave_balance.dart';
@@ -20,8 +21,12 @@ abstract class LeaveRepository {
   /// `GET /leave/balances/my` — the per-type quota rollup for [year].
   FutureResult<List<LeaveBalance>> balances(int year);
 
-  /// `GET /leave/requests/my` — the history tab's list.
-  FutureResult<List<LeaveRequest>> myRequests(LeaveHistoryQuery query);
+  /// `GET /leave/requests/my` — one page of the history tab's list. [cursor]
+  /// is the page before's `nextCursor`; leave it out for the first page.
+  FutureResult<CursorPage<LeaveRequest>> myRequests(
+    LeaveHistoryQuery query, {
+    String? cursor,
+  });
 
   /// `GET /leave/requests/my?status=pending&limit=1` — the caller's request
   /// that is waiting for a decision, or null when there is none. While one
