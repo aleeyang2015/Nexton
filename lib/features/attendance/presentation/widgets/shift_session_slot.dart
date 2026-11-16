@@ -19,13 +19,25 @@ class ShiftSessionSlot {
 
   /// One slot per shift segment, in the profile's order. When two sessions
   /// land on the same segment, the first one wins.
+  ///
+  /// [day] is the date of the record the sessions belong to. With it, each
+  /// segment's window is that weekday's own ([ShiftDetail.timesOn]), so a
+  /// punch is placed against the hours the tile shows.
   static List<ShiftSessionSlot> build(
     List<ShiftDetail> details,
-    List<AttendanceSession> sessions,
-  ) {
+    List<AttendanceSession> sessions, {
+    DateTime? day,
+  }) {
+    final windows = [
+      for (final detail in details)
+        day == null
+            ? (start: detail.startTime, end: detail.endTime)
+            : detail.timesOn(day),
+    ];
+
     final bySegment = <int, AttendanceSession>{};
     for (final session in sessions) {
-      final index = _segmentFor(session, details);
+      final index = _segmentFor(session, windows);
       if (index != null) bySegment.putIfAbsent(index, () => session);
     }
 
@@ -46,33 +58,36 @@ class ShiftSessionSlot {
   /// 3. nothing — an unlabelled, unpunched session isn't placed.
   static int? _segmentFor(
     AttendanceSession session,
-    List<ShiftDetail> details,
+    List<({String? start, String? end})> windows,
   ) {
     final labelStart = _minutesOf(session.label);
     if (labelStart != null) {
-      for (var i = 0; i < details.length; i++) {
-        if (_minutesOf(details[i].startTime) == labelStart) return i;
+      for (var i = 0; i < windows.length; i++) {
+        if (_minutesOf(windows[i].start) == labelStart) return i;
       }
     }
 
     final clockIn = session.clockIn;
     if (clockIn == null) return null;
-    return _segmentAt(clockIn.hour * 60 + clockIn.minute, details);
+    return _segmentAt(clockIn.hour * 60 + clockIn.minute, windows);
   }
 
   /// The segment whose `[start, end)` window holds [minute]; otherwise the
   /// next segment to start after it (an early clock-in for that segment);
   /// otherwise, past the last one, the segment that starts last.
-  static int? _segmentAt(int minute, List<ShiftDetail> details) {
+  static int? _segmentAt(
+    int minute,
+    List<({String? start, String? end})> windows,
+  ) {
     int? next;
     int? nextStart;
     int? last;
     int? lastStart;
 
-    for (var i = 0; i < details.length; i++) {
-      final start = _minutesOf(details[i].startTime);
+    for (var i = 0; i < windows.length; i++) {
+      final start = _minutesOf(windows[i].start);
       if (start == null) continue;
-      final end = _minutesOf(details[i].endTime);
+      final end = _minutesOf(windows[i].end);
 
       if (minute >= start && (end == null || minute < end)) return i;
       if (start > minute && (nextStart == null || start < nextStart)) {

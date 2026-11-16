@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/clock_provider.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/slide_action_button.dart';
 import '../../../../features/profile/domain/entities/shift_detail.dart';
@@ -25,12 +26,12 @@ import 'shift_session_slot.dart';
 /// holds no attendance logic and makes no decisions about what a punch meant
 /// — it forwards the gesture to [PunchFlow] and renders the state.
 class AttendanceStatusCard extends ConsumerWidget {
-  /// The methods this employer accepts, shown as a hint under the divider.
+  /// The methods the App punches with, shown as a hint under the divider.
   ///
-  /// Static for now: the API has no endpoint that reports a site's accepted
-  /// methods, and the slide action always punches with
-  /// [AttendanceNotifier.defaultMethod].
-  static const List<String> methods = ['gps', 'wifi', 'biometric', 'field'];
+  /// GPS only (owner decision): no Wi-Fi, field or QR punch from the phone.
+  /// Work away from every work area goes through an off-site request, which
+  /// is offered when a punch is refused for being out of area.
+  static const List<String> methods = ['gps'];
 
   const AttendanceStatusCard({super.key});
 
@@ -44,7 +45,14 @@ class AttendanceStatusCard extends ConsumerWidget {
     // copy until it resolves — never a blocker.
     final profile = ref.watch(profileNotifierProvider).valueOrNull;
     final shiftDetails = profile?.shiftDetails ?? const <ShiftDetail>[];
-    final slots = ShiftSessionSlot.build(shiftDetails, state.day.sessions);
+    // The record the card is about, which is not always today's: a night
+    // shift still running is on yesterday's, and its hours are yesterday's.
+    final cardDay = state.day.date ?? ref.watch(clockProvider)();
+    final slots = ShiftSessionSlot.build(
+      shiftDetails,
+      state.day.sessions,
+      day: cardDay,
+    );
     final shiftName = AttendanceCopy.employeeShiftName(
       locale,
       profile?.shiftName,
@@ -75,7 +83,7 @@ class AttendanceStatusCard extends ConsumerWidget {
             // heightBx(h: 6),
             // _ShiftHoursLine(details: shiftDetails, locale: locale),
             // heightBx(h: 14),
-            AttendanceSessionGrid(slots: slots, locale: locale),
+            AttendanceSessionGrid(slots: slots, locale: locale, day: cardDay),
           ],
           heightBx(h: 16),
           SlideActionButton(

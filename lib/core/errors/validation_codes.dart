@@ -24,8 +24,6 @@ class ValidationCode {
   static const String locationPermissionDeniedForever =
       'locationPermissionDeniedForever';
   static const String locationTimeout = 'locationTimeout';
-  static const String wifiUnavailable = 'wifiUnavailable';
-  static const String fieldReasonRequired = 'fieldReasonRequired';
   static const String mockLocationDetected = 'mockLocationDetected';
 
   /// Time-correction request form (`TimeCorrectionRequest.validate`).

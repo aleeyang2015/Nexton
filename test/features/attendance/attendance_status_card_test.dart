@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/core/utils/clock_provider.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/attendance/domain/entities/attendance_day.dart';
@@ -8,6 +9,7 @@ import 'package:next_on/features/attendance/presentation/widgets/attendance_stat
 import 'package:next_on/features/attendance/presentation/widgets/shift_session_slot.dart';
 import 'package:next_on/features/profile/domain/entities/employee_profile.dart';
 import 'package:next_on/features/profile/domain/entities/shift_detail.dart';
+import 'package:next_on/features/profile/domain/entities/shift_detail_weekly.dart';
 import 'package:next_on/features/profile/presentation/providers/profile_notifier.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
@@ -132,6 +134,7 @@ void main() {
     Future<void> pumpCard(
       WidgetTester tester, {
       List<ShiftDetail> shiftDetails = const [_morning, _afternoon],
+      DateTime Function()? now,
     }) async {
       // A small phone, in Lao — the tightest case for the card's text.
       tester.view.physicalSize = const Size(360, 800);
@@ -142,6 +145,7 @@ void main() {
         ProviderScope(
           overrides: [
             attendanceRepositoryProvider.overrideWithValue(repository),
+            if (now != null) clockProvider.overrideWithValue(now),
             profileNotifierProvider.overrideWith(
               () => _FixedProfileNotifier(
                 EmployeeProfile(
@@ -190,6 +194,83 @@ void main() {
         findsOneWidget,
       );
       expect(find.text(lo.slideToClockOut), findsOneWidget);
+    });
+
+    testWidgets('the methods row says GPS only', (tester) async {
+      final lo = lookupAppLocalizations(const Locale('lo'));
+
+      await pumpCard(tester);
+
+      expect(AttendanceStatusCard.methods, ['gps']);
+      expect(find.textContaining(lo.methodGps), findsOneWidget);
+      expect(find.textContaining(lo.methodWifi), findsNothing);
+      expect(find.textContaining(lo.methodBiometric), findsNothing);
+      expect(find.textContaining(lo.methodField), findsNothing);
+    });
+
+    group('a weekday with its own times', () {
+      // The shop works 08:00–17:00 but closes at noon on Saturday.
+      const shop = ShiftDetail(
+        name: 'Day',
+        nameLo: 'ກະກາງເວັນ',
+        startTime: '08:00:00',
+        endTime: '17:00:00',
+        weeklys: [
+          ShiftDetailWeekly(
+            weeklyDay: 'SAT',
+            startTime: '08:00:00',
+            endTime: '12:00:00',
+          ),
+        ],
+      );
+
+      testWidgets('on Saturday the tile shows 08:00-12:00', (tester) async {
+        repository.today = const Result.success(AttendanceDay.empty);
+
+        await pumpCard(
+          tester,
+          shiftDetails: const [shop],
+          now: () => DateTime(2026, 11, 14, 9),
+        );
+
+        expect(find.text('08:00-12:00'), findsOneWidget);
+        expect(find.text('08:00-17:00'), findsNothing);
+      });
+
+      testWidgets('on a weekday the tile shows the part\'s own times', (
+        tester,
+      ) async {
+        repository.today = const Result.success(AttendanceDay.empty);
+
+        await pumpCard(
+          tester,
+          shiftDetails: const [shop],
+          now: () => DateTime(2026, 11, 13, 9),
+        );
+
+        expect(find.text('08:00-17:00'), findsOneWidget);
+        expect(find.text('08:00-12:00'), findsNothing);
+      });
+
+      testWidgets('the record\'s date decides, not today: Saturday\'s record '
+          'still open on Sunday shows Saturday\'s hours', (tester) async {
+        repository.today = Result.success(
+          AttendanceDay(
+            date: DateTime(2026, 11, 14),
+            sessions: [
+              AttendanceSession(clockIn: DateTime(2026, 11, 14, 8, 1)),
+            ],
+          ),
+        );
+
+        await pumpCard(
+          tester,
+          shiftDetails: const [shop],
+          now: () => DateTime(2026, 11, 15, 1),
+        );
+
+        expect(find.text('08:00-12:00'), findsOneWidget);
+      });
     });
 
     testWidgets('hides the shift line and grid when there is no shift', (

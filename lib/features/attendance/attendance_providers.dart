@@ -40,8 +40,7 @@ import 'domain/usecases/submit_time_correction_usecase.dart';
 ///
 /// Backed by geolocator in every build, so a `gps` punch sends the device's
 /// own current position, its accuracy and — on Android — the mock-provider
-/// verdict. `wifi` punches still have no source for a BSSID and are refused
-/// before they are sent.
+/// verdict. GPS is the only method the App punches with.
 ///
 /// No build substitutes a fixed coordinate: a punch reports where the device
 /// actually is, or it reports nothing and `PunchRequest.validate` explains

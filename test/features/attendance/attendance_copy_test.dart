@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_outcome.dart';
 import 'package:next_on/features/attendance/presentation/widgets/attendance_copy.dart';
 import 'package:next_on/features/profile/domain/entities/shift_detail.dart';
+import 'package:next_on/features/profile/domain/entities/shift_detail_weekly.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
 void main() {
@@ -273,6 +274,142 @@ void main() {
 
     test('other text passes through untouched', () {
       expect(AttendanceCopy.detailTime('13:30–17:30'), '13:30–17:30');
+    });
+  });
+
+  group('a weekday\'s own shift times', () {
+    // 2026-11-13 is a Friday; the 14th a Saturday; the 16th a Monday.
+    final friday = DateTime(2026, 11, 13);
+    final saturday = DateTime(2026, 11, 14);
+    final monday = DateTime(2026, 11, 16);
+
+    const shop = ShiftDetail(
+      name: 'Day',
+      startTime: '08:00:00',
+      endTime: '17:00:00',
+      weeklys: [
+        ShiftDetailWeekly(
+          weeklyDay: 'SAT',
+          startTime: '08:00:00',
+          endTime: '12:00:00',
+        ),
+      ],
+    );
+
+    test('Saturday\'s row is shown on Saturday, the part\'s own on Friday', () {
+      expect(
+        AttendanceCopy.shiftDetailHours(shop, day: saturday),
+        '08:00 - 12:00',
+      );
+      expect(
+        AttendanceCopy.shiftDetailHours(shop, day: friday),
+        '08:00 - 17:00',
+      );
+    });
+
+    test('a part with no rows shows its own times on any day', () {
+      const plain = ShiftDetail(startTime: '08:00', endTime: '17:00');
+
+      for (var offset = 0; offset < 7; offset++) {
+        expect(
+          AttendanceCopy.shiftDetailHours(
+            plain,
+            day: monday.add(Duration(days: offset)),
+          ),
+          '08:00 - 17:00',
+        );
+      }
+    });
+
+    test('with no day given, the part\'s usual hours', () {
+      expect(AttendanceCopy.shiftDetailHours(shop), '08:00 - 17:00');
+    });
+
+    test('a night shift keeps the row of the day it started: Monday\'s row at '
+        '02:00 on Tuesday', () {
+      const night = ShiftDetail(
+        name: 'Night',
+        startTime: '22:00',
+        endTime: '06:00',
+        endsNextDay: true,
+        weeklys: [
+          ShiftDetailWeekly(
+            weeklyDay: 'MON',
+            startTime: '23:00',
+            endTime: '05:00',
+          ),
+        ],
+      );
+
+      // It is 02:00 on Tuesday, but the card's record is dated Monday, the
+      // day the shift started, and that is the day passed in.
+      final cardDate = monday;
+
+      expect(
+        AttendanceCopy.shiftDetailHours(night, day: cardDate),
+        '23:00 - 05:00',
+      );
+      // Tuesday night's shift, with no row of its own, is the usual one.
+      expect(
+        AttendanceCopy.shiftDetailHours(
+          night,
+          day: DateTime(2026, 11, 17, 22),
+        ),
+        '22:00 - 06:00',
+      );
+    });
+  });
+
+  group('ShiftDetail.timesOn', () {
+    test('each weekday code matches its own day, Monday to Sunday', () {
+      const codes = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+      final detail = ShiftDetail(
+        startTime: '08:00',
+        endTime: '17:00',
+        weeklys: [
+          for (var i = 0; i < codes.length; i++)
+            ShiftDetailWeekly(
+              weeklyDay: codes[i],
+              startTime: '0$i:00',
+              endTime: '1$i:00',
+            ),
+        ],
+      );
+
+      for (var i = 0; i < codes.length; i++) {
+        // 2026-11-16 is a Monday.
+        final times = detail.timesOn(DateTime(2026, 11, 16 + i));
+
+        expect(times.start, '0$i:00', reason: codes[i]);
+        expect(times.end, '1$i:00', reason: codes[i]);
+      }
+    });
+
+    test('the code is matched whatever its case', () {
+      const detail = ShiftDetail(
+        startTime: '08:00',
+        endTime: '17:00',
+        weeklys: [
+          ShiftDetailWeekly(weeklyDay: 'sat', startTime: '08:00', endTime: '12:00'),
+        ],
+      );
+
+      expect(detail.timesOn(DateTime(2026, 11, 14)).end, '12:00');
+    });
+
+    test('a row for another day changes nothing', () {
+      const detail = ShiftDetail(
+        startTime: '08:00',
+        endTime: '17:00',
+        weeklys: [
+          ShiftDetailWeekly(weeklyDay: 'SAT', startTime: '08:00', endTime: '12:00'),
+        ],
+      );
+
+      final times = detail.timesOn(DateTime(2026, 11, 16));
+
+      expect(times.start, '08:00');
+      expect(times.end, '17:00');
     });
   });
 }

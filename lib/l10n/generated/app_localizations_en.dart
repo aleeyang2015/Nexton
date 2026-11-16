@@ -327,13 +327,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not get a location fix. Move somewhere with a clearer view of the sky and try again.';
 
   @override
-  String get wifiUnavailable =>
-      'The WiFi network could not be read. Connect to the office WiFi and try again.';
-
-  @override
-  String get fieldReasonRequired => 'Please give a reason for the field work.';
-
-  @override
   String get mockLocationDetected =>
       'Fake GPS is on. Please turn it off and try again.';
 
