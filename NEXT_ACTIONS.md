@@ -16,7 +16,7 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #11: open the PR from `11-month-summary-server-numbers` and review it. #12 is next.
+1. #12 (profile: no made-up numbers, and a clear message when the profile cannot load) is next in work order.
    For #12 to pick up: the profile page reads the same month summary and now shows "-" for its three stats when
    the load fails, with no message and no Retry of its own.
    To check on a phone for #11: the home card's seven tiles (two rows of four) on a narrow screen; the labels are
@@ -64,7 +64,7 @@ count), #56 (sign-out ends the session).
 | 7 | #8 | attendance: a refused punch says why in Lao, with no useless Retry | `8-refused-punch-lao` | `1c4f9bd` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 514 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 8 | #9 | attendance: the card shows the weekday's own shift times, and GPS only | `9-weekday-shift-times-gps-only` | `df5a998` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 536 passed, 0 failed; debug APK builds; the issue grep finds nothing; not yet tried on a phone against `nexton-demo` | MERGED |
 | 9 | #10 | attendance: history rows show the real shift, method, place and day status | `10-history-real-fields` | `a7012fb` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 552 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
-| 10 | #11 | attendance: the month summary shows the server's numbers, and "not linked to an employee" | `11-month-summary-server-numbers` | `ce8b5cc` | to open | analyze: 1 warning already on `main`; `flutter test`: 567 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | IMPLEMENTED |
+| 10 | #11 | attendance: the month summary shows the server's numbers, and "not linked to an employee" | `11-month-summary-server-numbers` | `ce8b5cc` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 567 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 11 | #12 | profile: no made-up numbers, and a clear message when the profile cannot load | | | | | NOT STARTED |
 | 12 | #13 | leave: tests for what works today, and drop the old guide copy | | | | | NOT STARTED |
 | 13 | #14 | leave: the form offers only active types and checks the balance the server will charge | | | | | NOT STARTED |
