@@ -21,7 +21,10 @@ mixin _$LeaveHistoryState {
   String? get leaveTypeId => throw _privateConstructorUsedError;
   DateTime get from => throw _privateConstructorUsedError;
   DateTime get to => throw _privateConstructorUsedError;
-  AsyncValue<List<LeaveRequest>> get requests =>
+
+  /// Loading, or failed, until the first page is in; from then on the rows
+  /// so far, with the state of the next page inside the [PagedList].
+  AsyncValue<PagedList<LeaveRequest>> get requests =>
       throw _privateConstructorUsedError;
   Set<String> get cancellingIds => throw _privateConstructorUsedError;
 
@@ -41,7 +44,7 @@ abstract class $LeaveHistoryStateCopyWith<$Res> {
     String? leaveTypeId,
     DateTime from,
     DateTime to,
-    AsyncValue<List<LeaveRequest>> requests,
+    AsyncValue<PagedList<LeaveRequest>> requests,
     Set<String> cancellingIds,
   });
 }
@@ -82,7 +85,7 @@ class _$LeaveHistoryStateCopyWithImpl<$Res, $Val extends LeaveHistoryState>
             requests: null == requests
                 ? _value.requests
                 : requests // ignore: cast_nullable_to_non_nullable
-                      as AsyncValue<List<LeaveRequest>>,
+                      as AsyncValue<PagedList<LeaveRequest>>,
             cancellingIds: null == cancellingIds
                 ? _value.cancellingIds
                 : cancellingIds // ignore: cast_nullable_to_non_nullable
@@ -106,7 +109,7 @@ abstract class _$$LeaveHistoryStateImplCopyWith<$Res>
     String? leaveTypeId,
     DateTime from,
     DateTime to,
-    AsyncValue<List<LeaveRequest>> requests,
+    AsyncValue<PagedList<LeaveRequest>> requests,
     Set<String> cancellingIds,
   });
 }
@@ -146,7 +149,7 @@ class __$$LeaveHistoryStateImplCopyWithImpl<$Res>
         requests: null == requests
             ? _value.requests
             : requests // ignore: cast_nullable_to_non_nullable
-                  as AsyncValue<List<LeaveRequest>>,
+                  as AsyncValue<PagedList<LeaveRequest>>,
         cancellingIds: null == cancellingIds
             ? _value._cancellingIds
             : cancellingIds // ignore: cast_nullable_to_non_nullable
@@ -163,7 +166,7 @@ class _$LeaveHistoryStateImpl implements _LeaveHistoryState {
     this.leaveTypeId,
     required this.from,
     required this.to,
-    this.requests = const AsyncValue<List<LeaveRequest>>.loading(),
+    this.requests = const AsyncValue<PagedList<LeaveRequest>>.loading(),
     final Set<String> cancellingIds = const <String>{},
   }) : _cancellingIds = cancellingIds;
 
@@ -174,9 +177,12 @@ class _$LeaveHistoryStateImpl implements _LeaveHistoryState {
   final DateTime from;
   @override
   final DateTime to;
+
+  /// Loading, or failed, until the first page is in; from then on the rows
+  /// so far, with the state of the next page inside the [PagedList].
   @override
   @JsonKey()
-  final AsyncValue<List<LeaveRequest>> requests;
+  final AsyncValue<PagedList<LeaveRequest>> requests;
   final Set<String> _cancellingIds;
   @override
   @JsonKey()
@@ -233,7 +239,7 @@ abstract class _LeaveHistoryState implements LeaveHistoryState {
     final String? leaveTypeId,
     required final DateTime from,
     required final DateTime to,
-    final AsyncValue<List<LeaveRequest>> requests,
+    final AsyncValue<PagedList<LeaveRequest>> requests,
     final Set<String> cancellingIds,
   }) = _$LeaveHistoryStateImpl;
 
@@ -245,7 +251,9 @@ abstract class _LeaveHistoryState implements LeaveHistoryState {
   @override
   DateTime get to;
   @override
-  AsyncValue<List<LeaveRequest>> get requests;
+  /// Loading, or failed, until the first page is in; from then on the rows
+  /// so far, with the state of the next page inside the [PagedList].
+  AsyncValue<PagedList<LeaveRequest>> get requests;
   @override
   Set<String> get cancellingIds;
   @override

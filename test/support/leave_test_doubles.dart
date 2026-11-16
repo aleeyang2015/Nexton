@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:next_on/core/network/paged_list.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/time_off/domain/entities/company_days_off.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
@@ -51,6 +52,18 @@ class FakeLeaveRepository implements LeaveRepository {
   /// [balancesResult] — for a form that looks at more than one year.
   final Map<int, Result<List<LeaveBalance>>> balancesByYear = {};
   Result<List<LeaveRequest>> myRequestsResult = const Result.success([]);
+
+  /// When set, answers each history page by itself (for tests of loading
+  /// more); otherwise [myRequestsResult] is the one and only page.
+  FutureResult<CursorPage<LeaveRequest>> Function(
+    LeaveHistoryQuery query,
+    String? cursor,
+  )?
+  myRequestsPage;
+
+  /// The cursor each history call was made with, in order; null for a
+  /// first page.
+  final List<String?> myRequestsCursors = [];
   /// The caller's waiting request; none by default.
   Result<LeaveRequest?> pendingRequestResult = const Result.success(null);
   int pendingRequestCalls = 0;
@@ -113,9 +126,17 @@ class FakeLeaveRepository implements LeaveRepository {
   }
 
   @override
-  FutureResult<List<LeaveRequest>> myRequests(LeaveHistoryQuery query) async {
+  FutureResult<CursorPage<LeaveRequest>> myRequests(
+    LeaveHistoryQuery query, {
+    String? cursor,
+  }) async {
     myRequestsCalls.add(query);
-    return myRequestsResult;
+    myRequestsCursors.add(cursor);
+
+    final page = myRequestsPage;
+    if (page != null) return page(query, cursor);
+    // The plain list is the whole answer: one page, nothing after it.
+    return myRequestsResult.mapData(CursorPage.single);
   }
 
   @override

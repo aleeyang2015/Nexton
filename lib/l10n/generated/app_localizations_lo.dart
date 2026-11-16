@@ -1673,4 +1673,7 @@ class AppLocalizationsLo extends AppLocalizations {
   @override
   String get leaveStartedContactHr =>
       'ການລານີ້ເລີ່ມແລ້ວ ຈຶ່ງຍົກເລີກໃນແອັບບໍ່ໄດ້. ຖ້າຕ້ອງການປ່ຽນ, ກະລຸນາຕິດຕໍ່ HR.';
+
+  @override
+  String get listLoadMoreFailed => 'ໂຫຼດເພີ່ມບໍ່ໄດ້.';
 }

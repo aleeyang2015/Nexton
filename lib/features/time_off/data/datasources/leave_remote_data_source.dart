@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_response.dart';
+import '../../../../core/network/paged_list.dart';
 import '../../domain/entities/company_days_off.dart';
 import '../../domain/entities/leave_balance.dart';
 import '../../domain/entities/leave_history_query.dart';
@@ -25,7 +26,12 @@ abstract class LeaveRemoteDataSource {
   /// The company's days off, read to the last page.
   Future<CompanyDaysOff> restDays();
   Future<List<LeaveBalance>> balances(int year);
-  Future<List<LeaveRequest>> myRequests(LeaveHistoryQuery query);
+  /// One page of the caller's requests for [query], newest first. [cursor]
+  /// is the last page's `nextCursor`; leave it out for the first page.
+  Future<CursorPage<LeaveRequest>> myRequests(
+    LeaveHistoryQuery query, {
+    String? cursor,
+  });
   /// The caller's request that is waiting for a decision, or null when
   /// there is none.
   Future<LeaveRequest?> pendingRequest();
@@ -48,10 +54,13 @@ abstract class LeaveRemoteDataSource {
 }
 
 class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
-  /// A calendar month of leave never has more rows than this, so one page is
-  /// always the whole answer — same choice as `AttendanceRemoteDataSourceImpl`.
-  /// It is also the most the leave-type list will send in one page.
+  /// The most the server sends in one page. Used by the lists read in one go
+  /// (leave types, rest days, approvals).
   static const int _pageSize = 100;
+
+  /// How many requests the history asks for at a time; it loads the next
+  /// page as the user scrolls.
+  static const int historyPageSize = 20;
 
   final ApiClient _client;
 
@@ -121,7 +130,10 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
   }
 
   @override
-  Future<List<LeaveRequest>> myRequests(LeaveHistoryQuery query) async {
+  Future<CursorPage<LeaveRequest>> myRequests(
+    LeaveHistoryQuery query, {
+    String? cursor,
+  }) async {
     final response = await _client.get<dynamic>(
       LeavePaths.requestsMy,
       queryParameters: {
@@ -129,11 +141,12 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
         'end_date': _isoDate(query.to),
         if (query.leaveTypeId != null) 'leave_type_id': query.leaveTypeId,
         if (query.status != null) 'status': query.status!.name,
-        'page': 1,
-        'per_page': _pageSize,
+        // Sending `limit` puts the endpoint in cursor mode.
+        'limit': historyPageSize,
+        if (cursor != null) 'cursor': cursor,
       },
     );
-    return _parseList(response.data);
+    return CursorPage.fromBody(response.data, LeaveRequestModel.fromJson);
   }
 
   /// `status=pending&limit=1` puts the list in cursor mode; `data` is still
