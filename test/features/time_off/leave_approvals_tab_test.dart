@@ -8,6 +8,7 @@ import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
+import 'package:next_on/features/time_off/presentation/providers/leave_approvals_notifier.dart';
 import 'package:next_on/features/time_off/presentation/widgets/leave_approvals_tab.dart';
 import 'package:next_on/features/time_off/time_off_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
@@ -197,6 +198,61 @@ void main() {
       find.text('ຄຳຮ້ອງນີ້ບໍ່ໄດ້ລໍຖ້າການອະນຸມັດແລ້ວ (ມີຄົນຕັດສິນແລ້ວ ຫຼື ຖືກຍົກເລີກ).'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a reason typed while the lists reload is still sent, and '
+      'the answer still said', (tester) async {
+    final slow = _SlowApprovals()
+      ..pendingApprovalsResult = Result.success([pendingApproval()]);
+    repository = slow;
+    await pumpTab(tester);
+
+    await tester.tap(find.text('Reject'));
+    await tester.pumpAndSettle();
+    // Meanwhile the lists reload (another card was decided), and this card
+    // is off the screen while they do.
+    slow.delay = const Duration(milliseconds: 300);
+    tester
+        .element(find.byType(LeaveApprovalsTab))
+        .let((e) => ProviderScope.containerOf(e))
+        .read(leaveApprovalsNotifierProvider.notifier)
+        .retry();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    // The card is gone from under the dialog.
+    expect(find.text('Approve'), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'No cover that week');
+    await tester.pump();
+    slow.rejectResult = const Result.failure(
+      Failure.validation(message: 'leaveInvalidStatus'),
+    );
+    await tester.tap(find.text(en.leaveRejectReasonSubmit));
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pump(const Duration(milliseconds: 700));
+    await tester.pump();
+
+    expect(slow.rejectCalls.single.reason, 'No cover that week');
+    expect(find.text(en.leaveApprovalNoLongerWaiting), findsOneWidget);
+  });
+
+  testWidgets('Retry on a list that failed reloads that list only', (
+    tester,
+  ) async {
+    repository.approvedByMeResult = const Result.failure(
+      Failure.network(message: 'offline'),
+    );
+    await pumpTab(tester);
+    expect(find.text(en.leaveApprovalsLoadFailed), findsOneWidget);
+    final before = repository.myApprovalsCalls.length;
+
+    repository.approvedByMeResult = const Result.success([]);
+    await tester.tap(find.text(en.retry));
+    await tester.pump();
+    await tester.pump();
+
+    expect(repository.myApprovalsCalls.sublist(before), [LeaveStatus.approved]);
+    expect(find.text(en.leaveApprovalsLoadFailed), findsNothing);
   });
 
   group('my own request among those waiting', () {
@@ -392,4 +448,8 @@ class _SlowApprovals extends FakeLeaveRepository {
     if (delay > Duration.zero) await Future<void>.delayed(delay);
     return super.myApprovals(status: status, cursor: cursor);
   }
+}
+
+extension<T> on T {
+  R let<R>(R Function(T it) f) => f(this);
 }

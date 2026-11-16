@@ -76,12 +76,9 @@ class PagedList<T> {
     this.loadMoreError,
   });
 
-  /// The list after its first page.
-  factory PagedList.first(CursorPage<T> page) => PagedList(
-    items: page.items,
-    nextCursor: page.nextCursor,
-    hasMore: page.hasMore,
-  );
+  /// The list after its first page. A first page with no rows is the whole
+  /// list, whatever it says about there being more (see [append]).
+  factory PagedList.first(CursorPage<T> page) => PagedList<T>().append(page);
 
   /// True when a next page may be asked for now: there is one, none is on
   /// its way, and the last try did not fail (that one waits for a Retry, so

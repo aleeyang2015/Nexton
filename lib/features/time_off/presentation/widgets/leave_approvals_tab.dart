@@ -53,6 +53,7 @@ class LeaveApprovalsTab extends ConsumerWidget {
           heightBx(h: 12),
           _ApprovalList(
             value: state.pending,
+            onRetry: notifier.retryPending,
             emptyMessage: l10n.leaveApprovalsPendingEmpty,
             itemBuilder: (request) => _PendingApprovalCard(
               request: request,
@@ -80,6 +81,7 @@ class LeaveApprovalsTab extends ConsumerWidget {
           heightBx(h: 12),
           _ApprovalList(
             value: state.decided,
+            onRetry: notifier.retryDecided,
             emptyMessage: l10n.leaveApprovalsHistoryEmpty,
             itemBuilder: (request) => _DecidedApprovalRow(
               request: request,
@@ -195,19 +197,23 @@ class _LoadMoreWhenShownState extends State<_LoadMoreWhenShown> {
   Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
-class _ApprovalList extends ConsumerWidget {
+class _ApprovalList extends StatelessWidget {
   final AsyncValue<PagedList<LeaveRequest>> value;
+
+  /// Loads this list again after it failed; the other list is left as it is.
+  final VoidCallback onRetry;
   final String emptyMessage;
   final Widget Function(LeaveRequest) itemBuilder;
 
   const _ApprovalList({
     required this.value,
+    required this.onRetry,
     required this.emptyMessage,
     required this.itemBuilder,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final loading = value.isLoading && !value.hasValue;
 
@@ -226,8 +232,7 @@ class _ApprovalList extends ConsumerWidget {
     if (value.hasError) {
       return _ErrorBlock(
         message: l10n.leaveApprovalsLoadFailed,
-        onRetry: () =>
-            ref.read(leaveApprovalsNotifierProvider.notifier).retry(),
+        onRetry: onRetry,
       );
     }
 
@@ -335,8 +340,7 @@ class _PendingApprovalCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     // Requests carry no Lao type name; the loaded list has it.
     final types =
-        ref.watch(leaveTypesNotifierProvider).valueOrNull ??
-        const <LeaveType>[];
+        ref.watch(leaveTypesNotifierProvider).valueOrNull ?? const <LeaveType>[];
     final untouched = request.awaitsFirstApproval;
 
     return Container(
@@ -378,7 +382,10 @@ class _PendingApprovalCard extends ConsumerWidget {
               if (untouched) const _NewBadge(),
             ],
           ),
-          if (!untouched) ...[heightBx(h: 12), const _ClearedNotice()],
+          if (!untouched) ...[
+            heightBx(h: 12),
+            const _ClearedNotice(),
+          ],
           if (request.reason.isNotEmpty) ...[
             heightBx(h: 12),
             Container(
@@ -446,14 +453,19 @@ class _PendingApprovalCard extends ConsumerWidget {
     _report(l10n, outcome);
   }
 
+  // Everything the reject needs is taken before the dialog opens. While the
+  // approver types a reason the lists may reload (another card was decided)
+  // and take this card off the screen; the reason they typed is still sent,
+  // and the answer still reported. If the request is no longer theirs to
+  // reject, the server says so.
   Future<void> _reject(BuildContext context, WidgetRef ref) async {
-    final reason = await LeaveRejectReasonDialog.show(context);
-    if (reason == null || !context.mounted) return;
     final l10n = AppLocalizations.of(context)!;
-    final outcome = await ref
-        .read(leaveApprovalsNotifierProvider.notifier)
-        .reject(request, reason);
-    _report(l10n, outcome);
+    final notifier = ref.read(leaveApprovalsNotifierProvider.notifier);
+
+    final reason = await LeaveRejectReasonDialog.show(context);
+    if (reason == null) return;
+
+    _report(l10n, await notifier.reject(request, reason));
   }
 
   void _report(AppLocalizations l10n, LeaveDecisionOutcome outcome) {
@@ -611,7 +623,9 @@ class _DecisionButton extends StatelessWidget {
     return OutlinedButton(
       onPressed: enabled ? onTap : null,
       style: OutlinedButton.styleFrom(
-        side: BorderSide(color: enabled ? AppColors.danger : AppColors.gray300),
+        side: BorderSide(
+          color: enabled ? AppColors.danger : AppColors.gray300,
+        ),
         shape: shape,
         padding: padding,
       ),
@@ -634,8 +648,7 @@ class _DecidedApprovalRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final types =
-        ref.watch(leaveTypesNotifierProvider).valueOrNull ??
-        const <LeaveType>[];
+        ref.watch(leaveTypesNotifierProvider).valueOrNull ?? const <LeaveType>[];
     final pill = LeaveCopy.statusPill(l10n, request.status);
     final waitingFor = request.isPending ? request.currentStep : null;
 

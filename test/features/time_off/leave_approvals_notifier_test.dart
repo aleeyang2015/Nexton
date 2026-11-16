@@ -214,6 +214,24 @@ void main() {
       expect(pendingRows(), [waiting]);
     });
 
+    test('retrying one list leaves the other, and its pages, alone',
+        () async {
+      await settle();
+      final before = repository.myApprovalsCalls.length;
+
+      notifier().retryDecided();
+      await settle();
+      expect(repository.myApprovalsCalls.sublist(before), [
+        LeaveStatus.approved,
+      ]);
+
+      notifier().retryPending();
+      await settle();
+      expect(repository.myApprovalsCalls.sublist(before + 1), [
+        LeaveStatus.pending,
+      ]);
+    });
+
     test('retry loads both lists again, from their first pages', () async {
       await settle();
 
@@ -409,6 +427,20 @@ void main() {
       expect(outcome.kind, LeaveDecisionKind.success);
       expect(outcome.failure, isNull);
       expect(repository.myApprovalsCalls, hasLength(4));
+      expect(state().decidingIds, isEmpty);
+    });
+
+    test('two taps on the same request send one decision; the second says '
+        'nothing', () async {
+      await settle();
+
+      final first = notifier().approve(waiting);
+      final second = notifier().approve(waiting);
+      final outcomes = await Future.wait([first, second]);
+
+      expect(repository.approveCalls, hasLength(1));
+      expect(outcomes[0].kind, LeaveDecisionKind.success);
+      expect(outcomes[1].abandoned, isTrue);
       expect(state().decidingIds, isEmpty);
     });
 

@@ -41,9 +41,16 @@ class LeaveApprovalsNotifier extends AutoDisposeNotifier<LeaveApprovalsState> {
     );
   }
 
-  /// Re-runs both lists from their first pages, e.g. after the user retries
-  /// a failed load.
+  /// Re-runs both lists from their first pages.
   void retry() => _loadAll();
+
+  /// Loads the waiting list again from its first page, after it failed. The
+  /// decided list, and the pages of it already loaded, are left alone.
+  void retryPending() => _loadPending();
+
+  /// Loads the decided list again from its first page, after it failed. The
+  /// waiting list is left alone.
+  void retryDecided() => _loadDecided();
 
   /// Shows the requests the approver approved, or the ones they rejected.
   void setDecidedFilter(LeaveDecidedFilter filter) {
@@ -180,6 +187,11 @@ class LeaveApprovalsNotifier extends AutoDisposeNotifier<LeaveApprovalsState> {
     String requestId,
     Future<Result<LeaveRequest>> Function() action,
   ) async {
+    // A second tap before the button has had a frame to switch off. One
+    // decision per request at a time: the second would be refused as stale
+    // and tell the approver "no longer waiting" after their own approval.
+    if (state.decidingIds.contains(requestId)) return LeaveDecisionOutcome.gone;
+
     state = state.copyWith(decidingIds: {...state.decidingIds, requestId});
 
     final result = await action();
