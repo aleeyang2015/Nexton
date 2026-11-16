@@ -16,8 +16,21 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #22 is merged. #23 is next in the
-   work order and is on the owner's BLOCKED list; its backend dependency (the payslip month) is live since 13 Nov.
+1. #23 is built and pushed (`23-payslip-page-by-id`), waiting for the owner's say to merge; #24 follows.
+   #23 moves the payslip page onto #22's functions, so #22 is done on screen once #23 is merged.
+   Open after #23, none built there:
+   - the page does not refresh once loaded: an approved payslip left open does not turn to paid or failed until
+     it is reopened (before #23 it had a refresh). A pull to refresh is a small follow-up;
+   - a deductions total or a deduction line below zero (not something the server sends) is shown as the number
+     it is; "-5,000" then reads the same for +5,000 and -5,000 on the totals strip;
+   - "paid on" is shown whenever `paid_at` is set, also beside an "Approved" pill; the backend says `paid_at` is
+     null until the run is paid;
+   - the English "could not load" text is still "Unable to load the payslip." (the issue says "Could not load the
+     payslip."); the Lao is as the issue has it;
+   - a benefit with an empty name shows as a row with no title;
+   - nothing checks the page at phone width: the tests use a wide surface because the test font is far wider
+     than a real one. To look at on a narrow phone, with the long Lao titles;
+   - a payslip with thousands of lines builds them all at once (not a lazy list); real payslips have a dozen.
    Open after #22, none built there:
    - #22 is done at function level only. The issue's comment asks to move the payslip page's grouping, titles
      and captions onto the new functions ("one place, not two"); that page still reads the old `Payslip` entity,
@@ -190,7 +203,7 @@ count), #56 (sign-out ends the session).
 | 19 | #20 | payslip: read real payslips from the server (data layer) | `20-payslip-data-layer` | `62302e6`, `dd7400d` | merged to main directly (`bc25ec2`) | analyze clean, 1,101 tests, debug APK | MERGED — a real `nexton-demo` payslip to be checked against the reader |
 | 20 | #21 | payslip: the salary list shows real payslips, paid and failed | `21-salary-list-real-payslips` | `a8455eb`, `a6ed9fb` | merged to main directly (`cf7c936`) | analyze clean, 1,139 tests, debug APK | MERGED, phone check on `nexton-demo` pending — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
 | 21 | #22 | payslip: name, group and caption every payslip line | `22-payslip-line-names` | `123e7d3`, `c8626d5` | merged to main directly (`e9496d6`) | analyze clean, 1,225 tests, debug APK | MERGED — functions and strings only; no screen uses them until #23 |
-| 22 | #23 | payslip: the payslip page opens by id and shows the real lines | | | | | BLOCKED: backend, payslip month |
+| 22 | #23 | payslip: the payslip page opens by id and shows the real lines | `23-payslip-page-by-id` | `61e9f13`, `5c3f1b5` | none yet: branch pushed, waiting for the owner's say to merge | analyze clean, 1,261 tests, debug APK | IN REVIEW — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
 | 23 | #24 | payslip: tap the OT line to see what each OT paid | | | | | NOT STARTED |
 | 24 | #25 | payslip: open the PDF in the App and share it | | | | | NOT STARTED |
 | 25 | #26 | payslip: the summary card shows the latest payslip | | | | | NOT STARTED |
