@@ -61,7 +61,7 @@ docs edit goes straight to the gates and the PR.
    flutter run --dart-define=NEXTON_API_BASE_URL=https://nexton-demo.nexton.work/api --dart-define=NEXTON_TENANT_SLUG=nexton-demo
    ```
    A plain debug `flutter run` points at `nexton-demo.nexton.work`; release builds point at `app.nexton.work`
-   (`AppConstants.baseUrl`). The live server ignores the `X-Tenant-Slug` header, so the company comes only from the
+   (`AppConstants.baseUrl`), and so does `flutter run --profile` or `--release`: pass the defines above. The live server ignores the `X-Tenant-Slug` header, so the company comes only from the
    host, and the App leaves the header off unless `NEXTON_TENANT_SLUG` is set. Never test against
    `app.nexton.work`: it picks the company from the login, so a real company's login writes to that real company.
    Only the `nexton-demo.nexton.work` address keeps you on the test company. On an emulator, debug builds clock in
