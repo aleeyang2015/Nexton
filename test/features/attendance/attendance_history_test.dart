@@ -16,6 +16,7 @@ import 'package:next_on/features/attendance/domain/entities/attendance_summary.d
 import 'package:next_on/features/attendance/domain/entities/date_range.dart';
 import 'package:next_on/features/attendance/presentation/pages/attendance_history_page.dart';
 import 'package:next_on/features/attendance/presentation/providers/attendance_history_notifier.dart';
+import 'package:next_on/features/attendance/presentation/providers/attendance_history_state.dart';
 import 'package:next_on/features/attendance/presentation/widgets/attendance_history_copy.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
@@ -643,6 +644,85 @@ void main() {
     });
   });
 
+  group('AttendanceHistoryState.showsSummary', () {
+    const notLinked = Failure.validation(
+      message: 'employee not found',
+      code: 'EMPLOYEE_NOT_FOUND',
+    );
+    const offline = Failure.network(message: 'offline');
+    final month = DateTime(2026, 6);
+
+    AsyncValue<T> failed<T>(Failure failure) =>
+        AsyncValue<T>.error(failure, StackTrace.empty);
+
+    AttendanceHistoryState state({
+      required AsyncValue<List<AttendanceDay>> records,
+      required AsyncValue<AttendanceSummary> summary,
+    }) => AttendanceHistoryState(
+      month: month,
+      records: records,
+      summary: summary,
+    );
+
+    test('shown in every ordinary state', () {
+      const loaded = AsyncValue<AttendanceSummary>.data(AttendanceSummary.empty);
+      const rows = AsyncValue<List<AttendanceDay>>.data([]);
+
+      expect(
+        AttendanceHistoryState(month: month).showsSummary,
+        isTrue,
+        reason: 'both loading',
+      );
+      expect(state(records: rows, summary: loaded).showsSummary, isTrue);
+      expect(
+        state(records: rows, summary: failed(offline)).showsSummary,
+        isTrue,
+      );
+      expect(
+        state(records: failed(offline), summary: failed(offline)).showsSummary,
+        isTrue,
+      );
+    });
+
+    test('hidden when both say "not linked": the list says it once', () {
+      expect(
+        state(
+          records: failed(notLinked),
+          summary: failed(notLinked),
+        ).showsSummary,
+        isFalse,
+      );
+    });
+
+    test('hidden while the summary is still on its way to the same answer', () {
+      expect(
+        state(
+          records: failed(notLinked),
+          summary: const AsyncValue.loading(),
+        ).showsSummary,
+        isFalse,
+      );
+    });
+
+    test('shown when only the summary is not linked, or when it failed '
+        'another way', () {
+      expect(
+        state(
+          records: const AsyncValue.data([]),
+          summary: failed(notLinked),
+        ).showsSummary,
+        isTrue,
+      );
+      expect(
+        state(
+          records: failed(notLinked),
+          summary: failed(offline),
+        ).showsSummary,
+        isTrue,
+      );
+    });
+  });
+
   group('AttendanceHistoryPage', () {
     final now = DateTime.now();
     final thisMonth = DateTime(now.year, now.month);
@@ -799,6 +879,32 @@ void main() {
         // The list still loaded.
         expect(find.text('Late by 11 min'), findsOneWidget);
       });
+    });
+
+    testWidgets('a not-linked list with a summary that failed another way '
+        'keeps both messages: they are different facts', (tester) async {
+      repository
+        ..monthSummary = const Result.failure(
+          Failure.network(message: 'offline'),
+        )
+        ..monthRecords = const Result.failure(
+          Failure.validation(
+            message: 'employee not found',
+            code: 'EMPLOYEE_NOT_FOUND',
+          ),
+        );
+
+      await pumpPage(tester);
+
+      expect(find.text('Could not load attendance.'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+      expect(
+        find.text(
+          'Your account is not linked to an employee record. '
+          'Please contact HR.',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('another failure says "could not load attendance" with a '

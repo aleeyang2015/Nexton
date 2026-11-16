@@ -63,9 +63,8 @@ class AttendanceHistoryPage extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(15, 15, 15, 40),
                   children: [
                     // A login with no employee record fails both loads the
-                    // same way. Say it once, in the list below.
-                    if (!(AttendanceCopy.isNotLinked(state.summary.error) &&
-                        AttendanceCopy.isNotLinked(state.records.error))) ...[
+                    // same way; the state decides to say it once, below.
+                    if (state.showsSummary) ...[
                       _SummaryRow(summary: state.summary),
                       heightBx(h: 20),
                     ],

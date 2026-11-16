@@ -37,11 +37,6 @@ class AttendanceCopy {
     return (message: l10n.attSummaryLoadFailed, canRetry: true);
   }
 
-  /// True when [error] is the "no employee record" refusal — for a page that
-  /// would otherwise say it twice.
-  static bool isNotLinked(Object? error) =>
-      error is Failure && error.isEmployeeNotLinked;
-
   /// What to tell the user about a refused punch: the app's text for the
   /// rule, never the server's English.
   static String rule(AppLocalizations l10n, PunchBlocked blocked) =>
