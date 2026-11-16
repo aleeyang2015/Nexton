@@ -5,7 +5,102 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-16.
+Last updated: 2026-11-16 (end-of-day handoff). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+
+## Current status
+
+State checked against GitHub and `origin` at the end of 2026-11-16.
+
+| | |
+|---|---|
+| Last finished work order | 22 of 60: #23, the payslip page opens by id |
+| Next work order | **23 of 60: #24**, payslip: tap the OT line to see what each OT paid. Not started, no branch |
+| `origin/main` | `b55b1ed` "Merge branch '23-payslip-page-by-id' into main" (2026-11-16 15:44 +07) |
+| Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
+| Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
+| This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
+| Gates on `main` at `b55b1ed` | `flutter analyze lib test`: 1 warning, already on `main` before this work (`_ShiftHoursLine` unused, `attendance_status_card.dart:216`); `flutter test`: 1,261 passed, 0 failed; `flutter build apk --debug`: builds |
+| Pull requests | none for any work item. GitHub has two PRs, both docs and both merged before this work: #1 and #67 |
+| Issues on GitHub | all 72 are **open** (#2 to #74; #67 is a PR). Merge messages say `Refs #N`, not `Fixes #N`, so nothing closed by itself |
+
+How "MERGED" is used here: the issue's branch is contained in `origin/main` (checked with
+`git merge-base --is-ancestor`) and the gates passed on the merge commit. It was pushed to `main` directly, as a
+merge commit, on the owner's say; there is no pull request to point to, and the GitHub issue stays open until its
+check on a phone is done. No issue has had that phone check yet.
+
+### Finished on 2026-11-16
+
+The baseline and work orders 1 to 22 (#2 to #23), each on its own branch, reviewed by a fresh reviewer and an
+adversarial one (one reviewer for the tests-only #13), then merged to `main` with a merge commit. The rows under
+"Work items" carry each branch, commits, merge commit and test count. Test count went from 369 (baseline) to
+1,261.
+
+| Area | Issues | What is on `main` now |
+|---|---|---|
+| App set-up | #2, #3 | store builds reach `app.nexton.work`; debug builds reach `nexton-demo`; release signing reads `key.properties` |
+| Errors and sign-in | #4, #5, #6 | Lao text by error code; no surprise sign-outs; a wait after too many tries |
+| Attendance | #7 to #11 | the right day and month; refusals in Lao; weekday shift times, GPS only; real history fields; the server's month summary |
+| Profile | #12 | a clear message when the profile cannot load |
+| Leave | #13 to #17 | tests; active types and the balance check; company days off; refusals reload; the request page by id |
+| Lists and approvals | #18, #19 | load more on scroll (shared helper); "what I decided", own request without buttons |
+| Payslip | #20 to #23 | the server's payslip as sent; the real list; line names, groups and captions; the payslip page by id |
+
+### Not finished
+
+- **Phone checks on `nexton-demo`: none done, for any issue.** Every "Done when" box that needs a phone, two
+  logins or the web portal is still open. This is the main thing between "MERGED" and closing an issue.
+- **By hand, by the lead:** #2 a release APK signs in on a phone; #3 the real upload key, a release bundle, a
+  phone install, the iOS simulator build.
+- **Issues to close on GitHub** once checked: #2 to #23 (all still open). Also likely covered by merged work and
+  only needing a check before closing: #68, #69, #70, #72, #74 (see "Outside the work order").
+- **Priority bug #73** (forgot to scan with a photo is refused): root cause known, not scheduled.
+
+### Waiting for the owner
+
+1. **#24: say "go".** Its plan was shown at the end of 2026-11-16 and is recorded under "Next".
+2. **#56** is on the owner's BLOCKED list, and the backend said on 15 Nov that it is live. Treat as unblocked?
+   (The same question was answered "go" for #21 and #23.)
+3. **Paid chip and failed payments (#21):** a paid run whose payment failed is listed under "Paid", with its red
+   pill, as the issue says. Should "Paid" leave it out?
+4. **"What I decided" (#19)** sits under the waiting list in one scroll, as the issue says; with 140 waiting an
+   approver scrolls through all of them to reach it. A tab or a jump link?
+5. **Strict payslip reader (#20):** one payslip with bad money, or no id, fails the whole year's list. Keep, or
+   skip the bad row and show the rest?
+6. **Payslip page refresh (#23):** it does not refresh once loaded. Add a pull to refresh?
+7. **English labels (#22, #23):** existing "Base Salary", "Social Security", "Income Tax", "Income", "Unable to
+   load the payslip." against the issues' "Basic salary", "Social security", "Income tax", "Earnings", "Could not
+   load the payslip." Lao matches the issues.
+8. **#72 and #73:** where they go in the order.
+9. **This file on `main`?** It is only on `docs/next-actions`.
+
+## Confirmed decisions
+
+Product decisions confirmed on 2026-11-13. They stand unless the owner says otherwise.
+
+- App ID: `next.on.hr.com`.
+- Test company: `nexton-demo` (`nexton-demo.nexton.work`). Store builds: `app.nexton.work`. Never test against
+  `app.nexton.work`. Demo settings must not reach a production build.
+- Only department heads and HR approve.
+- Forgot to scan: up to 30 days back (not 90).
+- Off-site: a camera photo only, no gallery; the form opens only after a refused clock-in or clock-out; no menu
+  tile of its own.
+- Notifications: no number on the App icon; the unread count is on the bell inside the App; the native popup
+  still shows while the App is open; tapping a push opens its screen.
+- Payslips: statuses are exactly "Approved", "Paid", "Payment failed — contact HR" (no "Pending"); the PDF opens
+  in the App; a Share action.
+- Profile: real working hours, late and absent figures.
+
+Decided by the owner on 2026-11-16, during the work:
+
+- Work reaches `main` by a direct push of a merge commit, on the owner's "push issue N to main directly". No
+  force-push; no pull requests so far. Merge messages use `Refs #N`.
+- Each issue: a plan first, then the owner's "go", then the branch.
+- #7: the night-shift rule stays as the issue has it; no cut-off is added.
+- #8: left as built (one Lao sentence still wants a Lao speaker's eye: `ruleClockOutBeforeClockIn`).
+- #9: keep `lib/features/auth/auth-login.md` and `lib/features/attendance/attendance-offsite-requests.md`.
+- #21 and #23: built after the backend's "now live" comment of 13 Nov and the owner's "go". They are no longer
+  blocked.
+- #22: built as functions and strings; the payslip page moved onto them in #23.
 
 ## Baseline
 
@@ -16,7 +111,25 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #23 is merged; #24 is next in work order.
+1. **Tomorrow: #24 (work order 23 of 60), "payslip: tap the OT line to see what each OT paid".** It is not on the
+   blocked list and has no comments. Nothing has been built and no branch exists. The plan below was shown to the
+   owner on 2026-11-16 and waits for "go"; read the issue again first, in case it has changed.
+   - Goal: tapping the OT line on a payslip opens a sheet with each OT piece: date, time window, pay, paid time,
+     amount. No new call: the pieces are `overtime_items`, which #20 already reads.
+   - New `lib/core/utils/ot_pay.dart`: `otPayLabel` ("150%", "20,000 ກີບ/ຊມ" / "20,000 kip/h", an unknown type
+     gives the number). Shared with #30 later. Choice: it takes #20's `PayslipOvertimePayType` enum, not the
+     issue's `String payType`.
+   - New `presentation/widgets/payslip_ot_items_sheet.dart`: title "ລາຍລະອຽດໂອທີ" / "OT details"; one row per
+     piece; a piece of zero paid minutes still shows ("0 ນາທີ", "0") with a grey note; the footer is the OT line's
+     own amount, not a sum.
+   - `payslip_detail_page.dart`: the row with code `OT` is tappable, with a chevron, only when there are pieces.
+   - Strings in both arb files (prefix `payslipOt…`), then `flutter gen-l10n`.
+   - Tests: new `test/core/utils/ot_pay_test.dart`; new `payslip_ot_items_sheet_test.dart` (rows, the zero row
+     and its note, the total is the line's amount, a piece dated the month before, no pieces means not tappable).
+   - Branch name planned: `24-payslip-ot-items`, from fresh `origin/main`, after the owner's "go".
+   After #24 the order continues with #25 (the PDF in the App and Share), #26, then overtime from #27.
+
+   #23 is merged.
    #23 moves the payslip page onto #22's functions, so #22 is done on screen once #23 is merged.
    Open after #23, none built there:
    - the page does not refresh once loaded: an approved payslip left open does not turn to paid or failed until
@@ -175,8 +288,17 @@ nexton-vientiane` as sent by default.
 
 ## Blocked on the backend
 
-Not to be built until the backend team confirms: #21 and #23 (payslip month), #35 (OT hours), #55 (unread
-count), #56 (sign-out ends the session).
+The owner's list of 2026-11-13: not to be built until the backend team confirms. State on 2026-11-16:
+
+| Issue | Waits for | Latest word on the issue | State |
+|---|---|---|---|
+| #21, #23 | the payslip month (phoudssp/Nexton-Backend#191) | "Now live", 13 Nov 12:03 UTC | built and merged on the owner's "go" |
+| #35 | OT hours on the summary and history | no "live" comment; the one comment (13 Nov) still says to wait | **BLOCKED** |
+| #55 | the unread count (phoudssp/Nexton-Backend#190) | no "live" comment; the one comment (13 Nov) says it still waits | **BLOCKED** |
+| #56 | sign-out ends the session (phoudssp/Nexton-Backend#189) | "Now live", 15 Nov 13:27 UTC: `POST /api/v1/auth/logout`, body `{"refresh_token"}`, always `204` | live on the backend; **still on the owner's list until the owner says go** |
+
+When the work order reaches a blocked issue: read its comments again, record it as BLOCKED if nothing has
+changed, and move to the next one. The backend repo is private, so the issue's comments are the only source.
 
 ## Work items
 
@@ -236,7 +358,7 @@ count), #56 (sign-out ends the session).
 | 52 | #53 | push: tapping a push opens the right screen | | | | | NOT STARTED |
 | 53 | #54 | notifications: the bell shows recent pushes | | | | | NOT STARTED |
 | 54 | #55 | notifications: unread dots and a count on the bell | | | | | BLOCKED: backend, unread count |
-| 55 | #56 | sign-in: signing out ends the session on the server | | | | | BLOCKED: backend, sign-out ends the session |
+| 55 | #56 | sign-in: signing out ends the session on the server | | | | | BLOCKED on the owner's list; the backend said "now live" on 15 Nov. Needs the owner's go |
 | 56 | #57 | app: ask for an update when this version is too old, and show maintenance | | | | | NOT STARTED |
 | 57 | #58 | profile: see my personal information (read-only) | | | | | NOT STARTED |
 | 58 | #59 | profile: change my own photo | | | | | NOT STARTED |
@@ -254,10 +376,10 @@ Parent issues (#62 to #66) group the items above. The rest were reported later a
 | #64 | overtime: ask, join and clock OT in the App (guide Parts 1–2) | parent issue |
 | #65 | requests and approvals: off-site scans, forgot to scan, and one Approvals place | parent issue |
 | #66 | extras: push, notifications, update, profile and sign-in | parent issue |
-| #68 | leave approvals: refresh when the leave was already decided (INVALID_STATUS) | NOT STARTED |
-| #69 | leave cancel: refresh when the leave was already decided (INVALID_STATUS) | NOT STARTED |
-| #70 | leave approve: show "not enough days left" on 422 INSUFFICIENT_BALANCE | NOT STARTED |
-| #71 | push: sign the phone off on logout (shared phones get the last user's messages) | NOT STARTED |
-| #72 | payslip: the salary list stops at 10 payslips a year | NOT STARTED, priority bug |
-| #73 | forgot to scan: a request with a photo is always refused (attachment_url must be a string) | NOT STARTED, priority bug |
-| #74 | Leave edit: handle 409 LEAVE_CHANGED; type change now checked (backend #221) | NOT STARTED |
+| #68 | leave approvals: refresh when the leave was already decided (INVALID_STATUS) | likely covered by #16 (a stale refusal reloads both lists, then says why); to check on a phone, then close |
+| #69 | leave cancel: refresh when the leave was already decided (INVALID_STATUS) | likely covered by #16 and #17 (the request page reloads in place); to check, then close |
+| #70 | leave approve: show "not enough days left" on 422 INSUFFICIENT_BALANCE | likely covered by #16 (the approvals tab shows the code's own text); not checked against the issue line by line |
+| #71 | push: sign the phone off on logout (shared phones get the last user's messages) | NOT STARTED; belongs with #52 |
+| #72 | payslip: the salary list stops at 10 payslips a year | priority bug; fixed on screen by #21 (one page of 100); to confirm with a login that has more than 10 payslips in a year, then close |
+| #73 | forgot to scan: a request with a photo is always refused (attachment_url must be a string) | NOT STARTED, priority bug. Root cause known: the request sends the whole upload object as `attachment_url`, not the URL string. Not scheduled |
+| #74 | Leave edit: handle 409 LEAVE_CHANGED; type change now checked (backend #221) | its one to-do (map `LEAVE_CHANGED` on the edit call: refresh and say so) was built in #16; backend live 13 Nov 15:56 UTC; to check, then close |
