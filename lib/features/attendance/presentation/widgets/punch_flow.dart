@@ -173,7 +173,8 @@ class PunchFlow {
 
     final message = failure.localize(l10n);
 
-    // The client refused to send the punch: GPS off, no BSSID, no reason.
+    // The client refused to send the punch: GPS off, no permission, a mock
+    // position.
     // That is something the user can act on, so it blocks.
     if (failure.isMissingEvidence) {
       return AppDialog.warning(context, message: message);

@@ -16,7 +16,6 @@ class ClockRequestModel {
   /// out lets the backend apply its own default.
   Map<String, dynamic> toJson() {
     final reading = request.reading;
-    final reason = request.fieldWorkReason?.trim();
     final notes = request.notes?.trim();
 
     return {
@@ -26,11 +25,8 @@ class ClockRequestModel {
       if (reading.gpsAccuracy != null) 'gps_accuracy': reading.gpsAccuracy,
       if (reading.isMockLocation != null)
         'is_mock_location': reading.isMockLocation,
-      if (reading.wifiSsid != null) 'wifi_ssid': reading.wifiSsid,
-      if (reading.wifiBssid != null) 'wifi_bssid': reading.wifiBssid,
       if (request.deviceId != null) 'device_id': request.deviceId,
       if (request.photoUrl != null) 'photo_url': request.photoUrl,
-      if (reason != null && reason.isNotEmpty) 'field_work_reason': reason,
       if (notes != null && notes.isNotEmpty) 'notes': notes,
     };
   }

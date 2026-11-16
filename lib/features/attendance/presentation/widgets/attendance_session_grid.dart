@@ -12,10 +12,15 @@ class AttendanceSessionGrid extends StatelessWidget {
   final List<ShiftSessionSlot> slots;
   final Locale locale;
 
+  /// The date of the record the tiles are about. Each tile shows that
+  /// weekday's own hours when HR set them.
+  final DateTime day;
+
   const AttendanceSessionGrid({
     super.key,
     required this.slots,
     required this.locale,
+    required this.day,
   });
 
   static const double _gap = 8;
@@ -53,6 +58,7 @@ class AttendanceSessionGrid extends StatelessWidget {
   Widget _tile(int index) => _SessionTile(
     slot: slots[index],
     locale: locale,
+    day: day,
     // The first segment of the day is marked orange, later ones blue.
     dotColor: index == 0 ? AppColors.attendanceLate : AppColors.primary,
   );
@@ -61,11 +67,13 @@ class AttendanceSessionGrid extends StatelessWidget {
 class _SessionTile extends StatelessWidget {
   final ShiftSessionSlot slot;
   final Locale locale;
+  final DateTime day;
   final Color dotColor;
 
   const _SessionTile({
     required this.slot,
     required this.locale,
+    required this.day,
     required this.dotColor,
   });
 
@@ -94,6 +102,7 @@ class _SessionTile extends StatelessWidget {
             name: AttendanceCopy.shiftDetailName(locale, slot.detail),
             hours: AttendanceCopy.shiftDetailHours(
               slot.detail,
+              day: day,
             ).replaceAll(' ', ''),
             dotColor: dotColor,
           ),

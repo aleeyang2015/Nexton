@@ -197,9 +197,16 @@ class AttendanceCopy {
 
   /// A shift segment's scheduled hours, e.g. `"08:00 - 12:00"`, or empty when
   /// the backend sent neither end.
-  static String shiftDetailHours(ShiftDetail detail) {
-    final start = _shiftClockTime(detail.startTime);
-    final end = _shiftClockTime(detail.endTime);
+  ///
+  /// With [day], the hours are that weekday's own when HR set them
+  /// ([ShiftDetail.timesOn]): on a Saturday that closes at noon the card must
+  /// not say 17:00. Without it, the part's usual hours.
+  static String shiftDetailHours(ShiftDetail detail, {DateTime? day}) {
+    final times = day == null
+        ? (start: detail.startTime, end: detail.endTime)
+        : detail.timesOn(day);
+    final start = _shiftClockTime(times.start);
+    final end = _shiftClockTime(times.end);
     return [if (start != null) start, if (end != null) end].join(' - ');
   }
 

@@ -323,13 +323,6 @@ class AppLocalizationsLo extends AppLocalizations {
       'ບໍ່ສາມາດຫາສັນຍານສະຖານທີ່ໄດ້. ກະລຸນາຍ້າຍໄປບ່ອນທີ່ເຫັນທ້ອງຟ້າຊັດເຈນ ແລ້ວລອງໃໝ່.';
 
   @override
-  String get wifiUnavailable =>
-      'ບໍ່ສາມາດອ່ານເຄືອຂ່າຍ WiFi ໄດ້. ກະລຸນາເຊື່ອມຕໍ່ WiFi ຂອງຫ້ອງການ ແລ້ວລອງໃໝ່.';
-
-  @override
-  String get fieldReasonRequired => 'ກະລຸນາລະບຸເຫດຜົນຂອງວຽກນອກສະຖານທີ່.';
-
-  @override
   String get mockLocationDetected =>
       'ກຳລັງເປີດ Fake GPS. ກະລຸນາປິດກ່ອນ ແລ້ວລອງໃໝ່.';
 

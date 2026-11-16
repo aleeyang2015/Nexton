@@ -46,9 +46,6 @@ class PunchLocationReading extends Equatable {
   /// app doesn't know.
   final bool? isMockLocation;
 
-  final String? wifiSsid;
-  final String? wifiBssid;
-
   /// Set when a signal is missing and the source knows why, so the user can
   /// be told what to do about it rather than just that it failed.
   final LocationUnavailableReason? unavailableReason;
@@ -58,8 +55,6 @@ class PunchLocationReading extends Equatable {
     this.longitude,
     this.gpsAccuracy,
     this.isMockLocation,
-    this.wifiSsid,
-    this.wifiBssid,
     this.unavailableReason,
   });
 
@@ -73,8 +68,6 @@ class PunchLocationReading extends Equatable {
 
   bool get hasCoordinates => latitude != null && longitude != null;
 
-  bool get hasWifiBssid => wifiBssid != null && wifiBssid!.isNotEmpty;
-
   /// True only when the device positively reported a mock provider. Unknown
   /// stays false here — [isMockLocation] is where the uncertainty lives.
   bool get isMockConfirmed => isMockLocation == true;
@@ -85,8 +78,6 @@ class PunchLocationReading extends Equatable {
     longitude,
     gpsAccuracy,
     isMockLocation,
-    wifiSsid,
-    wifiBssid,
     unavailableReason,
   ];
 }
@@ -94,8 +85,8 @@ class PunchLocationReading extends Equatable {
 /// Reads the device signals a punch needs.
 ///
 /// This is a port, not an implementation: the domain states what evidence it
-/// requires and stays free of any platform plugin. Swapping the current stub
-/// for a real GPS/WiFi reader is a change to one binding in
+/// requires and stays free of any platform plugin. Swapping the reader is a
+/// change to one binding in
 /// `attendance_providers.dart` and nothing else.
 ///
 /// Implementations must not throw for a signal they simply cannot obtain —
