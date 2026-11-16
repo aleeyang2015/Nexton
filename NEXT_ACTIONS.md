@@ -16,7 +16,14 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #13 (leave: tests for what works today, and drop the old guide copy) is next in work order.
+1. #13: open the PR from `13-leave-tests` and review it. #14 is next.
+   What the #13 tests recorded about today's leave behaviour, for #14 to #19 to look at (none changed in #13):
+   - the request body sends `attachments` as one object, not a list (#73's text says leave takes a list);
+   - an unknown request status reads as pending, so the request looks editable and cancellable;
+   - a decision that fails for a reason other than `STEP_CHANGED` does not reload the lists;
+   - the decided list leaves out cancelled requests;
+   - the approval timeline never shows the approver's name;
+   - history and approvals fetch a single page of 100.
    Open points for the owner on #12: the profile page's green "Active" pill and the home header's online dot are
    hard-coded and still show beside "not linked to an employee"; the header allows the message two lines, which may
    cut the longer texts on a narrow phone (check on a device).
@@ -69,7 +76,7 @@ count), #56 (sign-out ends the session).
 | 9 | #10 | attendance: history rows show the real shift, method, place and day status | `10-history-real-fields` | `a7012fb` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 552 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 10 | #11 | attendance: the month summary shows the server's numbers, and "not linked to an employee" | `11-month-summary-server-numbers` | `ce8b5cc` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 567 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 11 | #12 | profile: no made-up numbers, and a clear message when the profile cannot load | `12-profile-load-errors` | `84f308e` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 599 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
-| 12 | #13 | leave: tests for what works today, and drop the old guide copy | | | | | NOT STARTED |
+| 12 | #13 | leave: tests for what works today, and drop the old guide copy | `13-leave-tests` | `debd358` | to open | analyze: 1 warning already on `main`; `flutter test`: 726 passed, 0 failed; debug APK builds; tests only, no app behaviour changed | IMPLEMENTED |
 | 13 | #14 | leave: the form offers only active types and checks the balance the server will charge | | | | | NOT STARTED |
 | 14 | #15 | leave: company days off are skipped, not charged | | | | | NOT STARTED |
 | 15 | #16 | leave: refusals show Lao text and the screen reloads | | | | | NOT STARTED |
