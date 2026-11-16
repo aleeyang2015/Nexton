@@ -328,7 +328,8 @@ class _LeaveCard extends ConsumerWidget {
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: () => context.push(AppRoutes.timeOffRequestDetail, extra: request),
+      onTap: () =>
+          context.push(AppRoutes.timeOffRequest(request.id), extra: request),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
@@ -380,7 +381,10 @@ class _LeaveCard extends ConsumerWidget {
               ],
             ),
             heightBx(h: 18),
-            LeaveApprovalTimeline(steps: request.steps),
+            LeaveApprovalTimeline(
+              steps: request.steps,
+              requestStatus: request.status,
+            ),
             if (showNote) ...[
               heightBx(h: 12),
               Container(

@@ -70,6 +70,16 @@ class LeaveCopy {
     return '${date.day} $month ${date.year}';
   }
 
+  /// "12 ພ.ຈ. 14:05" / "12 Nov 14:05" — when an approval step was decided.
+  /// Latin digits and a 24-hour clock in both languages.
+  static String stepTime(AppLocalizations l10n, DateTime at) {
+    final month = (_isLao(l10n) ? _monthsShortLo : _monthsShortEn)[at.month -
+        1];
+    final hour = at.hour.toString().padLeft(2, '0');
+    final minute = at.minute.toString().padLeft(2, '0');
+    return '${at.day} $month $hour:$minute';
+  }
+
   /// "ສ.ຫ. 2026" / "Sep 2026" — the leave calendar's month heading.
   static String monthYearShort(AppLocalizations l10n, DateTime month) {
     final names = _isLao(l10n) ? _monthsShortLo : _monthsShortEn;

@@ -7,6 +7,7 @@ import '../../domain/entities/leave_request.dart';
 import '../../time_off_providers.dart';
 import 'leave_balances_notifier.dart';
 import 'leave_history_state.dart';
+import 'leave_pending_request_notifier.dart';
 
 /// Owns the history tab's filter, date range and fetched list, plus the
 /// cancel action reachable from the detail page. The tab renders what comes
@@ -59,6 +60,7 @@ class LeaveHistoryNotifier extends AutoDisposeNotifier<LeaveHistoryState> {
     final stale = result.fold(LeaveErrorCode.isStaleForOwner, (_) => false);
     if (result.isSuccess || stale) {
       ref.invalidate(leaveBalancesNotifierProvider);
+      ref.invalidate(leavePendingRequestNotifierProvider);
       await _load();
       if (_disposed) return result;
     }

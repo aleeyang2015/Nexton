@@ -10,6 +10,7 @@ import '../../time_off_providers.dart';
 import 'leave_attachment_notifier.dart';
 import 'leave_balances_notifier.dart';
 import 'leave_history_notifier.dart';
+import 'leave_pending_request_notifier.dart';
 import 'leave_request_form_state.dart';
 import 'leave_types_notifier.dart';
 
@@ -236,6 +237,7 @@ class LeaveRequestFormNotifier
           _stale = true;
           ref.invalidate(leaveHistoryNotifierProvider);
           ref.invalidate(leaveBalancesNotifierProvider);
+          ref.invalidate(leavePendingRequestNotifierProvider);
         }
         return false;
       },
@@ -248,6 +250,8 @@ class LeaveRequestFormNotifier
         }
         ref.invalidate(leaveHistoryNotifierProvider);
         ref.invalidate(leaveBalancesNotifierProvider);
+        // A new request is now the one waiting; an edit may have changed it.
+        ref.invalidate(leavePendingRequestNotifierProvider);
         return true;
       },
     );

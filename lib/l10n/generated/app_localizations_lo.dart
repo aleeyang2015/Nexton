@@ -1658,4 +1658,19 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get leaveRequestGone => 'ຄຳຮ້ອງນີ້ບໍ່ມີແລ້ວ ຫຼື ທ່ານບໍ່ມີສິດເບິ່ງ.';
+
+  @override
+  String get leaveRequestPendingBanner =>
+      'ທ່ານມີຄຳຮ້ອງລາທີ່ລໍຖ້າອະນຸມັດຢູ່. ສົ່ງຄຳຮ້ອງໃໝ່ໄດ້ຫຼັງຈາກຄຳຮ້ອງນັ້ນຖືກຕັດສິນແລ້ວ.';
+
+  @override
+  String get leaveViewRequest => 'ເບິ່ງຄຳຮ້ອງ';
+
+  @override
+  String get leaveCancelApprovedConfirm =>
+      'ການລານີ້ອະນຸມັດແລ້ວ. ຍົກເລີກ ແລະ ຄືນວັນລາເຂົ້າຍອດຄົງເຫຼືອບໍ?';
+
+  @override
+  String get leaveStartedContactHr =>
+      'ການລານີ້ເລີ່ມແລ້ວ ຈຶ່ງຍົກເລີກໃນແອັບບໍ່ໄດ້. ຖ້າຕ້ອງການປ່ຽນ, ກະລຸນາຕິດຕໍ່ HR.';
 }

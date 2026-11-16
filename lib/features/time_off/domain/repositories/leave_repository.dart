@@ -23,6 +23,11 @@ abstract class LeaveRepository {
   /// `GET /leave/requests/my` — the history tab's list.
   FutureResult<List<LeaveRequest>> myRequests(LeaveHistoryQuery query);
 
+  /// `GET /leave/requests/my?status=pending&limit=1` — the caller's request
+  /// that is waiting for a decision, or null when there is none. While one
+  /// waits, the server refuses a new request.
+  FutureResult<LeaveRequest?> pendingRequest();
+
   /// `GET /leave/requests/:id` — the detail page.
   FutureResult<LeaveRequest> requestDetail(String id);
 

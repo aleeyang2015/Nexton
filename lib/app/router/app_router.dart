@@ -49,14 +49,65 @@ class AppRoutes {
   static const String offsiteRequest = '/attendance/offsite';
   static const String cameraCapture = '/attendance/camera';
   static const String timeOff = '/time-off';
-  static const String timeOffRequestDetail = '/time-off/request';
-  static const String timeOffRequestEdit = '/time-off/request/edit';
+  /// One leave request, by its id. Route patterns; build a location with
+  /// [timeOffRequest] and [timeOffRequestEditOf].
+  static const String timeOffRequestDetail = '/time-off/request/:id';
+
+  /// Under the id, never `/time-off/request/edit`: `:id` would read "edit"
+  /// as a request id.
+  static const String timeOffRequestEdit = '/time-off/request/:id/edit';
+
+  /// The location of the leave request [id], for a list row, a banner link
+  /// or a push notification.
+  static String timeOffRequest(String id) =>
+      '/time-off/request/${Uri.encodeComponent(id)}';
+
+  /// The location of the edit page of the leave request [id].
+  static String timeOffRequestEditOf(String id) =>
+      '${timeOffRequest(id)}/edit';
   static const String timeOffLeaveTypePicker = '/time-off/leave-type';
   static const String salaryHistory = '/salary-history';
   static const String payslipDetail = '/salary-history/payslip';
   static const String approvals = '/approvals';
   static const String notFound = '/404';
 }
+
+/// The leave request page and its edit page, each opened by the request's
+/// id, so a history row, the "waiting" banner and a push notification can
+/// all open them.
+///
+/// `extra` may carry the request the caller already has, for a first paint
+/// while the page loads its own copy; it is only used when it is that
+/// request. With no `extra` the page loads by id.
+///
+/// A list of its own so the paths can be tested without the whole App.
+final List<GoRoute> leaveRequestRoutes = [
+  GoRoute(
+    path: AppRoutes.timeOffRequestDetail,
+    name: 'timeOffRequestDetail',
+    builder: (context, state) {
+      final id = state.pathParameters['id'] ?? '';
+      return LeaveRequestDetailPage(
+        requestId: id,
+        initial: _leaveRequestExtra(state.extra, id),
+      );
+    },
+  ),
+  GoRoute(
+    path: AppRoutes.timeOffRequestEdit,
+    name: 'timeOffRequestEdit',
+    builder: (context, state) {
+      final id = state.pathParameters['id'] ?? '';
+      return LeaveRequestEditPage(
+        requestId: id,
+        initial: _leaveRequestExtra(state.extra, id),
+      );
+    },
+  ),
+];
+
+LeaveRequest? _leaveRequestExtra(Object? extra, String id) =>
+    extra is LeaveRequest && extra.id == id ? extra : null;
 
 /// The whole navigation policy for a session, as a pure function so it can be
 /// tested without a widget tree.
@@ -231,27 +282,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
-      // Leave request detail / edit — reached by tapping a history card; the
-      // request rides along as `extra`, so a direct hit with nothing to show
-      // falls through to the 404 page (same pattern as payslipDetail).
-      GoRoute(
-        path: AppRoutes.timeOffRequestDetail,
-        name: 'timeOffRequestDetail',
-        builder: (context, state) {
-          final request = state.extra;
-          if (request is! LeaveRequest) return const NotFoundPage();
-          return LeaveRequestDetailPage(request: request);
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.timeOffRequestEdit,
-        name: 'timeOffRequestEdit',
-        builder: (context, state) {
-          final request = state.extra;
-          if (request is! LeaveRequest) return const NotFoundPage();
-          return LeaveRequestEditPage(request: request);
-        },
-      ),
+      ...leaveRequestRoutes,
 
       // Leave-type chooser — pushed from the request form's "Leave type" card
       // and the history tab's filter, popped with the selected `leave_type_id`

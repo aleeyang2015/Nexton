@@ -32,6 +32,10 @@ class LeaveRepositoryImpl extends BaseRepository implements LeaveRepository {
       guard(() => _remote.myRequests(query));
 
   @override
+  FutureResult<LeaveRequest?> pendingRequest() =>
+      guard(_remote.pendingRequest);
+
+  @override
   FutureResult<LeaveRequest> requestDetail(String id) =>
       guard(() => _remote.requestDetail(id));
 

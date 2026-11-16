@@ -3085,6 +3085,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This request no longer exists, or you cannot view it.'**
   String get leaveRequestGone;
+
+  /// No description provided for @leaveRequestPendingBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'You have a leave request waiting for approval. You can send a new one once it is decided.'**
+  String get leaveRequestPendingBanner;
+
+  /// No description provided for @leaveViewRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'View request'**
+  String get leaveViewRequest;
+
+  /// No description provided for @leaveCancelApprovedConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave is approved. Cancel it and return the days to your balance?'**
+  String get leaveCancelApprovedConfirm;
+
+  /// No description provided for @leaveStartedContactHr.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave has started, so it cannot be cancelled in the App. To change it, contact HR.'**
+  String get leaveStartedContactHr;
 }
 
 class _AppLocalizationsDelegate

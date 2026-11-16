@@ -302,9 +302,10 @@ void main() {
       'INVALID_STATUS': 'leaveInvalidStatus',
       'EMPLOYEE_NOT_FOUND': 'leaveEmployeeNotFound',
       'LEAVE_CHANGED': 'leaveChanged',
+      'LEAVE_ALREADY_STARTED': 'leaveStartedContactHr',
     };
 
-    test('the table the data source reads has exactly these eight codes', () {
+    test('the table the data source reads has exactly these nine codes', () {
       expect(LeaveErrorCode.tokenByWire, tokens);
     });
 
@@ -402,11 +403,45 @@ void main() {
 
       await expectLater(source.types(), throwsA(isA<DioException>()));
       await expectLater(source.balances(2026), throwsA(isA<DioException>()));
+      await expectLater(source.myApprovals(), throwsA(isA<DioException>()));
+      await expectLater(source.pendingRequest(), throwsA(isA<DioException>()));
+    });
+
+    test('loading one request by id: a 404 means it is gone, and the '
+        'no-staff-record refusal keeps its own text', () async {
+      refuse(404, 'NOT_FOUND');
+      await expectLater(
+        source.requestDetail('req-1'),
+        throwsA(
+          isA<ValidationFailure>().having(
+            (f) => f.message,
+            'message',
+            'leaveRequestGone',
+          ),
+        ),
+      );
+
+      refuse(400, 'EMPLOYEE_NOT_FOUND');
+      await expectLater(
+        source.requestDetail('req-1'),
+        throwsA(
+          isA<ValidationFailure>().having(
+            (f) => f.message,
+            'message',
+            'leaveEmployeeNotFound',
+          ),
+        ),
+      );
+    });
+
+    test('loading one request by id: no signal or a 500 rethrows, to be '
+        'retried', () async {
+      refuse(500, 'INTERNAL');
+
       await expectLater(
         source.requestDetail('req-1'),
         throwsA(isA<DioException>()),
       );
-      await expectLater(source.myApprovals(), throwsA(isA<DioException>()));
     });
   });
 
@@ -580,5 +615,27 @@ void main() {
         expect(result.isFailure, isTrue);
       },
     );
+  });
+
+  group('pendingRequest', () {
+    test('asks for one pending request of the caller\'s', () async {
+      answerList();
+
+      final request = await source.pendingRequest();
+
+      expect(adapter.lastRequest!.path, '/core_hr/leave/requests/my');
+      expect(adapter.lastRequest!.method, 'GET');
+      expect(adapter.lastRequest!.queryParameters, {
+        'status': 'pending',
+        'limit': 1,
+      });
+      expect(request!.id, 'req-1');
+    });
+
+    test('an empty list means none is waiting', () async {
+      adapter.body = {'success': true, 'data': <Object>[]};
+
+      expect(await source.pendingRequest(), isNull);
+    });
   });
 }

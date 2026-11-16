@@ -8,6 +8,13 @@ class LeaveRequestStepModel {
 
   static LeaveApprovalStep fromJson(Map<String, dynamic> json) {
     final approver = json['approver'];
+    final status = LeaveApprovalStep.statusFromWire(
+      LeaveJson.str(json['status']),
+    );
+    final decided =
+        status == LeaveStepStatus.approved ||
+        status == LeaveStepStatus.rejected;
+
     return LeaveApprovalStep(
       id: LeaveJson.nonEmpty(json['id']),
       stepNo: LeaveJson.intOf(json['step_no']) ?? 0,
@@ -15,8 +22,12 @@ class LeaveRequestStepModel {
       approverName: approver is Map
           ? LeaveJson.nonEmpty(approver['name'])
           : null,
-      status: LeaveApprovalStep.statusFromWire(LeaveJson.str(json['status'])),
+      status: status,
       note: LeaveJson.nonEmpty(json['note']),
+      // `updated_at` is set to the decision time when a step is approved or
+      // rejected. On a step not decided yet it is only when the row was
+      // last touched, and is not shown as a decision.
+      decidedAt: decided ? LeaveJson.dateTime(json['updated_at']) : null,
     );
   }
 }
