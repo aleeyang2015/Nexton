@@ -135,7 +135,6 @@
   "attendanceLateByMinutes": "ມາຊ້າ {minutes} ນາທີ",
   "attendanceEarlyExitStatus": "ອອກກ່ອນເວລາ",
   "attendanceEarlyExitByMinutes": "ອອກກ່ອນ {minutes} ນາທີ",
-  "attendanceOvertimeHours": "ໂອທີ {hours} ຊົ່ວໂມງ",
   "hoursUnit": "ຊົ່ວໂມງ",
   "shiftMorningLabel": "ກະເຊົ້າ",
   "shiftAfternoonLabel": "ກະແລງ",
@@ -503,5 +502,8 @@
   "ruleClockOutBeforeClockIn": "ລົງເວລາອອກກ່ອນເວລາລົງເວລາເຂົ້າບໍ່ໄດ້.",
   "ruleOtChanged": "ໂອທີຂອງທ່ານຫາກໍ່ປ່ຽນ. ກະລຸນາລອງໃໝ່.",
   "ruleAfterCheckoutWindowAt": "ເລີຍເວລາລົງເວລາອອກແລ້ວ (ເປີດຮອດ {time}).",
-  "ruleOutsideShiftHoursAt": "ໝົດເວລາລົງເວລາເຂົ້າຂອງມື້ນີ້ແລ້ວ (ກະສຸດທ້າຍຈົບ {time})."
+  "ruleOutsideShiftHoursAt": "ໝົດເວລາລົງເວລາເຂົ້າຂອງມື້ນີ້ແລ້ວ (ກະສຸດທ້າຍຈົບ {time}).",
+  "attendanceAbsentStatus": "ຂາດວຽກ",
+  "attendanceIncompleteStatus": "ບໍ່ຄົບ",
+  "attendanceHalfDayStatus": "ເຄິ່ງມື້"
 }

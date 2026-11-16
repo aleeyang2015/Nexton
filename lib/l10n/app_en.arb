@@ -164,10 +164,6 @@
   "@attendanceEarlyExitByMinutes": {
     "placeholders": {"minutes": {"type": "int"}}
   },
-  "attendanceOvertimeHours": "OT {hours}h",
-  "@attendanceOvertimeHours": {
-    "placeholders": {"hours": {"type": "String"}}
-  },
   "hoursUnit": "h",
   "shiftMorningLabel": "Morning",
   "shiftAfternoonLabel": "Afternoon",
@@ -683,5 +679,8 @@
     "placeholders": {
       "time": {"type": "String"}
     }
-  }
+  },
+  "attendanceAbsentStatus": "Absent",
+  "attendanceIncompleteStatus": "Incomplete",
+  "attendanceHalfDayStatus": "Half day"
 }

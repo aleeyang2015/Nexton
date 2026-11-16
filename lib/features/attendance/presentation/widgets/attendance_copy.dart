@@ -217,6 +217,14 @@ class AttendanceCopy {
     return _pickLocalized(locale, detail.name, detail.nameLo);
   }
 
+  /// The name of the shift part a history row's session belongs to, in the
+  /// app's language, or null when the session has no shift part (or the
+  /// backend named none) — the row then falls back to its position.
+  static String? sessionPartName(Locale locale, AttendanceSession session) {
+    final picked = _pickLocalized(locale, session.partName, session.partNameLo);
+    return picked.isEmpty ? null : picked;
+  }
+
   /// `name` or `name_lo` by locale — Lao prefers `name_lo`, everything else
   /// prefers `name` — falling back to whichever of the two is actually set.
   /// Shared by every "name or name_lo" field the API sends (a shift's own

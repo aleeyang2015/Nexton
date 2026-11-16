@@ -85,21 +85,62 @@ class AttendanceHistoryCopy {
     return (_isLao(l10n) ? _weekdaysShortLo : _weekdaysShortEn)[date.weekday % 7];
   }
 
-  /// A standard day is 8 hours, until a real shift/schedule endpoint
-  /// exists. Worked time beyond that reads as overtime.
-  static const double standardWorkHours = 8;
+  /// The day statuses the backend rolls a record up to that the pill names
+  /// outright. `present` and `late` are not here: for those the pill is
+  /// decided by the late and early-exit flags below.
+  static const String _statusAbsent = 'absent';
+  static const String _statusIncomplete = 'incomplete';
+  static const String _statusHalfDay = 'half_day';
+  static const String _statusLate = 'late';
 
-  /// The one status pill a day's row shows. Priority: an early exit or a
-  /// late arrival is the more actionable fact, so either outranks overtime;
-  /// a day with neither reads as a plain, on-time "present".
+  /// The one status pill a day's row shows.
   ///
-  /// Exact minutes/hours show only when the backend reports them ([lateMinutes]-
-  /// style fields); otherwise the pill still names the status without a
-  /// fabricated number.
+  /// The backend's own verdict on the day comes first: a day it stored as
+  /// absent, incomplete or a half day says so, whatever its punches look
+  /// like — a day with only a clock-out is absent, not "present". For a day
+  /// that was worked (`present`, `late`, or a status this app does not know)
+  /// a late arrival outranks an early exit, and a day with neither is a
+  /// plain "present". A day the backend calls `late` is late even when no
+  /// session carries the flag.
+  ///
+  /// There is no overtime pill. Time worked past the shift is not overtime
+  /// unless it was approved, and this list cannot know that.
+  ///
+  /// Exact minutes show only when the backend reports them; otherwise the
+  /// pill still names the status without a fabricated number.
   static ({String label, Color color}) status(
     AppLocalizations l10n,
     AttendanceDay day,
   ) {
+    final dayStatus = day.status?.trim().toLowerCase();
+    switch (dayStatus) {
+      case _statusAbsent:
+        return (
+          label: l10n.attendanceAbsentStatus,
+          color: AppColors.attendanceAbsent,
+        );
+      case _statusIncomplete:
+        return (
+          label: l10n.attendanceIncompleteStatus,
+          color: AppColors.attendanceLate,
+        );
+      case _statusHalfDay:
+        return (
+          label: l10n.attendanceHalfDayStatus,
+          color: AppColors.gray600,
+        );
+    }
+
+    if (day.isLate || dayStatus == _statusLate) {
+      final minutes = day.lateMinutes;
+      return (
+        label: minutes == null
+            ? l10n.attendanceLateStatus
+            : l10n.attendanceLateByMinutes(minutes),
+        color: AppColors.attendanceLate,
+      );
+    }
+
     if (day.isEarlyExit) {
       final minutes = day.earlyExitMinutes;
       return (
@@ -110,35 +151,9 @@ class AttendanceHistoryCopy {
       );
     }
 
-    if (day.isLate) {
-      final minutes = day.lateMinutes;
-      return (
-        label: minutes == null
-            ? l10n.attendanceLateStatus
-            : l10n.attendanceLateByMinutes(minutes),
-        color: AppColors.attendanceLate,
-      );
-    }
-
-    final overtime = _overtimeHours(day.totalWorkHours);
-    if (overtime != null) {
-      return (
-        label: l10n.attendanceOvertimeHours(overtime.toStringAsFixed(1)),
-        // Reuses the "absent" red: on this page red means "stands out from
-        // a plain day", not specifically an absence.
-        color: AppColors.attendanceAbsent,
-      );
-    }
-
     return (
       label: l10n.attendancePresentStatus,
       color: AppColors.attendancePresent,
     );
-  }
-
-  static double? _overtimeHours(double? totalWorkHours) {
-    if (totalWorkHours == null) return null;
-    final extra = totalWorkHours - standardWorkHours;
-    return extra > 0 ? extra : null;
   }
 }

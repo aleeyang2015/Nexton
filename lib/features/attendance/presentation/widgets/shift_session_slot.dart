@@ -51,14 +51,13 @@ class ShiftSessionSlot {
   /// backend told us:
   ///
   /// 1. the start time of the shift part the backend filed it under
-  ///    (`shift_detail.start_time`), or the one in its `session_label`
-  ///    (`"13:00–17:00"` ↔ `start_time: "13:00:00"`) — the backend's own
-  ///    assignment, matched against the day's window and then against the
-  ///    part's usual start, since either may be what the backend sent;
+  ///    (`shift_detail.start_time`) — the backend's own assignment, matched
+  ///    against the day's window and then against the part's usual start,
+  ///    since either may be what the backend sent;
   /// 2. its clock-in time against the day's windows — a 12:00 clock-in on
   ///    an 08:00–12:00 / 13:00–17:00 day is an early start to the afternoon,
   ///    not the morning;
-  /// 3. nothing — an unlabelled, unpunched session isn't placed.
+  /// 3. nothing — an unpunched session with no shift part isn't placed.
   ///
   /// The clock-in time is the last resort because it is a guess: when a
   /// weekday's row makes two windows overlap, only the backend's assignment
@@ -68,11 +67,8 @@ class ShiftSessionSlot {
     List<({String? start, String? end})> windows,
     List<ShiftDetail> details,
   ) {
-    for (final assigned in [
-      _minutesOf(session.partStartTime),
-      _minutesOf(session.label),
-    ]) {
-      if (assigned == null) continue;
+    final assigned = _minutesOf(session.partStartTime);
+    if (assigned != null) {
       for (var i = 0; i < windows.length; i++) {
         if (_minutesOf(windows[i].start) == assigned) return i;
       }

@@ -418,13 +418,13 @@ void main() {
               'status': 'present',
               'sessions': [
                 {
-                  'session_label': '08:00–12:00',
+                  'shift_detail': {'start_time': '08:00', 'end_time': '12:00'},
                   'clock_in': '2026-11-16T01:05:00Z',
                   'clock_out': '2026-11-16T05:00:00Z',
                   'is_late': false,
                 },
                 {
-                  'session_label': '13:30–17:30',
+                  'shift_detail': {'start_time': '13:30', 'end_time': '17:30'},
                   'clock_in': '2026-11-16T06:30:00Z',
                   'is_late': true,
                 },
@@ -438,7 +438,7 @@ void main() {
       expect(day.sessions, hasLength(2));
       expect(day.isClockedIn, isTrue);
       expect(day.nextAction, ClockAction.clockOut);
-      expect(day.openSession?.label, '13:30–17:30');
+      expect(day.openSession?.partStartTime, '13:30');
       expect(day.firstClockIn!.toUtc(), DateTime.utc(2026, 11, 16, 1, 5));
       expect(day.lastClockOut!.toUtc(), DateTime.utc(2026, 11, 16, 5));
     });
@@ -509,7 +509,6 @@ void main() {
                     'date': '2026-11-30',
                     'sessions': [
                       {
-                        'session_label': '23:30–07:30',
                         'clock_in': '2026-11-30 23:35:00',
                         'shift_detail': {
                           'start_time': '23:30',
@@ -525,7 +524,7 @@ void main() {
       final day = await sourceAt(DateTime(2026, 12, 1, 2)).todayRecord();
 
       expect(day.nextAction, ClockAction.clockOut);
-      expect(day.openSession?.label, '23:30–07:30');
+      expect(day.openSession?.partStartTime, '23:30');
       expect(day.openSession?.crossesMidnight, isTrue);
     });
 
@@ -541,7 +540,6 @@ void main() {
                     'date': '2026-12-01',
                     'sessions': [
                       {
-                        'session_label': '00:00–08:00',
                         'clock_in': '2026-11-30 23:50:00',
                         'shift_detail': {
                           'start_time': '00:00:00',
@@ -557,7 +555,7 @@ void main() {
       final day = await sourceAt(DateTime(2026, 11, 30, 23, 55)).todayRecord();
 
       expect(day.nextAction, ClockAction.clockOut);
-      expect(day.openSession?.label, '00:00–08:00');
+      expect(day.openSession?.partStartTime, '00:00:00');
     });
 
     test('rows dated after tomorrow do not hide today: the whole month is '
@@ -572,7 +570,7 @@ void main() {
         'date': '2026-11-16',
         'sessions': [
           {
-            'session_label': '08:00–17:00',
+            'shift_detail': {'start_time': '08:00', 'end_time': '17:00'},
             'clock_in': '2026-11-16 08:02:00',
           },
         ],
@@ -624,13 +622,17 @@ void main() {
             {
               'date': '2026-11-16',
               'sessions': [
-                {'session_label': '13:00–17:00'},
+                {
+                  'shift_detail': {'start_time': '13:00', 'end_time': '17:00'},
+                },
               ],
             },
             {
               'date': '2026-11-13',
               'sessions': [
-                {'session_label': '08:00–12:00'},
+                {
+                  'shift_detail': {'start_time': '08:00', 'end_time': '12:00'},
+                },
               ],
             },
           ],
@@ -638,7 +640,7 @@ void main() {
 
       final day = await sourceAt(monday).todayRecord();
 
-      expect(day.sessions.single.label, '13:00–17:00');
+      expect(day.sessions.single.partStartTime, '13:00');
     });
 
     test('a day shift left open yesterday still offers clock-in', () async {
@@ -651,7 +653,6 @@ void main() {
               'date': '2026-11-15',
               'sessions': [
                 {
-                  'session_label': '08:00–17:00',
                   'clock_in': '2026-11-15 08:02:00',
                   'shift_detail': {'start_time': '08:00', 'end_time': '17:00'},
                 },

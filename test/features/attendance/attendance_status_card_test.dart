@@ -45,9 +45,10 @@ class _FixedProfileNotifier extends ProfileNotifier {
 
 void main() {
   group('ShiftSessionSlot.build', () {
-    test('pairs each segment with the session whose label starts with it', () {
+    test('pairs each segment with the session the backend filed under it', () {
       final afternoon = AttendanceSession(
-        label: '13:00–17:00',
+        partStartTime: '13:00:00',
+        partEndTime: '17:00:00',
         clockIn: _todayAt(12, 58),
       );
 
@@ -83,19 +84,20 @@ void main() {
       );
     });
 
-    test('reads a single-digit hour in the label', () {
+    test('reads a single-digit hour in the part\'s start time', () {
       final morning = AttendanceSession(
-        label: '8:00-12:00',
+        partStartTime: '8:00',
+        partEndTime: '12:00',
         clockIn: _todayAt(12, 0),
       );
 
       final slots = ShiftSessionSlot.build([_morning, _afternoon], [morning]);
 
-      // The backend's own label wins over the clock-in time.
+      // The backend's own assignment wins over the clock-in time.
       expect(slots[0].session, morning);
     });
 
-    test('uses the clock-in time for a session with no label', () {
+    test('uses the clock-in time for a session with no shift part', () {
       final morning = AttendanceSession(
         clockIn: _todayAt(8, 2),
         clockOut: _todayAt(12, 5),
@@ -111,11 +113,10 @@ void main() {
 
   group('ShiftSessionSlot.build on a weekday with its own times', () {
     final saturday = DateTime(2026, 11, 14);
-    AttendanceSession at(int hour, int minute, {String? part, String? label}) =>
+    AttendanceSession at(int hour, int minute, {String? part}) =>
         AttendanceSession(
           clockIn: DateTime(2026, 11, 14, hour, minute),
           partStartTime: part,
-          label: label,
         );
 
     test('a split day keeps each punch on its own tile', () {
@@ -192,15 +193,17 @@ void main() {
         [at(13, 5, part: '13:00:00')],
         day: saturday,
       );
-      final byLabel = ShiftSessionSlot.build(
+      final byClockIn = ShiftSessionSlot.build(
         [morning, _afternoon],
-        [at(13, 5, label: '13:00–17:00')],
+        [at(13, 5)],
         day: saturday,
       );
 
       expect(byPart[1].session, isNotNull);
       expect(byPart[0].session, isNull);
-      expect(byLabel[1].session, isNotNull);
+      // With nothing from the backend to go on, the clock-in time is a guess,
+      // and in an overlap it picks the earlier part.
+      expect(byClockIn[0].session, isNotNull);
     });
 
     test('a part time the backend sent as the usual start still finds its '
@@ -232,12 +235,14 @@ void main() {
           AttendanceDay(
             sessions: [
               AttendanceSession(
-                label: '08:00–12:00',
+                partStartTime: '08:00',
+                partEndTime: '12:00',
                 clockIn: _todayAt(8, 2),
                 clockOut: _todayAt(12, 5),
               ),
               AttendanceSession(
-                label: '13:00–17:00',
+                partStartTime: '13:00',
+                partEndTime: '17:00',
                 clockIn: _todayAt(12, 58),
               ),
             ],

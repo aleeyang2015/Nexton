@@ -419,11 +419,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String attendanceOvertimeHours(String hours) {
-    return 'OT ${hours}h';
-  }
-
-  @override
   String get hoursUnit => 'h';
 
   @override
@@ -1614,4 +1609,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String ruleOutsideShiftHoursAt(String time) {
     return 'Check-in has closed for today (the last shift ended at $time).';
   }
+
+  @override
+  String get attendanceAbsentStatus => 'Absent';
+
+  @override
+  String get attendanceIncompleteStatus => 'Incomplete';
+
+  @override
+  String get attendanceHalfDayStatus => 'Half day';
 }

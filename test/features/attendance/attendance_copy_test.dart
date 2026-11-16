@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/features/attendance/domain/entities/attendance_day.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_outcome.dart';
 import 'package:next_on/features/attendance/presentation/widgets/attendance_copy.dart';
 import 'package:next_on/features/profile/domain/entities/shift_detail.dart';
@@ -41,6 +42,31 @@ void main() {
 
       expect(AttendanceCopy.shiftDetailName(lo, nameOnly), 'Morning');
       expect(AttendanceCopy.shiftDetailName(en, nameLoOnly), 'ກະເຊົ້າ');
+    });
+  });
+
+  group('AttendanceCopy.sessionPartName', () {
+    const session = AttendanceSession(partName: 'Morning', partNameLo: 'ກະເຊົ້າ');
+
+    test('Lao prefers name_lo, anything else prefers name', () {
+      expect(AttendanceCopy.sessionPartName(lo, session), 'ກະເຊົ້າ');
+      expect(AttendanceCopy.sessionPartName(en, session), 'Morning');
+    });
+
+    test('falls back to whichever name the backend sent', () {
+      const nameOnly = AttendanceSession(partName: 'Morning');
+      const loOnly = AttendanceSession(partNameLo: 'ກະເຊົ້າ');
+
+      expect(AttendanceCopy.sessionPartName(lo, nameOnly), 'Morning');
+      expect(AttendanceCopy.sessionPartName(en, loOnly), 'ກະເຊົ້າ');
+    });
+
+    test('is null for a session with no shift part: the row uses its '
+        'position', () {
+      expect(
+        AttendanceCopy.sessionPartName(en, const AttendanceSession()),
+        isNull,
+      );
     });
   });
 

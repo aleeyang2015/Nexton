@@ -564,7 +564,9 @@ class _SessionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isMorning = index == 0;
-    final label = session.label ?? _fallbackLabel(l10n, isMorning);
+    final label =
+        AttendanceCopy.sessionPartName(locale, session) ??
+        _fallbackLabel(l10n, isMorning);
 
     final inAt = session.clockIn;
     final outAt = session.clockOut;
@@ -624,7 +626,7 @@ class _SessionRow extends StatelessWidget {
   /// The employee's real shift-segment name (`shift.shift_details[index]`)
   /// when there is one at that position, else the generic "Morning"/
   /// "Afternoon" copy — for a session `records/my` sent with no
-  /// `session_label` of its own.
+  /// `shift_detail` of its own.
   String _fallbackLabel(AppLocalizations l10n, bool isMorning) {
     if (index < shiftDetails.length) {
       final name = AttendanceCopy.shiftDetailName(locale, shiftDetails[index]);

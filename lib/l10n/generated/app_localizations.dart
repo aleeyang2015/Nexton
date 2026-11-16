@@ -836,12 +836,6 @@ abstract class AppLocalizations {
   /// **'Left {minutes} min early'**
   String attendanceEarlyExitByMinutes(int minutes);
 
-  /// No description provided for @attendanceOvertimeHours.
-  ///
-  /// In en, this message translates to:
-  /// **'OT {hours}h'**
-  String attendanceOvertimeHours(String hours);
-
   /// No description provided for @hoursUnit.
   ///
   /// In en, this message translates to:
@@ -2977,6 +2971,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check-in has closed for today (the last shift ended at {time}).'**
   String ruleOutsideShiftHoursAt(String time);
+
+  /// No description provided for @attendanceAbsentStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get attendanceAbsentStatus;
+
+  /// No description provided for @attendanceIncompleteStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete'**
+  String get attendanceIncompleteStatus;
+
+  /// No description provided for @attendanceHalfDayStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Half day'**
+  String get attendanceHalfDayStatus;
 }
 
 class _AppLocalizationsDelegate
