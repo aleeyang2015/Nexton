@@ -156,4 +156,60 @@ void main() {
       'reason',
     });
   });
+
+  group('a date range', () {
+    LeaveRequestDraft range({DateTime? start, DateTime? end}) =>
+        LeaveRequestDraft(
+          leaveTypeId: 'lt-annual',
+          dates: const [],
+          startDate: start ?? DateTime(2026, 11, 20),
+          endDate: end ?? DateTime(2026, 11, 23),
+        );
+
+    test('sends start_date and end_date, and no dates', () {
+      final body = LeaveDraftBody.from(range());
+
+      expect(body['start_date'], '2026-11-20');
+      expect(body['end_date'], '2026-11-23');
+      // Never both shapes: the server would charge every day in `dates`.
+      expect(body.containsKey('dates'), isFalse);
+    });
+
+    test('the ends are YYYY-MM-DD, zero-padded, in Latin digits', () {
+      final body = LeaveDraftBody.from(
+        range(start: DateTime(2026, 1, 5), end: DateTime(2026, 1, 9)),
+      );
+
+      expect(body['start_date'], '2026-01-05');
+      expect(body['end_date'], '2026-01-09');
+    });
+
+    test('carries the same other fields as separate days', () {
+      final body = LeaveDraftBody.from(range());
+
+      expect(body['leave_type_id'], 'lt-annual');
+      expect(body['duration_type'], 'full_day');
+    });
+  });
+
+  test('separate days send dates, and no range', () {
+    final body = LeaveDraftBody.from(draft());
+
+    expect(body.containsKey('dates'), isTrue);
+    expect(body.containsKey('start_date'), isFalse);
+    expect(body.containsKey('end_date'), isFalse);
+  });
+
+  test('a draft with only one end of a range is not a range', () {
+    final body = LeaveDraftBody.from(
+      LeaveRequestDraft(
+        leaveTypeId: 'lt-annual',
+        dates: [DateTime(2026, 11, 18)],
+        startDate: DateTime(2026, 11, 18),
+      ),
+    );
+
+    expect(body['dates'], ['2026-11-18']);
+    expect(body.containsKey('start_date'), isFalse);
+  });
 }

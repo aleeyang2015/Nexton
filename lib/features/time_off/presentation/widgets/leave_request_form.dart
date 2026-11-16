@@ -13,10 +13,12 @@ import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_balance.dart';
 import '../../domain/entities/leave_type.dart';
+import '../providers/company_days_off_notifier.dart';
 import '../providers/leave_attachment_notifier.dart';
 import '../providers/leave_balances_notifier.dart';
 import '../providers/leave_form_rules.dart';
 import '../providers/leave_request_form_notifier.dart';
+import '../providers/leave_request_form_state.dart';
 import '../providers/leave_types_notifier.dart';
 import 'leave_copy.dart';
 import 'leave_dates_calendar_dialog.dart';
@@ -71,17 +73,31 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     if (picked != null && picked.isNotEmpty) _notifier.setLeaveType(picked);
   }
 
-  /// Opens the multi-select date calendar seeded with the current selection,
-  /// and replaces the picked days with whatever it returns. A back-out leaves
-  /// the selection alone.
+  /// Opens the calendar in the form's current mode, seeded with the current
+  /// pick, and applies whatever it returns: a range's two ends, or the
+  /// separate days. A back-out leaves the selection alone.
   Future<void> _openDatesCalendar() async {
-    final current = ref.read(leaveRequestFormNotifierProvider(widget.requestId));
+    final current = ref.read(
+      leaveRequestFormNotifierProvider(widget.requestId),
+    );
     final picked = await LeaveDatesCalendarDialog.show(
       context,
+      mode: current.mode,
       initialDates: current.dates,
+      initialRangeStart: current.rangeStart,
+      initialRangeEnd: current.rangeEnd,
       halfDay: current.durationType.isHalfDay,
+      daysOff: current.daysOff,
     );
-    if (picked != null) _notifier.setDates(picked);
+    if (picked == null) return;
+
+    final start = picked.rangeStart;
+    final end = picked.rangeEnd;
+    if (current.isRange) {
+      if (start != null && end != null) _notifier.setRange(start, end);
+    } else {
+      _notifier.setDates(picked.dates);
+    }
   }
 
   LeaveType? _selectedType(List<LeaveType> types, String? id) {
@@ -106,6 +122,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       LeaveCopy.dayCount(type?.maxDaysPerRequest ?? 0),
     ),
     LeaveFormBlock.insufficientBalance => l10n.leaveInsufficientBalanceHint,
+    LeaveFormBlock.allDaysOff => l10n.leaveAllDaysOff,
   };
 
   @override
@@ -114,6 +131,9 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     final key = widget.requestId;
     final state = ref.watch(leaveRequestFormNotifierProvider(key));
     final typesAsync = ref.watch(leaveTypesNotifierProvider);
+    // Shown as a warning when it fails; the list itself reaches the form
+    // through its state.
+    final daysOffFailed = ref.watch(companyDaysOffNotifierProvider).hasError;
     // A request is charged to the year of its first leave day, so that is the
     // year whose balance the card shows and the form checks.
     final balanceYear = LeaveFormRules.balanceYear(
@@ -134,7 +154,9 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       if (next.hasError) {
         final error = next.error;
         AppToast.error(
-          error is Failure ? error.localize(l10n) : l10n.leaveAttachUploadFailed,
+          error is Failure
+              ? error.localize(l10n)
+              : l10n.leaveAttachUploadFailed,
         );
       } else if ((previous?.valueOrNull) == null && next.valueOrNull != null) {
         AppToast.success(l10n.leaveAttachUploaded);
@@ -237,10 +259,38 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
             titleTrailing: _PickDatesButton(onTap: _openDatesCalendar),
             child: Padding(
               padding: const EdgeInsets.only(left: 12, right: 12),
-              child: _DatesList(
-                dates: state.dates,
-                totalDays: state.totalDays,
-                onRemove: _notifier.removeDate,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // A half day is one date, so there is no range to offer.
+                  if (!state.durationType.isHalfDay) ...[
+                    _DaysModeSwitch(
+                      mode: state.mode,
+                      onSelect: _notifier.setMode,
+                    ),
+                    heightBx(h: 10),
+                  ],
+                  if (daysOffFailed) ...[
+                    _DaysOffLoadFailed(
+                      onRetry: () => ref
+                          .read(companyDaysOffNotifierProvider.notifier)
+                          .refresh(),
+                    ),
+                    heightBx(h: 10),
+                  ],
+                  if (state.isRange)
+                    _RangeSummary(
+                      start: state.rangeStart,
+                      end: state.rangeEnd,
+                      totalDays: state.totalDays,
+                    )
+                  else
+                    _DatesList(
+                      dates: state.dates,
+                      totalDays: state.totalDays ?? 0,
+                      onRemove: _notifier.removeDate,
+                    ),
+                ],
               ),
             ),
           ),
@@ -286,7 +336,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
               ),
             ),
           ),
-          if (blockMessage != null && state.dates.isNotEmpty) ...[
+          if (blockMessage != null && state.hasDays) ...[
             heightBx(h: 14),
             _BlockNotice(message: blockMessage),
           ],
@@ -323,9 +373,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
         .read(leaveRequestFormNotifierProvider(widget.requestId))
         .submission
         .error;
-    AppToast.error(
-      error is Failure ? error.localize(l10n) : l10n.genericError,
-    );
+    AppToast.error(error is Failure ? error.localize(l10n) : l10n.genericError);
   }
 }
 
@@ -697,6 +745,149 @@ class _PickDatesButton extends StatelessWidget {
   }
 }
 
+/// The two ways to choose the days: a date range, or separate days.
+class _DaysModeSwitch extends StatelessWidget {
+  final LeaveDaysMode mode;
+  final ValueChanged<LeaveDaysMode> onSelect;
+
+  const _DaysModeSwitch({required this.mode, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        LeaveFilterChip(
+          label: l10n.leaveModeRange,
+          selected: mode == LeaveDaysMode.range,
+          onTap: () => onSelect(LeaveDaysMode.range),
+        ),
+        LeaveFilterChip(
+          label: l10n.leaveModeSeparateDays,
+          selected: mode == LeaveDaysMode.separateDays,
+          onTap: () => onSelect(LeaveDaysMode.separateDays),
+        ),
+      ],
+    );
+  }
+}
+
+/// The company's days off could not be loaded. A range can still be sent
+/// (the server leaves the days off out), and separate days can still be
+/// picked, so this warns and offers a Retry; it does not block.
+class _DaysOffLoadFailed extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _DaysOffLoadFailed({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Row(
+      children: [
+        const Icon(Icons.info_outline, size: 16, color: AppColors.warning),
+        widthBx(w: 6),
+        Expanded(
+          child: customText(
+            l10n.leaveDaysOffLoadFailed,
+            fontSize: 12.5,
+            color: AppColors.subTitle,
+            maxLine: 2,
+          ),
+        ),
+        widthBx(w: 8),
+        InkWell(
+          onTap: onRetry,
+          child: customText(
+            l10n.retry,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A date range as the form shows it: "from – to · N days", and a line saying
+/// the company's days off are not counted. While those days are not known
+/// the count is left to the server, and the line says so.
+class _RangeSummary extends StatelessWidget {
+  final DateTime? start;
+  final DateTime? end;
+
+  /// The days the range would be charged for; null when not known.
+  final double? totalDays;
+
+  const _RangeSummary({
+    required this.start,
+    required this.end,
+    required this.totalDays,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final from = start;
+    final to = end;
+
+    if (from == null || to == null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: customText(
+          l10n.leaveNoDatesSelected,
+          color: AppColors.subTitle,
+          fontSize: 13,
+        ),
+      );
+    }
+
+    final days = totalDays;
+    final range =
+        '${LeaveCopy.shortDate(l10n, from)} – ${LeaveCopy.shortDate(l10n, to)}';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.calendar_month_outlined,
+              size: 18,
+              color: AppColors.primary,
+            ),
+            widthBx(w: 10),
+            Expanded(
+              child: customText(
+                days == null
+                    ? range
+                    : '$range · ${LeaveCopy.daysLabel(l10n, days)}',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                maxLine: 2,
+              ),
+            ),
+          ],
+        ),
+        heightBx(h: 6),
+        customText(
+          days == null
+              ? l10n.leaveRangeCountByServer
+              : l10n.leaveRangeSkipsDaysOff,
+          fontSize: 12.5,
+          color: AppColors.subTitle,
+          maxLine: 2,
+        ),
+      ],
+    );
+  }
+}
+
 class _DatesList extends StatelessWidget {
   final List<DateTime> dates;
   final double totalDays;
@@ -964,7 +1155,10 @@ class _UploadSpinner extends StatelessWidget {
     return const SizedBox(
       width: 14,
       height: 14,
-      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+      child: CircularProgressIndicator(
+        strokeWidth: 2,
+        color: AppColors.primary,
+      ),
     );
   }
 }

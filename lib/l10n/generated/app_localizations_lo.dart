@@ -1620,4 +1620,31 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get profileLoadFailed => 'ບໍ່ສາມາດໂຫຼດໂປຣຟາຍໄດ້.';
+
+  @override
+  String get leaveModeRange => 'ຊ່ວງວັນທີ';
+
+  @override
+  String get leaveModeSeparateDays => 'ເລືອກເປັນມື້ໆ';
+
+  @override
+  String get leaveRangeSkipsDaysOff => 'ບໍ່ນັບວັນພັກຂອງບໍລິສັດ.';
+
+  @override
+  String get leaveRangeCountByServer => 'ລະບົບຈະນັບວັນໃຫ້ຫຼັງຈາກສົ່ງ.';
+
+  @override
+  String get leaveDayOffLegend => 'ວັນພັກຂອງບໍລິສັດ';
+
+  @override
+  String get leaveAllDaysOff => 'ວັນທີ່ເລືອກແມ່ນວັນພັກຂອງບໍລິສັດທັງໝົດ.';
+
+  @override
+  String get leaveDaysOffLoadFailed => 'ໂຫຼດວັນພັກຂອງບໍລິສັດບໍ່ໄດ້.';
+
+  @override
+  String get leavePickRangeStart => 'ເລືອກວັນທຳອິດ';
+
+  @override
+  String get leavePickRangeEnd => 'ເລືອກວັນສຸດທ້າຍ';
 }

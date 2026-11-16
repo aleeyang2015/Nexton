@@ -1,21 +1,34 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../domain/entities/company_days_off.dart';
 import '../../domain/entities/leave_duration_type.dart';
 import '../../domain/entities/leave_request.dart';
 
 part 'leave_request_form_state.freezed.dart';
 
+/// How the form's leave days are chosen.
+enum LeaveDaysMode {
+  /// From one day to another. The request is sent as a range and the server
+  /// leaves out the company's days off.
+  range,
+
+  /// Days picked one by one, next to each other or not (the 1st and the 15th
+  /// in one request). The calendar does not offer the company's days off.
+  separateDays,
+}
+
 /// The request-leave form's fields and submit status. One instance per form:
 /// the "new request" tab uses the `null` family key, an edit page uses the
 /// request's id.
 ///
-/// Leave days are held in [dates] as individual days (not a start/end range),
-/// chosen together in the multi-select calendar dialog and replaced wholesale
-/// via [LeaveRequestFormNotifier.setDates].
-/// A half-day [durationType] forces exactly one date. The return-to-work date
-/// defaults to the day after the latest selected date until the user
-/// overrides it.
+/// The leave days are chosen in one of two ways ([mode]): a date range
+/// ([rangeStart]–[rangeEnd]) or separate days ([dates]). A new request opens
+/// on a range; an edit opens on the request's own days. A half-day
+/// [durationType] is always exactly one date in separate-days mode.
+///
+/// Every count here is a preview. The server counts the days of a request,
+/// and its answer is the truth.
 @freezed
 class LeaveRequestFormState with _$LeaveRequestFormState {
   const LeaveRequestFormState._();
@@ -24,10 +37,22 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
     /// Non-null once [LeaveRequestFormNotifier.seed] has run — i.e. edit mode.
     String? editingRequestId,
     String? leaveTypeId,
+    @Default(LeaveDaysMode.range) LeaveDaysMode mode,
+
+    /// Separate-days mode: the days picked, sorted.
     @Default(<DateTime>[]) List<DateTime> dates,
+
+    /// Range mode: the first and the last day asked for, both included.
+    DateTime? rangeStart,
+    DateTime? rangeEnd,
     @Default(LeaveDurationType.fullDay) LeaveDurationType durationType,
     DateTime? returnToWorkOverride,
     @Default('') String reason,
+
+    /// The company's days off, or null while they are not known (still
+    /// loading, or the load failed). Kept here by the notifier so the counts
+    /// below need nothing handed to them.
+    CompanyDaysOff? daysOff,
 
     /// Edit mode only: the leave type the request had when it was opened. The
     /// form keeps offering it even after HR switched it off.
@@ -47,16 +72,42 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
 
   bool get isEditing => editingRequestId != null;
 
-  double get totalDays =>
-      durationType.isHalfDay ? 0.5 : dates.length.toDouble();
+  bool get isRange => mode == LeaveDaysMode.range;
 
-  /// The earliest picked leave day (normalized to midnight), or null when
-  /// none are picked. Its year is the one whose balance the request spends.
-  DateTime? get firstLeaveDate {
-    if (dates.isEmpty) return null;
-    final first = ([...dates]..sort()).first;
-    return DateTime(first.year, first.month, first.day);
+  /// True once the form has days to send: a whole range, or at least one
+  /// separate day.
+  bool get hasDays =>
+      isRange ? rangeStart != null && rangeEnd != null : dates.isNotEmpty;
+
+  /// The days the request would be charged for, as far as the form can tell,
+  /// sorted — or null when it cannot tell: a range whose days off are not
+  /// known. Empty when nothing is picked, or a range is all days off.
+  List<DateTime>? get chargedDays {
+    if (!isRange) return [...dates]..sort();
+
+    final start = rangeStart;
+    final end = rangeEnd;
+    if (start == null || end == null) return const [];
+    return daysOff?.workingDaysBetween(start, end);
   }
+
+  /// How many days the request asks for: half a day, the separate days
+  /// picked, or the days of the range that are not days off. Null when that
+  /// last count is not known, and the server will do the counting.
+  double? get totalDays {
+    if (durationType.isHalfDay) return hasDays ? 0.5 : 0;
+    return chargedDays?.length.toDouble();
+  }
+
+  /// True for a range in which every day is a company day off: there is
+  /// nothing to ask for, and the server would refuse it.
+  bool get isAllDaysOff => isRange && hasDays && totalDays == 0;
+
+  /// The first leave day (normalized to midnight), or null when none is
+  /// picked. Its year is the one whose balance the request spends. For a
+  /// range it is the first day that is not a day off, or the range's own
+  /// first day while the days off are not known.
+  DateTime? get firstLeaveDate => _dateOnly(_edge(first: true));
 
   /// True for an edit that still draws on the balance the request already
   /// drew on: the same leave type, in the same year. Only then do the days it
@@ -66,22 +117,40 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
       leaveTypeId == originalLeaveTypeId &&
       firstLeaveDate?.year == originalBalanceYear;
 
-  /// The latest picked leave day (normalized to midnight), or null when none
-  /// are picked.
-  DateTime? get lastLeaveDate {
-    if (dates.isEmpty) return null;
-    final last = ([...dates]..sort()).last;
-    return DateTime(last.year, last.month, last.day);
+  /// The last leave day (normalized to midnight), or null when none is
+  /// picked.
+  DateTime? get lastLeaveDate => _dateOnly(_edge(first: false));
+
+  DateTime? _edge({required bool first}) {
+    final charged = chargedDays;
+    if (charged != null && charged.isNotEmpty) {
+      return first ? charged.first : charged.last;
+    }
+    // A range with unknown, or only, days off: its own ends.
+    if (isRange) return first ? rangeStart : rangeEnd;
+    return null;
   }
+
+  static DateTime? _dateOnly(DateTime? date) =>
+      date == null ? null : DateTime(date.year, date.month, date.day);
 
   /// The earliest date the return-to-work picker may offer: the day after the
   /// last leave day. Null when no leave days are picked yet.
-  DateTime? get earliestReturnToWorkDate =>
-      lastLeaveDate?.add(const Duration(days: 1));
+  DateTime? get earliestReturnToWorkDate {
+    final last = lastLeaveDate;
+    return last == null ? null : DateTime(last.year, last.month, last.day + 1);
+  }
 
+  /// When the employee is back: the date they chose, else the first day after
+  /// the leave that is not a company day off. After a Saturday-only leave at
+  /// a company closed on Sundays, that is Monday. While the days off are not
+  /// known it is simply the next day.
   DateTime? get returnToWorkDate {
     if (returnToWorkOverride != null) return returnToWorkOverride;
-    return earliestReturnToWorkDate;
+
+    final last = lastLeaveDate;
+    if (last == null) return null;
+    return daysOff?.firstWorkingDayAfter(last) ?? earliestReturnToWorkDate;
   }
 
   /// The return-to-work date must fall strictly after the last leave day — you
@@ -94,12 +163,12 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
     return !DateTime(rtw.year, rtw.month, rtw.day).isBefore(earliest);
   }
 
-  /// The form-intrinsic checks. The balance / attachment gate lives in the
-  /// widget because it needs the selected [LeaveType] and its balance.
+  /// The form-intrinsic checks. What depends on the selected leave type and
+  /// its balance is `LeaveFormRules.block`'s.
   bool get hasValidShape =>
       leaveTypeId != null &&
-      dates.isNotEmpty &&
-      (!durationType.isHalfDay || dates.length == 1) &&
+      hasDays &&
+      (!durationType.isHalfDay || (!isRange && dates.length == 1)) &&
       hasValidReturnToWorkDate &&
       !submission.isLoading;
 }

@@ -16,6 +16,9 @@ enum LeaveFormBlock {
 
   /// More days than the balance holds.
   insufficientBalance,
+
+  /// A date range in which every day is a company day off.
+  allDaysOff,
 }
 
 /// The form's own checks, as pure functions: the widget asks, and shows the
@@ -71,15 +74,25 @@ class LeaveFormRules {
     // before the last leave day.
     if (!state.hasValidReturnToWorkDate) return LeaveFormBlock.returnDate;
 
+    // Nothing to ask for, whatever the type: the server refuses a request
+    // that comes to zero days.
+    if (state.isAllDaysOff) return LeaveFormBlock.allDaysOff;
+
     if (type == null) return null;
     if (type.requiresAttachment) return LeaveFormBlock.attachmentRequired;
 
+    // The count of a range is not known while the company's days off are not.
+    // The form then checks nothing that depends on it: the server counts the
+    // days and decides.
+    final total = state.totalDays;
+    if (total == null) return null;
+
     final max = type.maxDaysPerRequest;
-    if (max != null && state.totalDays > max) return LeaveFormBlock.maxDays;
+    if (max != null && total > max) return LeaveFormBlock.maxDays;
 
     if (remaining != null &&
         !type.allowNegativeBalance &&
-        _exceedsBalance(state, remaining)) {
+        _exceedsBalance(state, total, remaining)) {
       return LeaveFormBlock.insufficientBalance;
     }
     return null;
@@ -94,13 +107,15 @@ class LeaveFormRules {
   /// already drew on. Moved to another leave type, or to days in another
   /// year, it is spending a balance it never had days in, and is checked like
   /// a new request.
-  static bool _exceedsBalance(LeaveRequestFormState state, double remaining) {
+  static bool _exceedsBalance(
+    LeaveRequestFormState state,
+    double total,
+    double remaining,
+  ) {
     final original = state.originalTotalDays;
-    if (state.editsSameBalance &&
-        original != null &&
-        state.totalDays <= original) {
+    if (state.editsSameBalance && original != null && total <= original) {
       return false;
     }
-    return state.totalDays > remaining;
+    return total > remaining;
   }
 }

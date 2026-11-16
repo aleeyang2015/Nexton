@@ -6,12 +6,20 @@ import 'uploaded_attachment.dart';
 /// What the request-leave form submits (`POST`/`PUT /leave/requests`,
 /// leave-request-flutter.md §3.3/§3.4).
 ///
-/// Leave days are picked individually via [dates] (not a start/end range) —
-/// `total_days` is simply their count, or `0.5` when [durationType] is a
-/// half-day (which requires exactly one date).
+/// The leave days are given in one of two ways, never both:
+///
+/// * [dates] — days picked one by one. Every day sent is charged.
+/// * [startDate] and [endDate] — a range, with [dates] empty. The server
+///   leaves the company's days off out of it and charges the rest.
+///
+/// A half-day [durationType] is exactly one date in [dates].
 class LeaveRequestDraft extends Equatable {
   final String leaveTypeId;
   final List<DateTime> dates;
+
+  /// The range's first and last day, both included; null for separate days.
+  final DateTime? startDate;
+  final DateTime? endDate;
   final LeaveDurationType durationType;
   final DateTime? returnDate;
   final String reason;
@@ -24,19 +32,23 @@ class LeaveRequestDraft extends Equatable {
   const LeaveRequestDraft({
     required this.leaveTypeId,
     required this.dates,
+    this.startDate,
+    this.endDate,
     this.durationType = LeaveDurationType.fullDay,
     this.returnDate,
     this.reason = '',
     this.attachment,
   });
 
-  double get totalDays =>
-      durationType.isHalfDay ? 0.5 : dates.length.toDouble();
+  /// True when the days are a range rather than a list of days.
+  bool get isRange => startDate != null && endDate != null;
 
   @override
   List<Object?> get props => [
     leaveTypeId,
     dates,
+    startDate,
+    endDate,
     durationType,
     returnDate,
     reason,

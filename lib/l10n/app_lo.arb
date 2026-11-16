@@ -509,5 +509,14 @@
   "leaveDays": "ວັນລາພັກ",
   "attWorkingDaysBase": "ຈາກ {days} ມື້ເຮັດວຽກ",
   "attSummaryLoadFailed": "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນການລົງເວລາໄດ້.",
-  "profileLoadFailed": "ບໍ່ສາມາດໂຫຼດໂປຣຟາຍໄດ້."
+  "profileLoadFailed": "ບໍ່ສາມາດໂຫຼດໂປຣຟາຍໄດ້.",
+  "leaveModeRange": "ຊ່ວງວັນທີ",
+  "leaveModeSeparateDays": "ເລືອກເປັນມື້ໆ",
+  "leaveRangeSkipsDaysOff": "ບໍ່ນັບວັນພັກຂອງບໍລິສັດ.",
+  "leaveRangeCountByServer": "ລະບົບຈະນັບວັນໃຫ້ຫຼັງຈາກສົ່ງ.",
+  "leaveDayOffLegend": "ວັນພັກຂອງບໍລິສັດ",
+  "leaveAllDaysOff": "ວັນທີ່ເລືອກແມ່ນວັນພັກຂອງບໍລິສັດທັງໝົດ.",
+  "leaveDaysOffLoadFailed": "ໂຫຼດວັນພັກຂອງບໍລິສັດບໍ່ໄດ້.",
+  "leavePickRangeStart": "ເລືອກວັນທຳອິດ",
+  "leavePickRangeEnd": "ເລືອກວັນສຸດທ້າຍ"
 }

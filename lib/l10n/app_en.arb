@@ -689,5 +689,14 @@
     "placeholders": {"days": {"type": "int"}}
   },
   "attSummaryLoadFailed": "Could not load attendance.",
-  "profileLoadFailed": "Could not load your profile."
+  "profileLoadFailed": "Could not load your profile.",
+  "leaveModeRange": "Date range",
+  "leaveModeSeparateDays": "Separate days",
+  "leaveRangeSkipsDaysOff": "Company days off are not counted.",
+  "leaveRangeCountByServer": "The server counts the days when you send.",
+  "leaveDayOffLegend": "Company day off",
+  "leaveAllDaysOff": "Every day you picked is a company day off.",
+  "leaveDaysOffLoadFailed": "Could not load the company's days off.",
+  "leavePickRangeStart": "Pick the first day",
+  "leavePickRangeEnd": "Pick the last day"
 }
