@@ -1,5 +1,9 @@
-/// The leave routes, relative to the client's `/api/v1` base URL
-/// (leave-request-flutter.md §3).
+/// The leave routes, relative to the client's `/api/v1` base URL.
+///
+/// The guide is the backend's, `Nexton-Backend/docs/integration/
+/// leave-request-flutter.md` (§3); the App keeps no copy of it. Every
+/// `leave-request-flutter.md §…` in this feature's comments means that file.
+/// Where the guide and the Go handler disagree, the handler wins.
 ///
 /// Feature-local on purpose: `core/network/api_paths.dart` is reserved for
 /// routes the network layer itself has to know about. Everything else belongs
