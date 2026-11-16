@@ -152,7 +152,6 @@ class _RoundButton extends StatelessWidget {
   }
 }
 
-/// Full name followed by a small blue verified check.
 /// The card shown where the name and email would be when the profile could
 /// not be loaded: why, and a Retry only when trying again can help.
 class _ProfileLoadError extends StatelessWidget {
@@ -208,6 +207,7 @@ class _ProfileLoadError extends StatelessWidget {
   }
 }
 
+/// Full name followed by a small blue verified check.
 class _NameRow extends StatelessWidget {
   final String name;
 

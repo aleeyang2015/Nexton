@@ -98,6 +98,38 @@ void main() {
     expect(find.text('Retry'), findsNothing);
   });
 
+  testWidgets('an unreadable answer (a Wi-Fi sign-in page) can be retried '
+      'and shows no parser text', (tester) async {
+    profiles.profile = const Result.failure(
+      Failure.validation(message: 'Expected a JSON object response'),
+    );
+
+    await pumpHeader(tester);
+
+    expect(find.text('Could not load your profile.'), findsOneWidget);
+    expect(find.text('Expected a JSON object response'), findsNothing);
+    expect(find.text('Retry'), findsOneWidget);
+  });
+
+  testWidgets('the long not-linked text fits a narrow phone in Lao without '
+      'overflowing', (tester) async {
+    profiles.profile = const Result.failure(
+      Failure.validation(
+        message: 'employee not found',
+        code: 'EMPLOYEE_NOT_FOUND',
+      ),
+    );
+
+    await pumpHeader(
+      tester,
+      locale: const Locale('lo'),
+      size: const Size(320, 200),
+    );
+
+    expect(find.textContaining('ກະລຸນາຕິດຕໍ່ HR'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('the message and its Retry fit a narrow phone in Lao', (
     tester,
   ) async {

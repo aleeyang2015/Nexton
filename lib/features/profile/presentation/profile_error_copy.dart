@@ -9,15 +9,24 @@ import '../../../l10n/generated/app_localizations.dart';
 /// The profile page and the home header both call this, so they can never
 /// disagree about the wording or about offering Retry.
 ///
-/// * A refusal — the server understood and said no (`EMPLOYEE_NOT_FOUND`,
-///   `MODULE_NOT_ACTIVE`, any other 4xx) — shows the text for its code from
-///   the shared table (`failure.localize`). No Retry: the same request gets
-///   the same answer, and only HR or the company can change it.
-/// * The company's system not being ready (`503 TENANT_UNAVAILABLE` /
-///   `TENANT_LOOKUP_FAILED`) has its own text in that table too, and is worth
-///   retrying.
-/// * Anything else — a 5xx, no connection, a timeout, an unreadable answer —
-///   is "could not load your profile", with Retry.
+/// Retry is withheld for one thing only: a **refusal the server put its own
+/// code on** — `EMPLOYEE_NOT_FOUND`, `MODULE_NOT_ACTIVE`, `FORBIDDEN`, … The
+/// same request gets the same answer, and only HR or the company can change
+/// it. The text is the one for that code in the shared table
+/// (`failure.localize`).
+///
+/// Everything else can be retried, because nothing else on these screens
+/// reloads the profile and a user left without Retry is stuck until the app
+/// restarts:
+///
+/// * the company's system not being ready (`503 TENANT_UNAVAILABLE` /
+///   `TENANT_LOOKUP_FAILED`) and a rate limit (429) keep their own text from
+///   the shared table;
+/// * a 5xx, no connection, a timeout, a 408, and an answer that is not the
+///   API's at all — a 4xx with no code from a proxy, a Wi-Fi sign-in page
+///   where JSON was expected — say "could not load your profile". A refusal
+///   with no code has no text of its own, only the server's English or a
+///   parser's message, and neither belongs in front of the user.
 ///
 /// The app does not re-check the backend's rules here: it only reads the
 /// kind of failure and its code.
@@ -25,27 +34,30 @@ import '../../../l10n/generated/app_localizations.dart';
   AppLocalizations l10n,
   Object error,
 ) {
-  if (error is! Failure) {
-    return (text: l10n.profileLoadFailed, canRetry: true);
-  }
+  final retry = (text: l10n.profileLoadFailed, canRetry: true);
+  if (error is! Failure) return retry;
+
+  ({String text, bool canRetry}) refusal() =>
+      (text: error.localize(l10n), canRetry: false);
 
   return switch (error) {
-    ValidationFailure() ||
-    AuthFailure() => (text: error.localize(l10n), canRetry: false),
-    ServerFailure(:final errorCode) => (
-      text: _companyNotReady.contains(errorCode)
-          ? error.localize(l10n)
-          : l10n.profileLoadFailed,
-      canRetry: true,
-    ),
-    // No status: the request never got an answer (no connection, a timeout).
-    // With one, it is a 4xx the mapper had no narrower kind for, a verdict
-    // like any other refusal.
-    NetworkFailure(:final statusCode) =>
-      statusCode == null
-          ? (text: l10n.profileLoadFailed, canRetry: true)
-          : (text: error.localize(l10n), canRetry: false),
-    _ => (text: l10n.profileLoadFailed, canRetry: true),
+    ValidationFailure(:final code) => code == null ? retry : refusal(),
+    AuthFailure(:final code) => code == null ? retry : refusal(),
+    ServerFailure(:final errorCode) =>
+      _companyNotReady.contains(errorCode)
+          ? (text: error.localize(l10n), canRetry: true)
+          : retry,
+    NetworkFailure(:final statusCode, :final errorCode) => switch (statusCode) {
+      // The request never got an answer: no connection, a timeout.
+      null => retry,
+      // The server's own "try again later"; the shared table has its text.
+      429 => (text: error.localize(l10n), canRetry: true),
+      // The server gave up waiting for the request.
+      408 => retry,
+      // Any other 4xx the mapper had no narrower kind for (a 404, say).
+      _ => errorCode == null ? retry : refusal(),
+    },
+    _ => retry,
   };
 }
 
