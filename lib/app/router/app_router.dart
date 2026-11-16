@@ -67,10 +67,39 @@ class AppRoutes {
       '${timeOffRequest(id)}/edit';
   static const String timeOffLeaveTypePicker = '/time-off/leave-type';
   static const String salaryHistory = '/salary-history';
-  static const String payslipDetail = '/salary-history/payslip';
+  /// One payslip, by its id. A route pattern; build a location with
+  /// [payslip].
+  static const String payslipDetail = '/salary-history/payslip/:id';
+
+  /// The location of the payslip [id], for a list row, a link or a push.
+  static String payslip(String id) =>
+      '/salary-history/payslip/${Uri.encodeComponent(id)}';
   static const String approvals = '/approvals';
   static const String notFound = '/404';
 }
+
+/// The payslip page, opened by the payslip's id, so the salary list, a link
+/// and a push notification can all open it.
+///
+/// `extra` may carry the list's row for that payslip, for a first paint
+/// while the page loads the whole payslip; it is only used when it is that
+/// payslip. With no `extra` the page loads by id alone.
+///
+/// A list of its own so the path can be tested without the whole App.
+final List<GoRoute> payslipRoutes = [
+  GoRoute(
+    path: AppRoutes.payslipDetail,
+    name: 'payslipDetail',
+    builder: (context, state) {
+      final id = state.pathParameters['id'] ?? '';
+      final extra = state.extra;
+      return PayslipDetailPage(
+        payslipId: id,
+        listRow: extra is PayslipRecord && extra.id == id ? extra : null,
+      );
+    },
+  ),
+];
 
 /// The leave request page and its edit page, each opened by the request's
 /// id, so a history row, the "waiting" banner and a push notification can
@@ -313,26 +342,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SalaryHistoryPage(),
       ),
 
-      // Payslip detail — reached by tapping a month's card. `extra` is the
-      // list's row (the page loads the payslip by its id, and takes its
-      // month and status from the row), or just the payslip's id; a direct
-      // hit with neither falls through to the 404 page.
-      GoRoute(
-        path: AppRoutes.payslipDetail,
-        name: 'payslipDetail',
-        builder: (context, state) {
-          return switch (state.extra) {
-            final String id when id.isNotEmpty => PayslipDetailPage(
-              payslipId: id,
-            ),
-            final PayslipRecord row when row.id.isNotEmpty => PayslipDetailPage(
-              payslipId: row.id,
-              listRow: row,
-            ),
-            _ => const NotFoundPage(),
-          };
-        },
-      ),
+      ...payslipRoutes,
 
       // 404 Route
       GoRoute(

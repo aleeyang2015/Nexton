@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
-import 'package:next_on/features/salary_history/domain/entities/payslip.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip_pdf.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip_record.dart';
 import 'package:next_on/features/salary_history/domain/repositories/salary_repository.dart';
@@ -13,14 +12,16 @@ import 'package:next_on/features/salary_history/presentation/services/payslip_pd
 /// records the argument it was given, so a widget test can assert which
 /// year / payslip id the UI asked for.
 class FakeSalaryRepository implements SalaryRepository {
-  Result<Payslip>? detailResult;
   Result<PayslipPdf>? pdfResult;
-
-  /// When set, `detail()` never completes — the detail page stays loading.
-  bool hangDetail = false;
-
-  final List<String> detailIds = [];
   final List<String> pdfIds = [];
+
+  /// When set, `myPayslip()` never completes — the payslip page stays
+  /// loading.
+  bool hangMyPayslip = false;
+
+  /// When set, `myPayslip()` answers after this long, as a real network
+  /// does, so a frame is drawn while it loads.
+  Duration myPayslipDelay = Duration.zero;
 
   /// The real payslips, as the server sends them; none by default.
   Result<List<PayslipRecord>> myPayslipsResult = const Result.success([]);
@@ -46,20 +47,14 @@ class FakeSalaryRepository implements SalaryRepository {
   @override
   FutureResult<PayslipRecord> myPayslip(String id) async {
     myPayslipIds.add(id);
+    if (hangMyPayslip) return Completer<Result<PayslipRecord>>().future;
+    if (myPayslipDelay > Duration.zero) {
+      await Future<void>.delayed(myPayslipDelay);
+    }
     return myPayslipResult ??
         const Result.failure(
           Failure.network(message: 'not found', statusCode: 404),
         );
-  }
-
-  @override
-  FutureResult<Payslip> detail(String id) {
-    detailIds.add(id);
-    if (hangDetail) return Completer<Result<Payslip>>().future;
-    return Future.value(
-      detailResult ??
-          const Result.failure(Failure.network(message: 'not found', statusCode: 404)),
-    );
   }
 
   @override
@@ -82,67 +77,6 @@ class FakePayslipPdfSaver implements PayslipPdfSaver {
   }
 }
 
-/// A fully-populated payslip in the shape `PayslipModel` produces from the
-/// confirmed backend contract — totals from the wire, sections itemised.
-Payslip samplePayslip({
-  String id = '2f2e2dfb-2a95-4ee5-ac4e-f97c21201820',
-  required int year,
-  int month = 8,
-  PayslipStatus status = PayslipStatus.paid,
-  bool withSections = true,
-}) {
-  return Payslip(
-    id: id,
-    year: year,
-    month: month,
-    status: status,
-    payrollStatus: 'calculated',
-    employeeName: 'Sandy Vang',
-    employeeCode: 'EMP-002',
-    position: 'IT Developer',
-    department: 'IT Development',
-    baseSalary: 12000000,
-    grossSalary: 12800000,
-    totalDeductions: 5373326,
-    netSalary: 7426674,
-    socialSecurity: 247500,
-    employerSocialSecurity: 270000,
-    incomeTax: 940249,
-    workingDays: 22,
-    overtimeHours: 0,
-    unpaidLeaveDays: 0,
-    earnings: withSections
-        ? const [PayslipLine(code: 'BASIC', title: 'Base salary', amount: 12000000)]
-        : const [],
-    allowances: withSections
-        ? const [PayslipLine(title: 'Position allowance', amount: 300000)]
-        : const [],
-    attendanceDeductions: withSections
-        ? const [
-            PayslipLine(
-              code: 'LATE',
-              title: 'Late arrival',
-              quantity: 33,
-              quantityUnit: 'minutes',
-              amount: -31731,
-              icon: PayslipLineIcon.lateArrival,
-            ),
-          ]
-        : const [],
-    statutoryDeductions: withSections
-        ? const [
-            PayslipLine(
-              code: 'PIT',
-              title: 'Income tax',
-              amount: -940249,
-              icon: PayslipLineIcon.incomeTax,
-            ),
-          ]
-        : const [],
-    taxableIncome: 12552500,
-  );
-}
-
 /// A payslip as the server sends it in the year's list (totals only, no
 /// lines): October 2026 by default, paid on 5 November. The figures match
 /// [samplePayslip]'s, so a list row and its detail page agree.
@@ -160,6 +94,9 @@ PayslipRecord samplePayslipRecord({
   double unpaidLeaveDays = 0,
   String? positionTitle = 'IT Developer',
   DateTime? createdAt,
+  List<PayslipRecordLine> lines = const [],
+  List<PayslipBenefit> benefits = const [],
+  List<PayslipDeductionItem> deductionItems = const [],
 }) {
   return PayslipRecord(
     id: id,
@@ -187,5 +124,123 @@ PayslipRecord samplePayslipRecord({
     paidAt: paidAt ?? (paid ? DateTime(2026, 11, 5, 10) : null),
     // Made on the 1st of the month after the one it pays.
     createdAt: createdAt ?? DateTime(2026, 11, 1, 9),
+    lines: lines,
+    benefits: benefits,
+    deductionItems: deductionItems,
   );
 }
+
+/// The lines of a real payslip, as `GET /payroll/payslips/my/:id` sends
+/// them: base pay, an OT line, the six attendance lines (most at zero),
+/// social security, tax and a loan. With [samplePayslipBenefits] and
+/// [samplePayslipDeductionItems] they are what the payslip page groups.
+///
+/// The amounts do not add up to [samplePayslipRecord]'s totals, on purpose:
+/// a page that summed the lines would show figures no test expects.
+const List<PayslipRecordLine> samplePayslipLines = [
+  PayslipRecordLine(
+    id: 'l-basic',
+    componentCode: 'BASIC',
+    componentName: 'Basic Salary',
+    type: PayslipLineType.earning,
+    category: 'fixed',
+    amount: 12000000,
+  ),
+  PayslipRecordLine(
+    id: 'l-ot',
+    componentCode: 'OT',
+    componentName: 'Overtime',
+    type: PayslipLineType.earning,
+    category: 'variable',
+    amount: 162259,
+    quantity: 2.25,
+    quantityUnit: 'hours',
+  ),
+  PayslipRecordLine(
+    id: 'l-late',
+    componentCode: 'LATE',
+    componentName: 'Late arrival penalty',
+    type: PayslipLineType.deduction,
+    category: 'penalty',
+    amount: 68910,
+    quantity: 95,
+    quantityUnit: 'minutes',
+    ratePer: 12480,
+    rateAmount: 10000000,
+  ),
+  PayslipRecordLine(
+    id: 'l-absent-late',
+    componentCode: 'ABSENT-LATE',
+    componentName: 'Absent-late penalty',
+    type: PayslipLineType.deduction,
+    category: 'penalty',
+    quantityUnit: 'times',
+  ),
+  PayslipRecordLine(
+    id: 'l-early',
+    componentCode: 'EARLY-OUT',
+    componentName: 'Early leave penalty',
+    type: PayslipLineType.deduction,
+    category: 'penalty',
+    quantityUnit: 'minutes',
+  ),
+  PayslipRecordLine(
+    id: 'l-missed',
+    componentCode: 'MISSED-PART',
+    componentName: 'Missed shift part',
+    type: PayslipLineType.deduction,
+    category: 'penalty',
+    quantityUnit: 'minutes',
+  ),
+  PayslipRecordLine(
+    id: 'l-absence',
+    componentCode: 'ABSENCE',
+    componentName: 'Absence penalty',
+    type: PayslipLineType.deduction,
+    category: 'penalty',
+    quantityUnit: 'times',
+  ),
+  PayslipRecordLine(
+    id: 'l-unpaid',
+    componentCode: 'UNPAID-LEAVE',
+    componentName: 'Unpaid leave',
+    type: PayslipLineType.deduction,
+    category: 'penalty',
+    amount: 96154,
+    quantity: 0.5,
+    quantityUnit: 'days',
+  ),
+  PayslipRecordLine(
+    id: 'l-ss',
+    componentCode: 'EMP-SS',
+    componentName: 'Employee Social Security',
+    type: PayslipLineType.deduction,
+    category: 'statutory',
+    amount: 247500,
+  ),
+  PayslipRecordLine(
+    id: 'l-pit',
+    componentCode: 'PIT',
+    componentName: 'Personal Income Tax',
+    type: PayslipLineType.deduction,
+    category: 'statutory',
+    amount: 940249,
+  ),
+  PayslipRecordLine(
+    id: 'l-loan',
+    componentCode: 'LOAN',
+    componentName: 'Loan: motorbike',
+    type: PayslipLineType.deduction,
+    category: 'fixed',
+    amount: 500000,
+  ),
+];
+
+const List<PayslipBenefit> samplePayslipBenefits = [
+  PayslipBenefit(id: 'b-1', name: 'Position allowance', amount: 300000),
+  PayslipBenefit(id: 'b-2', name: 'ຄ່າເດີນທາງ', amount: 25.5),
+];
+
+const List<PayslipDeductionItem> samplePayslipDeductionItems = [
+  PayslipDeductionItem(id: 'd-1', name: 'ພັກວຽກ', amount: 100000),
+];

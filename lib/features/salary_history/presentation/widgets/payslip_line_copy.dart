@@ -1,5 +1,10 @@
+import 'package:intl/intl.dart';
+
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/payslip_lines.dart';
+
+/// What a row's amount is, for the page to colour it.
+enum PayslipAmountKind { zero, earning, deduction, plain }
 
 /// Puts the rows `groupLines` makes into the user's language: a row's
 /// title, its caption, and the four section names.
@@ -56,6 +61,31 @@ class PayslipLineCopy {
     // Nothing to say is no caption, not an empty line.
     return text.trim().isEmpty ? null : text;
   }
+
+  /// How a row's amount is written, and what it is.
+  ///
+  /// * zero → "0", shown and not hidden;
+  /// * an earning → "+ 162,259"; a deduction → "- 68,910";
+  /// * a row the App could not place ([unplaced]), or an amount below zero
+  ///   (not something the server sends) → the number as it is, with no sign
+  ///   put in front: the App does not say which way it counts.
+  ///
+  /// The number is the row's own; nothing is worked out.
+  static ({String text, PayslipAmountKind kind}) amount(
+    PayslipRow row, {
+    bool unplaced = false,
+  }) {
+    final number = _grouped.format(row.amount);
+    if (row.amount == 0) return (text: number, kind: PayslipAmountKind.zero);
+    if (unplaced || row.amount < 0) {
+      return (text: number, kind: PayslipAmountKind.plain);
+    }
+    return row.isDeduction
+        ? (text: '- $number', kind: PayslipAmountKind.deduction)
+        : (text: '+ $number', kind: PayslipAmountKind.earning);
+  }
+
+  static final _grouped = NumberFormat('#,##0', 'en');
 
   static String earningsSection(AppLocalizations l10n) =>
       l10n.salaryIncomeSection;
