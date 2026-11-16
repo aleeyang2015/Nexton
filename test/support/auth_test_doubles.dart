@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:next_on/core/network/secure_store.dart';
+import 'package:next_on/core/network/session_end_reason.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:next_on/features/auth/data/models/login_response_model.dart';
@@ -94,19 +95,36 @@ class FakeAuthRepository implements AuthRepository {
   int changePasswordCalls = 0;
   int fetchProfileCalls = 0;
 
-  final sessionExpired = StreamController<void>.broadcast();
+  /// What the last [login] was called with.
+  String? lastLoginEmail;
+  String? lastLoginPassword;
+  int loginCalls = 0;
+
+  final sessionExpired = StreamController<SessionEndReason>.broadcast();
 
   @override
-  Stream<void> get onSessionExpired => sessionExpired.stream;
+  Stream<SessionEndReason> get onSessionExpired => sessionExpired.stream;
 
   @override
   FutureResult<AuthSession> login({
     required String email,
     required String password,
-  }) async => loginResult;
+  }) async {
+    loginCalls++;
+    lastLoginEmail = email;
+    lastLoginPassword = password;
+    return loginResult;
+  }
+
+  /// Runs while a restore is in flight, before it answers: where a test can
+  /// have the network layer give up on the session mid-restore.
+  Future<void> Function()? whileRestoring;
 
   @override
-  FutureResult<AuthSession> restoreSession() async => restoreResult;
+  FutureResult<AuthSession> restoreSession() async {
+    await whileRestoring?.call();
+    return restoreResult;
+  }
 
   @override
   FutureResult<User> fetchProfile() async {

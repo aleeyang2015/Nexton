@@ -1590,4 +1590,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorRateLimited =>
       'Too many requests. Please wait a minute and try again.';
+
+  @override
+  String get passwordChangedSignInAgain =>
+      'Password changed. Please sign in with your new password.';
 }

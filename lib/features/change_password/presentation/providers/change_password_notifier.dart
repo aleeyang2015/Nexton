@@ -77,7 +77,9 @@ class ChangePasswordNotifier extends AutoDisposeNotifier<ChangePasswordState> {
   /// Field-scoped failures mark their input. Anything else that reads as a
   /// credential problem lands under the current-password field — a rejected
   /// change is nearly always a wrong current password (the backend answers
-  /// `400 PASSWORD_MISMATCH`). Transport failures surface as a one-off error.
+  /// `400 PASSWORD_MISMATCH`). The field holds the server's *code* when there
+  /// is one, so `localizeFieldError` shows it in the user's language; the
+  /// message is the fallback. Transport failures surface as a one-off error.
   ChangePasswordState _applyFailure(Failure failure) {
     if (failure is ValidationFailure) {
       switch (failure.field) {
@@ -103,7 +105,7 @@ class ChangePasswordNotifier extends AutoDisposeNotifier<ChangePasswordState> {
       return state.copyWith(
         currentPassword: '',
         currentPasswordClearTick: state.currentPasswordClearTick + 1,
-        currentError: failure.message,
+        currentError: _codeOf(failure) ?? failure.message,
         submission: const AsyncValue.data(false),
       );
     }
@@ -113,6 +115,13 @@ class ChangePasswordNotifier extends AutoDisposeNotifier<ChangePasswordState> {
     );
   }
 }
+
+/// The server's `error.code` on a refusal, when it sent one.
+String? _codeOf(Failure failure) => switch (failure) {
+  AuthFailure(:final code) => code,
+  ValidationFailure(:final code) => code,
+  _ => null,
+};
 
 final changePasswordNotifierProvider =
     AutoDisposeNotifierProvider<ChangePasswordNotifier, ChangePasswordState>(

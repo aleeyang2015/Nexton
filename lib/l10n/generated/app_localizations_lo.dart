@@ -1578,4 +1578,8 @@ class AppLocalizationsLo extends AppLocalizations {
   @override
   String get errorRateLimited =>
       'ສົ່ງຄຳຂໍຖີ່ເກີນໄປ. ກະລຸນາລໍຖ້າໜຶ່ງນາທີ ແລ້ວລອງໃໝ່.';
+
+  @override
+  String get passwordChangedSignInAgain =>
+      'ປ່ຽນລະຫັດຜ່ານແລ້ວ. ກະລຸນາເຂົ້າສູ່ລະບົບດ້ວຍລະຫັດຜ່ານໃໝ່.';
 }

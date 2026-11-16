@@ -1,3 +1,4 @@
+import '../../../../core/network/session_end_reason.dart';
 import '../../../../core/utils/result.dart';
 import '../entities/auth_session.dart';
 import '../entities/user.dart';
@@ -20,7 +21,8 @@ abstract class AuthRepository {
   FutureResult<User> fetchProfile();
 
   /// Set a new password. Invalidates every outstanding refresh token
-  /// server-side, so the caller must keep using the session it already has.
+  /// server-side, so the caller signs in again with the new password to get a
+  /// pair that still refreshes.
   FutureResult<Unit> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -33,7 +35,8 @@ abstract class AuthRepository {
   /// The cached profile, or null when nobody is signed in
   FutureResult<User?> currentUser();
 
-  /// Fires when the network layer gives up on the session (failed refresh, or
-  /// a refreshed token that still can't read `/auth/me`).
-  Stream<void> get onSessionExpired;
+  /// Fires when the network layer gives up on the session (a refused refresh,
+  /// a refreshed token that still can't read `/auth/me`, a switched-off
+  /// company), with the reason to tell the user.
+  Stream<SessionEndReason> get onSessionExpired;
 }

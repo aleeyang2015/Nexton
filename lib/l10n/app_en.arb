@@ -660,5 +660,6 @@
   "errorTenantUnavailable": "Your company's system is not ready. Please try again in a few minutes.",
   "errorTenantMismatch": "This login belongs to another company. Please sign out and sign in again.",
   "errorModuleNotActive": "Your company has not turned this on.",
-  "errorRateLimited": "Too many requests. Please wait a minute and try again."
+  "errorRateLimited": "Too many requests. Please wait a minute and try again.",
+  "passwordChangedSignInAgain": "Password changed. Please sign in with your new password."
 }
