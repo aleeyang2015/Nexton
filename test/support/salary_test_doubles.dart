@@ -5,6 +5,7 @@ import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip_pdf.dart';
+import 'package:next_on/features/salary_history/domain/entities/payslip_record.dart';
 import 'package:next_on/features/salary_history/domain/repositories/salary_repository.dart';
 import 'package:next_on/features/salary_history/presentation/services/payslip_pdf_saver.dart';
 
@@ -22,6 +23,27 @@ class FakeSalaryRepository implements SalaryRepository {
   final List<int> historyYears = [];
   final List<String> detailIds = [];
   final List<String> pdfIds = [];
+
+  /// The real payslips, as the server sends them; none by default.
+  Result<List<PayslipRecord>> myPayslipsResult = const Result.success([]);
+  Result<PayslipRecord>? myPayslipResult;
+  final List<int> myPayslipsYears = [];
+  final List<String> myPayslipIds = [];
+
+  @override
+  FutureResult<List<PayslipRecord>> myPayslips(int year) async {
+    myPayslipsYears.add(year);
+    return myPayslipsResult;
+  }
+
+  @override
+  FutureResult<PayslipRecord> myPayslip(String id) async {
+    myPayslipIds.add(id);
+    return myPayslipResult ??
+        const Result.failure(
+          Failure.network(message: 'not found', statusCode: 404),
+        );
+  }
 
   @override
   FutureResult<List<Payslip>> history(int year) async {

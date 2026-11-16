@@ -7,13 +7,21 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_response.dart';
 import '../../domain/entities/payslip.dart';
 import '../../domain/entities/payslip_pdf.dart';
+import '../../domain/entities/payslip_record.dart';
 import '../models/payslip_model.dart';
+import '../models/payslip_record_model.dart';
 import 'salary_api_paths.dart';
 
 abstract class SalaryRemoteDataSource {
   Future<List<Payslip>> history(int year);
   Future<Payslip> detail(String id);
   Future<PayslipPdf> pdf(String id);
+
+  /// The caller's payslips for [year], as the server sends them.
+  Future<List<PayslipRecord>> myPayslips(int year);
+
+  /// One of the caller's payslips in full, as the server sends it.
+  Future<PayslipRecord> myPayslip(String id);
 }
 
 /// The payroll calls behind the salary-history screens, on the shared
@@ -62,6 +70,39 @@ class SalaryRemoteDataSourceImpl implements SalaryRemoteDataSource {
   Future<Payslip> detail(String id) async {
     final response = await _client.get<dynamic>(SalaryPaths.payslip(id));
     return PayslipModel.fromJson(ApiEnvelope.unwrapObject(response.data));
+  }
+
+  /// A year has at most a handful of payslips and the server sends up to
+  /// 100 in a page, so one page is the whole year.
+  static const int _yearPageSize = 100;
+
+  /// No `status` is sent: staff are only ever given payslips of runs HR has
+  /// approved or paid, and every one of them belongs on the screen. The
+  /// order is the server's (`created_at`, newest first); nothing is sorted
+  /// here.
+  ///
+  /// A login with no employee record gets `200` with an empty list, not an
+  /// error.
+  @override
+  Future<List<PayslipRecord>> myPayslips(int year) async {
+    final response = await _client.get<dynamic>(
+      SalaryPaths.payslipsMy,
+      queryParameters: {'year': year, 'page': 1, 'per_page': _yearPageSize},
+    );
+    return ApiEnvelope.unwrapList(
+      response.data,
+    ).map(PayslipRecordModel.fromJson).toList();
+  }
+
+  /// An id the server does not have, someone else's, or a payslip not yet
+  /// approved all answer `404`; the failure keeps that status for the page
+  /// to say so.
+  @override
+  Future<PayslipRecord> myPayslip(String id) async {
+    final response = await _client.get<dynamic>(SalaryPaths.payslip(id));
+    return PayslipRecordModel.fromJson(
+      ApiEnvelope.unwrapObject(response.data),
+    );
   }
 
   @override
