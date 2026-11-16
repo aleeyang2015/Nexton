@@ -505,5 +505,8 @@
   "ruleOutsideShiftHoursAt": "ໝົດເວລາລົງເວລາເຂົ້າຂອງມື້ນີ້ແລ້ວ (ກະສຸດທ້າຍຈົບ {time}).",
   "attendanceAbsentStatus": "ຂາດວຽກ",
   "attendanceIncompleteStatus": "ບໍ່ຄົບ",
-  "attendanceHalfDayStatus": "ເຄິ່ງມື້"
+  "attendanceHalfDayStatus": "ເຄິ່ງມື້",
+  "leaveDays": "ວັນລາພັກ",
+  "attWorkingDaysBase": "ຈາກ {days} ມື້ເຮັດວຽກ",
+  "attSummaryLoadFailed": "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນການລົງເວລາໄດ້."
 }

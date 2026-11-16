@@ -2989,6 +2989,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Half day'**
   String get attendanceHalfDayStatus;
+
+  /// No description provided for @leaveDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Days'**
+  String get leaveDays;
+
+  /// No description provided for @attWorkingDaysBase.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of {days} working days'**
+  String attWorkingDaysBase(int days);
+
+  /// No description provided for @attSummaryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load attendance.'**
+  String get attSummaryLoadFailed;
 }
 
 class _AppLocalizationsDelegate

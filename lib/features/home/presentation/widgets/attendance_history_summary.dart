@@ -8,15 +8,20 @@ import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../attendance/presentation/providers/attendance_month_summary_notifier.dart';
+import '../../../attendance/presentation/widgets/attendance_copy.dart';
 
-/// Attendance stats under the home screen's clock card: this month's
-/// present/late/absent days and total hours worked, from
+/// Attendance stats under the home screen's clock card: this month's days as
+/// the server counted them — present, late, half day, incomplete, absent and
+/// leave — and the hours worked, out of the month's working days. All from
 /// [attendanceMonthSummaryNotifierProvider]. "View all" opens
 /// [AttendanceHistoryPage], which covers the same data with a month picker.
 ///
-/// The four stats sit in a single row of small white tiles straight on the
-/// home background rather than two rows inside a card of their own — the
-/// card wrapper was what made this block tower over the clock card above it.
+/// The stats are small white tiles straight on the home background, four to
+/// a row, rather than inside a card of their own — the card wrapper was what
+/// made this block tower over the clock card above it.
+///
+/// A load that failed says so in one line. It never shows zeros: they would
+/// read as real numbers.
 class AttendanceHistorySummary extends ConsumerWidget {
   const AttendanceHistorySummary({super.key});
 
@@ -35,62 +40,120 @@ class AttendanceHistorySummary extends ConsumerWidget {
         heightBx(h: 10),
         if (loading)
           const _SummaryLoading()
-        else if (failed)
-          Row(
-            children: [
-              Expanded(
-                child: customText(
-                  l10n.attendanceLoadFailed,
-                  color: AppColors.subTitle,
-                  fontSize: 12,
-                ),
-              ),
-              InkWell(
-                onTap: () => ref
-                    .read(attendanceMonthSummaryNotifierProvider.notifier)
-                    .refresh(),
-                child: customText(
-                  l10n.retry,
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-            ],
+        else if (failed || data == null)
+          _SummaryFailed(
+            failure: AttendanceCopy.monthLoadFailure(l10n, summary.error),
+            onRetry: () => ref
+                .read(attendanceMonthSummaryNotifierProvider.notifier)
+                .refresh(),
           )
-        else
+        else ...[
+          customText(
+            l10n.attWorkingDaysBase(data.totalWorkingDays),
+            color: AppColors.subTitle,
+            fontSize: 12,
+          ),
+          heightBx(h: 8),
           _SummaryRow(
             tiles: [
               _SummaryTile(
                 color: AppColors.attendancePresent,
                 label: l10n.daysPresent,
-                value: '${data?.presentDays ?? 0}',
+                value: '${data.presentDays}',
                 unit: l10n.salaryUnitDays,
                 icon: Icons.check,
               ),
               _SummaryTile(
                 color: AppColors.attendanceLate,
                 label: l10n.daysLate,
-                value: '${data?.lateDays ?? 0}',
+                value: '${data.lateDays}',
                 unit: l10n.salaryUnitTimes,
                 icon: Icons.watch_later_outlined,
               ),
               _SummaryTile(
+                color: AppColors.gray600,
+                label: l10n.attendanceHalfDayStatus,
+                value: '${data.halfDays}',
+                unit: l10n.salaryUnitDays,
+                icon: Icons.timelapse,
+              ),
+              _SummaryTile(
+                color: AppColors.attendanceLate,
+                label: l10n.attendanceIncompleteStatus,
+                value: '${data.incompleteDays}',
+                unit: l10n.salaryUnitDays,
+                icon: Icons.more_horiz,
+              ),
+            ],
+          ),
+          heightBx(h: 8),
+          _SummaryRow(
+            tiles: [
+              _SummaryTile(
                 color: AppColors.attendanceAbsent,
                 label: l10n.daysAbsent,
-                value: '${data?.absentDays ?? 0}',
+                value: '${data.absentDays}',
                 unit: l10n.salaryUnitDays,
                 icon: Icons.close,
               ),
               _SummaryTile(
+                color: AppColors.secondary,
+                label: l10n.leaveDays,
+                value: '${data.leaveDays}',
+                unit: l10n.salaryUnitDays,
+                icon: Icons.event_available_outlined,
+              ),
+              _SummaryTile(
                 color: AppColors.primary,
                 label: l10n.workHours,
-                value: (data?.totalWorkHours ?? 0).toStringAsFixed(1),
+                value: data.totalWorkHours.toStringAsFixed(1),
                 unit: l10n.hoursUnit,
                 icon: Icons.work_outline,
               ),
+              // Keeps the three tiles the same width as the four above.
+              const SizedBox.shrink(),
             ],
           ),
+        ],
+      ],
+    );
+  }
+}
+
+/// The month's numbers could not be loaded: one line saying why, and a Retry
+/// only when trying again can help.
+class _SummaryFailed extends StatelessWidget {
+  final ({String message, bool canRetry}) failure;
+  final VoidCallback onRetry;
+
+  const _SummaryFailed({required this.failure, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Row(
+      children: [
+        Expanded(
+          child: customText(
+            failure.message,
+            color: AppColors.subTitle,
+            fontSize: 12,
+            maxLine: 3,
+          ),
+        ),
+        if (failure.canRetry) ...[
+          widthBx(w: 8),
+          InkWell(
+            onTap: onRetry,
+            child: customText(
+              l10n.retry,
+              color: AppColors.secondary,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -184,19 +247,26 @@ class _SummaryRow extends StatelessWidget {
   }
 }
 
-/// Sweeping placeholder for the four stat tiles while the month summary
-/// loads — wrapped in [Shimmer] so it animates like the rest of the home
-/// screen's loading state instead of sitting as flat grey bars.
+/// Sweeping placeholder for the two rows of stat tiles while the month
+/// summary loads — wrapped in [Shimmer] so it animates like the rest of the
+/// home screen's loading state instead of sitting as flat grey bars.
 class _SummaryLoading extends StatelessWidget {
   const _SummaryLoading();
 
   @override
   Widget build(BuildContext context) {
     return Shimmer(
-      child: _SummaryRow(
-        tiles: [
-          for (var i = 0; i < 4; i++)
-            const ShimmerBox(width: double.infinity, height: 78),
+      child: Column(
+        children: [
+          for (var row = 0; row < 2; row++) ...[
+            if (row > 0) heightBx(h: 8),
+            _SummaryRow(
+              tiles: [
+                for (var i = 0; i < 4; i++)
+                  const ShimmerBox(width: double.infinity, height: 78),
+              ],
+            ),
+          ],
         ],
       ),
     );

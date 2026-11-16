@@ -1606,4 +1606,15 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get attendanceHalfDayStatus => 'ເຄິ່ງມື້';
+
+  @override
+  String get leaveDays => 'ວັນລາພັກ';
+
+  @override
+  String attWorkingDaysBase(int days) {
+    return 'ຈາກ $days ມື້ເຮັດວຽກ';
+  }
+
+  @override
+  String get attSummaryLoadFailed => 'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນການລົງເວລາໄດ້.';
 }

@@ -25,6 +25,17 @@ extension AttendanceFailureX on Failure {
   bool get isRetryable =>
       this is ServerFailure || (this is NetworkFailure && _statusCode == null);
 
+  /// The login has no employee record (`400 EMPLOYEE_NOT_FOUND`), so there is
+  /// no attendance to load, now or on a retry: only HR can link the account.
+  /// It decides one thing, that no Retry is offered; the text comes from
+  /// `failure.localize`.
+  bool get isEmployeeNotLinked => switch (this) {
+    ValidationFailure(:final code) => code == _employeeNotFoundCode,
+    _ => false,
+  };
+
+  static const String _employeeNotFoundCode = 'EMPLOYEE_NOT_FOUND';
+
   int? get _statusCode => switch (this) {
     NetworkFailure(:final statusCode) => statusCode,
     ServerFailure(:final statusCode) => statusCode,

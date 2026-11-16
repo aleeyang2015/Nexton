@@ -1618,4 +1618,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attendanceHalfDayStatus => 'Half day';
+
+  @override
+  String get leaveDays => 'Leave Days';
+
+  @override
+  String attWorkingDaysBase(int days) {
+    return 'Out of $days working days';
+  }
+
+  @override
+  String get attSummaryLoadFailed => 'Could not load attendance.';
 }
