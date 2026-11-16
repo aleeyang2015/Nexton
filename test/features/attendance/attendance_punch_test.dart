@@ -28,7 +28,8 @@ PunchReceipt _receipt({
 AttendanceDay _openDay() => AttendanceDay(
   sessions: [
     AttendanceSession(
-      label: '08:00–12:00',
+      partStartTime: '08:00',
+      partEndTime: '12:00',
       clockIn: DateTime(
         DateTime.now().year,
         DateTime.now().month,
@@ -48,10 +49,9 @@ AttendanceDay _openDayFromYesterday() {
     date: DateTime(yesterday.year, yesterday.month, yesterday.day),
     sessions: [
       AttendanceSession(
-        label: '08:00–12:00',
-        clockIn: DateTime(yesterday.year, yesterday.month, yesterday.day, 8),
         partStartTime: '08:00',
         partEndTime: '12:00',
+        clockIn: DateTime(yesterday.year, yesterday.month, yesterday.day, 8),
       ),
     ],
   );

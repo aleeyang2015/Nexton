@@ -1,11 +1,12 @@
 import '../../domain/entities/attendance_day.dart';
 
-/// Reads one record from `GET /attendance/records/my` (§6.2).
+/// Reads one record from `GET /attendance/records/my`.
 ///
-/// §6 describes the record's contents but not its exact field spellings, so
-/// each value is looked up under the names the rest of the API uses, with the
-/// plainer alias accepted too. The cost of an alias is one map lookup; the
-/// cost of guessing wrong is a card stuck on "not checked in".
+/// The keys are the backend's own, from `AttendanceRecordResponse` and
+/// `SessionResponse` in its `attendance/types.go`: no aliases, no guesses. A
+/// key read here that the backend does not send would be a field that is
+/// silently always empty, which is how the history rows once lost their
+/// shift part, method and place.
 class AttendanceRecordModel {
   const AttendanceRecordModel._();
 
@@ -13,7 +14,7 @@ class AttendanceRecordModel {
     final rawSessions = json['sessions'];
 
     return AttendanceDay(
-      date: _dateTime(json['date'] ?? json['work_date']),
+      date: _dateTime(json['date']),
       status: _nonEmpty(_string(json['status'])),
       sessions: rawSessions is List
           ? rawSessions
@@ -21,7 +22,7 @@ class AttendanceRecordModel {
                 .map((s) => _session(Map<String, dynamic>.from(s)))
                 .toList(growable: false)
           : const [],
-      totalWorkHours: _double(json['total_work_hours'] ?? json['work_hours']),
+      totalWorkHours: _double(json['work_hours']),
     );
   }
 
@@ -31,24 +32,24 @@ class AttendanceRecordModel {
     final partJson = part is Map ? part : const <dynamic, dynamic>{};
 
     return AttendanceSession(
-      order: _int(json['session_order'] ?? json['order']),
-      label: _nonEmpty(_string(json['session_label'] ?? json['label'])),
-      clockIn: _dateTime(json['clock_in'] ?? json['clock_in_at']),
-      clockOut: _dateTime(json['clock_out'] ?? json['clock_out_at']),
+      partName: _nonEmpty(_string(partJson['name'])),
+      partNameLo: _nonEmpty(_string(partJson['name_lo'])),
+      clockIn: _dateTime(json['clock_in']),
+      clockOut: _dateTime(json['clock_out']),
       isLate: json['is_late'] == true,
       isEarlyExit: json['is_early_exit'] == true,
       lateMinutes: _int(json['late_minutes']),
-      earlyExitMinutes: _int(
-        json['early_exit_minutes'] ?? json['early_leave_minutes'],
-      ),
+      earlyExitMinutes: _int(json['early_exit_minutes']),
       workHours: _double(json['work_hours']),
       status: _nonEmpty(_string(json['status'])),
-      method: _nonEmpty(_string(json['method'] ?? json['clock_method'])),
-      locationLabel: _nonEmpty(
-        _string(
-          json['location_name'] ?? json['site_name'] ?? json['location_label'],
-        ),
-      ),
+      // The clock-in's, else the clock-out's: a session with only a clock-out
+      // still says how and where that punch was made.
+      method:
+          _nonEmpty(_string(json['clock_in_method'])) ??
+          _nonEmpty(_string(json['clock_out_method'])),
+      locationLabel:
+          _nonEmpty(_string(json['clock_in_location_name'])) ??
+          _nonEmpty(_string(json['clock_out_location_name'])),
       partStartTime: _nonEmpty(_string(partJson['start_time'])),
       partEndTime: _nonEmpty(_string(partJson['end_time'])),
     );
@@ -63,8 +64,12 @@ class AttendanceRecordModel {
 
   static String? _string(dynamic value) => value is String ? value : null;
 
-  static String? _nonEmpty(String? value) =>
-      (value == null || value.isEmpty) ? null : value;
+  /// Blank text is no text: a name or a place made only of spaces must not
+  /// stand in for a real one, nor leave a row with an empty label.
+  static String? _nonEmpty(String? value) {
+    final text = value?.trim() ?? '';
+    return text.isEmpty ? null : text;
+  }
 
   static double? _double(dynamic value) => (value as num?)?.toDouble();
 

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/api_client.dart';
+import 'package:next_on/core/theme/app_colors.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/attendance/data/datasources/attendance_remote_data_source.dart';
@@ -101,8 +102,16 @@ void main() {
                   'clock_out': '2026-06-20T09:00:00Z',
                   'is_late': true,
                   'late_minutes': 11,
-                  'method': 'gps',
-                  'location_name': 'Office Center',
+                  'clock_in_method': 'gps',
+                  'clock_out_method': 'wifi',
+                  'clock_in_location_name': 'Office Center',
+                  'clock_out_location_name': 'Warehouse',
+                  'shift_detail': {
+                    'name': 'Morning',
+                    'name_lo': 'ກະເຊົ້າ',
+                    'start_time': '08:00:00',
+                    'end_time': '17:00:00',
+                  },
                 },
               ],
             },
@@ -136,12 +145,125 @@ void main() {
       final late = days.last;
       expect(late.isLate, isTrue);
       expect(late.lateMinutes, 11);
+      // The clock-in's method and place, when the session has a clock-in.
       expect(late.sessions.single.method, 'gps');
       expect(late.sessions.single.locationLabel, 'Office Center');
+      expect(late.sessions.single.partName, 'Morning');
+      expect(late.sessions.single.partNameLo, 'ກະເຊົ້າ');
+      expect(late.sessions.single.partStartTime, '08:00:00');
 
       final earlyExit = days.first;
       expect(earlyExit.isEarlyExit, isTrue);
       expect(earlyExit.earlyExitMinutes, 20);
+    });
+
+    test('a session with only a clock-out takes the clock-out\'s method and '
+        'place', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            {
+              'date': '2026-06-19',
+              'status': 'absent',
+              'work_hours': 0,
+              'sessions': [
+                {
+                  'clock_in': null,
+                  'clock_out': '2026-06-19 17:02:00',
+                  'clock_in_method': null,
+                  'clock_out_method': 'biometric',
+                  'clock_in_location_name': null,
+                  'clock_out_location_name': 'Head Office',
+                  'shift_detail': null,
+                },
+              ],
+            },
+          ],
+        };
+
+      final day = (await source.records(range)).single;
+      final session = day.sessions.single;
+
+      expect(day.status, 'absent');
+      expect(session.clockIn, isNull);
+      expect(session.method, 'biometric');
+      expect(session.locationLabel, 'Head Office');
+      // No shift part: the row falls back to its position.
+      expect(session.partName, isNull);
+      expect(session.partNameLo, isNull);
+    });
+
+    test('blank text is no text: it neither names a row nor hides the '
+        'clock-out\'s method and place', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            {
+              'date': '2026-06-16',
+              'sessions': [
+                {
+                  'clock_in': '2026-06-16 08:00:00',
+                  'clock_out': '2026-06-16 17:00:00',
+                  'clock_in_method': ' ',
+                  'clock_out_method': 'gps',
+                  'clock_in_location_name': '',
+                  'clock_out_location_name': ' Head Office ',
+                  'shift_detail': {'name': '  ', 'name_lo': null},
+                },
+              ],
+            },
+          ],
+        };
+
+      final session = (await source.records(range)).single.sessions.single;
+
+      expect(session.method, 'gps');
+      expect(session.locationLabel, 'Head Office');
+      expect(session.partName, isNull);
+    });
+
+    test('the day\'s hours come from work_hours, and the made-up keys are '
+        'not read', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            {
+              'date': '2026-06-18',
+              'work_hours': 7.5,
+              'total_work_hours': 99,
+              'sessions': [
+                {
+                  'clock_in_at': '2026-06-18 08:00:00',
+                  'session_label': '08:00–12:00',
+                  'method': 'gps',
+                  'location_name': 'Nowhere',
+                  'early_leave_minutes': 30,
+                  'is_early_exit': true,
+                },
+              ],
+            },
+            {'work_date': '2026-06-17', 'sessions': <dynamic>[]},
+          ],
+        };
+
+      final days = await source.records(range);
+      final dated = days.firstWhere((d) => d.date != null);
+      final session = dated.sessions.single;
+
+      expect(dated.totalWorkHours, 7.5);
+      expect(session.clockIn, isNull);
+      expect(session.method, isNull);
+      expect(session.locationLabel, isNull);
+      expect(session.partName, isNull);
+      expect(session.earlyExitMinutes, isNull);
+      // `work_date` is not a key the backend sends.
+      expect(days.where((d) => d.date == null), hasLength(1));
     });
 
     test('summary() reads the roll-up fields', () async {
@@ -197,8 +319,9 @@ void main() {
       );
     });
 
-    test('an early exit outranks a late arrival and overtime', () {
+    test('on a worked day, a late arrival outranks an early exit', () {
       final day = AttendanceDay(
+        status: 'present',
         totalWorkHours: 9.5,
         sessions: [
           AttendanceSession(
@@ -216,7 +339,130 @@ void main() {
 
       final status = AttendanceHistoryCopy.status(en, day);
 
+      expect(status.label, 'Late by 11 min');
+      expect(status.color, AppColors.attendanceLate);
+    });
+
+    test('absent: the red pill, even though the day has a punch', () {
+      // Lae's day with only a clock-out is stored absent.
+      final day = AttendanceDay(
+        status: 'absent',
+        sessions: [AttendanceSession(clockOut: DateTime(2026, 6, 19, 17, 2))],
+      );
+
+      expect(AttendanceHistoryCopy.status(lo, day).label, 'ຂາດວຽກ');
+      expect(AttendanceHistoryCopy.status(en, day).label, 'Absent');
+      expect(
+        AttendanceHistoryCopy.status(en, day).color,
+        AppColors.attendanceAbsent,
+      );
+    });
+
+    test('absent outranks a late flag: late past the absence limit is absent',
+        () {
+      const day = AttendanceDay(
+        status: 'absent',
+        sessions: [AttendanceSession(isLate: true, lateMinutes: 130)],
+      );
+
+      expect(AttendanceHistoryCopy.status(en, day).label, 'Absent');
+    });
+
+    test('incomplete: clocked in but not out', () {
+      final day = AttendanceDay(
+        status: 'incomplete',
+        sessions: [AttendanceSession(clockIn: DateTime(2026, 6, 19, 8))],
+      );
+
+      expect(AttendanceHistoryCopy.status(lo, day).label, 'ບໍ່ຄົບ');
+      expect(AttendanceHistoryCopy.status(en, day).label, 'Incomplete');
+      expect(
+        AttendanceHistoryCopy.status(en, day).color,
+        AppColors.attendanceLate,
+      );
+    });
+
+    test('half day', () {
+      const day = AttendanceDay(status: 'half_day');
+
+      expect(AttendanceHistoryCopy.status(lo, day).label, 'ເຄິ່ງມື້');
+      expect(AttendanceHistoryCopy.status(en, day).label, 'Half day');
+      expect(AttendanceHistoryCopy.status(en, day).color, AppColors.gray600);
+    });
+
+    test('present or late with a late flag: the late pill, with minutes when '
+        'known', () {
+      for (final status in const ['present', 'late']) {
+        final day = AttendanceDay(
+          status: status,
+          sessions: const [AttendanceSession(isLate: true, lateMinutes: 11)],
+        );
+
+        expect(
+          AttendanceHistoryCopy.status(en, day).label,
+          'Late by 11 min',
+          reason: status,
+        );
+      }
+    });
+
+    test('a day the backend calls late is late, even with no session flag',
+        () {
+      const day = AttendanceDay(
+        status: 'late',
+        sessions: [AttendanceSession()],
+      );
+
+      final status = AttendanceHistoryCopy.status(en, day);
+
+      expect(status.label, 'Late');
+      expect(status.color, AppColors.attendanceLate);
+    });
+
+    test('present with an early exit: the early-exit pill', () {
+      const day = AttendanceDay(
+        status: 'present',
+        sessions: [AttendanceSession(isEarlyExit: true, earlyExitMinutes: 20)],
+      );
+
+      final status = AttendanceHistoryCopy.status(en, day);
+
       expect(status.label, 'Left 20 min early');
+      expect(status.color, AppColors.gray600);
+    });
+
+    test('a missing or unknown status falls back to the flags', () {
+      const late = [AttendanceSession(isLate: true)];
+
+      expect(
+        AttendanceHistoryCopy.status(en, const AttendanceDay(sessions: late))
+            .label,
+        'Late',
+      );
+      expect(
+        AttendanceHistoryCopy.status(
+          en,
+          const AttendanceDay(status: 'a_new_status', sessions: late),
+        ).label,
+        'Late',
+      );
+      expect(
+        AttendanceHistoryCopy.status(
+          en,
+          const AttendanceDay(status: 'a_new_status'),
+        ).label,
+        'Present',
+      );
+    });
+
+    test('the status is read whatever its case or padding', () {
+      expect(
+        AttendanceHistoryCopy.status(
+          en,
+          const AttendanceDay(status: ' Absent '),
+        ).label,
+        'Absent',
+      );
     });
 
     test('a late day without a minute count still names the status', () {
@@ -227,10 +473,13 @@ void main() {
       expect(AttendanceHistoryCopy.status(en, day).label, 'Late');
     });
 
-    test('work beyond 8 hours reads as overtime when otherwise on time', () {
-      final day = AttendanceDay(totalWorkHours: 9.5);
+    test('a 10-hour present day shows the present pill: no OT is made up', () {
+      const day = AttendanceDay(status: 'present', totalWorkHours: 10);
 
-      expect(AttendanceHistoryCopy.status(en, day).label, 'OT 1.5h');
+      final status = AttendanceHistoryCopy.status(en, day);
+
+      expect(status.label, 'Present');
+      expect(status.color, AppColors.attendancePresent);
     });
 
     test('a plain day with no flags reads as present', () {
@@ -389,14 +638,16 @@ void main() {
             totalWorkHours: 8,
             sessions: [
               AttendanceSession(
-                label: '08:00–12:00',
+                partName: 'Morning',
+                partNameLo: 'ກະເຊົ້າ',
                 clockIn: DateTime(day22.year, day22.month, day22.day, 8, 2),
                 clockOut: DateTime(day22.year, day22.month, day22.day, 12, 1),
                 method: 'gps',
                 locationLabel: 'Office Center',
               ),
               AttendanceSession(
-                label: '13:00–17:00',
+                partName: 'Afternoon',
+                partNameLo: 'ກະແລງ',
                 clockIn: DateTime(day22.year, day22.month, day22.day, 12, 58),
                 clockOut: DateTime(day22.year, day22.month, day22.day, 17, 5),
                 method: 'gps',
@@ -467,6 +718,23 @@ void main() {
       await tester.pump();
 
       expect(find.text('GPS · Office Center'), findsNWidgets(2));
+      // Each row is named after its shift part, in the App's language. That
+      // is `localeProvider`'s, which defaults to Lao, so the Lao names show.
+      expect(find.text('ກະເຊົ້າ'), findsOneWidget);
+      expect(find.text('ກະແລງ'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a session with no shift part is named by its position', (
+      tester,
+    ) async {
+      final en = lookupAppLocalizations(const Locale('en'));
+
+      await pumpPage(tester);
+      await tester.tap(find.text(AttendanceHistoryCopy.dayTitle(en, day21)));
+      await tester.pump();
+
+      expect(find.text(en.shiftMorningLabel), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

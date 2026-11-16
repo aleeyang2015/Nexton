@@ -223,13 +223,11 @@ void main() {
         date: yesterday,
         sessions: [
           AttendanceSession(
-            label: '08:00–17:00',
             clockIn: DateTime(2026, 11, 16, 8),
             partStartTime: '08:00',
             partEndTime: '17:00',
           ),
           AttendanceSession(
-            label: '23:30–07:30',
             clockIn: DateTime(2026, 11, 16, 23, 35),
             partStartTime: '23:30',
             partEndTime: '07:30',
@@ -241,7 +239,7 @@ void main() {
         day,
       ], DateTime(2026, 11, 17, 2));
 
-      expect(picked.openSession?.label, '23:30–07:30');
+      expect(picked.openSession?.partStartTime, '23:30');
     });
 
     test('a closed session is never it', () {
