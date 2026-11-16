@@ -16,7 +16,18 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #15 (leave: company days off are skipped, not charged) is next in work order.
+1. #16 (leave: refusals show Lao text and the screen reloads) is next in work order.
+   Open after #15, none built there:
+   - the shape of `GET /core_hr/rest-days` (rows, `meta.total_pages`) is from the issue text only; the backend repo
+     is private. A rest-day row with a value the App cannot read is left out without a warning;
+   - while the days off are still loading (not failed), the separate-days calendar offers every day and shows no
+     warning; a day off picked then stays in the list with no mark and is charged;
+   - with the days off unknown, the default return date is the next day, which may be a day off, and is sent;
+   - which year's balance a range across a year end is charged to: the App uses the first charged day; to confirm
+     with the backend whether it uses that or `start_date`;
+   - public holidays are not skipped (the issue says so);
+   - already on main before #15: two `submit()` calls in the same frame send two requests, and the form's draft
+     (type, dates, reason) survives a sign-out. Each needs its own issue.
    To confirm with the backend team for #14: a leave type with no balance row for a year is shown as 0 and blocked,
    as the issue specifies. If the server creates next year's rows late, nobody could ask for January leave in
    December from the App.
@@ -83,7 +94,7 @@ count), #56 (sign-out ends the session).
 | 11 | #12 | profile: no made-up numbers, and a clear message when the profile cannot load | `12-profile-load-errors` | `84f308e` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 599 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 12 | #13 | leave: tests for what works today, and drop the old guide copy | `13-leave-tests` | `debd358` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 726 passed, 0 failed; debug APK builds; tests only, no app behaviour changed | MERGED |
 | 13 | #14 | leave: the form offers only active types and checks the balance the server will charge | `14-leave-form-active-types-balance` | `fbae4aa` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 776 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
-| 14 | #15 | leave: company days off are skipped, not charged | | | | | NOT STARTED |
+| 14 | #15 | leave: company days off are skipped, not charged | `15-leave-days-off` | `c9b73ee`, `8845610` | merged to main directly (`a103fc4`) | analyze clean, 854 tests, debug APK | MERGED — phone check on `nexton-demo` pending |
 | 15 | #16 | leave: refusals show Lao text and the screen reloads | | | | | NOT STARTED |
 | 16 | #17 | leave: the request page opens by id, stays fresh, and shows a cancelled request plainly | | | | | NOT STARTED |
 | 17 | #18 | lists: load more as you scroll (leave history first) | | | | | NOT STARTED |
