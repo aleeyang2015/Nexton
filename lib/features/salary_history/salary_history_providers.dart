@@ -5,6 +5,8 @@ import 'data/datasources/salary_remote_data_source.dart';
 import 'data/repositories/salary_repository_impl.dart';
 import 'domain/repositories/salary_repository.dart';
 import 'domain/usecases/download_payslip_pdf_usecase.dart';
+import 'domain/usecases/get_my_payslip_usecase.dart';
+import 'domain/usecases/get_my_payslips_usecase.dart';
 import 'domain/usecases/get_payslip_detail_usecase.dart';
 import 'domain/usecases/get_payslip_history_usecase.dart';
 
@@ -27,6 +29,14 @@ final getPayslipHistoryUseCaseProvider = Provider<GetPayslipHistoryUseCase>((ref
 final getPayslipDetailUseCaseProvider = Provider<GetPayslipDetailUseCase>((ref) {
   return GetPayslipDetailUseCase(ref.watch(salaryRepositoryProvider));
 });
+
+final getMyPayslipsUseCaseProvider = Provider<GetMyPayslipsUseCase>(
+  (ref) => GetMyPayslipsUseCase(ref.watch(salaryRepositoryProvider)),
+);
+
+final getMyPayslipUseCaseProvider = Provider<GetMyPayslipUseCase>(
+  (ref) => GetMyPayslipUseCase(ref.watch(salaryRepositoryProvider)),
+);
 
 final downloadPayslipPdfUseCaseProvider = Provider<DownloadPayslipPdfUseCase>((ref) {
   return DownloadPayslipPdfUseCase(ref.watch(salaryRepositoryProvider));
