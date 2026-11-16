@@ -162,7 +162,7 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
       return LeaveRequestModel.fromJson(
         ApiEnvelope.unwrapObject(response.data),
       );
-    });
+    }, onRequest: true);
   }
 
   @override
@@ -172,7 +172,7 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
       return LeaveRequestModel.fromJson(
         ApiEnvelope.unwrapObject(response.data),
       );
-    });
+    }, onRequest: true);
   }
 
   @override
@@ -206,7 +206,7 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
       return LeaveRequestModel.fromJson(
         ApiEnvelope.unwrapObject(response.data),
       );
-    });
+    }, onRequest: true);
   }
 
   @override
@@ -229,7 +229,7 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
       return LeaveRequestModel.fromJson(
         ApiEnvelope.unwrapObject(response.data),
       );
-    });
+    }, onRequest: true);
   }
 
   List<LeaveRequest> _parseList(dynamic body) =>
@@ -239,12 +239,21 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
   /// `Failure.validation(message: <token>)` the localizer can translate;
   /// everything else rethrows for `BaseRepository.toFailure`. Same pattern as
   /// `AttendanceRemoteDataSourceImpl._asBlocked`.
-  Future<T> _business<T>(Future<T> Function() call) async {
+  ///
+  /// [onRequest] is set by the calls about one existing request (edit,
+  /// cancel, approve, reject): there a `NOT_FOUND` means that request is
+  /// gone. Creating a request does not set it.
+  Future<T> _business<T>(
+    Future<T> Function() call, {
+    bool onRequest = false,
+  }) async {
     try {
       return await call();
     } on DioException catch (error) {
       final code = ApiError.tryParse(error.response?.data)?.code;
-      final token = LeaveErrorCode.tokenByWire[code];
+      final token = (onRequest && code == LeaveErrorCode.notFound)
+          ? LeaveErrorCode.tokenRequestGone
+          : LeaveErrorCode.tokenByWire[code];
       if (token != null) {
         throw Failure.validation(message: token);
       }

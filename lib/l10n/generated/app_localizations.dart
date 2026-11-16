@@ -3067,6 +3067,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick the last day'**
   String get leavePickRangeEnd;
+
+  /// No description provided for @leaveChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave just changed. It has been reloaded; please check and try again.'**
+  String get leaveChanged;
+
+  /// No description provided for @leaveApprovalNoLongerWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'This request is no longer waiting (someone decided it, or it was cancelled).'**
+  String get leaveApprovalNoLongerWaiting;
+
+  /// No description provided for @leaveRequestGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This request no longer exists, or you cannot view it.'**
+  String get leaveRequestGone;
 }
 
 class _AppLocalizationsDelegate

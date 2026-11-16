@@ -698,5 +698,8 @@
   "leaveAllDaysOff": "Every day you picked is a company day off.",
   "leaveDaysOffLoadFailed": "Could not load the company's days off.",
   "leavePickRangeStart": "Pick the first day",
-  "leavePickRangeEnd": "Pick the last day"
+  "leavePickRangeEnd": "Pick the last day",
+  "leaveChanged": "This leave just changed. It has been reloaded; please check and try again.",
+  "leaveApprovalNoLongerWaiting": "This request is no longer waiting (someone decided it, or it was cancelled).",
+  "leaveRequestGone": "This request no longer exists, or you cannot view it."
 }

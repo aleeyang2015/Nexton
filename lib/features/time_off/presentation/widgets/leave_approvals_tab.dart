@@ -293,31 +293,39 @@ class _PendingApprovalCard extends ConsumerWidget {
     );
   }
 
+  // The words are looked up before the call, and the result is reported
+  // whether or not this card is still on screen: a refusal reloads the list,
+  // and the reload takes this card away before the answer is reported. The
+  // toast does not need the card; it is shown by the App's own messenger.
   Future<void> _approve(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
     final outcome = await ref
         .read(leaveApprovalsNotifierProvider.notifier)
         .approve(request);
-    if (context.mounted) _report(context, outcome);
+    _report(l10n, outcome);
   }
 
   Future<void> _reject(BuildContext context, WidgetRef ref) async {
     final reason = await LeaveRejectReasonDialog.show(context);
     if (reason == null || !context.mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     final outcome = await ref
         .read(leaveApprovalsNotifierProvider.notifier)
         .reject(request, reason);
-    if (context.mounted) _report(context, outcome);
+    _report(l10n, outcome);
   }
 
-  void _report(BuildContext context, LeaveDecisionOutcome outcome) {
-    final l10n = AppLocalizations.of(context)!;
-    switch (outcome) {
-      case LeaveDecisionOutcome.success:
+  void _report(AppLocalizations l10n, LeaveDecisionOutcome outcome) {
+    final text = LeaveCopy.decisionRefusal(l10n, outcome);
+    if (text == null) return;
+
+    switch (outcome.kind) {
+      case LeaveDecisionKind.success:
         break;
-      case LeaveDecisionOutcome.stepChanged:
-        AppToast.info(l10n.leaveStepRefreshed);
-      case LeaveDecisionOutcome.failed:
-        AppToast.error(l10n.leaveApprovalDecideFailed);
+      case LeaveDecisionKind.reloaded:
+        AppToast.info(text);
+      case LeaveDecisionKind.failed:
+        AppToast.error(text);
     }
   }
 }

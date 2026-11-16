@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/result.dart';
+import '../../data/datasources/leave_error_code.dart';
 import '../../domain/entities/leave_history_query.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../time_off_providers.dart';
@@ -40,23 +41,32 @@ class LeaveHistoryNotifier extends AutoDisposeNotifier<LeaveHistoryState> {
   /// failed load.
   void retry() => _load();
 
-  /// Cancels [requestId] (`PUT /leave/requests/:id/cancel`). Returns whether
-  /// it succeeded; on success the list and the balances refetch.
-  Future<bool> cancel(String requestId) async {
+  /// Cancels [requestId] (`PUT /leave/requests/:id/cancel`) and returns the
+  /// server's answer, so the page can say why it was refused.
+  ///
+  /// On success the list and the balances refetch. They also refetch when
+  /// the refusal means the owner's copy is out of date (the request changed,
+  /// can no longer be cancelled, or is gone): the list then shows it as it
+  /// now is.
+  Future<Result<LeaveRequest>> cancel(String requestId) async {
     state = state.copyWith(cancellingIds: {...state.cancellingIds, requestId});
 
     final result = await ref.read(cancelLeaveRequestUseCaseProvider)(requestId);
-    if (_disposed) return result.isSuccess;
+    if (_disposed) return result;
+
+    // The request stays marked as cancelling until the list is back, so its
+    // Cancel button cannot be tapped a second time while the page waits.
+    final stale = result.fold(LeaveErrorCode.isStaleForOwner, (_) => false);
+    if (result.isSuccess || stale) {
+      ref.invalidate(leaveBalancesNotifierProvider);
+      await _load();
+      if (_disposed) return result;
+    }
 
     state = state.copyWith(
       cancellingIds: {...state.cancellingIds}..remove(requestId),
     );
-
-    if (result.isSuccess) {
-      ref.invalidate(leaveBalancesNotifierProvider);
-      await _load();
-    }
-    return result.isSuccess;
+    return result;
   }
 
   Future<void> _load() async {

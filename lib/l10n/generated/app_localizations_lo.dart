@@ -1647,4 +1647,15 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get leavePickRangeEnd => 'ເລືອກວັນສຸດທ້າຍ';
+
+  @override
+  String get leaveChanged =>
+      'ຄຳຮ້ອງລານີ້ຫາກໍ່ມີການປ່ຽນແປງ. ໂຫຼດຂໍ້ມູນໃໝ່ແລ້ວ, ກະລຸນາກວດເບິ່ງແລ້ວລອງອີກຄັ້ງ.';
+
+  @override
+  String get leaveApprovalNoLongerWaiting =>
+      'ຄຳຮ້ອງນີ້ບໍ່ໄດ້ລໍຖ້າການອະນຸມັດແລ້ວ (ມີຄົນຕັດສິນແລ້ວ ຫຼື ຖືກຍົກເລີກ).';
+
+  @override
+  String get leaveRequestGone => 'ຄຳຮ້ອງນີ້ບໍ່ມີແລ້ວ ຫຼື ທ່ານບໍ່ມີສິດເບິ່ງ.';
 }
