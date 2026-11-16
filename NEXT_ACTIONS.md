@@ -16,7 +16,7 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #14: open the PR from `14-leave-form-active-types-balance` and review it. #15 is next.
+1. #15 (leave: company days off are skipped, not charged) is next in work order.
    To confirm with the backend team for #14: a leave type with no balance row for a year is shown as 0 and blocked,
    as the issue specifies. If the server creates next year's rows late, nobody could ask for January leave in
    December from the App.
@@ -82,7 +82,7 @@ count), #56 (sign-out ends the session).
 | 10 | #11 | attendance: the month summary shows the server's numbers, and "not linked to an employee" | `11-month-summary-server-numbers` | `ce8b5cc` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 567 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 11 | #12 | profile: no made-up numbers, and a clear message when the profile cannot load | `12-profile-load-errors` | `84f308e` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 599 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 12 | #13 | leave: tests for what works today, and drop the old guide copy | `13-leave-tests` | `debd358` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 726 passed, 0 failed; debug APK builds; tests only, no app behaviour changed | MERGED |
-| 13 | #14 | leave: the form offers only active types and checks the balance the server will charge | `14-leave-form-active-types-balance` | `fbae4aa` | to open | analyze: 1 warning already on `main`; `flutter test`: 776 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | IMPLEMENTED |
+| 13 | #14 | leave: the form offers only active types and checks the balance the server will charge | `14-leave-form-active-types-balance` | `fbae4aa` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 776 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 14 | #15 | leave: company days off are skipped, not charged | | | | | NOT STARTED |
 | 15 | #16 | leave: refusals show Lao text and the screen reloads | | | | | NOT STARTED |
 | 16 | #17 | leave: the request page opens by id, stays fresh, and shows a cancelled request plainly | | | | | NOT STARTED |
