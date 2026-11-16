@@ -11,6 +11,7 @@ import '../../../../core/utils/clock_provider.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../data/datasources/leave_error_code.dart';
 import '../../domain/entities/leave_balance.dart';
 import '../../domain/entities/leave_type.dart';
 import '../providers/company_days_off_notifier.dart';
@@ -391,6 +392,14 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     AppToast.error(
       error is Failure ? error.localize(l10n) : l10n.genericError,
     );
+
+    // The request being edited is out of date; the notifier has reloaded
+    // the lists. Saving again would fail the same way, so close the page.
+    if (wasEditing &&
+        error is Failure &&
+        LeaveErrorCode.isStaleForOwner(error)) {
+      widget.onSubmitted?.call();
+    }
   }
 }
 

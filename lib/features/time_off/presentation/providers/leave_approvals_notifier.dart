@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/errors/failure.dart';
 import '../../../../core/utils/result.dart';
 import '../../data/datasources/leave_error_code.dart';
 import '../../domain/entities/leave_request.dart';
@@ -89,7 +88,7 @@ class LeaveApprovalsNotifier extends AutoDisposeNotifier<LeaveApprovalsState> {
     state = state.copyWith(decidingIds: {...state.decidingIds, requestId});
 
     final result = await action();
-    if (_disposed) return LeaveDecisionOutcome.failed;
+    if (_disposed) return LeaveDecisionOutcome.gone;
 
     state = state.copyWith(
       decidingIds: {...state.decidingIds}..remove(requestId),
@@ -97,11 +96,14 @@ class LeaveApprovalsNotifier extends AutoDisposeNotifier<LeaveApprovalsState> {
 
     return result.fold(
       (failure) async {
-        if (_isStepChanged(failure)) {
+        // The card the approver tapped is out of date. Reload first, so it
+        // is gone or corrected by the time the reason is shown; otherwise
+        // every retry would fail the same way.
+        if (LeaveErrorCode.isStaleForApprover(failure)) {
           await _loadAll();
-          return LeaveDecisionOutcome.stepChanged;
+          return LeaveDecisionOutcome.reloaded(failure);
         }
-        return LeaveDecisionOutcome.failed;
+        return LeaveDecisionOutcome.failed(failure);
       },
       (_) async {
         await _loadAll();
@@ -109,11 +111,6 @@ class LeaveApprovalsNotifier extends AutoDisposeNotifier<LeaveApprovalsState> {
       },
     );
   }
-
-  bool _isStepChanged(Failure failure) => failure.maybeWhen(
-    validation: (message, _, _) => message == LeaveErrorCode.tokenStepChanged,
-    orElse: () => false,
-  );
 
   AsyncValue<List<LeaveRequest>> _toAsync(Result<List<LeaveRequest>> result) =>
       result.fold(

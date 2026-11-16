@@ -9,6 +9,7 @@ import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_type.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_attachment_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/company_days_off_notifier.dart';
+import 'package:next_on/features/time_off/presentation/providers/leave_history_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_request_form_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_request_form_state.dart';
 import 'package:next_on/features/time_off/presentation/widgets/leave_filter_chip.dart';
@@ -606,6 +607,98 @@ void main() {
       await tester.pump();
 
       expect(find.textContaining('3 days'), findsOneWidget);
+    });
+  });
+
+  group('an edit the server refuses as out of date', () {
+    testWidgets('the form itself does the closing when its Save is refused '
+        'with INVALID_STATUS', (tester) async {
+      repository.updateResult = const Result.failure(
+        Failure.validation(message: 'leaveInvalidStatus'),
+      );
+      var closed = 0;
+      form('req-7').seed(pendingOn(annual));
+      tester.view.physicalSize = const Size(390, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: Scaffold(
+              body: LeaveRequestForm(
+                requestId: 'req-7',
+                onSubmitted: () => closed++,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+      final historyBefore = repository.myRequestsCalls.length;
+      container.listen(leaveHistoryNotifierProvider, (_, _) {});
+      await tester.pump();
+      final loadedOnce = repository.myRequestsCalls.length;
+      expect(loadedOnce, greaterThan(historyBefore));
+
+      await tester.tap(find.text(en.leaveEditAction));
+      await tester.pump();
+      await tester.pump();
+
+      expect(closed, 1);
+      // The history was reloaded.
+      expect(repository.myRequestsCalls.length, greaterThan(loadedOnce));
+
+      // The next edit starts from the request as it now is.
+      form('req-7').seed(
+        sampleLeaveRequest(id: 'req-7', reason: 'as it is now'),
+      );
+      expect(
+        container.read(leaveRequestFormNotifierProvider('req-7')).reason,
+        'as it is now',
+      );
+    });
+
+    testWidgets('a refusal that says nothing about the request being out '
+        'of date keeps the page open', (tester) async {
+      repository.updateResult = const Result.failure(
+        Failure.validation(message: 'leaveInsufficientBalance'),
+      );
+      var closed = 0;
+      form('req-7').seed(pendingOn(annual));
+      tester.view.physicalSize = const Size(390, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: Scaffold(
+              body: LeaveRequestForm(
+                requestId: 'req-7',
+                onSubmitted: () => closed++,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      await tester.tap(find.text(en.leaveEditAction));
+      await tester.pump();
+      await tester.pump();
+
+      expect(closed, 0);
     });
   });
 }

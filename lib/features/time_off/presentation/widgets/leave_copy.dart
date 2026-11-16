@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../data/datasources/leave_error_code.dart';
 import '../../domain/entities/leave_approval_step.dart';
 import '../../domain/entities/leave_duration_type.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_status.dart';
 import '../../domain/entities/leave_type.dart';
+import '../providers/leave_approvals_state.dart';
 
 /// Turns leave domain values into the words and colours the time-off pages
 /// show. Pure functions, no widgets — same split as `AttendanceCopy`.
@@ -97,6 +100,30 @@ class LeaveCopy {
       }
     }
     return type.name;
+  }
+
+  /// What to tell an approver whose approve or reject was refused, or null
+  /// when there is nothing to tell (it went through) or nobody to tell (the
+  /// approvals screen was closed before the answer came).
+  ///
+  /// The server's own reason, in the user's language. `INVALID_STATUS` reads
+  /// differently here than on an edit: to an approver it means the request
+  /// is no longer waiting. A refusal with a code the App does not know shows
+  /// the server's message.
+  static String? decisionRefusal(
+    AppLocalizations l10n,
+    LeaveDecisionOutcome outcome,
+  ) {
+    if (outcome.kind == LeaveDecisionKind.success || outcome.abandoned) {
+      return null;
+    }
+
+    final failure = outcome.failure;
+    if (failure == null) return l10n.leaveApprovalDecideFailed;
+    if (LeaveErrorCode.tokenOf(failure) == LeaveErrorCode.tokenInvalidStatus) {
+      return l10n.leaveApprovalNoLongerWaiting;
+    }
+    return failure.localize(l10n);
   }
 
   /// "3 days" / "7.5 days" — or the half-day wording for exactly half a day.
