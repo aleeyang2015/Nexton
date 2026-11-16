@@ -508,5 +508,6 @@
   "attendanceHalfDayStatus": "ເຄິ່ງມື້",
   "leaveDays": "ວັນລາພັກ",
   "attWorkingDaysBase": "ຈາກ {days} ມື້ເຮັດວຽກ",
-  "attSummaryLoadFailed": "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນການລົງເວລາໄດ້."
+  "attSummaryLoadFailed": "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນການລົງເວລາໄດ້.",
+  "profileLoadFailed": "ບໍ່ສາມາດໂຫຼດໂປຣຟາຍໄດ້."
 }

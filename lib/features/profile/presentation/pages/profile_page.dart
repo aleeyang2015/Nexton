@@ -13,14 +13,21 @@ import '../../../../features/attendance/domain/entities/attendance_summary.dart'
 import '../../../../features/attendance/presentation/providers/attendance_month_summary_notifier.dart';
 import '../../../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../profile_error_copy.dart';
 import '../providers/profile_notifier.dart';
 
 /// "ໂປຣຟາຍ" screen, pushed from the home header. Profile summary + a
 /// settings-style menu.
 ///
-/// Identity and photo come from [profileNotifierProvider]; the stats row
-/// shows this month's attendance roll-up from
-/// [attendanceMonthSummaryNotifierProvider] (`GET /attendance/records/summary/my`).
+/// Identity and photo come from [profileNotifierProvider]. When that load
+/// fails, a message card stands in for the name and email and says why
+/// ([profileErrorCopy]); the menu stays usable, so the user can still change
+/// the password or sign out.
+///
+/// The stats row shows this month's real hours worked, late arrivals and
+/// absences from [attendanceMonthSummaryNotifierProvider]
+/// (`GET /attendance/records/summary/my`). The numbers are the server's; when
+/// that load fails the row shows a dash, never a `0` that would read as real.
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
@@ -28,6 +35,7 @@ class ProfilePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileNotifierProvider);
     final loading = profile.isLoading && !profile.hasValue;
+    final error = profile.hasError ? profile.error : null;
     final data = profile.valueOrNull;
 
     return Container(
@@ -48,20 +56,32 @@ class ProfilePage extends ConsumerWidget {
                   children: [
                     Center(child: _Avatar(avatarUrl: data?.avatarUrl)),
                     heightBx(h: 16),
-                    if (loading)
-                      const Center(child: ShimmerBox(width: 140, height: 20))
-                    else
+                    if (loading) ...[
+                      const Center(child: ShimmerBox(width: 140, height: 20)),
+                      heightBx(h: 4),
+                      const Center(child: ShimmerBox(width: 180, height: 14)),
+                    ] else if (error != null)
+                      // In place of the name and email: an empty name would
+                      // say nothing about what went wrong.
+                      _ProfileLoadError(
+                        copy: profileErrorCopy(
+                          AppLocalizations.of(context)!,
+                          error,
+                        ),
+                        onRetry: () => ref
+                            .read(profileNotifierProvider.notifier)
+                            .refresh(),
+                      )
+                    else ...[
                       _NameRow(name: data?.fullName ?? ''),
-                    heightBx(h: 4),
-                    if (loading)
-                      const Center(child: ShimmerBox(width: 180, height: 14))
-                    else
+                      heightBx(h: 4),
                       customText(
                         data?.email ?? '',
                         color: AppColors.subTitle,
                         fontSize: 14,
                         alight: TextAlign.center,
                       ),
+                    ],
                     heightBx(h: 12),
                     const Center(child: _StatusPill()),
                     heightBx(h: 20),
@@ -133,6 +153,61 @@ class _RoundButton extends StatelessWidget {
 }
 
 /// Full name followed by a small blue verified check.
+/// The card shown where the name and email would be when the profile could
+/// not be loaded: why, and a Retry only when trying again can help.
+class _ProfileLoadError extends StatelessWidget {
+  final ({String text, bool canRetry}) copy;
+  final VoidCallback onRetry;
+
+  const _ProfileLoadError({required this.copy, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: _softShadow,
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.error_outline, color: AppColors.danger, size: 24),
+          heightBx(h: 8),
+          customText(
+            copy.text,
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            maxLine: 4,
+            alight: TextAlign.center,
+          ),
+          if (copy.canRetry) ...[
+            heightBx(h: 10),
+            InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: onRetry,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                child: customText(
+                  l10n.retry,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _NameRow extends StatelessWidget {
   final String name;
 

@@ -1617,4 +1617,7 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get attSummaryLoadFailed => 'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນການລົງເວລາໄດ້.';
+
+  @override
+  String get profileLoadFailed => 'ບໍ່ສາມາດໂຫຼດໂປຣຟາຍໄດ້.';
 }
