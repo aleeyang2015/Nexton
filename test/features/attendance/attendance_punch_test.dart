@@ -97,34 +97,11 @@ void main() {
       expect(request.validate().isSuccess, isTrue);
     });
 
-    test('a WiFi punch needs a BSSID', () {
-      const request = PunchRequest(
-        method: ClockMethod.wifi,
-        reading: PunchLocationReading(wifiSsid: 'Office'),
-      );
-
-      expect(
-        request.validate().failureOrNull!.message,
-        ValidationCode.wifiUnavailable,
-      );
-    });
-
-    test('field work needs a non-blank reason', () {
-      const blank = PunchRequest(
-        method: ClockMethod.field,
-        fieldWorkReason: '   ',
-      );
-      const given = PunchRequest(
-        method: ClockMethod.field,
-        fieldWorkReason: 'site visit',
-      );
-
-      expect(
-        blank.validate().failureOrNull!.message,
-        ValidationCode.fieldReasonRequired,
-      );
-      // Field work needs no device signal at all.
-      expect(given.validate().isSuccess, isTrue);
+    test('GPS is the only method the App punches with', () {
+      expect(ClockMethod.values, [ClockMethod.gps]);
+      // A method the backend knows but the phone never sends.
+      expect(ClockMethod.fromWire('wifi'), isNull);
+      expect(ClockMethod.fromWire('field'), isNull);
     });
   });
 

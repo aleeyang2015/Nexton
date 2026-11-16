@@ -71,10 +71,6 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.locationPermissionDeniedForever;
     case ValidationCode.locationTimeout:
       return l10n.locationTimeout;
-    case ValidationCode.wifiUnavailable:
-      return l10n.wifiUnavailable;
-    case ValidationCode.fieldReasonRequired:
-      return l10n.fieldReasonRequired;
     case ValidationCode.mockLocationDetected:
       return l10n.mockLocationDetected;
     case ValidationCode.correctionDateInFuture:

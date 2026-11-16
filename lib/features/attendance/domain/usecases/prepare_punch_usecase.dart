@@ -23,7 +23,6 @@ class PreparePunchUseCase {
   /// never as a request that is certain to be rejected.
   Future<Result<PunchRequest>> call(
     ClockMethod method, {
-    String? fieldWorkReason,
     String? notes,
     String? photoUrl,
     String? deviceId,
@@ -40,7 +39,6 @@ class PreparePunchUseCase {
     final request = PunchRequest(
       method: method,
       reading: reading,
-      fieldWorkReason: fieldWorkReason,
       notes: notes,
       photoUrl: photoUrl,
       deviceId: deviceId,

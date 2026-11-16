@@ -1,5 +1,6 @@
 import '../../domain/entities/employee_profile.dart';
 import '../../domain/entities/shift_detail.dart';
+import '../../domain/entities/shift_detail_weekly.dart';
 
 /// Reads `GET /core_hr/employees/me`.
 ///
@@ -58,9 +59,29 @@ class EmployeeProfileModel {
             nameLo: _nonEmpty(_string(raw['name_lo'])),
             startTime: _nonEmpty(_string(raw['start_time'])),
             endTime: _nonEmpty(_string(raw['end_time'])),
+            endsNextDay: raw['ends_next_day'] == true,
+            weeklys: _weeklys(raw['weeklys']),
           ),
         )
         .toList(growable: false);
+  }
+
+  /// `shift_details[].weeklys[]` — the weekdays with their own times, in the
+  /// backend's order. A missing key, `null` or anything that is not a list
+  /// reads as "none", and a row with no `weekly_day` cannot be placed on a
+  /// day, so it is skipped.
+  static List<ShiftDetailWeekly> _weeklys(dynamic raw) {
+    if (raw is! List) return const [];
+
+    return [
+      for (final row in raw.whereType<Map>())
+        if (_nonEmpty(_string(row['weekly_day'])) case final String day)
+          ShiftDetailWeekly(
+            weeklyDay: day,
+            startTime: _nonEmpty(_string(row['start_time'])),
+            endTime: _nonEmpty(_string(row['end_time'])),
+          ),
+    ];
   }
 
   static String _fullName(Map<String, dynamic> json) {

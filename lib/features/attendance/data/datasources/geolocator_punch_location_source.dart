@@ -58,8 +58,8 @@ class GeolocatorPunchLocationSource implements PunchLocationSource {
 
   @override
   Future<PunchLocationReading> read(ClockMethod method) async {
-    // Only the GPS punch needs a fix. Sampling a position for a `field` punch
-    // would prompt for a permission the punch never uses.
+    // Only a punch that needs coordinates samples a position. GPS, the one
+    // method the App punches with, always does.
     if (!method.needsCoordinates) return PunchLocationReading.unavailable;
 
     if (!await _api.isLocationServiceEnabled()) {

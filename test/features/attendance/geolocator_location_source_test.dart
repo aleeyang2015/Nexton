@@ -201,23 +201,6 @@ void main() {
     expect(reading.unavailableReason, LocationUnavailableReason.unknown);
   });
 
-  test('field work never asks for a location permission', () async {
-    api.permission = LocationPermission.denied;
-
-    final reading = await source().read(ClockMethod.field);
-
-    expect(api.requestCalls, 0);
-    expect(reading, PunchLocationReading.unavailable);
-    // Field work needs a reason, not a fix.
-    expect(
-      const PunchRequest(
-        method: ClockMethod.field,
-        fieldWorkReason: 'site visit',
-      ).copyWith(reading: reading).validate().isSuccess,
-      isTrue,
-    );
-  });
-
   group('when no fresh fix arrives in time', () {
     setUp(() => api.positionError = TimeoutException('no fix'));
 

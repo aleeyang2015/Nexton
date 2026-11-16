@@ -668,18 +668,6 @@ abstract class AppLocalizations {
   /// **'Could not get a location fix. Move somewhere with a clearer view of the sky and try again.'**
   String get locationTimeout;
 
-  /// No description provided for @wifiUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'The WiFi network could not be read. Connect to the office WiFi and try again.'**
-  String get wifiUnavailable;
-
-  /// No description provided for @fieldReasonRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Please give a reason for the field work.'**
-  String get fieldReasonRequired;
-
   /// No description provided for @mockLocationDetected.
   ///
   /// In en, this message translates to:

@@ -13,8 +13,6 @@ class PunchFields {
   PunchFields._();
 
   static const String location = 'location';
-  static const String wifi = 'wifi_bssid';
-  static const String reason = 'field_work_reason';
 }
 
 /// Everything one clock-in or clock-out sends (§3's request body).
@@ -29,9 +27,6 @@ class PunchRequest extends Equatable implements BaseParams {
   /// same evidence rather than sampling a new position from wherever the
   /// phone has drifted to while a dialog was open.
   final PunchLocationReading reading;
-
-  /// Required when [method] is [ClockMethod.field].
-  final String? fieldWorkReason;
 
   /// Doubles as the early-checkout justification: re-sending a refused
   /// clock-out with this set is what clears
@@ -48,7 +43,6 @@ class PunchRequest extends Equatable implements BaseParams {
   const PunchRequest({
     required this.method,
     this.reading = PunchLocationReading.unavailable,
-    this.fieldWorkReason,
     this.notes,
     this.photoUrl,
     this.deviceId,
@@ -59,14 +53,12 @@ class PunchRequest extends Equatable implements BaseParams {
   PunchRequest copyWith({
     ClockMethod? method,
     PunchLocationReading? reading,
-    String? fieldWorkReason,
     String? notes,
     String? photoUrl,
     String? deviceId,
   }) => PunchRequest(
     method: method ?? this.method,
     reading: reading ?? this.reading,
-    fieldWorkReason: fieldWorkReason ?? this.fieldWorkReason,
     notes: notes ?? this.notes,
     photoUrl: photoUrl ?? this.photoUrl,
     deviceId: deviceId ?? this.deviceId,
@@ -103,25 +95,6 @@ class PunchRequest extends Equatable implements BaseParams {
       );
     }
 
-    if (method.needsWifiBssid && !reading.hasWifiBssid) {
-      return Result.failure(
-        Failure.validation(
-          message: ValidationCode.wifiUnavailable,
-          field: PunchFields.wifi,
-        ),
-      );
-    }
-
-    if (method.needsFieldWorkReason &&
-        (fieldWorkReason == null || fieldWorkReason!.trim().isEmpty)) {
-      return Result.failure(
-        Failure.validation(
-          message: ValidationCode.fieldReasonRequired,
-          field: PunchFields.reason,
-        ),
-      );
-    }
-
     return const Result.success(Unit.instance);
   }
 
@@ -142,7 +115,6 @@ class PunchRequest extends Equatable implements BaseParams {
   List<Object?> get props => [
     method,
     reading,
-    fieldWorkReason,
     notes,
     photoUrl,
     deviceId,

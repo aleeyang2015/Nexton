@@ -131,7 +131,6 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
   /// failure, because nothing did.
   Future<Result<PunchOutcome>?> punch({
     ClockMethod method = defaultMethod,
-    String? fieldWorkReason,
     String? notes,
   }) async {
     if (!state.canPunch) return null;
@@ -142,7 +141,6 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
     try {
       final prepared = await ref.read(preparePunchUseCaseProvider)(
         method,
-        fieldWorkReason: fieldWorkReason,
         notes: notes,
       );
       if (_disposed) return null;
