@@ -16,7 +16,15 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #18 is next in work order.
+1. #18 is built and pushed (`18-lists-load-more`), waiting for the owner's say to merge; #19 follows.
+   Open after #18, none built there:
+   - the history's cards are one `Column` in a `ListView`, so every loaded card is rebuilt when a page is added.
+     Fine at a few pages; a lazy list is a follow-up, before the later lists copy the pattern;
+   - the tab listens to its `ScrollController`, not a `NotificationListener` as the issue names; same behaviour.
+     #19 and later lists should copy the tab;
+   - rows are not de-duplicated by id; to look at on the phone check with more than 20 requests;
+   - `CursorPage.fromBody` reads `meta.has_more` only as a real `true` and `next_cursor` only as text; a server
+     that sends them otherwise ends the list early with no sign.
    Open after #17, none built there:
    - the request page offers Edit and Cancel by status and date only: `LeaveRequest` has no owner field, so an
      approver or HR opening someone else's request by id (a push, #53) would see them. The server refuses; the
@@ -121,7 +129,7 @@ count), #56 (sign-out ends the session).
 | 14 | #15 | leave: company days off are skipped, not charged | `15-leave-days-off` | `c9b73ee`, `8845610` | merged to main directly (`a103fc4`) | analyze clean, 854 tests, debug APK | MERGED — phone check on `nexton-demo` pending |
 | 15 | #16 | leave: refusals show Lao text and the screen reloads | `16-leave-refusals-reload` | `9d8f1f8`, `d60a2c2` | merged to main directly (`6889f2a`) | analyze clean, 890 tests, debug APK | MERGED — two-login check on `nexton-demo` pending |
 | 16 | #17 | leave: the request page opens by id, stays fresh, and shows a cancelled request plainly | `17-leave-request-by-id` | `5eb5e50`, `77395b8` | merged to main directly (`4920c50`) | analyze clean, 970 tests, debug APK | MERGED — phone check on `nexton-demo` pending |
-| 17 | #18 | lists: load more as you scroll (leave history first) | | | | | NOT STARTED |
+| 17 | #18 | lists: load more as you scroll (leave history first) | `18-lists-load-more` | `a4cf8ad`, HEAD of branch | none yet: branch pushed, waiting for the owner's say to merge | analyze clean, 1,015 tests, debug APK | IN REVIEW — phone check on `nexton-demo` pending |
 | 18 | #19 | approvals: leave lists keep what I decided, hide buttons on my own request, and load more | | | | | NOT STARTED |
 | 19 | #20 | payslip: read real payslips from the server (data layer) | | | | | NOT STARTED |
 | 20 | #21 | payslip: the salary list shows real payslips, paid and failed | | | | | BLOCKED: backend, payslip month |
