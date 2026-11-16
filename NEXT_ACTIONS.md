@@ -16,8 +16,24 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #20 is merged. #21 follows in the work order and is on the owner's BLOCKED list (payslip month, waiting on
-   the backend), as is #23; #22 is the next one not blocked.
+1. #21 is built and pushed (`21-salary-list-real-payslips`), waiting for the owner's say to merge; #22 follows.
+   #23 is still on the owner's BLOCKED list; its backend dependency is the same one #21 had, now live.
+   Open after #21, none built there:
+   - product question for the owner: the Paid chip goes by the run's status, as the issue says, so a paid run
+     whose payment failed is listed under Paid (with the red "Payment failed" pill). Should Paid leave it out?
+   - the payslip page's header (month, paid date, status, PDF name) now comes from the list's row; its sections
+     still come from the old `Payslip` entity until #23. A failed payment has the red pill there but no
+     "contact HR" line (that line is on the list's open row);
+   - the string `salaryFilterPending` ("Pending") is still in the arb files: the old entity's status label uses
+     it when the payslip page is opened without a list row (no caller does). #23 removes it;
+   - the list trusts the server's order (newest pay month first, per the backend's comment); if the server ever
+     sent another order the summary card would show the wrong month as the latest;
+   - one payslip the strict reader refuses fails the whole year (see #20);
+   - a 401 or another 403 shows "could not load" with a Retry that cannot help;
+   - a double tap on a row opens the payslip page twice (as before #21);
+   - #72 (salary list stops at 10): the list now asks for one page of 100, so this is fixed on screen once #21
+     is merged. To confirm on `nexton-demo` with a login that has more than 10 payslips in a year, then close #72;
+   - not seen on a phone: the long Lao pill "ໂອນເງິນບໍ່ສຳເລັດ" beside the amount on a narrow screen.
    Open after #20, none built there:
    - the reader has not met a real payslip: no `nexton-demo` login here, so the test JSON is the confirmed list row
      already in `salary_api_test.dart` plus the issue's field table. Check one real list row and one real detail
@@ -156,7 +172,7 @@ count), #56 (sign-out ends the session).
 | 17 | #18 | lists: load more as you scroll (leave history first) | `18-lists-load-more` | `a4cf8ad`, `e5b7b5e` | merged to main directly (`65b81bf`) | analyze clean, 1,015 tests, debug APK | MERGED — phone check on `nexton-demo` pending |
 | 18 | #19 | approvals: leave lists keep what I decided, hide buttons on my own request, and load more | `19-approvals-decided-own-load-more` | `88c9004`, `47d9f67` | merged to main directly (`4327616`) | analyze clean, 1,046 tests, debug APK | MERGED — two-login check on `nexton-demo` pending |
 | 19 | #20 | payslip: read real payslips from the server (data layer) | `20-payslip-data-layer` | `62302e6`, `dd7400d` | merged to main directly (`bc25ec2`) | analyze clean, 1,101 tests, debug APK | MERGED — a real `nexton-demo` payslip to be checked against the reader |
-| 20 | #21 | payslip: the salary list shows real payslips, paid and failed | | | | | BLOCKED: backend, payslip month |
+| 20 | #21 | payslip: the salary list shows real payslips, paid and failed | `21-salary-list-real-payslips` | `a8455eb`, `a6ed9fb` | none yet: branch pushed, waiting for the owner's say to merge | analyze clean, 1,139 tests, debug APK | IN REVIEW — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
 | 21 | #22 | payslip: name, group and caption every payslip line | | | | | NOT STARTED |
 | 22 | #23 | payslip: the payslip page opens by id and shows the real lines | | | | | BLOCKED: backend, payslip month |
 | 23 | #24 | payslip: tap the OT line to see what each OT paid | | | | | NOT STARTED |
