@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/features/time_off/domain/entities/company_days_off.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_attachment.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_balance.dart';
@@ -39,6 +40,11 @@ class FixedLeaveAttachment extends LeaveAttachmentNotifier {
 /// its own result.
 class FakeLeaveRepository implements LeaveRepository {
   Result<List<LeaveType>> leaveTypesResult = Result.success([sampleLeaveType()]);
+  /// The company's days off. None by default: every day is a working day.
+  Result<CompanyDaysOff> companyDaysOffResult = const Result.success(
+    CompanyDaysOff.none,
+  );
+  int companyDaysOffCalls = 0;
   Result<List<LeaveBalance>> balancesResult = const Result.success([]);
 
   /// Answers `balances(year)` for the years set here, in place of
@@ -83,6 +89,12 @@ class FakeLeaveRepository implements LeaveRepository {
   FutureResult<List<LeaveType>> leaveTypes() async {
     leaveTypesCalls++;
     return leaveTypesResult;
+  }
+
+  @override
+  FutureResult<CompanyDaysOff> companyDaysOff() async {
+    companyDaysOffCalls++;
+    return companyDaysOffResult;
   }
 
   @override
@@ -150,6 +162,11 @@ class FakeLeaveRepository implements LeaveRepository {
     return rejectResult;
   }
 }
+
+/// A company closed on Sundays, the commonest case.
+const sundaysOff = CompanyDaysOff([
+  RestDayRule(type: RestDayType.weekly, value: 'SUN'),
+]);
 
 /// A leave type with sane defaults: paid annual leave, switched on, whole
 /// days only, no file needed. Override what the test is about.

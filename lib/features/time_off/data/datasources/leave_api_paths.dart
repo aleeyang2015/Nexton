@@ -19,6 +19,10 @@ class LeavePaths {
   static const String requestsMy = '$_prefix/requests/my';
   static const String myApprovals = '$_prefix/requests/my-approvals';
 
+  /// The company's days off. Not under `/leave`, but only the leave form
+  /// reads it.
+  static const String restDays = '/core_hr/rest-days';
+
   static String request(String id) => '$_prefix/requests/$id';
   static String cancel(String id) => '$_prefix/requests/$id/cancel';
   static String approve(String id) => '$_prefix/requests/$id/approve';

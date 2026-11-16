@@ -4,10 +4,17 @@ import 'uploaded_attachment_model.dart';
 /// Builds the JSON body for `POST /leave/requests` and `PUT /leave/requests/:id`
 /// (leave-request-flutter.md §3.3/§3.4).
 ///
-/// The form always picks individual days, so this always sends `dates[]` (never
-/// the `start_date`+`end_date` range mode). On edit every field is optional on
-/// the wire, but sending the whole draft is valid and keeps the backend's
-/// `total_days` / balance recompute unambiguous.
+/// The days go in one of the endpoint's two shapes, never both:
+///
+/// * a date range — `start_date` + `end_date` and no `dates`. The server
+///   lists the days in between that are not company days off and charges
+///   those;
+/// * separate days — `dates[]`. Every day sent is charged, so the calendar
+///   does not offer a day off.
+///
+/// On edit every field is optional on the wire, but sending the whole draft
+/// is valid and keeps the backend's `total_days` / balance recompute
+/// unambiguous.
 class LeaveDraftBody {
   const LeaveDraftBody._();
 
@@ -15,7 +22,11 @@ class LeaveDraftBody {
     final sorted = [...draft.dates]..sort();
     return {
       'leave_type_id': draft.leaveTypeId,
-      'dates': sorted.map(_isoDate).toList(),
+      if (draft.isRange) ...{
+        'start_date': _isoDate(draft.startDate!),
+        'end_date': _isoDate(draft.endDate!),
+      } else
+        'dates': sorted.map(_isoDate).toList(),
       'duration_type': draft.durationType.wireValue,
       if (draft.returnDate != null) 'return_date': _isoDate(draft.returnDate!),
       if (draft.reason.trim().isNotEmpty) 'reason': draft.reason.trim(),

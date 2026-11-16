@@ -3013,6 +3013,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load your profile.'**
   String get profileLoadFailed;
+
+  /// No description provided for @leaveModeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get leaveModeRange;
+
+  /// No description provided for @leaveModeSeparateDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate days'**
+  String get leaveModeSeparateDays;
+
+  /// No description provided for @leaveRangeSkipsDaysOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Company days off are not counted.'**
+  String get leaveRangeSkipsDaysOff;
+
+  /// No description provided for @leaveRangeCountByServer.
+  ///
+  /// In en, this message translates to:
+  /// **'The server counts the days when you send.'**
+  String get leaveRangeCountByServer;
+
+  /// No description provided for @leaveDayOffLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Company day off'**
+  String get leaveDayOffLegend;
+
+  /// No description provided for @leaveAllDaysOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day you picked is a company day off.'**
+  String get leaveAllDaysOff;
+
+  /// No description provided for @leaveDaysOffLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the company\'s days off.'**
+  String get leaveDaysOffLoadFailed;
+
+  /// No description provided for @leavePickRangeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the first day'**
+  String get leavePickRangeStart;
+
+  /// No description provided for @leavePickRangeEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the last day'**
+  String get leavePickRangeEnd;
 }
 
 class _AppLocalizationsDelegate

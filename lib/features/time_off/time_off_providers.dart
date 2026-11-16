@@ -9,6 +9,7 @@ import 'domain/repositories/leave_repository.dart';
 import 'domain/repositories/upload_repository.dart';
 import 'domain/usecases/approve_leave_step_usecase.dart';
 import 'domain/usecases/cancel_leave_request_usecase.dart';
+import 'domain/usecases/get_company_days_off_usecase.dart';
 import 'domain/usecases/get_leave_approvals_usecase.dart';
 import 'domain/usecases/get_leave_balances_usecase.dart';
 import 'domain/usecases/get_leave_history_usecase.dart';
@@ -30,6 +31,10 @@ final leaveRemoteDataSourceProvider = Provider<LeaveRemoteDataSource>(
 final leaveRepositoryProvider = Provider<LeaveRepository>((ref) {
   return LeaveRepositoryImpl(remote: ref.watch(leaveRemoteDataSourceProvider));
 });
+
+final getCompanyDaysOffUseCaseProvider = Provider<GetCompanyDaysOffUseCase>(
+  (ref) => GetCompanyDaysOffUseCase(ref.watch(leaveRepositoryProvider)),
+);
 
 final getLeaveTypesUseCaseProvider = Provider<GetLeaveTypesUseCase>(
   (ref) => GetLeaveTypesUseCase(ref.watch(leaveRepositoryProvider)),

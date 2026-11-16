@@ -20,10 +20,22 @@ mixin _$LeaveRequestFormState {
   /// Non-null once [LeaveRequestFormNotifier.seed] has run — i.e. edit mode.
   String? get editingRequestId => throw _privateConstructorUsedError;
   String? get leaveTypeId => throw _privateConstructorUsedError;
+  LeaveDaysMode get mode => throw _privateConstructorUsedError;
+
+  /// Separate-days mode: the days picked, sorted.
   List<DateTime> get dates => throw _privateConstructorUsedError;
+
+  /// Range mode: the first and the last day asked for, both included.
+  DateTime? get rangeStart => throw _privateConstructorUsedError;
+  DateTime? get rangeEnd => throw _privateConstructorUsedError;
   LeaveDurationType get durationType => throw _privateConstructorUsedError;
   DateTime? get returnToWorkOverride => throw _privateConstructorUsedError;
   String get reason => throw _privateConstructorUsedError;
+
+  /// The company's days off, or null while they are not known (still
+  /// loading, or the load failed). Kept here by the notifier so the counts
+  /// below need nothing handed to them.
+  CompanyDaysOff? get daysOff => throw _privateConstructorUsedError;
 
   /// Edit mode only: the leave type the request had when it was opened. The
   /// form keeps offering it even after HR switched it off.
@@ -55,10 +67,14 @@ abstract class $LeaveRequestFormStateCopyWith<$Res> {
   $Res call({
     String? editingRequestId,
     String? leaveTypeId,
+    LeaveDaysMode mode,
     List<DateTime> dates,
+    DateTime? rangeStart,
+    DateTime? rangeEnd,
     LeaveDurationType durationType,
     DateTime? returnToWorkOverride,
     String reason,
+    CompanyDaysOff? daysOff,
     String? originalLeaveTypeId,
     double? originalTotalDays,
     int? originalBalanceYear,
@@ -84,10 +100,14 @@ class _$LeaveRequestFormStateCopyWithImpl<
   $Res call({
     Object? editingRequestId = freezed,
     Object? leaveTypeId = freezed,
+    Object? mode = null,
     Object? dates = null,
+    Object? rangeStart = freezed,
+    Object? rangeEnd = freezed,
     Object? durationType = null,
     Object? returnToWorkOverride = freezed,
     Object? reason = null,
+    Object? daysOff = freezed,
     Object? originalLeaveTypeId = freezed,
     Object? originalTotalDays = freezed,
     Object? originalBalanceYear = freezed,
@@ -103,10 +123,22 @@ class _$LeaveRequestFormStateCopyWithImpl<
                 ? _value.leaveTypeId
                 : leaveTypeId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            mode: null == mode
+                ? _value.mode
+                : mode // ignore: cast_nullable_to_non_nullable
+                      as LeaveDaysMode,
             dates: null == dates
                 ? _value.dates
                 : dates // ignore: cast_nullable_to_non_nullable
                       as List<DateTime>,
+            rangeStart: freezed == rangeStart
+                ? _value.rangeStart
+                : rangeStart // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            rangeEnd: freezed == rangeEnd
+                ? _value.rangeEnd
+                : rangeEnd // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
             durationType: null == durationType
                 ? _value.durationType
                 : durationType // ignore: cast_nullable_to_non_nullable
@@ -119,6 +151,10 @@ class _$LeaveRequestFormStateCopyWithImpl<
                 ? _value.reason
                 : reason // ignore: cast_nullable_to_non_nullable
                       as String,
+            daysOff: freezed == daysOff
+                ? _value.daysOff
+                : daysOff // ignore: cast_nullable_to_non_nullable
+                      as CompanyDaysOff?,
             originalLeaveTypeId: freezed == originalLeaveTypeId
                 ? _value.originalLeaveTypeId
                 : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
@@ -153,10 +189,14 @@ abstract class _$$LeaveRequestFormStateImplCopyWith<$Res>
   $Res call({
     String? editingRequestId,
     String? leaveTypeId,
+    LeaveDaysMode mode,
     List<DateTime> dates,
+    DateTime? rangeStart,
+    DateTime? rangeEnd,
     LeaveDurationType durationType,
     DateTime? returnToWorkOverride,
     String reason,
+    CompanyDaysOff? daysOff,
     String? originalLeaveTypeId,
     double? originalTotalDays,
     int? originalBalanceYear,
@@ -179,10 +219,14 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
   $Res call({
     Object? editingRequestId = freezed,
     Object? leaveTypeId = freezed,
+    Object? mode = null,
     Object? dates = null,
+    Object? rangeStart = freezed,
+    Object? rangeEnd = freezed,
     Object? durationType = null,
     Object? returnToWorkOverride = freezed,
     Object? reason = null,
+    Object? daysOff = freezed,
     Object? originalLeaveTypeId = freezed,
     Object? originalTotalDays = freezed,
     Object? originalBalanceYear = freezed,
@@ -198,10 +242,22 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
             ? _value.leaveTypeId
             : leaveTypeId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        mode: null == mode
+            ? _value.mode
+            : mode // ignore: cast_nullable_to_non_nullable
+                  as LeaveDaysMode,
         dates: null == dates
             ? _value._dates
             : dates // ignore: cast_nullable_to_non_nullable
                   as List<DateTime>,
+        rangeStart: freezed == rangeStart
+            ? _value.rangeStart
+            : rangeStart // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        rangeEnd: freezed == rangeEnd
+            ? _value.rangeEnd
+            : rangeEnd // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
         durationType: null == durationType
             ? _value.durationType
             : durationType // ignore: cast_nullable_to_non_nullable
@@ -214,6 +270,10 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
             ? _value.reason
             : reason // ignore: cast_nullable_to_non_nullable
                   as String,
+        daysOff: freezed == daysOff
+            ? _value.daysOff
+            : daysOff // ignore: cast_nullable_to_non_nullable
+                  as CompanyDaysOff?,
         originalLeaveTypeId: freezed == originalLeaveTypeId
             ? _value.originalLeaveTypeId
             : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
@@ -241,10 +301,14 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   const _$LeaveRequestFormStateImpl({
     this.editingRequestId,
     this.leaveTypeId,
+    this.mode = LeaveDaysMode.range,
     final List<DateTime> dates = const <DateTime>[],
+    this.rangeStart,
+    this.rangeEnd,
     this.durationType = LeaveDurationType.fullDay,
     this.returnToWorkOverride,
     this.reason = '',
+    this.daysOff,
     this.originalLeaveTypeId,
     this.originalTotalDays,
     this.originalBalanceYear,
@@ -257,7 +321,14 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   final String? editingRequestId;
   @override
   final String? leaveTypeId;
+  @override
+  @JsonKey()
+  final LeaveDaysMode mode;
+
+  /// Separate-days mode: the days picked, sorted.
   final List<DateTime> _dates;
+
+  /// Separate-days mode: the days picked, sorted.
   @override
   @JsonKey()
   List<DateTime> get dates {
@@ -266,6 +337,11 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     return EqualUnmodifiableListView(_dates);
   }
 
+  /// Range mode: the first and the last day asked for, both included.
+  @override
+  final DateTime? rangeStart;
+  @override
+  final DateTime? rangeEnd;
   @override
   @JsonKey()
   final LeaveDurationType durationType;
@@ -274,6 +350,12 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   @override
   @JsonKey()
   final String reason;
+
+  /// The company's days off, or null while they are not known (still
+  /// loading, or the load failed). Kept here by the notifier so the counts
+  /// below need nothing handed to them.
+  @override
+  final CompanyDaysOff? daysOff;
 
   /// Edit mode only: the leave type the request had when it was opened. The
   /// form keeps offering it even after HR switched it off.
@@ -296,7 +378,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
 
   @override
   String toString() {
-    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, dates: $dates, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, originalLeaveTypeId: $originalLeaveTypeId, originalTotalDays: $originalTotalDays, originalBalanceYear: $originalBalanceYear, submission: $submission)';
+    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, originalLeaveTypeId: $originalLeaveTypeId, originalTotalDays: $originalTotalDays, originalBalanceYear: $originalBalanceYear, submission: $submission)';
   }
 
   @override
@@ -308,12 +390,18 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
                 other.editingRequestId == editingRequestId) &&
             (identical(other.leaveTypeId, leaveTypeId) ||
                 other.leaveTypeId == leaveTypeId) &&
+            (identical(other.mode, mode) || other.mode == mode) &&
             const DeepCollectionEquality().equals(other._dates, _dates) &&
+            (identical(other.rangeStart, rangeStart) ||
+                other.rangeStart == rangeStart) &&
+            (identical(other.rangeEnd, rangeEnd) ||
+                other.rangeEnd == rangeEnd) &&
             (identical(other.durationType, durationType) ||
                 other.durationType == durationType) &&
             (identical(other.returnToWorkOverride, returnToWorkOverride) ||
                 other.returnToWorkOverride == returnToWorkOverride) &&
             (identical(other.reason, reason) || other.reason == reason) &&
+            (identical(other.daysOff, daysOff) || other.daysOff == daysOff) &&
             (identical(other.originalLeaveTypeId, originalLeaveTypeId) ||
                 other.originalLeaveTypeId == originalLeaveTypeId) &&
             (identical(other.originalTotalDays, originalTotalDays) ||
@@ -329,10 +417,14 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     runtimeType,
     editingRequestId,
     leaveTypeId,
+    mode,
     const DeepCollectionEquality().hash(_dates),
+    rangeStart,
+    rangeEnd,
     durationType,
     returnToWorkOverride,
     reason,
+    daysOff,
     originalLeaveTypeId,
     originalTotalDays,
     originalBalanceYear,
@@ -354,10 +446,14 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   const factory _LeaveRequestFormState({
     final String? editingRequestId,
     final String? leaveTypeId,
+    final LeaveDaysMode mode,
     final List<DateTime> dates,
+    final DateTime? rangeStart,
+    final DateTime? rangeEnd,
     final LeaveDurationType durationType,
     final DateTime? returnToWorkOverride,
     final String reason,
+    final CompanyDaysOff? daysOff,
     final String? originalLeaveTypeId,
     final double? originalTotalDays,
     final int? originalBalanceYear,
@@ -371,13 +467,26 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   @override
   String? get leaveTypeId;
   @override
+  LeaveDaysMode get mode;
+  @override
+  /// Separate-days mode: the days picked, sorted.
   List<DateTime> get dates;
+  @override
+  /// Range mode: the first and the last day asked for, both included.
+  DateTime? get rangeStart;
+  @override
+  DateTime? get rangeEnd;
   @override
   LeaveDurationType get durationType;
   @override
   DateTime? get returnToWorkOverride;
   @override
   String get reason;
+  @override
+  /// The company's days off, or null while they are not known (still
+  /// loading, or the load failed). Kept here by the notifier so the counts
+  /// below need nothing handed to them.
+  CompanyDaysOff? get daysOff;
   @override
   /// Edit mode only: the leave type the request had when it was opened. The
   /// form keeps offering it even after HR switched it off.

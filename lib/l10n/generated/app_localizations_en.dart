@@ -1632,4 +1632,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileLoadFailed => 'Could not load your profile.';
+
+  @override
+  String get leaveModeRange => 'Date range';
+
+  @override
+  String get leaveModeSeparateDays => 'Separate days';
+
+  @override
+  String get leaveRangeSkipsDaysOff => 'Company days off are not counted.';
+
+  @override
+  String get leaveRangeCountByServer =>
+      'The server counts the days when you send.';
+
+  @override
+  String get leaveDayOffLegend => 'Company day off';
+
+  @override
+  String get leaveAllDaysOff => 'Every day you picked is a company day off.';
+
+  @override
+  String get leaveDaysOffLoadFailed =>
+      'Could not load the company\'s days off.';
+
+  @override
+  String get leavePickRangeStart => 'Pick the first day';
+
+  @override
+  String get leavePickRangeEnd => 'Pick the last day';
 }
