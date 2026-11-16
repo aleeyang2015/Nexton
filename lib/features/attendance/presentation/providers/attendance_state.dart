@@ -32,25 +32,19 @@ class AttendanceState with _$AttendanceState {
   /// True while today's record is being fetched for the first time.
   bool get isLoadingToday => today.isLoading;
 
-  /// True only when the open session actually belongs to today. A session
-  /// left open across midnight by a forgotten clock-out no longer counts —
-  /// otherwise the card would hang on "clock out" forever instead of letting
-  /// the employee start the new day with a fresh clock-in.
-  bool get isClockedIn {
-    final clockIn = day.openSession?.clockIn;
-    return clockIn != null && _isToday(clockIn);
-  }
+  /// True while the record the card is about has an open session. That
+  /// record is usually today's, but a night shift still running lives on
+  /// yesterday's and a punch for a 00:00 shift on tomorrow's.
+  ///
+  /// Whether an open session still counts is decided once, where the record
+  /// is chosen: [AttendanceDay.pickCurrent] never hands over a day shift left
+  /// open by a forgotten clock-out, and does hand over a night shift that
+  /// started yesterday. A second rule here ("opened today") would undo that:
+  /// at 02:00 the night shift's card would offer clock-in.
+  bool get isClockedIn => day.isClockedIn;
 
   /// Which endpoint the slide action should hit next.
-  ClockAction get nextAction =>
-      isClockedIn ? ClockAction.clockOut : ClockAction.clockIn;
-
-  static bool _isToday(DateTime value) {
-    final now = DateTime.now();
-    return value.year == now.year &&
-        value.month == now.month &&
-        value.day == now.day;
-  }
+  ClockAction get nextAction => day.nextAction;
 
   bool get isCoolingDown {
     final until = cooldownUntil;

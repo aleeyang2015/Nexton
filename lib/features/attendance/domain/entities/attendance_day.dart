@@ -40,6 +40,12 @@ class AttendanceSession extends Equatable {
   final String? method;
   final String? locationLabel;
 
+  /// When this session's shift part starts and ends, as the company's wall
+  /// clock reads (`HH:MM` or `HH:MM:SS`). Null when the record carries no
+  /// shift part for the session.
+  final String? partStartTime;
+  final String? partEndTime;
+
   const AttendanceSession({
     this.order,
     this.label,
@@ -53,10 +59,39 @@ class AttendanceSession extends Equatable {
     this.status,
     this.method,
     this.locationLabel,
+    this.partStartTime,
+    this.partEndTime,
   });
 
   /// Punched in and not yet out — the session a clock-out would close.
   bool get isOpen => clockIn != null && clockOut == null;
+
+  /// True for a part that runs past midnight: both times are known and the
+  /// end is not after the start (23:30–07:30, or a full 24 hours). This is
+  /// the backend's own rule, so the App and the server agree on which
+  /// sessions belong to a night shift.
+  bool get crossesMidnight {
+    final start = _secondsOfDay(partStartTime);
+    final end = _secondsOfDay(partEndTime);
+    if (start == null || end == null) return false;
+    return end <= start;
+  }
+
+  /// `HH:MM[:SS]` as seconds since midnight, or null when it is not a time.
+  static int? _secondsOfDay(String? time) {
+    if (time == null) return null;
+    final parts = time.trim().split(':');
+    if (parts.length < 2 || parts.length > 3) return null;
+
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    final second = parts.length == 3 ? int.tryParse(parts[2]) : 0;
+    if (hour == null || minute == null || second == null) return null;
+    if (hour < 0 || hour > 24 || minute < 0 || minute > 59) return null;
+    if (second < 0 || second > 59) return null;
+
+    return hour * 3600 + minute * 60 + second;
+  }
 
   bool get isComplete => clockIn != null && clockOut != null;
 
@@ -74,6 +109,8 @@ class AttendanceSession extends Equatable {
     status,
     method,
     locationLabel,
+    partStartTime,
+    partEndTime,
   ];
 }
 
@@ -100,12 +137,72 @@ class AttendanceDay extends Equatable {
   /// day with no punches is genuinely in.
   static const empty = AttendanceDay();
 
-  /// The session a clock-out would close, if any.
-  AttendanceSession? get openSession {
-    for (final session in sessions) {
-      if (session.isOpen) return session;
+  /// The record the home card is about at [now], out of the records around
+  /// it.
+  ///
+  /// It is not always the one dated today. The backend files a punch under
+  /// the shift whose window holds it, even across midnight: 23:50 for a 00:00
+  /// shift lands on **tomorrow's** record, and a night shift's open session
+  /// lives on the day it **started**. So, in this order:
+  ///
+  /// 1. tomorrow's record with an open session;
+  /// 2. today's record with an open session;
+  /// 3. yesterday's record with an open session whose part crosses midnight
+  ///    (a night shift still running);
+  /// 4. today's record;
+  /// 5. [empty].
+  ///
+  /// A day-shift session left open yesterday is never picked: the employee
+  /// forgot to clock out, and today's card must still offer clock-in. A
+  /// record with no date cannot be placed and is ignored.
+  static AttendanceDay pickCurrent(List<AttendanceDay> rows, DateTime now) {
+    // Calendar arithmetic, not `Duration(days: 1)`: a day is not always 24
+    // hours where clocks change.
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+    final yesterday = DateTime(now.year, now.month, now.day - 1);
+
+    AttendanceDay? on(DateTime day) {
+      for (final row in rows) {
+        final date = row.date;
+        if (date == null) continue;
+        if (date.year == day.year &&
+            date.month == day.month &&
+            date.day == day.day) {
+          return row;
+        }
+      }
+      return null;
     }
-    return null;
+
+    final tomorrowRow = on(tomorrow);
+    if (tomorrowRow != null && tomorrowRow.isClockedIn) return tomorrowRow;
+
+    final todayRow = on(today);
+    if (todayRow != null && todayRow.isClockedIn) return todayRow;
+
+    final yesterdayRow = on(yesterday);
+    if (yesterdayRow != null &&
+        yesterdayRow.sessions.any((s) => s.isOpen && s.crossesMidnight)) {
+      return yesterdayRow;
+    }
+
+    return todayRow ?? empty;
+  }
+
+  /// The session a clock-out would close, if any: the open one that was
+  /// opened last. An earlier session left open by a forgotten clock-out (the
+  /// day part, on a record picked for its night part) is not the one the
+  /// employee is in now.
+  AttendanceSession? get openSession {
+    AttendanceSession? latest;
+    for (final session in sessions) {
+      if (!session.isOpen) continue;
+      if (latest == null || session.clockIn!.isAfter(latest.clockIn!)) {
+        latest = session;
+      }
+    }
+    return latest;
   }
 
   /// True while a session is open. Drives the card's status dot.

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/network_providers.dart';
+import '../../core/utils/clock_provider.dart';
 import 'data/datasources/attendance_remote_data_source.dart';
 import 'data/datasources/geolocator_punch_location_source.dart';
 import 'data/datasources/offsite_remote_data_source.dart';
@@ -52,7 +53,12 @@ final punchLocationSourceProvider = Provider<PunchLocationSource>(
 );
 
 final attendanceRemoteDataSourceProvider = Provider<AttendanceRemoteDataSource>(
-  (ref) => AttendanceRemoteDataSourceImpl(ref.watch(apiClientProvider)),
+  (ref) => AttendanceRemoteDataSourceImpl(
+    ref.watch(apiClientProvider),
+    // One source of time for the whole App, so "today" is the same day here
+    // as anywhere else, and a test can stand on any date.
+    now: ref.watch(clockProvider),
+  ),
 );
 
 /// Exposed as the abstract type so consumers never see the impl.
