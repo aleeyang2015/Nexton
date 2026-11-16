@@ -5,15 +5,12 @@ import 'package:dio/dio.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_response.dart';
-import '../../domain/entities/payslip.dart';
 import '../../domain/entities/payslip_pdf.dart';
 import '../../domain/entities/payslip_record.dart';
-import '../models/payslip_model.dart';
 import '../models/payslip_record_model.dart';
 import 'salary_api_paths.dart';
 
 abstract class SalaryRemoteDataSource {
-  Future<Payslip> detail(String id);
   Future<PayslipPdf> pdf(String id);
 
   /// The caller's payslips for [year], as the server sends them.
@@ -35,12 +32,6 @@ class SalaryRemoteDataSourceImpl implements SalaryRemoteDataSource {
   final ApiClient _client;
 
   SalaryRemoteDataSourceImpl(this._client);
-
-  @override
-  Future<Payslip> detail(String id) async {
-    final response = await _client.get<dynamic>(SalaryPaths.payslip(id));
-    return PayslipModel.fromJson(ApiEnvelope.unwrapObject(response.data));
-  }
 
   /// A year has at most a handful of payslips and the server sends up to
   /// 100 in a page, so one page is the whole year.

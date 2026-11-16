@@ -707,6 +707,68 @@ void main() {
     });
   });
 
+  group('how an amount is written', () {
+    PayslipRow row(int amount, {required bool deduction}) => PayslipRow(
+      code: 'X',
+      title: null,
+      name: 'x',
+      caption: null,
+      amount: amount,
+      isDeduction: deduction,
+    );
+
+    test('an earning has a plus, a deduction a minus', () {
+      expect(PayslipLineCopy.amount(row(162259, deduction: false)), (
+        text: '+ 162,259',
+        kind: PayslipAmountKind.earning,
+      ));
+      expect(PayslipLineCopy.amount(row(68910, deduction: true)), (
+        text: '- 68,910',
+        kind: PayslipAmountKind.deduction,
+      ));
+    });
+
+    test('zero is "0" with no sign, earning or deduction', () {
+      for (final deduction in [true, false]) {
+        expect(PayslipLineCopy.amount(row(0, deduction: deduction)), (
+          text: '0',
+          kind: PayslipAmountKind.zero,
+        ));
+      }
+    });
+
+    test('a row the App could not place has no sign: it does not say which '
+        'way the figure counts', () {
+      expect(
+        PayslipLineCopy.amount(row(4200, deduction: false), unplaced: true),
+        (text: '4,200', kind: PayslipAmountKind.plain),
+      );
+      expect(
+        PayslipLineCopy.amount(row(4200, deduction: true), unplaced: true),
+        (text: '4,200', kind: PayslipAmountKind.plain),
+      );
+    });
+
+    test('an amount below zero is shown as the number it is, never with '
+        'two signs', () {
+      expect(PayslipLineCopy.amount(row(-5000, deduction: true)), (
+        text: '-5,000',
+        kind: PayslipAmountKind.plain,
+      ));
+      expect(PayslipLineCopy.amount(row(-5000, deduction: false)), (
+        text: '-5,000',
+        kind: PayslipAmountKind.plain,
+      ));
+    });
+
+    test('the number is the row\'s own, grouped in thousands', () {
+      expect(
+        PayslipLineCopy.amount(row(12000000, deduction: false)).text,
+        '+ 12,000,000',
+      );
+    });
+  });
+
   group('the example in the issue', () {
     test('half a day of unpaid leave reads '
         'ລາພັກບໍ່ໄດ້ຮັບເງິນ · 0.5 ວັນ, 96,154, under attendance', () {

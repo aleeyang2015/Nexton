@@ -1,6 +1,5 @@
 import '../../../../core/utils/base_repository.dart';
 import '../../../../core/utils/result.dart';
-import '../../domain/entities/payslip.dart';
 import '../../domain/entities/payslip_pdf.dart';
 import '../../domain/entities/payslip_record.dart';
 import '../../domain/repositories/salary_repository.dart';
@@ -11,9 +10,6 @@ class SalaryRepositoryImpl extends BaseRepository implements SalaryRepository {
   final SalaryRemoteDataSource _remote;
 
   SalaryRepositoryImpl({required SalaryRemoteDataSource remote}) : _remote = remote;
-
-  @override
-  FutureResult<Payslip> detail(String id) => guard(() => _remote.detail(id));
 
   @override
   FutureResult<PayslipPdf> pdf(String id) => guard(() => _remote.pdf(id));

@@ -434,9 +434,6 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryFilterPaid => 'ຈ່າຍແລ້ວ';
 
   @override
-  String get salaryFilterPending => 'ລໍຖ້າ';
-
-  @override
   String get salaryNetSalaryLabel => 'ເງິນເດືອນສຸດທິ';
 
   @override
@@ -479,28 +476,13 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryTotalDeductionsLabel => 'ຫັກລວມ';
 
   @override
-  String get salaryAllowancesSection => 'ສະຫວັດດີການ / ເບ້ຍລ້ຽງ';
+  String get salaryTaxableIncomeLabel => 'ລາຍໄດ້ຄິດອາກອນ';
 
   @override
-  String get salaryAttendanceDeductionsSection => 'ລາຍການຫັກ — ການເຂົ້າວຽກ';
+  String get salaryUnitTimes => 'ຄັ້ງ';
 
   @override
-  String get salaryStatutoryDeductionsSection =>
-      'ລາຍການຫັກ — ຕາມກົດໝາຍ / ອື່ນໆ';
-
-  @override
-  String get salaryTaxableIncomeLabel => 'ລາຍໄດ້ຄິດອາກອນ (taxable income)';
-
-  @override
-  String get salaryEmployerSocialSecurityLabel => 'ປະກັນສັງຄົມ (ນາຍຈ້າງ)';
-
-  @override
-  String get salaryComponentOtherDeduction => 'ລາຍການຫັກອື່ນໆ';
-
-  @override
-  String salaryPayslipLineBase(String amount) {
-    return 'ຈາກຖານ $amount';
-  }
+  String get salaryUnitDays => 'ມື້';
 
   @override
   String get salaryHistoryEmpty => 'ບໍ່ມີຂໍ້ມູນເງິນເດືອນ';
@@ -516,30 +498,6 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get salaryPdfInvalid => 'ບໍ່ສາມາດອ່ານໄຟລ໌ PDF ໃບເງິນເດືອນໄດ້.';
-
-  @override
-  String get salaryComponentLate => 'ຫັກເງິນມາຊ້າ';
-
-  @override
-  String get salaryComponentAbsentLate => 'ຫັກເງິນຂາດວຽກຍ້ອນມາຊ້າ';
-
-  @override
-  String get salaryComponentEarlyOut => 'ຫັກເງິນອອກກ່ອນເວລາ';
-
-  @override
-  String get salaryComponentAbsence => 'ຫັກເງິນຂາດວຽກ';
-
-  @override
-  String get salaryUnitMinutes => 'ນາທີ';
-
-  @override
-  String get salaryUnitTimes => 'ຄັ້ງ';
-
-  @override
-  String get salaryUnitDays => 'ມື້';
-
-  @override
-  String get salaryUnitHours => 'ຊົ່ວໂມງ';
 
   @override
   String get language => 'ພາສາ';
@@ -1756,4 +1714,10 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get payslipSectionOther => 'ລາຍການຫັກອື່ນໆ';
+
+  @override
+  String get payslipNotAvailable => 'ໃບເງິນເດືອນນີ້ບໍ່ມີແລ້ວ';
+
+  @override
+  String get back => 'ກັບຄືນ';
 }

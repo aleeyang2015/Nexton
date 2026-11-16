@@ -11,10 +11,9 @@ import '../../../../l10n/generated/app_localizations.dart';
 /// retry link. Shared by the history list and the payslip-detail sections.
 ///
 /// [forFailure] picks the words for a failed load: a company that has not
-/// bought payroll is told so, with no Retry (asking again gets the same
-/// answer); a payslip that is not there (404) gets the screen's own "could
-/// not load" with no Retry either; anything else gets that text and a
-/// Retry.
+/// bought payroll is told so; anything else gets the screen's own "could
+/// not load". Retry is offered only when asking again can help (see
+/// [isFinal]).
 class SalaryErrorBlock extends StatelessWidget {
   final String message;
 
@@ -34,19 +33,31 @@ class SalaryErrorBlock extends StatelessWidget {
     required String fallbackMessage,
     required VoidCallback onRetry,
   }) {
-    final moduleOff =
-        error is ValidationFailure &&
-        error.code == ApiErrorCodes.moduleNotActive;
-    // Not there (or not this person's, or not approved yet): asking again
-    // gets the same answer.
-    final notFound = error is NetworkFailure && error.statusCode == 404;
-
     return SalaryErrorBlock(
       key: key,
-      message: moduleOff ? error.localize(l10n) : fallbackMessage,
-      onRetry: moduleOff || notFound ? null : onRetry,
+      message: isModuleOff(error) && error is Failure
+          ? error.localize(l10n)
+          : fallbackMessage,
+      onRetry: isFinal(error) ? null : onRetry,
     );
   }
+
+  /// The company has not bought payroll (`403 MODULE_NOT_ACTIVE`).
+  static bool isModuleOff(Object? error) =>
+      error is ValidationFailure &&
+      error.code == ApiErrorCodes.moduleNotActive;
+
+  /// Not there, not this person's, or not approved yet (`404`): the server
+  /// gives one answer for all three.
+  static bool isNotFound(Object? error) =>
+      error is NetworkFailure && error.statusCode == 404;
+
+  /// True for an answer that asking again cannot change: a refusal (no
+  /// payroll, not allowed, a request the server calls invalid), a payslip
+  /// that is not there, or one the App could not read. No Retry is offered
+  /// for these. No signal and a server error are worth another try.
+  static bool isFinal(Object? error) =>
+      error is ValidationFailure || isNotFound(error);
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +70,17 @@ class SalaryErrorBlock extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, color: AppColors.danger, size: 32),
             heightBx(h: 8),
-            customText(message, color: AppColors.subTitle, alight: TextAlign.center),
+            // Room for a sentence: the Lao texts do not fit on one line of a
+            // narrow phone.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: customText(
+                message,
+                color: AppColors.subTitle,
+                alight: TextAlign.center,
+                maxLine: 4,
+              ),
+            ),
             if (onRetry != null) ...[
               heightBx(h: 12),
               InkWell(
