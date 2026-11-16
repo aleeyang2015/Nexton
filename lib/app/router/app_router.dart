@@ -16,7 +16,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/change_password/presentation/pages/change_password_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
-import '../../features/salary_history/domain/entities/payslip.dart';
+import '../../features/salary_history/domain/entities/payslip_record.dart';
 import '../../features/salary_history/presentation/pages/payslip_detail_page.dart';
 import '../../features/salary_history/presentation/pages/salary_history_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
@@ -313,16 +313,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SalaryHistoryPage(),
       ),
 
-      // Payslip detail — reached by tapping a month's card; the payslip
-      // rides along as `extra`, so a direct hit with nothing to show falls
-      // through to the 404 page.
+      // Payslip detail — reached by tapping a month's card. `extra` is the
+      // list's row (the page loads the payslip by its id, and takes its
+      // month and status from the row), or just the payslip's id; a direct
+      // hit with neither falls through to the 404 page.
       GoRoute(
         path: AppRoutes.payslipDetail,
         name: 'payslipDetail',
         builder: (context, state) {
-          final payslip = state.extra;
-          if (payslip is! Payslip) return const NotFoundPage();
-          return PayslipDetailPage(payslip: payslip);
+          return switch (state.extra) {
+            final String id when id.isNotEmpty => PayslipDetailPage(
+              payslipId: id,
+            ),
+            final PayslipRecord row when row.id.isNotEmpty => PayslipDetailPage(
+              payslipId: row.id,
+              listRow: row,
+            ),
+            _ => const NotFoundPage(),
+          };
         },
       ),
 

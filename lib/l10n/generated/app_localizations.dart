@@ -908,12 +908,6 @@ abstract class AppLocalizations {
   /// **'Base Salary'**
   String get salaryBaseSalary;
 
-  /// No description provided for @salaryAllowance.
-  ///
-  /// In en, this message translates to:
-  /// **'Allowance / Others'**
-  String get salaryAllowance;
-
   /// No description provided for @salarySocialSecurity.
   ///
   /// In en, this message translates to:
@@ -925,12 +919,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Income Tax'**
   String get salaryIncomeTax;
-
-  /// No description provided for @salaryOtherDeductions.
-  ///
-  /// In en, this message translates to:
-  /// **'Other Deductions'**
-  String get salaryOtherDeductions;
 
   /// No description provided for @salaryWorkingDaysLabel.
   ///
@@ -947,7 +935,7 @@ abstract class AppLocalizations {
   /// No description provided for @salaryUnpaidLeaveLabel.
   ///
   /// In en, this message translates to:
-  /// **'Unpaid Leave'**
+  /// **'Unpaid leave (days)'**
   String get salaryUnpaidLeaveLabel;
 
   /// No description provided for @salaryDownloadPdf.
@@ -3139,6 +3127,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Waiting for {role}'**
   String leaveWaitingForStep(String role);
+
+  /// No description provided for @salaryStatusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get salaryStatusApproved;
+
+  /// No description provided for @salaryPaymentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment failed'**
+  String get salaryPaymentFailed;
+
+  /// No description provided for @salaryPaymentFailedContactHr.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment failed. Please contact HR.'**
+  String get salaryPaymentFailedContactHr;
 }
 
 class _AppLocalizationsDelegate

@@ -13,7 +13,6 @@ import '../models/payslip_record_model.dart';
 import 'salary_api_paths.dart';
 
 abstract class SalaryRemoteDataSource {
-  Future<List<Payslip>> history(int year);
   Future<Payslip> detail(String id);
   Future<PayslipPdf> pdf(String id);
 
@@ -27,14 +26,6 @@ abstract class SalaryRemoteDataSource {
 /// The payroll calls behind the salary-history screens, on the shared
 /// authenticated [ApiClient].
 class SalaryRemoteDataSourceImpl implements SalaryRemoteDataSource {
-  /// The history page shows one year at a time and the backend pages at
-  /// this size; `has_more` is not followed.
-  static const int _pageSize = 10;
-
-  /// `status=all` — the Paid/Pending chips filter locally on
-  /// `payment_status`, so one call serves every chip.
-  static const String _allStatuses = 'all';
-
   /// A `Failure.validation` message token the localizer knows, raised when
   /// the PDF endpoint answers 200 with something that isn't a PDF.
   static const String pdfInvalidToken = 'salaryPdfInvalid';
@@ -44,27 +35,6 @@ class SalaryRemoteDataSourceImpl implements SalaryRemoteDataSource {
   final ApiClient _client;
 
   SalaryRemoteDataSourceImpl(this._client);
-
-  @override
-  Future<List<Payslip>> history(int year) async {
-    final response = await _client.get<dynamic>(
-      SalaryPaths.payslipsMy,
-      queryParameters: {
-        'year': year,
-        'status': _allStatuses,
-        'limit': _pageSize,
-      },
-    );
-    final payslips = ApiEnvelope.unwrapList(
-      response.data,
-    ).map(PayslipModel.fromJson).toList();
-    // Newest period first — the first row backs the highlighted summary card.
-    payslips.sort((a, b) {
-      final byYear = b.year.compareTo(a.year);
-      return byYear != 0 ? byYear : b.month.compareTo(a.month);
-    });
-    return payslips;
-  }
 
   @override
   Future<Payslip> detail(String id) async {
@@ -78,7 +48,7 @@ class SalaryRemoteDataSourceImpl implements SalaryRemoteDataSource {
 
   /// No `status` is sent: staff are only ever given payslips of runs HR has
   /// approved or paid, and every one of them belongs on the screen. The
-  /// order is the server's (`created_at`, newest first); nothing is sorted
+  /// order is the server's (newest pay month first); nothing is sorted
   /// here.
   ///
   /// A login with no employee record gets `200` with an empty list, not an

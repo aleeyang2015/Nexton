@@ -452,16 +452,10 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryBaseSalary => 'ເງິນເດືອນພື້ນຖານ';
 
   @override
-  String get salaryAllowance => 'ເບ້ຍລ້ຽງ / ອື່ນໆ';
-
-  @override
   String get salarySocialSecurity => 'ປະກັນສັງຄົມ';
 
   @override
   String get salaryIncomeTax => 'ອາກອນເງິນເດືອນ';
-
-  @override
-  String get salaryOtherDeductions => 'ຫັກອື່ນໆ';
 
   @override
   String get salaryWorkingDaysLabel => 'ມື້ເຮັດວຽກ';
@@ -470,7 +464,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryOvertimeLabel => 'ຊົ່ວໂມງໂອທີ';
 
   @override
-  String get salaryUnpaidLeaveLabel => 'ລາພັກບໍ່ຮັບເງິນ';
+  String get salaryUnpaidLeaveLabel => 'ລາພັກບໍ່ໄດ້ຮັບເງິນ (ວັນ)';
 
   @override
   String get salaryDownloadPdf => 'ດາວໂຫລດໃບເງິນເດືອນ (PDF)';
@@ -1691,4 +1685,14 @@ class AppLocalizationsLo extends AppLocalizations {
   String leaveWaitingForStep(String role) {
     return 'ລໍຖ້າ$role';
   }
+
+  @override
+  String get salaryStatusApproved => 'ອະນຸມັດແລ້ວ';
+
+  @override
+  String get salaryPaymentFailed => 'ໂອນເງິນບໍ່ສຳເລັດ';
+
+  @override
+  String get salaryPaymentFailedContactHr =>
+      'ການໂອນເງິນບໍ່ສຳເລັດ, ກະລຸນາຕິດຕໍ່ຝ່າຍບຸກຄະລາກອນ';
 }

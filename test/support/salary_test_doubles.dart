@@ -13,14 +13,12 @@ import 'package:next_on/features/salary_history/presentation/services/payslip_pd
 /// records the argument it was given, so a widget test can assert which
 /// year / payslip id the UI asked for.
 class FakeSalaryRepository implements SalaryRepository {
-  Result<List<Payslip>> historyResult = const Result.success([]);
   Result<Payslip>? detailResult;
   Result<PayslipPdf>? pdfResult;
 
   /// When set, `detail()` never completes — the detail page stays loading.
   bool hangDetail = false;
 
-  final List<int> historyYears = [];
   final List<String> detailIds = [];
   final List<String> pdfIds = [];
 
@@ -30,10 +28,19 @@ class FakeSalaryRepository implements SalaryRepository {
   final List<int> myPayslipsYears = [];
   final List<String> myPayslipIds = [];
 
+  /// When set, `myPayslips()` waits for it: a year whose answer is slow.
+  Completer<void>? holdMyPayslips;
+
+  /// Answers by year when set; otherwise [myPayslipsResult] for any year.
+  Result<List<PayslipRecord>> Function(int year)? myPayslipsByYear;
+
   @override
   FutureResult<List<PayslipRecord>> myPayslips(int year) async {
     myPayslipsYears.add(year);
-    return myPayslipsResult;
+    final byYear = myPayslipsByYear;
+    final result = byYear != null ? byYear(year) : myPayslipsResult;
+    await holdMyPayslips?.future;
+    return result;
   }
 
   @override
@@ -43,14 +50,6 @@ class FakeSalaryRepository implements SalaryRepository {
         const Result.failure(
           Failure.network(message: 'not found', statusCode: 404),
         );
-  }
-
-  @override
-  FutureResult<List<Payslip>> history(int year) async {
-    historyYears.add(year);
-    return historyResult.mapData(
-      (all) => all.where((p) => p.year == year).toList(),
-    );
   }
 
   @override
@@ -141,5 +140,52 @@ Payslip samplePayslip({
           ]
         : const [],
     taxableIncome: 12552500,
+  );
+}
+
+/// A payslip as the server sends it in the year's list (totals only, no
+/// lines): October 2026 by default, paid on 5 November. The figures match
+/// [samplePayslip]'s, so a list row and its detail page agree.
+PayslipRecord samplePayslipRecord({
+  String id = '2f2e2dfb-2a95-4ee5-ac4e-f97c21201820',
+  int? periodYear = 2026,
+  int? periodMonth = 10,
+  PayslipRunStatus status = PayslipRunStatus.paid,
+  PayslipPaymentStatus paymentStatus = PayslipPaymentStatus.paid,
+  DateTime? paidAt,
+  bool paid = true,
+  int netSalary = 7426674,
+  double workDays = 22,
+  double overtimeHours = 0,
+  double unpaidLeaveDays = 0,
+  String? positionTitle = 'IT Developer',
+  DateTime? createdAt,
+}) {
+  return PayslipRecord(
+    id: id,
+    payrollRunId: 'run-1',
+    employeeId: 'emp-1',
+    employeeNumber: 'EMP-002',
+    employeeName: 'Sandy Vang',
+    departmentName: 'IT Development',
+    positionTitle: positionTitle,
+    baseSalary: 12000000,
+    totalEarnings: 12800000,
+    totalDeductions: 5373326,
+    netSalary: netSalary,
+    employeeSs: 247500,
+    employerSs: 270000,
+    taxableIncome: 12552500,
+    incomeTax: 940249,
+    workDays: workDays,
+    overtimeHours: overtimeHours,
+    unpaidLeaveDays: unpaidLeaveDays,
+    paymentStatus: paymentStatus,
+    status: status,
+    periodYear: periodYear,
+    periodMonth: periodMonth,
+    paidAt: paidAt ?? (paid ? DateTime(2026, 11, 5, 10) : null),
+    // Made on the 1st of the month after the one it pays.
+    createdAt: createdAt ?? DateTime(2026, 11, 1, 9),
   );
 }
