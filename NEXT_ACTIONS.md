@@ -16,7 +16,8 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #4 (errors: Lao text for sign-in, company, session and module codes) is next in work order.
+1. #4: open the PR from `4-error-codes-lao` and review it. Open question for the owner: a switched-off company
+   signs the user out with no message on the sign-in screen; the Lao text shows on the next sign-in attempt. #5 is next.
 2. Still to try by hand for #2: a release APK on a phone signs in with a `nexton-demo` login, and a plain debug run
    shows `nexton-demo.nexton.work` in the debug log.
 3. Still to do by hand for #3: the lead makes the upload key and builds a release bundle with it; a phone install; the
@@ -39,7 +40,7 @@ count), #56 (sign-out ends the session).
 |---|---|---|---|---|---|---|---|
 | 1 | #2 | app: a store build reaches the network and signs in at app.nexton.work | `2-store-build-hosts` | `7af1adb` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 375 passed, 0 failed; debug and release APK build; release manifest has `INTERNET`; phone sign-in pending | MERGED |
 | 2 | #3 | app: final app id next.on.hr.com and a real release key | `3-release-signing` | `e970e49` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 369 passed, 0 failed; debug APK builds; release APK without `key.properties` is debug-signed; release bundle with a throwaway key is signed by that key; the real upload key, a phone install and the iOS simulator build are pending | MERGED |
-| 3 | #4 | errors: Lao text for sign-in, company, session and module codes (shared table) | | | | | NOT STARTED |
+| 3 | #4 | errors: Lao text for sign-in, company, session and module codes (shared table) | `4-error-codes-lao` | `e83a896` | to open | analyze: 1 warning already on `main`; `flutter test`: 418 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | IMPLEMENTED |
 | 4 | #5 | sign-in: no surprise sign-outs on weak signal, a server restart or after a password change | | | | | NOT STARTED |
 | 5 | #6 | sign-in: show how long to wait after too many tries, and send the email as typed | | | | | NOT STARTED |
 | 6 | #7 | attendance: home card and history read the right month | | | | | NOT STARTED |
