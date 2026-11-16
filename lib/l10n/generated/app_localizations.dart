@@ -872,12 +872,6 @@ abstract class AppLocalizations {
   /// **'Paid'**
   String get salaryFilterPaid;
 
-  /// No description provided for @salaryFilterPending.
-  ///
-  /// In en, this message translates to:
-  /// **'Pending'**
-  String get salaryFilterPending;
-
   /// No description provided for @salaryNetSalaryLabel.
   ///
   /// In en, this message translates to:
@@ -962,47 +956,23 @@ abstract class AppLocalizations {
   /// **'Deductions'**
   String get salaryTotalDeductionsLabel;
 
-  /// No description provided for @salaryAllowancesSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Welfare / Allowances'**
-  String get salaryAllowancesSection;
-
-  /// No description provided for @salaryAttendanceDeductionsSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Deductions — Attendance'**
-  String get salaryAttendanceDeductionsSection;
-
-  /// No description provided for @salaryStatutoryDeductionsSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Deductions — Statutory / Other'**
-  String get salaryStatutoryDeductionsSection;
-
   /// No description provided for @salaryTaxableIncomeLabel.
   ///
   /// In en, this message translates to:
   /// **'Taxable income'**
   String get salaryTaxableIncomeLabel;
 
-  /// No description provided for @salaryEmployerSocialSecurityLabel.
+  /// No description provided for @salaryUnitTimes.
   ///
   /// In en, this message translates to:
-  /// **'Social security (employer)'**
-  String get salaryEmployerSocialSecurityLabel;
+  /// **'times'**
+  String get salaryUnitTimes;
 
-  /// No description provided for @salaryComponentOtherDeduction.
+  /// No description provided for @salaryUnitDays.
   ///
   /// In en, this message translates to:
-  /// **'Other deduction'**
-  String get salaryComponentOtherDeduction;
-
-  /// No description provided for @salaryPayslipLineBase.
-  ///
-  /// In en, this message translates to:
-  /// **'on base {amount}'**
-  String salaryPayslipLineBase(String amount);
+  /// **'days'**
+  String get salaryUnitDays;
 
   /// No description provided for @salaryHistoryEmpty.
   ///
@@ -1033,54 +1003,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The payslip PDF could not be read.'**
   String get salaryPdfInvalid;
-
-  /// No description provided for @salaryComponentLate.
-  ///
-  /// In en, this message translates to:
-  /// **'Late arrival penalty'**
-  String get salaryComponentLate;
-
-  /// No description provided for @salaryComponentAbsentLate.
-  ///
-  /// In en, this message translates to:
-  /// **'Absent-late penalty'**
-  String get salaryComponentAbsentLate;
-
-  /// No description provided for @salaryComponentEarlyOut.
-  ///
-  /// In en, this message translates to:
-  /// **'Early leave penalty'**
-  String get salaryComponentEarlyOut;
-
-  /// No description provided for @salaryComponentAbsence.
-  ///
-  /// In en, this message translates to:
-  /// **'Absence penalty'**
-  String get salaryComponentAbsence;
-
-  /// No description provided for @salaryUnitMinutes.
-  ///
-  /// In en, this message translates to:
-  /// **'minutes'**
-  String get salaryUnitMinutes;
-
-  /// No description provided for @salaryUnitTimes.
-  ///
-  /// In en, this message translates to:
-  /// **'times'**
-  String get salaryUnitTimes;
-
-  /// No description provided for @salaryUnitDays.
-  ///
-  /// In en, this message translates to:
-  /// **'days'**
-  String get salaryUnitDays;
-
-  /// No description provided for @salaryUnitHours.
-  ///
-  /// In en, this message translates to:
-  /// **'hours'**
-  String get salaryUnitHours;
 
   /// No description provided for @language.
   ///
@@ -3247,6 +3169,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other deductions'**
   String get payslipSectionOther;
+
+  /// No description provided for @payslipNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This payslip is not available'**
+  String get payslipNotAvailable;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
 }
 
 class _AppLocalizationsDelegate

@@ -427,7 +427,8 @@ class _PayslipCard extends ConsumerWidget {
             // itself by id. This row goes with it, so that page's month and
             // status are the ones shown here. The expand chevron below keeps
             // its own tap for the inline totals.
-            onTap: () => context.push(AppRoutes.payslipDetail, extra: payslip),
+            onTap: () =>
+                context.push(AppRoutes.payslip(payslip.id), extra: payslip),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [

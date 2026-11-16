@@ -437,9 +437,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryFilterPaid => 'Paid';
 
   @override
-  String get salaryFilterPending => 'Pending';
-
-  @override
   String get salaryNetSalaryLabel => 'Net Salary';
 
   @override
@@ -482,28 +479,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryTotalDeductionsLabel => 'Deductions';
 
   @override
-  String get salaryAllowancesSection => 'Welfare / Allowances';
-
-  @override
-  String get salaryAttendanceDeductionsSection => 'Deductions — Attendance';
-
-  @override
-  String get salaryStatutoryDeductionsSection =>
-      'Deductions — Statutory / Other';
-
-  @override
   String get salaryTaxableIncomeLabel => 'Taxable income';
 
   @override
-  String get salaryEmployerSocialSecurityLabel => 'Social security (employer)';
+  String get salaryUnitTimes => 'times';
 
   @override
-  String get salaryComponentOtherDeduction => 'Other deduction';
-
-  @override
-  String salaryPayslipLineBase(String amount) {
-    return 'on base $amount';
-  }
+  String get salaryUnitDays => 'days';
 
   @override
   String get salaryHistoryEmpty => 'No salary records';
@@ -519,30 +501,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get salaryPdfInvalid => 'The payslip PDF could not be read.';
-
-  @override
-  String get salaryComponentLate => 'Late arrival penalty';
-
-  @override
-  String get salaryComponentAbsentLate => 'Absent-late penalty';
-
-  @override
-  String get salaryComponentEarlyOut => 'Early leave penalty';
-
-  @override
-  String get salaryComponentAbsence => 'Absence penalty';
-
-  @override
-  String get salaryUnitMinutes => 'minutes';
-
-  @override
-  String get salaryUnitTimes => 'times';
-
-  @override
-  String get salaryUnitDays => 'days';
-
-  @override
-  String get salaryUnitHours => 'hours';
 
   @override
   String get language => 'Language';
@@ -1772,4 +1730,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get payslipSectionOther => 'Other deductions';
+
+  @override
+  String get payslipNotAvailable => 'This payslip is not available';
+
+  @override
+  String get back => 'Back';
 }
