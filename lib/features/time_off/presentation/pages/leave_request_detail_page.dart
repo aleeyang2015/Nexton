@@ -16,7 +16,6 @@ import '../../domain/entities/leave_approval_step.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_status.dart';
 import '../../domain/entities/leave_type.dart';
-import '../providers/leave_history_notifier.dart';
 import '../providers/leave_request_detail_notifier.dart';
 import '../providers/leave_types_notifier.dart';
 import '../widgets/leave_approval_timeline.dart';
@@ -56,6 +55,20 @@ class LeaveRequestDetailPage extends ConsumerWidget {
         LeaveErrorCode.isRequestGone(error);
     final request = gone ? null : (loaded.valueOrNull ?? initial);
 
+    // The copy handed in is on screen and the page's own load failed: say
+    // so, or the old copy would pass for the current one.
+    ref.listen(leaveRequestDetailNotifierProvider(requestId), (previous, next) {
+      final failure = next.error;
+      if (next.hasError &&
+          !next.isLoading &&
+          previous?.hasError != true &&
+          initial != null &&
+          failure is Failure &&
+          !LeaveErrorCode.isRequestGone(failure)) {
+        AppToast.error(failure.localize(l10n));
+      }
+    });
+
     return Container(
       color: Colors.white,
       child: SafeArea(
@@ -66,7 +79,10 @@ class LeaveRequestDetailPage extends ConsumerWidget {
             elevation: 0,
             centerTitle: true,
             leading: GestureDetector(
-              onTap: () => context.pop(),
+              // Opened from a push there may be no page underneath.
+              onTap: () => context.canPop()
+                  ? context.pop()
+                  : context.go(AppRoutes.timeOff),
               child: const Padding(
                 padding: EdgeInsets.only(left: 10),
                 child: Icon(Icons.arrow_back_ios, color: AppColors.primary),
@@ -85,7 +101,7 @@ class LeaveRequestDetailPage extends ConsumerWidget {
                   onRefresh: () => _refresh(context, ref),
                   child: _RequestBody(request: request),
                 )
-              : loaded.hasError
+              : loaded.hasError && !loaded.isLoading
               ? LeaveRequestUnavailable(
                   error: error,
                   onRetry: () => ref.invalidate(
@@ -114,24 +130,30 @@ class LeaveRequestDetailPage extends ConsumerWidget {
 }
 
 /// The request's cards and its actions.
-class _RequestBody extends ConsumerWidget {
+class _RequestBody extends ConsumerStatefulWidget {
   const _RequestBody({required this.request});
 
   final LeaveRequest request;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_RequestBody> createState() => _RequestBodyState();
+}
+
+class _RequestBodyState extends ConsumerState<_RequestBody> {
+  /// True while a cancel is on its way, so the button cannot be tapped twice.
+  bool _cancelling = false;
+
+  LeaveRequest get request => widget.request;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final pill = LeaveCopy.statusPill(l10n, request.status);
     // The request carries no Lao type name; the loaded list has it.
     final types =
         ref.watch(leaveTypesNotifierProvider).valueOrNull ??
         const <LeaveType>[];
-    final cancelling = ref.watch(
-      leaveHistoryNotifierProvider.select(
-        (state) => state.cancellingIds.contains(request.id),
-      ),
-    );
+    final cancelling = _cancelling;
     // The phone's date. The server goes by the company's; where the two
     // differ around midnight, its refusal decides.
     final today = ref.watch(clockProvider)();
@@ -280,11 +302,11 @@ class _RequestBody extends ConsumerWidget {
         if (request.canEdit || canCancel) ...[
           heightBx(h: 20),
           if (request.canEdit)
-            button(() => _edit(context, ref), l10n.leaveEditAction),
+            button(_edit, l10n.leaveEditAction),
           if (request.canEdit && canCancel) heightBx(h: 10),
           if (canCancel)
             OutlinedButton(
-              onPressed: cancelling ? null : () => _cancel(context, ref),
+              onPressed: cancelling ? null : _cancel,
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(52),
                 side: const BorderSide(color: AppColors.danger),
@@ -306,15 +328,26 @@ class _RequestBody extends ConsumerWidget {
 
   /// Opens the edit page. It closes with `true` after a save, and after a
   /// save the server refused as out of date; either way this page reloads.
-  Future<void> _edit(BuildContext context, WidgetRef ref) async {
+  Future<void> _edit() async {
+    final l10n = AppLocalizations.of(context)!;
+    final notifier = ref.read(
+      leaveRequestDetailNotifierProvider(request.id).notifier,
+    );
     final changed = await context.push<bool>(
       AppRoutes.timeOffRequestEditOf(request.id),
       extra: request,
     );
-    if (changed == true) await _reload(ref);
+    if (changed != true) return;
+
+    // If the reload fails the page still shows the request as it was before
+    // the edit: say so.
+    final failure = await notifier.refresh();
+    if (failure != null && !LeaveErrorCode.isRequestGone(failure)) {
+      AppToast.error(failure.localize(l10n));
+    }
   }
 
-  Future<void> _cancel(BuildContext context, WidgetRef ref) async {
+  Future<void> _cancel() async {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await AppDialog.ask(
       context,
@@ -325,30 +358,22 @@ class _RequestBody extends ConsumerWidget {
           : l10n.leaveCancelConfirm,
       confirmLabel: l10n.leaveCancelAction,
     );
-    if (!confirmed || !context.mounted) return;
+    if (!confirmed || !mounted || _cancelling) return;
 
+    setState(() => _cancelling = true);
+    // The notifier shows the cancelled request, or reloads the page when the
+    // refusal says it is out of date. The words are said whether or not
+    // this body is still on screen by then.
     final result = await ref
-        .read(leaveHistoryNotifierProvider.notifier)
-        .cancel(request.id);
-    if (!context.mounted) return;
+        .read(leaveRequestDetailNotifierProvider(request.id).notifier)
+        .cancel();
+    if (mounted) setState(() => _cancelling = false);
 
-    await result.fold(
-      (failure) async {
-        AppToast.error(failure.localize(l10n));
-        // The refusal says this page is out of date (the request changed,
-        // was decided, has started, or is gone): show it as it now is.
-        if (LeaveErrorCode.isStaleForOwner(failure)) await _reload(ref);
-      },
-      (_) async {
-        AppToast.success(l10n.leaveRequestCancelled);
-        await _reload(ref);
-      },
+    result.fold(
+      (failure) => AppToast.error(failure.localize(l10n)),
+      (_) => AppToast.success(l10n.leaveRequestCancelled),
     );
   }
-
-  Future<void> _reload(WidgetRef ref) => ref
-      .read(leaveRequestDetailNotifierProvider(request.id).notifier)
-      .refresh();
 }
 
 /// "This leave has started": why an approved leave has no Cancel button.

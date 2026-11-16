@@ -617,6 +617,23 @@ void main() {
     );
   });
 
+  test('an id is sent as one path segment, whatever it holds', () async {
+    answerOne();
+
+    await source.requestDetail('../my');
+    expect(adapter.lastRequest!.path, '/core_hr/leave/requests/..%2Fmy');
+
+    await source.cancel('a/b');
+    expect(adapter.lastRequest!.path, '/core_hr/leave/requests/a%2Fb/cancel');
+
+    // A UUID goes through as it is.
+    await source.requestDetail('0b1f6c2e-8f0a-4a57-9a53-0d3b3f3f8c11');
+    expect(
+      adapter.lastRequest!.path,
+      '/core_hr/leave/requests/0b1f6c2e-8f0a-4a57-9a53-0d3b3f3f8c11',
+    );
+  });
+
   group('pendingRequest', () {
     test('asks for one pending request of the caller\'s', () async {
       answerList();

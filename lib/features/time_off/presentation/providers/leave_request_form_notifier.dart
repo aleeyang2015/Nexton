@@ -44,12 +44,19 @@ class LeaveRequestFormNotifier
   /// way out.
   bool _stale = false;
 
+  /// The request the form was last filled from.
+  LeaveRequest? _seededFrom;
+
   /// Fills the form from an existing request (edit mode). Safe to call once,
   /// from the edit page's initState: a form already in edit mode is kept,
   /// unless it was marked out of date.
   void seed(LeaveRequest request) {
-    if (state.isEditing && !_stale) return;
+    // Kept only while it was filled from this same request. If the request
+    // has changed since (HR edited it, the page reloaded), a draft made on
+    // the old one would be saved over days the user never saw.
+    if (state.isEditing && !_stale && request == _seededFrom) return;
     _stale = false;
+    _seededFrom = request;
     final days = [...request.requestDays]..sort();
     state = LeaveRequestFormState(
       editingRequestId: request.id,
@@ -233,6 +240,12 @@ class LeaveRequestFormNotifier
         // days changed, it was decided or cancelled, or it is gone). Saving
         // again would fail the same way: the lists reload, and the next edit
         // starts from the request as it then is. The form closes its page.
+        // The server says a request is already waiting; the banner's check
+        // may have failed earlier, so ask again.
+        if (LeaveErrorCode.tokenOf(failure) ==
+            LeaveErrorCode.tokenPendingRequestExists) {
+          ref.invalidate(leavePendingRequestNotifierProvider);
+        }
         if (editingId != null && LeaveErrorCode.isStaleForOwner(failure)) {
           _stale = true;
           ref.invalidate(leaveHistoryNotifierProvider);

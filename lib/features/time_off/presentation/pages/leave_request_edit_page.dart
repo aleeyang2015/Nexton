@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -95,7 +96,7 @@ class _LeaveRequestEditPageState extends ConsumerState<LeaveRequestEditPage> {
             elevation: 0,
             centerTitle: true,
             leading: GestureDetector(
-              onTap: () => context.pop(),
+              onTap: _close,
               child: const Padding(
                 padding: EdgeInsets.only(left: 10),
                 child: Icon(Icons.arrow_back_ios, color: AppColors.primary),
@@ -114,6 +115,16 @@ class _LeaveRequestEditPageState extends ConsumerState<LeaveRequestEditPage> {
     );
   }
 
+  /// Back to the page underneath; opened from a link there may be none, and
+  /// the request's own page is where to go.
+  void _close([bool? changed]) {
+    if (context.canPop()) {
+      context.pop(changed);
+    } else {
+      context.go(AppRoutes.timeOffRequest(widget.requestId));
+    }
+  }
+
   Widget _body(AppLocalizations l10n) {
     final request = _seededFrom;
     if (request == null) {
@@ -121,7 +132,7 @@ class _LeaveRequestEditPageState extends ConsumerState<LeaveRequestEditPage> {
       final loaded = ref.watch(
         leaveRequestDetailNotifierProvider(widget.requestId),
       );
-      if (loaded.hasError) {
+      if (loaded.hasError && !loaded.isLoading) {
         return LeaveRequestUnavailable(
           error: loaded.error,
           onRetry: () => ref.invalidate(
@@ -151,7 +162,7 @@ class _LeaveRequestEditPageState extends ConsumerState<LeaveRequestEditPage> {
 
     return LeaveRequestForm(
       requestId: widget.requestId,
-      onSubmitted: () => context.pop(true),
+      onSubmitted: () => _close(true),
     );
   }
 }

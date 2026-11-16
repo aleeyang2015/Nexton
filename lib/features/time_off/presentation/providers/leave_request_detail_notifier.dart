@@ -1,9 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failure.dart';
+import '../../../../core/utils/result.dart';
 import '../../data/datasources/leave_error_code.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../time_off_providers.dart';
+import 'leave_balances_notifier.dart';
+import 'leave_history_notifier.dart';
+import 'leave_pending_request_notifier.dart';
 
 /// One leave request, loaded by its id (`GET /leave/requests/:id`).
 ///
@@ -32,9 +36,12 @@ class LeaveRequestDetailNotifier
   /// shown in place: an old copy is better than none. One that says the
   /// request is gone replaces it, as there is nothing to show any more.
   Future<Failure?> refresh() async {
+    final turn = ++_turn;
     final result = await ref.read(getLeaveRequestDetailUseCaseProvider)(arg);
-    // The page may have been closed meanwhile.
-    if (_disposed) return null;
+    // The page may have been closed meanwhile, or something newer (a later
+    // refresh, a cancel) has already been shown: an older answer arriving
+    // late must not put the old request back.
+    if (_disposed || turn != _turn) return null;
 
     return result.fold(
       (failure) {
@@ -44,10 +51,58 @@ class LeaveRequestDetailNotifier
         return failure;
       },
       (request) {
-        state = AsyncValue.data(request);
+        _show(request);
         return null;
       },
     );
+  }
+
+  /// Counts what has been put on screen, so a late answer can tell it has
+  /// been overtaken.
+  int _turn = 0;
+
+  /// Cancels the request (`PUT /leave/requests/:id/cancel`) and returns the
+  /// server's answer, for the page to say what happened.
+  ///
+  /// On success the page shows the cancelled request the server sent back,
+  /// at once: it does not wait on a reload that could fail and leave
+  /// "pending" on screen under a "cancelled" message. A refusal that means
+  /// the page is out of date (the request changed, was decided, has started,
+  /// or is gone) reloads it.
+  Future<Result<LeaveRequest>> cancel() async {
+    final result = await ref.read(cancelLeaveRequestUseCaseProvider)(arg);
+    if (_disposed) return result;
+
+    await result.fold(
+      (failure) async {
+        if (LeaveErrorCode.isStaleForOwner(failure)) await refresh();
+      },
+      (request) async {
+        _turn++;
+        _show(request);
+      },
+    );
+    return result;
+  }
+
+  /// Puts [request] on screen. When its status is not the one shown before,
+  /// what the other leave screens hold is out of date too: the history, the
+  /// balances, and whether a request is still waiting.
+  void _show(LeaveRequest request) {
+    final before = state.valueOrNull?.status;
+    state = AsyncValue.data(request);
+
+    if (before != null && before != request.status) {
+      // Only the ones a screen is showing: a page opened from a push has no
+      // history list behind it to reload.
+      if (ref.exists(leaveHistoryNotifierProvider)) {
+        ref.invalidate(leaveHistoryNotifierProvider);
+      }
+      ref.invalidate(leaveBalancesNotifierProvider);
+      if (ref.exists(leavePendingRequestNotifierProvider)) {
+        ref.invalidate(leavePendingRequestNotifierProvider);
+      }
+    }
   }
 
   Future<LeaveRequest> _load() async {

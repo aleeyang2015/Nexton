@@ -840,14 +840,34 @@ void main() {
     final asOpened = sampleLeaveRequest(id: 'req-7', reason: 'as opened');
     final asItIsNow = sampleLeaveRequest(id: 'req-7', reason: 'as it is now');
 
-    test('seeding twice keeps the form: the second seed changes nothing', () {
+    test('seeding twice from the same request keeps the form: the second '
+        'seed changes nothing', () {
       final container = containerWith();
       formOf(container, 'req-7')
         ..seed(asOpened)
         ..setReason('typed by the user')
-        ..seed(asItIsNow);
+        ..seed(sampleLeaveRequest(id: 'req-7', reason: 'as opened'));
 
       expect(stateOf(container, 'req-7').reason, 'typed by the user');
+    });
+
+    test('a request that has changed since the form was filled fills it '
+        'again: a draft on the old days is not kept', () {
+      final container = containerWith();
+      formOf(container, 'req-7')
+        ..seed(asOpened)
+        ..setReason('typed by the user')
+        ..seed(
+          sampleLeaveRequest(
+            id: 'req-7',
+            reason: 'as opened',
+            requestDays: [DateTime(2026, 11, 25)],
+          ),
+        );
+
+      final state = stateOf(container, 'req-7');
+      expect(state.reason, 'as opened');
+      expect(state.dates, [DateTime(2026, 11, 25)]);
     });
 
     test('a refusal that is not about the request being out of date keeps '
@@ -861,7 +881,7 @@ void main() {
         ..setReason('typed by the user');
       await form.submit();
 
-      form.seed(asItIsNow);
+      form.seed(asOpened);
 
       expect(stateOf(container, 'req-7').reason, 'typed by the user');
     });
@@ -902,7 +922,7 @@ void main() {
       // And only that once.
       formOf(container, 'req-7')
         ..setReason('typed again')
-        ..seed(asOpened);
+        ..seed(asItIsNow);
       expect(stateOf(container, 'req-7').reason, 'typed again');
     });
   });

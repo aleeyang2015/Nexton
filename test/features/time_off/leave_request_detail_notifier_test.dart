@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
@@ -147,6 +149,136 @@ void main() {
     });
   });
 
+  group('cancel', () {
+    final cancelled = sampleLeaveRequest(
+      id: 'req-7',
+      status: LeaveStatus.cancelled,
+    );
+
+    test('success shows the cancelled request the server sent back, with no '
+        'reload to wait on', () async {
+      await settle();
+      repository
+        ..cancelResult = Result.success(cancelled)
+        // A reload would fail; it is not needed.
+        ..requestDetailResult = const Result.failure(offline);
+
+      final result = await container.read(provider.notifier).cancel();
+
+      expect(result.isSuccess, isTrue);
+      expect(repository.cancelCalls, ['req-7']);
+      expect(repository.requestDetailCalls, hasLength(1));
+      expect(state().value!.status, LeaveStatus.cancelled);
+    });
+
+    for (final token in const [
+      'leaveChanged',
+      'leaveInvalidStatus',
+      'leaveStartedContactHr',
+    ]) {
+      test('$token returns the failure and reloads the request', () async {
+        await settle();
+        final failure = Failure.validation(message: token);
+        repository
+          ..cancelResult = Result.failure(failure)
+          ..requestDetailResult = Result.success(approved);
+
+        final result = await container.read(provider.notifier).cancel();
+
+        expect(result.failureOrNull, failure);
+        expect(repository.requestDetailCalls, hasLength(2));
+        expect(state().value!.status, LeaveStatus.approved);
+      });
+    }
+
+    test('refused because the request is gone: the page has nothing to show',
+        () async {
+      await settle();
+      repository
+        ..cancelResult = const Result.failure(gone)
+        ..requestDetailResult = const Result.failure(gone);
+
+      await container.read(provider.notifier).cancel();
+
+      expect(state().error, gone);
+    });
+
+    test('no signal returns the failure and does not reload', () async {
+      await settle();
+      repository.cancelResult = const Result.failure(offline);
+
+      final result = await container.read(provider.notifier).cancel();
+
+      expect(result.failureOrNull, offline);
+      expect(repository.requestDetailCalls, hasLength(1));
+      expect(state().value, pending);
+    });
+
+    test('an older refresh answered after the cancel does not put "pending" '
+        'back', () async {
+      await settle();
+      final slow = _HeldDetail(repository);
+      final held = ProviderContainer(
+        overrides: [leaveRepositoryProvider.overrideWithValue(slow)],
+      );
+      addTearDown(held.dispose);
+      held.listen(provider, (_, _) {});
+      slow.release(Result.success(pending));
+      await held.read(provider.future);
+
+      // A refresh goes out, and is still on its way when the cancel lands.
+      final refresh = held.read(provider.notifier).refresh();
+      repository.cancelResult = Result.success(cancelled);
+      await held.read(provider.notifier).cancel();
+      slow.release(Result.success(pending));
+      await refresh;
+
+      expect(held.read(provider).value!.status, LeaveStatus.cancelled);
+    });
+  });
+
+  group('when the status on screen changes', () {
+    test('the waiting-request check is asked again, so the banner goes',
+        () async {
+      repository.pendingRequestResult = Result.success(pending);
+      container.listen(leavePendingRequestNotifierProvider, (_, _) {});
+      await container.read(leavePendingRequestNotifierProvider.future);
+      await settle();
+      expect(repository.pendingRequestCalls, 1);
+
+      // HR approved it; a pull to refresh shows that.
+      repository
+        ..requestDetailResult = Result.success(approved)
+        ..pendingRequestResult = const Result.success(null);
+      await container.read(provider.notifier).refresh();
+      await container.read(leavePendingRequestNotifierProvider.future);
+
+      expect(repository.pendingRequestCalls, 2);
+      expect(container.read(leavePendingRequestNotifierProvider).value, isNull);
+    });
+
+    test('a refresh that shows the same status asks nothing else', () async {
+      container.listen(leavePendingRequestNotifierProvider, (_, _) {});
+      await container.read(leavePendingRequestNotifierProvider.future);
+      await settle();
+
+      await container.read(provider.notifier).refresh();
+
+      expect(repository.pendingRequestCalls, 1);
+      expect(repository.myRequestsCalls, isEmpty);
+    });
+
+    test('with no history list on screen, none is loaded', () async {
+      await settle();
+      repository.requestDetailResult = Result.success(approved);
+
+      await container.read(provider.notifier).refresh();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.myRequestsCalls, isEmpty);
+    });
+  });
+
   group('the waiting request', () {
     final waiting = leavePendingRequestNotifierProvider;
 
@@ -173,4 +305,39 @@ void main() {
       expect(container.read(waiting).hasError, isFalse);
     });
   });
+}
+
+/// A repository whose by-id load waits until the test releases it, so two
+/// answers can be made to arrive out of order.
+class _HeldDetail extends FakeLeaveRepository {
+  _HeldDetail(this._inner);
+
+  final FakeLeaveRepository _inner;
+  final _waiting = <Completer<Result<LeaveRequest>>>[];
+
+  /// Answers the oldest load still waiting; if none is, the next one.
+  void release(Result<LeaveRequest> result) {
+    if (_waiting.isEmpty) {
+      _next = result;
+    } else {
+      _waiting.removeAt(0).complete(result);
+    }
+  }
+
+  Result<LeaveRequest>? _next;
+
+  @override
+  FutureResult<LeaveRequest> requestDetail(String id) {
+    final next = _next;
+    if (next != null) {
+      _next = null;
+      return Future.value(next);
+    }
+    final completer = Completer<Result<LeaveRequest>>();
+    _waiting.add(completer);
+    return completer.future;
+  }
+
+  @override
+  FutureResult<LeaveRequest> cancel(String id) => _inner.cancel(id);
 }

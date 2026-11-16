@@ -143,9 +143,8 @@ void main() {
       expect(find.text('Family trip'), findsOneWidget);
     });
 
-    testWidgets('no signal over a copy handed in keeps showing that copy', (
-      tester,
-    ) async {
+    testWidgets('no signal over a copy handed in keeps showing that copy, '
+        'and says the load failed', (tester) async {
       repository.requestDetailResult = const Result.failure(
         Failure.network(message: 'offline'),
       );
@@ -153,6 +152,25 @@ void main() {
       await pumpPage(tester, initial: pending);
 
       expect(find.text('Family trip'), findsOneWidget);
+      expect(find.byType(SnackBar), findsOneWidget);
+    });
+
+    testWidgets('Retry shows it is loading, and cannot be tapped twice', (
+      tester,
+    ) async {
+      repository.requestDetailResult = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+      await pumpPage(tester);
+
+      repository.delay = const Duration(milliseconds: 300);
+      await tester.tap(find.text(en.retry));
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text(en.retry), findsNothing);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(repository.requestDetailCalls, hasLength(2));
     });
 
     testWidgets('a login with no staff record is told so, with no Retry', (
@@ -246,17 +264,22 @@ void main() {
   });
 
   group('cancelling', () {
-    testWidgets('success stays on the page and shows it as cancelled', (
-      tester,
-    ) async {
+    testWidgets('success stays on the page and shows it as cancelled, even '
+        'if a reload would fail', (tester) async {
       await pumpPage(tester);
-      repository.requestDetailResult = Result.success(
-        sampleLeaveRequest(id: 'req-7', status: LeaveStatus.cancelled),
-      );
+      repository
+        ..cancelResult = Result.success(
+          sampleLeaveRequest(id: 'req-7', status: LeaveStatus.cancelled),
+        )
+        ..requestDetailResult = const Result.failure(
+          Failure.network(message: 'offline'),
+        );
 
       await confirmCancel(tester);
 
       expect(repository.cancelCalls, ['req-7']);
+      // No history list is behind this page; none was loaded for it.
+      expect(repository.myRequestsCalls, isEmpty);
       expect(find.byType(LeaveRequestDetailPage), findsOneWidget);
       expect(find.text(en.leaveRequestCancelled), findsOneWidget);
       expect(find.text(en.leaveStatusCancelled), findsWidgets);
