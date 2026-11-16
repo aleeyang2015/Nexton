@@ -16,7 +16,22 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #20 is next in work order.
+1. #20 is built and pushed (`20-payslip-data-layer`), waiting for the owner's say to merge. #21 follows in
+   the work order and is on the owner's BLOCKED list (payslip month, waiting on the backend), as is #23.
+   Open after #20, none built there:
+   - the reader has not met a real payslip: no `nexton-demo` login here, so the test JSON is the confirmed list row
+     already in `salary_api_test.dart` plus the issue's field table. Check one real list row and one real detail
+     body (with overtime) against it. The reader is strict: a money field that is missing, text, or not whole kip
+     fails the payslip (for a list, the whole year) instead of showing a wrong figure;
+   - to confirm with the backend: a year with no payslips answers `"data": []`, not a missing or null `data`
+     (that would show as an error, as it does for the old list call);
+   - a refused payslip carries an English reason and no code (`A payslip without an id`, `... is not whole kip`).
+     #21 and #23 must show their own text for it, not this one;
+   - `paid_at` is read with `DateTime.tryParse`, which turns an impossible date (30 February) into a real one and
+     reads a time with no offset as the phone's; the server sends RFC 3339 with an offset;
+   - nothing uses the new calls yet: the two salary pages still read the old `Payslip` (month from `created_at`,
+     money as `double`, `failed` shown as pending) until #21 and #23. #72 (list stops at 10) is fixed for the
+     screens only when #21 moves them to `myPayslips`.
    Open after #19, none built there:
    - product question for the owner: "what I decided" sits under the waiting list in one scroll, so an approver
      with a long queue must scroll past every waiting request (loading each page) to reach it. With 140 waiting
@@ -140,7 +155,7 @@ count), #56 (sign-out ends the session).
 | 16 | #17 | leave: the request page opens by id, stays fresh, and shows a cancelled request plainly | `17-leave-request-by-id` | `5eb5e50`, `77395b8` | merged to main directly (`4920c50`) | analyze clean, 970 tests, debug APK | MERGED — phone check on `nexton-demo` pending |
 | 17 | #18 | lists: load more as you scroll (leave history first) | `18-lists-load-more` | `a4cf8ad`, `e5b7b5e` | merged to main directly (`65b81bf`) | analyze clean, 1,015 tests, debug APK | MERGED — phone check on `nexton-demo` pending |
 | 18 | #19 | approvals: leave lists keep what I decided, hide buttons on my own request, and load more | `19-approvals-decided-own-load-more` | `88c9004`, `47d9f67` | merged to main directly (`4327616`) | analyze clean, 1,046 tests, debug APK | MERGED — two-login check on `nexton-demo` pending |
-| 19 | #20 | payslip: read real payslips from the server (data layer) | | | | | NOT STARTED |
+| 19 | #20 | payslip: read real payslips from the server (data layer) | `20-payslip-data-layer` | `62302e6`, HEAD of branch | none yet: branch pushed, waiting for the owner's say to merge | analyze clean, 1,101 tests, debug APK | IN REVIEW — a real `nexton-demo` payslip to be checked against the reader |
 | 20 | #21 | payslip: the salary list shows real payslips, paid and failed | | | | | BLOCKED: backend, payslip month |
 | 21 | #22 | payslip: name, group and caption every payslip line | | | | | NOT STARTED |
 | 22 | #23 | payslip: the payslip page opens by id and shows the real lines | | | | | BLOCKED: backend, payslip month |
