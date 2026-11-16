@@ -16,7 +16,11 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #9 (attendance: the card shows the weekday's own shift times, and GPS only) is next in work order.
+1. #9: open the PR from `9-weekday-shift-times-gps-only` and review it. #10 is next.
+   Owner decision on #9, 2026-11-16: `lib/features/auth/auth-login.md` and
+   `lib/features/attendance/attendance-offsite-requests.md` stay; only the clock-in/out guide copy is deleted.
+   Follow-up worth its own issue: about 77 code comments in the attendance feature cite section numbers (`§5.2`,
+   `§7 rule 6`, …) of the deleted guide and now point at nothing.
    Owner decision on #8, 2026-11-16: leave it as merged. The "too early" wording stays as it was on `main`; refusals
    such as "session already started" show the app's text without the session or next start time; the off-site form
    still shows the server's English first. Still open: a Lao speaker should check `ruleClockOutBeforeClockIn`.
@@ -51,7 +55,7 @@ count), #56 (sign-out ends the session).
 | 5 | #6 | sign-in: show how long to wait after too many tries, and send the email as typed | `6-login-wait-and-email` | `5861257` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 456 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 6 | #7 | attendance: home card and history read the right month | `7-attendance-right-day` | `4fdfd29` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 483 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 7 | #8 | attendance: a refused punch says why in Lao, with no useless Retry | `8-refused-punch-lao` | `1c4f9bd` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 514 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
-| 8 | #9 | attendance: the card shows the weekday's own shift times, and GPS only | | | | | NOT STARTED |
+| 8 | #9 | attendance: the card shows the weekday's own shift times, and GPS only | `9-weekday-shift-times-gps-only` | `df5a998` | to open | analyze: 1 warning already on `main`; `flutter test`: 536 passed, 0 failed; debug APK builds; the issue grep finds nothing; not yet tried on a phone against `nexton-demo` | IMPLEMENTED |
 | 9 | #10 | attendance: history rows show the real shift, method, place and day status | | | | | NOT STARTED |
 | 10 | #11 | attendance: the month summary shows the server's numbers, and "not linked to an employee" | | | | | NOT STARTED |
 | 11 | #12 | profile: no made-up numbers, and a clear message when the profile cannot load | | | | | NOT STARTED |
