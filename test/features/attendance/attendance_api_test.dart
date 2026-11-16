@@ -477,6 +477,61 @@ void main() {
       expect(day.openSession?.label, '00:00–08:00');
     });
 
+    test('rows dated after tomorrow do not hide today: the whole month is '
+        'read when five rows do not reach back far enough', () async {
+      // Five rows the server filed ahead of time fill the short page.
+      Map<String, dynamic> ahead(int day) => {
+        'date': '2026-11-$day',
+        'status': 'leave',
+        'sessions': <dynamic>[],
+      };
+      final today = {
+        'date': '2026-11-16',
+        'sessions': [
+          {
+            'session_label': '08:00–17:00',
+            'clock_in': '2026-11-16 08:02:00',
+          },
+        ],
+      };
+      adapter
+        ..status = 200
+        ..bodyFor = (options) => {
+          'success': true,
+          'data': options.queryParameters['per_page'] == 5
+              ? [for (final day in [24, 23, 22, 21, 20]) ahead(day)]
+              : [
+                  for (final day in [24, 23, 22, 21, 20]) ahead(day),
+                  today,
+                ],
+        };
+
+      final day = await sourceAt(monday).todayRecord();
+
+      expect(day.nextAction, ClockAction.clockOut);
+      expect(
+        [for (final r in adapter.requests) r.queryParameters['per_page']],
+        [5, 100],
+      );
+    });
+
+    test('a short page that already reaches yesterday is not read twice',
+        () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            for (final day in [17, 16, 15, 14, 13])
+              {'date': '2026-11-$day', 'sessions': <dynamic>[]},
+          ],
+        };
+
+      await sourceAt(monday).todayRecord();
+
+      expect(adapter.requests, hasLength(1));
+    });
+
     test('picks today out of the rows of the month', () async {
       adapter
         ..status = 200

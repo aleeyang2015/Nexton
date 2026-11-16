@@ -45,10 +45,13 @@ AttendanceDay _openDay() => AttendanceDay(
 AttendanceDay _openDayFromYesterday() {
   final yesterday = DateTime.now().subtract(const Duration(days: 1));
   return AttendanceDay(
+    date: DateTime(yesterday.year, yesterday.month, yesterday.day),
     sessions: [
       AttendanceSession(
         label: '08:00–12:00',
         clockIn: DateTime(yesterday.year, yesterday.month, yesterday.day, 8),
+        partStartTime: '08:00',
+        partEndTime: '12:00',
       ),
     ],
   );
@@ -342,10 +345,35 @@ void main() {
       expect(repository.todayCalls, 1);
     });
 
+    test('the card follows the record it was handed: a night shift opened '
+        'yesterday owes a clock-out', () async {
+      // `AttendanceDay.pickCurrent` chose yesterday's record because its
+      // 23:30–07:30 part is still running. The state must not second-guess
+      // that with a rule of its own.
+      repository.today = Result.success(_openDayFromYesterday());
+      repository.clockOutResult = Result.success(PunchRecorded(_receipt()));
+
+      final notifier = await ready();
+      final state = container.read(attendanceNotifierProvider);
+
+      expect(state.isClockedIn, isTrue);
+      expect(state.nextAction, ClockAction.clockOut);
+
+      await notifier.punch();
+
+      expect(repository.clockOutRequests, hasLength(1));
+      expect(repository.clockInRequests, isEmpty);
+    });
+
     test(
-      'a session left open from yesterday does not block a fresh clock-in',
+      'a day shift left open yesterday does not block a fresh clock-in',
       () async {
-        repository.today = Result.success(_openDayFromYesterday());
+        // Yesterday's record with its forgotten clock-out, as `records/my`
+        // returns it; the pick leaves it out and the card starts a new day.
+        final yesterday = _openDayFromYesterday();
+        repository.today = Result.success(
+          AttendanceDay.pickCurrent([yesterday], DateTime.now()),
+        );
         repository.clockInResult = Result.success(PunchRecorded(_receipt()));
 
         final notifier = await ready();

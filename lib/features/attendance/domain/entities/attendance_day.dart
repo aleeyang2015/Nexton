@@ -190,12 +190,19 @@ class AttendanceDay extends Equatable {
     return todayRow ?? empty;
   }
 
-  /// The session a clock-out would close, if any.
+  /// The session a clock-out would close, if any: the open one that was
+  /// opened last. An earlier session left open by a forgotten clock-out (the
+  /// day part, on a record picked for its night part) is not the one the
+  /// employee is in now.
   AttendanceSession? get openSession {
+    AttendanceSession? latest;
     for (final session in sessions) {
-      if (session.isOpen) return session;
+      if (!session.isOpen) continue;
+      if (latest == null || session.clockIn!.isAfter(latest.clockIn!)) {
+        latest = session;
+      }
     }
-    return null;
+    return latest;
   }
 
   /// True while a session is open. Drives the card's status dot.

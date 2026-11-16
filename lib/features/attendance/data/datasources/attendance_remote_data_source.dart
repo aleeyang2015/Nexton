@@ -99,7 +99,8 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
 
   /// Rows asked for per month when looking for the current record. `records/my`
   /// answers newest first, so the first few rows of a month hold yesterday,
-  /// today and tomorrow.
+  /// today and tomorrow — unless the month has rows dated later than that, in
+  /// which case [_rowsAround] reads the whole month instead.
   static const int _currentRecordPageSize = 5;
 
   /// Max per the spec (§6.2) — a calendar month never has more days than
@@ -141,19 +142,48 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   @override
   Future<AttendanceDay> todayRecord() async {
     final now = _now();
-    final months = <String>{
-      for (final offset in const [-1, 0, 1])
-        _isoMonth(DateTime(now.year, now.month, now.day + offset)),
-    };
+
+    // The earliest of the three days in each month they fall in: the day a
+    // page of that month has to reach back to.
+    final earliestByMonth = <String, DateTime>{};
+    for (final offset in const [-1, 0, 1]) {
+      final day = DateTime(now.year, now.month, now.day + offset);
+      earliestByMonth.putIfAbsent(_isoMonth(day), () => day);
+    }
 
     final pages = await Future.wait([
-      for (final month in months)
-        _recordsOf(month, perPage: _currentRecordPageSize),
+      for (final MapEntry(key: month, value: earliest)
+          in earliestByMonth.entries)
+        _rowsAround(month, reachingBackTo: earliest),
     ]);
 
     return AttendanceDay.pickCurrent([
       for (final page in pages) ...page,
     ], now);
+  }
+
+  /// The newest rows of [month], enough to hold every day from
+  /// [reachingBackTo] on.
+  ///
+  /// The short page is enough when the month's newest rows are the days
+  /// around now. If it comes back full and still has not reached
+  /// [reachingBackTo] (the month holds rows dated later than tomorrow), the
+  /// days wanted may lie beyond it, so the whole month is read: a card that
+  /// missed today's record would offer the wrong punch.
+  Future<List<AttendanceDay>> _rowsAround(
+    String month, {
+    required DateTime reachingBackTo,
+  }) async {
+    final page = await _recordsOf(month, perPage: _currentRecordPageSize);
+    if (page.length < _currentRecordPageSize) return page;
+
+    final reached = page.any((row) {
+      final date = row.date;
+      return date != null && !date.isAfter(reachingBackTo);
+    });
+    if (reached) return page;
+
+    return _recordsOf(month, perPage: _monthPageSize);
   }
 
   @override
