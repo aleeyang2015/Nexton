@@ -126,6 +126,8 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.leaveChanged;
     case 'leaveRequestGone':
       return l10n.leaveRequestGone;
+    case 'leaveStartedContactHr':
+      return l10n.leaveStartedContactHr;
     // Salary history — raised by the payroll datasource when the PDF
     // endpoint answers with something that isn't a PDF.
     case 'salaryPdfInvalid':

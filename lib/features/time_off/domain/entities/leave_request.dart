@@ -60,9 +60,41 @@ class LeaveRequest extends Equatable {
   /// Editable only while still pending (leave-request-flutter.md §3.4).
   bool get canEdit => status == LeaveStatus.pending;
 
-  /// Cancellable while pending or already approved (§3.5).
+  /// What the cancel endpoint accepts by status alone: pending or approved.
+  /// Whether the App offers it also depends on the date; see
+  /// [canCancelInApp].
   bool get canCancel =>
       status == LeaveStatus.pending || status == LeaveStatus.approved;
+
+  /// The first day the request is charged for: the first of its
+  /// `request_days`, which is what the server goes by. A Saturday-to-Tuesday
+  /// range at a company closed at the weekend starts on Monday. Falls back
+  /// to [startDate] for a request that lists no days.
+  DateTime get firstLeaveDay {
+    final first = requestDays.isEmpty
+        ? startDate
+        : requestDays.reduce((a, b) => a.isBefore(b) ? a : b);
+    return DateTime(first.year, first.month, first.day);
+  }
+
+  /// True for an approved leave that is on or past its first leave day on
+  /// [today]. The owner can no longer cancel it; HR handles it.
+  bool hasStartedOn(DateTime today) =>
+      status == LeaveStatus.approved &&
+      !DateTime(today.year, today.month, today.day).isBefore(firstLeaveDay);
+
+  /// Whether the owner may cancel this request in the App on [today]: a
+  /// pending request on any date, an approved one only before its first
+  /// leave day.
+  ///
+  /// [today] is the phone's date; the server goes by the company's. When
+  /// the two differ around midnight the server's `LEAVE_ALREADY_STARTED`
+  /// decides.
+  bool canCancelInApp(DateTime today) => switch (status) {
+    LeaveStatus.pending => true,
+    LeaveStatus.approved => !hasStartedOn(today),
+    _ => false,
+  };
 
   /// The step awaiting a decision right now, if any.
   LeaveApprovalStep? get currentStep {

@@ -1673,4 +1673,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get leaveRequestGone =>
       'This request no longer exists, or you cannot view it.';
+
+  @override
+  String get leaveRequestPendingBanner =>
+      'You have a leave request waiting for approval. You can send a new one once it is decided.';
+
+  @override
+  String get leaveViewRequest => 'View request';
+
+  @override
+  String get leaveCancelApprovedConfirm =>
+      'This leave is approved. Cancel it and return the days to your balance?';
+
+  @override
+  String get leaveStartedContactHr =>
+      'This leave has started, so it cannot be cancelled in the App. To change it, contact HR.';
 }

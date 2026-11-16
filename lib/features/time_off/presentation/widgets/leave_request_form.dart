@@ -35,10 +35,23 @@ import 'leave_filter_chip.dart';
 /// [requestId] is the family key — `null` for a new request, the request's id
 /// on the edit page. [onSubmitted] fires after a successful submit/update.
 class LeaveRequestForm extends ConsumerStatefulWidget {
-  const LeaveRequestForm({super.key, this.requestId, this.onSubmitted});
+  const LeaveRequestForm({
+    super.key,
+    this.requestId,
+    this.onSubmitted,
+    this.header,
+    this.submitBlocked = false,
+  });
 
   final String? requestId;
   final VoidCallback? onSubmitted;
+
+  /// Shown above the form's first card, and scrolls with it.
+  final Widget? header;
+
+  /// Keeps the submit button off whatever the form holds: the host knows a
+  /// reason the server would refuse (a request already waiting).
+  final bool submitBlocked;
 
   @override
   ConsumerState<LeaveRequestForm> createState() => _LeaveRequestFormState();
@@ -225,6 +238,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     // Never enable submit before the chosen type's rules are known.
     final typeResolved = types.isNotEmpty && selectedType != null;
     final canSubmit =
+        !widget.submitBlocked &&
         state.hasValidShape &&
         blockMessage == null &&
         typeResolved &&
@@ -235,6 +249,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(15, 15, 15, 40),
         children: [
+          if (widget.header != null) ...[widget.header!, heightBx(h: 12)],
           _BalanceCard(
             balance: balance,
             remaining: selectedType == null ? null : remaining,

@@ -26,6 +26,9 @@ abstract class LeaveRemoteDataSource {
   Future<CompanyDaysOff> restDays();
   Future<List<LeaveBalance>> balances(int year);
   Future<List<LeaveRequest>> myRequests(LeaveHistoryQuery query);
+  /// The caller's request that is waiting for a decision, or null when
+  /// there is none.
+  Future<LeaveRequest?> pendingRequest();
   Future<LeaveRequest> requestDetail(String id);
   Future<LeaveRequest> submit(LeaveRequestDraft draft);
   Future<LeaveRequest> update(String id, LeaveRequestDraft draft);
@@ -133,10 +136,28 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
     return _parseList(response.data);
   }
 
+  /// `status=pending&limit=1` puts the list in cursor mode; `data` is still
+  /// a list, of one request or none.
   @override
-  Future<LeaveRequest> requestDetail(String id) async {
-    final response = await _client.get<dynamic>(LeavePaths.request(id));
-    return LeaveRequestModel.fromJson(ApiEnvelope.unwrapObject(response.data));
+  Future<LeaveRequest?> pendingRequest() async {
+    final response = await _client.get<dynamic>(
+      LeavePaths.requestsMy,
+      queryParameters: {'status': LeaveStatus.pending.name, 'limit': 1},
+    );
+    final list = _parseList(response.data);
+    return list.isEmpty ? null : list.first;
+  }
+
+  /// Through [_business], so a `404` (the request is gone, is someone
+  /// else's, or the id is not one) becomes the "request gone" token.
+  @override
+  Future<LeaveRequest> requestDetail(String id) {
+    return _business(() async {
+      final response = await _client.get<dynamic>(LeavePaths.request(id));
+      return LeaveRequestModel.fromJson(
+        ApiEnvelope.unwrapObject(response.data),
+      );
+    }, onRequest: true);
   }
 
   @override

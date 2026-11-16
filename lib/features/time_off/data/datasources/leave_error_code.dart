@@ -24,6 +24,10 @@ class LeaveErrorCode {
   /// `409` — the request's days changed under the caller (HR edited it).
   static const String leaveChanged = 'LEAVE_CHANGED';
 
+  /// `409` on cancel — an approved leave is on or past its first leave day;
+  /// only HR can cancel it now.
+  static const String leaveAlreadyStarted = 'LEAVE_ALREADY_STARTED';
+
   /// `404` on a call about one request (edit, cancel, approve, reject): the
   /// request is gone, or is not the caller's to see. It is a general code,
   /// so it is not in [tokenByWire]: creating a request can answer it about
@@ -41,6 +45,7 @@ class LeaveErrorCode {
   static const String tokenEmployeeNotFound = 'leaveEmployeeNotFound';
   static const String tokenLeaveChanged = 'leaveChanged';
   static const String tokenRequestGone = 'leaveRequestGone';
+  static const String tokenLeaveStarted = 'leaveStartedContactHr';
 
   static const Map<String, String> tokenByWire = {
     pendingRequestExists: tokenPendingRequestExists,
@@ -51,6 +56,7 @@ class LeaveErrorCode {
     invalidStatus: tokenInvalidStatus,
     employeeNotFound: tokenEmployeeNotFound,
     leaveChanged: tokenLeaveChanged,
+    leaveAlreadyStarted: tokenLeaveStarted,
   };
 
   /// The leave token [failure] carries, or null when it carries none.
@@ -70,6 +76,7 @@ class LeaveErrorCode {
     tokenEmployeeNotFound,
     tokenLeaveChanged,
     tokenRequestGone,
+    tokenLeaveStarted,
   };
 
   /// Refusals of an approve or a reject that mean the approver was looking
@@ -88,7 +95,15 @@ class LeaveErrorCode {
     tokenLeaveChanged,
     tokenInvalidStatus,
     tokenRequestGone,
+    // The App thought the leave had not started (its clock, or the last
+    // approval landing meanwhile): what it shows is out of date.
+    tokenLeaveStarted,
   };
+
+  /// True when [failure] says the request is gone, or is not the caller's
+  /// to see.
+  static bool isRequestGone(Failure failure) =>
+      tokenOf(failure) == tokenRequestGone;
 
   static bool isStaleForApprover(Failure failure) =>
       staleForApprover.contains(tokenOf(failure));
