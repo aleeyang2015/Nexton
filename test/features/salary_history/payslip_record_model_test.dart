@@ -385,12 +385,39 @@ void main() {
       expect(item.amount, 162259);
     });
 
+    test('work_date sent with a time and an offset is still that day', () {
+      DateTime? workDate(Object? value) => PayslipRecordModel.fromJson({
+        ...listRow(),
+        'overtime_items': [
+          {'piece_id': 'p', 'work_date': value, 'amount': 0},
+        ],
+      }).overtimeItems.single.workDate;
+
+      expect(workDate('2026-10-17T00:00:00+07:00'), DateTime(2026, 10, 17));
+      expect(workDate('2026-10-17T23:30:00Z'), DateTime(2026, 10, 17));
+      expect(workDate('2026-10-17'), DateTime(2026, 10, 17));
+      expect(workDate('17/10/2026'), isNull);
+      expect(workDate(''), isNull);
+      expect(workDate(null), isNull);
+    });
+
+    test('a line\'s quantity keeps its fraction', () {
+      final record = PayslipRecordModel.fromJson({
+        ...listRow(),
+        'lines': [
+          {'id': 'l', 'type': 'deduction', 'quantity': 1.5, 'amount': 7},
+        ],
+      });
+
+      expect(record.lines.single.quantity, 1.5);
+    });
+
     test('pay_type: fixed_per_hour, and one the App does not know', () {
       PayslipOvertimePayType payType(Object? value) =>
           PayslipRecordModel.fromJson({
             ...listRow(),
             'overtime_items': [
-              {'piece_id': 'p', 'pay_type': value},
+              {'piece_id': 'p', 'pay_type': value, 'amount': 0},
             ],
           }).overtimeItems.single.payType;
 
@@ -454,14 +481,187 @@ void main() {
       );
     });
 
-    test('an almost empty body does not throw', () {
-      final record = PayslipRecordModel.fromJson({'id': 'p-1'});
+    test('a body with an id but no money is not a payslip: it is refused, '
+        'not shown as 0 kip', () {
+      expect(
+        () => PayslipRecordModel.fromJson({'id': 'p-1'}),
+        throwsFormatException,
+      );
+    });
+  });
 
-      expect(record.id, 'p-1');
-      expect(record.netSalary, 0);
-      expect(record.status, PayslipRunStatus.unknown);
-      expect(record.paymentStatus, PayslipPaymentStatus.unknown);
-      expect(record.createdAt, isNull);
+  group('money that cannot be read as sent is refused', () {
+    const money = [
+      'base_salary',
+      'total_earnings',
+      'total_deductions',
+      'net_salary',
+      'employee_ss',
+      'employer_ss',
+      'taxable_income',
+      'income_tax',
+    ];
+
+    test('a money field that is missing, null, text or not a number', () {
+      for (final field in money) {
+        expect(
+          () => PayslipRecordModel.fromJson(listRow()..remove(field)),
+          throwsFormatException,
+          reason: '$field missing',
+        );
+        for (final value in [null, '10000000', true, [1]]) {
+          expect(
+            () => PayslipRecordModel.fromJson({...listRow(), field: value}),
+            throwsFormatException,
+            reason: '$field = $value',
+          );
+        }
+      }
+    });
+
+    test('a money field with a fraction is not cut off or rounded', () {
+      for (final value in [10022508.7, 0.5, -0.7, double.infinity]) {
+        expect(
+          () => PayslipRecordModel.fromJson({
+            ...listRow(),
+            'net_salary': value,
+          }),
+          throwsFormatException,
+          reason: '$value',
+        );
+      }
+    });
+
+    test('whole numbers of any size and sign are kept exactly', () {
+      for (final value in [0, -250000, 2147483648, 9007199254740993]) {
+        expect(
+          PayslipRecordModel.fromJson({
+            ...listRow(),
+            'net_salary': value,
+          }).netSalary,
+          value,
+        );
+      }
+      expect(
+        PayslipRecordModel.fromJson({
+          ...listRow(),
+          'net_salary': 1e7,
+        }).netSalary,
+        10000000,
+      );
+    });
+
+    test('a line or an overtime piece with no amount, or a fractional one',
+        () {
+      Map<String, dynamic> withLine(Map<String, dynamic> line) => {
+        ...listRow(),
+        'lines': [line],
+      };
+
+      expect(
+        () => PayslipRecordModel.fromJson(withLine({'id': 'l'})),
+        throwsFormatException,
+      );
+      expect(
+        () => PayslipRecordModel.fromJson(
+          withLine({'id': 'l', 'amount': 68910.5}),
+        ),
+        throwsFormatException,
+      );
+      expect(
+        () => PayslipRecordModel.fromJson({
+          ...listRow(),
+          'overtime_items': [
+            {'piece_id': 'p', 'amount': '162259'},
+          ],
+        }),
+        throwsFormatException,
+      );
+    });
+
+    test('a rate that is not sent is zero; one that is sent must be whole '
+        'kip', () {
+      final record = PayslipRecordModel.fromJson({
+        ...listRow(),
+        'lines': [
+          {'id': 'l', 'amount': 5},
+        ],
+      });
+      expect(record.lines.single.ratePer, 0);
+      expect(record.lines.single.rateAmount, 0);
+
+      expect(
+        () => PayslipRecordModel.fromJson({
+          ...listRow(),
+          'lines': [
+            {'id': 'l', 'amount': 5, 'rate_per': 12480.5},
+          ],
+        }),
+        throwsFormatException,
+      );
+    });
+
+    test('a benefit or deduction item with no amount, or text for one', () {
+      expect(
+        () => PayslipRecordModel.fromJson({
+          ...listRow(),
+          'benefits': [
+            {'id': 'b', 'name': 'x'},
+          ],
+        }),
+        throwsFormatException,
+      );
+      expect(
+        () => PayslipRecordModel.fromJson({
+          ...listRow(),
+          'deduction_items': [
+            {'id': 'd', 'deduction_name': 'x', 'amount': '12.5'},
+          ],
+        }),
+        throwsFormatException,
+      );
+    });
+
+    test('a count that is text is refused; one not sent is zero', () {
+      expect(
+        () => PayslipRecordModel.fromJson({
+          ...listRow(),
+          'unpaid_leave_days': '0.5',
+        }),
+        throwsFormatException,
+      );
+      expect(
+        PayslipRecordModel.fromJson(
+          listRow()..remove('overtime_hours'),
+        ).overtimeHours,
+        0,
+      );
+    });
+  });
+
+  group('a period that is not a real one', () {
+    PayslipRecord with_(String key, Object? value) =>
+        PayslipRecordModel.fromJson({...listRow(), key: value});
+
+    test('a month with a fraction is no month: 10.9 is not October', () {
+      expect(with_('period_month', 10.9).periodMonth, isNull);
+      expect(with_('period_month', 10.0).periodMonth, 10);
+      expect(with_('period_month', '10').periodMonth, isNull);
+    });
+
+    test('a year with a fraction, or one no payslip can have, is no year',
+        () {
+      for (final value in [2026.7, 0, -2026, 99999, '2026']) {
+        expect(with_('period_year', value).periodYear, isNull, reason: '$value');
+      }
+      expect(with_('period_year', 2026.0).periodYear, 2026);
+    });
+
+    test('an id of spaces only is no id', () {
+      expect(
+        () => PayslipRecordModel.fromJson({...listRow(), 'id': '  '}),
+        throwsFormatException,
+      );
     });
   });
 }

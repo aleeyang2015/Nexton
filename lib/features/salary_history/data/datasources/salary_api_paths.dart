@@ -8,7 +8,10 @@ class SalaryPaths {
 
   static const String payslipsMy = '/payroll/payslips/my';
 
-  static String payslip(String id) => '$payslipsMy/$id';
+  /// The id is one path segment, whatever it holds: `../my` must not become
+  /// another endpoint. A UUID goes through as it is.
+  static String payslip(String id) =>
+      '$payslipsMy/${Uri.encodeComponent(id)}';
 
   static String payslipPdf(String id) => '${payslip(id)}/pdf';
 }
