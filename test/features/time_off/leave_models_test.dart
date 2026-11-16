@@ -190,6 +190,25 @@ void main() {
       ]);
     });
 
+    test('reads employee.id as who asked for the leave', () {
+      final json = _request();
+      (json['employee'] as Map<String, dynamic>)['id'] = 'emp-noy';
+
+      expect(LeaveRequestModel.fromJson(json).employeeId, 'emp-noy');
+    });
+
+    test('no employee.id, an empty one, or no employee at all: no requester',
+        () {
+      expect(LeaveRequestModel.fromJson(_request()).employeeId, isNull);
+
+      final empty = _request();
+      (empty['employee'] as Map<String, dynamic>)['id'] = '';
+      expect(LeaveRequestModel.fromJson(empty).employeeId, isNull);
+
+      final none = _request()..remove('employee');
+      expect(LeaveRequestModel.fromJson(none).employeeId, isNull);
+    });
+
     test('a decided step reads updated_at as when it was decided, in local '
         'time', () {
       final request = LeaveRequestModel.fromJson(

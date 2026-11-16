@@ -307,7 +307,7 @@
   "timeOffApprovalsTab": "Team Approvals",
   "leaveApprovalsPendingHeader": "Needs your approval ({count})",
   "@leaveApprovalsPendingHeader": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {"count": {"type": "String"}}
   },
   "leaveApprovalsHistoryHeader": "Approval history",
   "leaveApprovalNewBadge": "New",
@@ -706,5 +706,10 @@
   "leaveViewRequest": "View request",
   "leaveCancelApprovedConfirm": "This leave is approved. Cancel it and return the days to your balance?",
   "leaveStartedContactHr": "This leave has started, so it cannot be cancelled in the App. To change it, contact HR.",
-  "listLoadMoreFailed": "Could not load more."
+  "listLoadMoreFailed": "Could not load more.",
+  "leaveOwnRequestNoActions": "This is your own request. Someone else must decide it.",
+  "leaveDecidedByMeApproved": "I approved",
+  "leaveDecidedByMeRejected": "I rejected",
+  "leaveWaitingForStep": "Waiting for {role}",
+  "@leaveWaitingForStep": {"placeholders": {"role": {"type": "String"}}}
 }

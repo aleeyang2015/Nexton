@@ -79,9 +79,22 @@ class FakeLeaveRepository implements LeaveRepository {
   /// Answers `myApprovals(status: pending)`.
   Result<List<LeaveRequest>> pendingApprovalsResult = const Result.success([]);
 
-  /// Answers `myApprovals()` with any other status, the unfiltered call
-  /// included.
-  Result<List<LeaveRequest>> allApprovalsResult = const Result.success([]);
+  /// Answers `myApprovals(status: approved)`: what the caller approved.
+  Result<List<LeaveRequest>> approvedByMeResult = const Result.success([]);
+
+  /// Answers `myApprovals(status: rejected)`: what the caller rejected.
+  Result<List<LeaveRequest>> rejectedByMeResult = const Result.success([]);
+
+  /// When set, answers each approvals page by itself (for tests of loading
+  /// more); otherwise the three lists above are each one whole page.
+  FutureResult<CursorPage<LeaveRequest>> Function(
+    LeaveStatus? status,
+    String? cursor,
+  )?
+  myApprovalsPage;
+
+  /// The cursor each approvals call was made with, in order.
+  final List<String?> myApprovalsCursors = [];
   Result<LeaveRequest> approveResult = Result.success(
     sampleLeaveRequest(status: LeaveStatus.approved),
   );
@@ -164,11 +177,21 @@ class FakeLeaveRepository implements LeaveRepository {
   }
 
   @override
-  FutureResult<List<LeaveRequest>> myApprovals({LeaveStatus? status}) async {
+  FutureResult<CursorPage<LeaveRequest>> myApprovals({
+    LeaveStatus? status,
+    String? cursor,
+  }) async {
     myApprovalsCalls.add(status);
-    return status == LeaveStatus.pending
-        ? pendingApprovalsResult
-        : allApprovalsResult;
+    myApprovalsCursors.add(cursor);
+
+    final page = myApprovalsPage;
+    if (page != null) return page(status, cursor);
+    final list = switch (status) {
+      LeaveStatus.pending => pendingApprovalsResult,
+      LeaveStatus.rejected => rejectedByMeResult,
+      _ => approvedByMeResult,
+    };
+    return list.mapData(CursorPage.single);
   }
 
   @override
@@ -236,6 +259,7 @@ LeaveType sampleLeaveType({
 /// Override what the test is about.
 LeaveRequest sampleLeaveRequest({
   String id = 'req-1',
+  String? employeeId,
   String employeeName = 'Noy Phommachanh',
   String? employeeNumber,
   String? departmentName,
@@ -260,6 +284,7 @@ LeaveRequest sampleLeaveRequest({
 
   return LeaveRequest(
     id: id,
+    employeeId: employeeId,
     employeeName: employeeName,
     employeeNumber: employeeNumber,
     departmentName: departmentName,
@@ -342,10 +367,13 @@ class FakeGetLeaveApprovals implements GetLeaveApprovalsUseCase {
   final Result<List<LeaveRequest>>? history;
 
   @override
-  FutureResult<List<LeaveRequest>> call(LeaveStatus? status) async =>
-      status == LeaveStatus.pending
-      ? pending
-      : (history ?? const Result.success([]));
+  FutureResult<CursorPage<LeaveRequest>> call(
+    LeaveApprovalsPageParams params,
+  ) async =>
+      (params.status == LeaveStatus.pending
+              ? pending
+              : (history ?? const Result.success(<LeaveRequest>[])))
+          .mapData(CursorPage.single);
 }
 
 /// A pending request sitting at the given point of the dept-head → HR chain.
