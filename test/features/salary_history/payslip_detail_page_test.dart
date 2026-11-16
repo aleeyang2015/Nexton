@@ -146,6 +146,41 @@ void main() {
     });
   });
 
+  testWidgets('a list row for another payslip is not shown in this one\'s '
+      'place', (tester) async {
+    repository.myPayslipResult = const Result.failure(
+      Failure.server(message: 'boom', statusCode: 500),
+    );
+    final someoneElses = samplePayslipRecord(
+      id: 'p-other',
+      periodMonth: 3,
+      netSalary: 1111111,
+    );
+
+    await pumpPage(tester, listRow: someoneElses);
+
+    expect(find.textContaining('March'), findsNothing);
+    expect(find.textContaining('1,111,111'), findsNothing);
+    expect(find.text(en.payslipDetailLoadFailed), findsOneWidget);
+  });
+
+  testWidgets('a name that starts with a two-unit character does not break '
+      'the initials', (tester) async {
+    repository.myPayslipResult = Result.success(
+      PayslipRecord(
+        id: 'p-oct',
+        employeeName: '😀 Vang',
+        status: PayslipRunStatus.paid,
+        paymentStatus: PayslipPaymentStatus.paid,
+      ),
+    );
+
+    await pumpPage(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('😀V'), findsOneWidget);
+  });
+
   group('the header', () {
     testWidgets('the month is the pay period, in Lao too; never the month '
         'the payslip was made in', (tester) async {
@@ -450,7 +485,52 @@ void main() {
       await pumpPage(tester);
 
       expect(find.text('Something new'), findsOneWidget);
-      expect(find.textContaining('4,200'), findsOneWidget);
+      // No plus and no minus: the App does not say it is income.
+      expect(find.text('4,200'), findsOneWidget);
+      expect(find.text('+ 4,200'), findsNothing);
+      expect(find.text('- 4,200'), findsNothing);
+    });
+
+    testWidgets('deductions carry their glyph by code; earnings carry none', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+
+      // LATE.
+      expect(find.byIcon(Icons.history), findsOneWidget);
+      // ABSENT-LATE and MISSED-PART.
+      expect(find.byIcon(Icons.schedule), findsNWidgets(2));
+      // EARLY-OUT.
+      expect(find.byIcon(Icons.logout), findsOneWidget);
+      // ABSENCE and UNPAID-LEAVE.
+      expect(find.byIcon(Icons.event_busy), findsNWidgets(2));
+      // EMP-SS and PIT.
+      expect(find.byIcon(Icons.shield), findsOneWidget);
+      expect(find.byIcon(Icons.account_balance), findsOneWidget);
+      // The loan and the deduction item: the generic one.
+      expect(find.byIcon(Icons.favorite), findsNWidgets(2));
+    });
+
+    testWidgets('an earning has no glyph, whatever its code', (tester) async {
+      repository.myPayslipResult = Result.success(
+        fullPayslip(
+          lines: const [
+            PayslipRecordLine(
+              id: 'l',
+              componentCode: 'LATE',
+              componentName: 'Odd one',
+              type: PayslipLineType.earning,
+              category: 'variable',
+              amount: 5,
+            ),
+          ],
+        ),
+      );
+
+      await pumpPage(tester);
+
+      expect(find.byIcon(Icons.history), findsNothing);
+      expect(find.text('+ 5'), findsOneWidget);
     });
 
     testWidgets('a payslip with no lines shows its totals and no empty '
@@ -581,6 +661,74 @@ void main() {
 
       expect(find.text(en.payslipDetailLoadFailed), findsOneWidget);
       expect(find.textContaining('without an id'), findsNothing);
+      // It would fail the same way again.
+      expect(find.text(en.retry), findsNothing);
+    });
+
+    testWidgets('a refusal the App has no name for (403 FORBIDDEN): "could '
+        'not load", and no Retry', (tester) async {
+      repository.myPayslipResult = const Result.failure(
+        Failure.validation(message: 'forbidden', code: 'FORBIDDEN'),
+      );
+
+      await pumpPage(tester);
+
+      expect(find.text(en.payslipDetailLoadFailed), findsOneWidget);
+      expect(find.text(en.retry), findsNothing);
+    });
+
+    testWidgets('no payroll module, with the list\'s row handed in: the '
+        'whole page says so, and the row is not shown', (tester) async {
+      repository.myPayslipResult = const Result.failure(
+        Failure.validation(
+          message: 'payroll is not active',
+          code: 'MODULE_NOT_ACTIVE',
+        ),
+      );
+
+      await pumpPage(tester, listRow: samplePayslipRecord(id: 'p-oct'));
+
+      expect(find.text(en.errorModuleNotActive), findsOneWidget);
+      expect(find.textContaining('7,426,674'), findsNothing);
+    });
+
+    testWidgets('with the list\'s row handed in, a retry under way shows a '
+        'spinner under the row\'s header', (tester) async {
+      repository.myPayslipResult = const Result.failure(
+        Failure.server(message: 'boom', statusCode: 500),
+      );
+      await pumpPage(tester, listRow: samplePayslipRecord(id: 'p-oct'));
+      expect(find.text(en.retry), findsOneWidget);
+
+      repository
+        ..myPayslipDelay = const Duration(milliseconds: 300)
+        ..myPayslipResult = Result.success(fullPayslip());
+      await tester.tap(find.text(en.retry));
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('₭7,426,674'), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
+      expect(find.text(en.payslipLineOvertime), findsOneWidget);
+    });
+
+    testWidgets('leaving while a retry is under way throws nothing', (
+      tester,
+    ) async {
+      repository.myPayslipResult = const Result.failure(
+        Failure.server(message: 'boom', statusCode: 500),
+      );
+      await pumpPage(tester);
+      repository.myPayslipDelay = const Duration(milliseconds: 300);
+      await tester.tap(find.text(en.retry));
+      await tester.pump();
+
+      await tester.pumpWidget(const MaterialApp(home: SizedBox.shrink()));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(tester.takeException(), isNull);
     });
   });
 

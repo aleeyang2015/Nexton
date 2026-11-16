@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
-import '../../../../core/network/api_error_mapper.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
@@ -50,7 +49,7 @@ class PayslipDetailPage extends ConsumerWidget {
     // payslip is not there, or the company has no payroll. The list's row is
     // not shown under it; it would pass for a payslip that can be opened.
     if (loaded == null && error != null && !detail.isLoading) {
-      if (_isNotFound(error)) {
+      if (SalaryErrorBlock.isNotFound(error)) {
         return _PageFrame(
           child: _NotAvailable(
             message: l10n.payslipNotAvailable,
@@ -58,7 +57,7 @@ class PayslipDetailPage extends ConsumerWidget {
           ),
         );
       }
-      if (_isModuleOff(error)) {
+      if (SalaryErrorBlock.isModuleOff(error)) {
         return _PageFrame(
           child: SalaryErrorBlock.forFailure(
             l10n: l10n,
@@ -70,7 +69,10 @@ class PayslipDetailPage extends ConsumerWidget {
       }
     }
 
-    final shown = loaded ?? listRow;
+    // The list's row is only used when it is this payslip: another one's
+    // month and totals must never stand in for it.
+    final row = listRow?.id == payslipId ? listRow : null;
+    final shown = loaded ?? row;
 
     // Opened by id alone, and nothing has arrived yet.
     if (shown == null) {
@@ -153,15 +155,6 @@ class PayslipDetailPage extends ConsumerWidget {
       ),
     );
   }
-
-  /// Not there, not this person's, or not approved yet: one answer for all
-  /// three, and asking again gets the same.
-  static bool _isNotFound(Object error) =>
-      error is NetworkFailure && error.statusCode == 404;
-
-  static bool _isModuleOff(Object error) =>
-      error is ValidationFailure &&
-      error.code == ApiErrorCodes.moduleNotActive;
 }
 
 /// Back to the page underneath; opened from a link there may be none, and
@@ -472,7 +465,9 @@ class _EmployeeCard extends StatelessWidget {
   static String _initials(String name) {
     final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty);
     if (parts.isEmpty) return '';
-    return parts.take(2).map((p) => p[0].toUpperCase()).join();
+    // By character, not by code unit: a name can start with a letter (or an
+    // emoji) that takes two.
+    return parts.take(2).map((p) => p.characters.first.toUpperCase()).join();
   }
 }
 
@@ -732,6 +727,7 @@ class _Sections extends StatelessWidget {
           title: null,
           titleColor: AppColors.subTitle,
           rows: sections.unplaced,
+          unplaced: true,
         ),
       ],
     );
@@ -745,10 +741,15 @@ class _Section extends StatelessWidget {
   final Color titleColor;
   final List<PayslipRow> rows;
 
+  /// Rows the App could not place: shown with no sign and no colour, as it
+  /// cannot say whether they add to the pay or take from it.
+  final bool unplaced;
+
   const _Section({
     required this.title,
     required this.titleColor,
     required this.rows,
+    this.unplaced = false,
   });
 
   @override
@@ -797,7 +798,7 @@ class _Section extends StatelessWidget {
                       endIndent: 16,
                       color: AppColors.gray200,
                     ),
-                  _LineRow(row: rows[i]),
+                  _LineRow(row: rows[i], unplaced: unplaced),
                 ],
               ],
             ),
@@ -811,40 +812,33 @@ class _Section extends StatelessWidget {
 /// One line of the payslip: its glyph (deductions only), title, caption and
 /// amount.
 ///
-/// The amount is the row's own. A deduction is shown with a minus and in
-/// red, an earning with a plus and in green, and a line of zero in grey with
-/// no sign: it is shown, not hidden.
+/// The amount is the row's own; how it is written (sign or none) is
+/// `PayslipLineCopy.amount`'s. A deduction is red, an earning green, a line
+/// of zero grey: it is shown, not hidden.
 class _LineRow extends StatelessWidget {
   final PayslipRow row;
+  final bool unplaced;
 
-  const _LineRow({required this.row});
+  const _LineRow({required this.row, this.unplaced = false});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final glyph = _glyphFor(row);
+    final glyph = unplaced ? null : _glyphFor(row);
     final caption = PayslipLineCopy.caption(l10n, row);
     // Late / early-out captions pick up the icon's amber; the rest stay grey.
     final captionColor = glyph?.color == AppColors.attendanceLate
         ? AppColors.attendanceLate
         : AppColors.subTitle;
 
-    final String amount;
-    final Color amountColor;
-    if (row.amount == 0) {
-      amount = SalaryHistoryCopy.amount(0);
-      amountColor = AppColors.subTitle;
-    } else if (row.amount < 0) {
-      // Not a case the server sends; shown as the number it is.
-      amount = SalaryHistoryCopy.amount(row.amount);
-      amountColor = AppColors.textPrimary;
-    } else if (row.isDeduction) {
-      amount = '- ${SalaryHistoryCopy.amount(row.amount)}';
-      amountColor = AppColors.danger;
-    } else {
-      amount = '+ ${SalaryHistoryCopy.amount(row.amount)}';
-      amountColor = AppColors.success;
-    }
+    final shown = PayslipLineCopy.amount(row, unplaced: unplaced);
+    final amount = shown.text;
+    final amountColor = switch (shown.kind) {
+      PayslipAmountKind.zero => AppColors.subTitle,
+      PayslipAmountKind.earning => AppColors.success,
+      PayslipAmountKind.deduction => AppColors.danger,
+      PayslipAmountKind.plain => AppColors.textPrimary,
+    };
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
