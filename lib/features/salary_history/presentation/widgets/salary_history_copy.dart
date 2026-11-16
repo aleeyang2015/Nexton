@@ -121,10 +121,52 @@ class SalaryHistoryCopy {
   }
 
   /// "ຈ່າຍວັນທີ 05/11/2026" once the money was paid, else nothing. The date
-  /// is the server's `paid_at`; there is no stand-in for it.
+  /// is the server's `paid_at`; there is no stand-in for it. A payment that
+  /// failed has no "paid on", whatever date came with it.
   static String? paidOn(AppLocalizations l10n, PayslipRecord payslip) {
     final paidAt = payslip.paidAt;
-    return paidAt == null ? null : '${l10n.salaryPaidOnLabel} ${date(paidAt)}';
+    if (paidAt == null || isPaymentFailed(payslip)) return null;
+    return '${l10n.salaryPaidOnLabel} ${date(paidAt)}';
+  }
+
+  /// True when the money did not reach the employee: they should contact HR.
+  static bool isPaymentFailed(PayslipRecord payslip) =>
+      payslip.paymentStatus == PayslipPaymentStatus.failed;
+
+  /// "Sandy Vang • EMP-002 • IT Developer": who the payslip is for, with the
+  /// parts the server did not send left out.
+  static String identityLine(PayslipRecord payslip) => [
+    payslip.employeeName.trim(),
+    payslip.employeeNumber.trim(),
+    payslip.positionTitle?.trim() ?? '',
+  ].where((part) => part.isNotEmpty).join(' • ');
+
+  /// What the payslip page's header shows, taken from the list's row so the
+  /// two screens say the same thing: the title with the pay month, the line
+  /// under it (paid on, or the status), the status pill, and the name a
+  /// saved PDF gets.
+  static ({
+    String title,
+    String subtitle,
+    Color color,
+    String? pill,
+    bool failed,
+    String pdfFileName,
+  })
+  detailHeader(AppLocalizations l10n, PayslipRecord row) {
+    final status = recordStatus(l10n, row);
+    final hasPeriod = row.periodMonth != null && row.periodYear != null;
+
+    return (
+      title: hasPeriod
+          ? '${l10n.payslipDetailTitle} – ${periodTitle(l10n, row)}'
+          : l10n.payslipDetailTitle,
+      subtitle: paidOn(l10n, row) ?? status?.label ?? '',
+      color: status?.color ?? AppColors.subTitle,
+      pill: status?.label,
+      failed: isPaymentFailed(row),
+      pdfFileName: pdfFileName(row),
+    );
   }
 
   /// What the status pill says for a payslip, or null when there is nothing
@@ -139,7 +181,7 @@ class SalaryHistoryCopy {
     AppLocalizations l10n,
     PayslipRecord payslip,
   ) {
-    if (payslip.paymentStatus == PayslipPaymentStatus.failed) {
+    if (isPaymentFailed(payslip)) {
       return (label: l10n.salaryPaymentFailed, color: AppColors.danger);
     }
     return switch (payslip.status) {

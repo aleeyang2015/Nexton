@@ -10,6 +10,7 @@ import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/payslip.dart';
+import '../../domain/entities/payslip_record.dart';
 import '../providers/payslip_detail_notifier.dart';
 import '../providers/payslip_pdf_notifier.dart';
 import '../widgets/salary_error_block.dart';
@@ -22,13 +23,23 @@ import '../widgets/salary_history_copy.dart';
 /// payslip, and the page shows a placeholder until it arrives. [initial] is
 /// a copy a caller already holds, shown at once when there is one.
 ///
-/// This page still reads the old `Payslip` entity. Until it moves to the
-/// server's own record, its month is the one that entity works out.
+/// The sections still come from the old `Payslip` entity, which takes its
+/// month from the day the payslip was made and knows only "paid" and
+/// "pending". So the header (the month, the paid date, the status and the
+/// saved PDF's name) is taken from [listRow], the server's own record the
+/// list handed over, and then agrees with the list. Opened without one, the
+/// header falls back to the old entity.
 class PayslipDetailPage extends ConsumerWidget {
   final String payslipId;
   final Payslip? initial;
+  final PayslipRecord? listRow;
 
-  const PayslipDetailPage({super.key, required this.payslipId, this.initial});
+  const PayslipDetailPage({
+    super.key,
+    required this.payslipId,
+    this.initial,
+    this.listRow,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,12 +64,12 @@ class PayslipDetailPage extends ConsumerWidget {
           backgroundColor: AppColors.homeBackground,
           body: Column(
             children: [
-              _DetailAppBar(payslip: shown),
+              _DetailAppBar(payslip: shown, listRow: listRow),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(15, 14, 15, 20),
                   children: [
-                    _EmployeeCard(payslip: shown),
+                    _EmployeeCard(payslip: shown, listRow: listRow),
                     heightBx(h: 12),
                     _SummaryStrip(payslip: shown),
                     heightBx(h: 20),
@@ -114,18 +125,32 @@ class PayslipDetailPage extends ConsumerWidget {
 
 class _DetailAppBar extends StatelessWidget {
   final Payslip payslip;
+  final PayslipRecord? listRow;
 
-  const _DetailAppBar({required this.payslip});
+  const _DetailAppBar({required this.payslip, required this.listRow});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final row = listRow;
+    final header = row == null
+        ? null
+        : SalaryHistoryCopy.detailHeader(l10n, row);
     final title =
+        header?.title ??
         '${l10n.payslipDetailTitle} – '
-        '${SalaryHistoryCopy.monthYear(l10n, payslip.month, payslip.year)}';
-    final paidLine = payslip.paidDate == null
-        ? SalaryHistoryCopy.statusLabel(l10n, payslip.status)
-        : '${l10n.salaryPaidOnLabel} ${SalaryHistoryCopy.date(payslip.paidDate!)}';
+            '${SalaryHistoryCopy.monthYear(l10n, payslip.month, payslip.year)}';
+    final paidLine =
+        header?.subtitle ??
+        (payslip.paidDate == null
+            ? SalaryHistoryCopy.statusLabel(l10n, payslip.status)
+            : '${l10n.salaryPaidOnLabel} ${SalaryHistoryCopy.date(payslip.paidDate!)}');
+    final lineColor =
+        header?.color ?? SalaryHistoryCopy.statusColor(payslip.status);
+    final pdfFileName =
+        header?.pdfFileName ??
+        'payslip-${payslip.year}-'
+            '${payslip.month.toString().padLeft(2, '0')}.pdf';
 
     return Container(
       color: Colors.white,
@@ -137,7 +162,7 @@ class _DetailAppBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               GestureDetector(onTap: () => context.pop(), child: popBack()),
-              _SaveButton(payslip: payslip),
+              _SaveButton(payslipId: payslip.id, fileName: pdfFileName),
             ],
           ),
           Padding(
@@ -157,7 +182,7 @@ class _DetailAppBar extends StatelessWidget {
                   paidLine,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: SalaryHistoryCopy.statusColor(payslip.status),
+                  color: lineColor,
                   alight: TextAlign.center,
                 ),
               ],
@@ -196,14 +221,17 @@ class _SectionsPlaceholder extends StatelessWidget {
 /// system save dialog, spinning while the download runs. Shares its state
 /// with the history card's "Download Payslip (PDF)" button.
 class _SaveButton extends ConsumerWidget {
-  final Payslip payslip;
+  final String payslipId;
 
-  const _SaveButton({required this.payslip});
+  /// The name the saved PDF gets when the server sends none.
+  final String fileName;
+
+  const _SaveButton({required this.payslipId, required this.fileName});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final provider = payslipPdfNotifierProvider(payslip.id);
+    final provider = payslipPdfNotifierProvider(payslipId);
     final downloading = ref.watch(provider).isLoading;
 
     ref.listen(provider, (previous, next) {
@@ -220,11 +248,7 @@ class _SaveButton extends ConsumerWidget {
     return GestureDetector(
       onTap: () => ref
           .read(provider.notifier)
-          .download(
-            defaultFileName:
-                'payslip-${payslip.year}-'
-                '${payslip.month.toString().padLeft(2, '0')}.pdf',
-          ),
+          .download(defaultFileName: fileName),
       child: Container(
         width: 40,
         height: 40,
@@ -248,12 +272,17 @@ class _SaveButton extends ConsumerWidget {
 
 class _EmployeeCard extends StatelessWidget {
   final Payslip payslip;
+  final PayslipRecord? listRow;
 
-  const _EmployeeCard({required this.payslip});
+  const _EmployeeCard({required this.payslip, required this.listRow});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final row = listRow;
+    final header = row == null
+        ? null
+        : SalaryHistoryCopy.detailHeader(l10n, row);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -296,10 +325,20 @@ class _EmployeeCard extends StatelessWidget {
             ),
           ),
           widthBx(w: 8),
-          _StatusPill(
-            label: SalaryHistoryCopy.statusLabel(l10n, payslip.status),
-            status: payslip.status,
-          ),
+          if (header == null)
+            _StatusPill(
+              label: SalaryHistoryCopy.statusLabel(l10n, payslip.status),
+              color: SalaryHistoryCopy.statusColor(payslip.status),
+              icon: payslip.status == PayslipStatus.paid
+                  ? Icons.check_circle
+                  : Icons.access_time_filled,
+            )
+          else if (header.pill != null)
+            _StatusPill(
+              label: header.pill!,
+              color: header.color,
+              icon: header.failed ? Icons.error : Icons.check_circle,
+            ),
         ],
       ),
     );
@@ -358,13 +397,17 @@ class _Identity extends StatelessWidget {
 
 class _StatusPill extends StatelessWidget {
   final String label;
-  final PayslipStatus status;
+  final Color color;
+  final IconData icon;
 
-  const _StatusPill({required this.label, required this.status});
+  const _StatusPill({
+    required this.label,
+    required this.color,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final color = SalaryHistoryCopy.statusColor(status);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -376,13 +419,7 @@ class _StatusPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            status == PayslipStatus.paid
-                ? Icons.check_circle
-                : Icons.access_time_filled,
-            size: 14,
-            color: color,
-          ),
+          Icon(icon, size: 14, color: color),
           widthBx(w: 5),
           customText(
             label,

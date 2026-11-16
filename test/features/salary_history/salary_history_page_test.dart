@@ -146,6 +146,21 @@ void main() {
       expect(find.text('${en.salaryPaidOnLabel} 05/10/2026'), findsOneWidget);
     });
 
+    testWidgets('a failed payment shows no paid date, whatever date came '
+        'with it', (tester) async {
+      repository.myPayslipsResult = Result.success([
+        samplePayslipRecord(
+          paymentStatus: PayslipPaymentStatus.failed,
+          paidAt: DateTime(2026, 11, 5),
+        ),
+      ]);
+
+      await pumpPage(tester);
+
+      expect(find.textContaining(en.salaryPaidOnLabel), findsNothing);
+      expect(find.text(en.salaryPaymentFailed), findsNWidgets(2));
+    });
+
     testWidgets('an approved payslip shows no paid date', (tester) async {
       repository.myPayslipsResult = Result.success([october]);
 
@@ -273,6 +288,31 @@ void main() {
       expect(find.text('800,000'), findsNothing);
       expect(find.text('- 4,185,577'), findsNothing);
       expect(find.textContaining('%'), findsNothing);
+    });
+
+    testWidgets('a deduction of zero has no minus in front of it', (
+      tester,
+    ) async {
+      repository.myPayslipsResult = Result.success([
+        samplePayslipRecord().withTax(0),
+      ]);
+      await pumpPage(tester);
+      await expand(tester);
+
+      expect(find.text('- 0'), findsNothing);
+      expect(find.text('0'), findsWidgets);
+    });
+
+    testWidgets('a deduction below zero is shown as the number it is, not '
+        'with two minus signs', (tester) async {
+      repository.myPayslipsResult = Result.success([
+        samplePayslipRecord().withTax(-5000),
+      ]);
+      await pumpPage(tester);
+      await expand(tester);
+
+      expect(find.text('-5,000'), findsOneWidget);
+      expect(find.textContaining('- -'), findsNothing);
     });
 
     testWidgets('half a day of unpaid leave shows as 0.5, under "Unpaid '
@@ -419,4 +459,26 @@ void main() {
       expect(find.text(en.retry), findsOneWidget);
     });
   });
+}
+
+extension on PayslipRecord {
+  /// This payslip with another income tax figure.
+  PayslipRecord withTax(int incomeTax) => PayslipRecord(
+    id: id,
+    employeeNumber: employeeNumber,
+    employeeName: employeeName,
+    positionTitle: positionTitle,
+    baseSalary: baseSalary,
+    totalEarnings: totalEarnings,
+    totalDeductions: totalDeductions,
+    netSalary: netSalary,
+    employeeSs: employeeSs,
+    incomeTax: incomeTax,
+    workDays: workDays,
+    paymentStatus: paymentStatus,
+    status: status,
+    periodYear: periodYear,
+    periodMonth: periodMonth,
+    paidAt: paidAt,
+  );
 }

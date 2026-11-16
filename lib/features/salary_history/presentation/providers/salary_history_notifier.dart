@@ -42,13 +42,20 @@ class SalaryHistoryNotifier extends AutoDisposeNotifier<SalaryHistoryState> {
     state = state.copyWith(expandedIndexes: expanded);
   }
 
+  /// Counts the loads, so an answer can tell it has been overtaken.
+  int _loads = 0;
+
   Future<void> _load(int year) async {
+    final loadedAs = ++_loads;
     // A fresh year resets the list and expanded rows, but keeps the chosen
     // filter — that's a display preference, not tied to any one year.
     state = SalaryHistoryState(year: year, filter: state.filter);
 
     final result = await ref.read(getMyPayslipsUseCaseProvider)(year);
-    if (_disposed || state.year != year) return;
+    // Only the latest load counts. An older one answered late, for another
+    // year or for this same one (back and forward, or Retry twice), must not
+    // replace the list that is showing, least of all with its failure.
+    if (_disposed || loadedAs != _loads) return;
     state = state.copyWith(payslips: _toAsync(result));
   }
 

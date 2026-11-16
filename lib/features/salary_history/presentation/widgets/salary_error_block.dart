@@ -12,7 +12,8 @@ import '../../../../l10n/generated/app_localizations.dart';
 ///
 /// [forFailure] picks the words for a failed load: a company that has not
 /// bought payroll is told so, with no Retry (asking again gets the same
-/// answer); anything else gets the screen's own "could not load" and a
+/// answer); a payslip that is not there (404) gets the screen's own "could
+/// not load" with no Retry either; anything else gets that text and a
 /// Retry.
 class SalaryErrorBlock extends StatelessWidget {
   final String message;
@@ -36,11 +37,14 @@ class SalaryErrorBlock extends StatelessWidget {
     final moduleOff =
         error is ValidationFailure &&
         error.code == ApiErrorCodes.moduleNotActive;
+    // Not there (or not this person's, or not approved yet): asking again
+    // gets the same answer.
+    final notFound = error is NetworkFailure && error.statusCode == 404;
 
     return SalaryErrorBlock(
       key: key,
       message: moduleOff ? error.localize(l10n) : fallbackMessage,
-      onRetry: moduleOff ? null : onRetry,
+      onRetry: moduleOff || notFound ? null : onRetry,
     );
   }
 

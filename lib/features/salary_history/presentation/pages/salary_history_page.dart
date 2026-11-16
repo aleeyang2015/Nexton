@@ -225,11 +225,7 @@ class _LatestSummaryCard extends StatelessWidget {
     // The server lists the newest pay month first.
     final latest = all.first;
     final status = SalaryHistoryCopy.recordStatus(l10n, latest);
-    final who = [
-      latest.employeeName,
-      latest.employeeNumber,
-      latest.positionTitle?.trim() ?? '',
-    ].where((part) => part.isNotEmpty).join(' • ');
+    final who = SalaryHistoryCopy.identityLine(latest);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
@@ -269,7 +265,8 @@ class _LatestSummaryCard extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
                 heightBx(h: 6),
-                customText(who, color: AppColors.subTitle, fontSize: 13),
+                if (who.isNotEmpty)
+                  customText(who, color: AppColors.subTitle, fontSize: 13),
                 if (status != null) ...[
                   heightBx(h: 12),
                   Align(
@@ -277,8 +274,7 @@ class _LatestSummaryCard extends StatelessWidget {
                     child: _StatusPill(
                       label: status.label,
                       color: status.color,
-                      failed:
-                          latest.paymentStatus == PayslipPaymentStatus.failed,
+                      failed: SalaryHistoryCopy.isPaymentFailed(latest),
                     ),
                   ),
                 ],
@@ -406,7 +402,7 @@ class _PayslipCard extends ConsumerWidget {
     );
     final status = SalaryHistoryCopy.recordStatus(l10n, payslip);
     final statusColor = status?.color ?? AppColors.gray500;
-    final failed = payslip.paymentStatus == PayslipPaymentStatus.failed;
+    final failed = SalaryHistoryCopy.isPaymentFailed(payslip);
     final paidOn = SalaryHistoryCopy.paidOn(l10n, payslip);
 
     return Container(
@@ -428,10 +424,10 @@ class _PayslipCard extends ConsumerWidget {
         children: [
           InkWell(
             // Tapping the card body opens the full payslip, which loads
-            // itself by id; the expand chevron below keeps its own tap for
-            // the inline totals.
-            onTap: () =>
-                context.push(AppRoutes.payslipDetail, extra: payslip.id),
+            // itself by id. This row goes with it, so that page's month and
+            // status are the ones shown here. The expand chevron below keeps
+            // its own tap for the inline totals.
+            onTap: () => context.push(AppRoutes.payslipDetail, extra: payslip),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -719,7 +715,9 @@ class _SectionHeader extends StatelessWidget {
 }
 
 /// One figure from the payslip, whole kip. A [deduction] is shown with a
-/// minus and in red; the number itself is the server's.
+/// minus and in red; the number itself is the server's. A deduction of zero
+/// or less (nothing taken, or money given back) is shown as the number it
+/// is, with no minus put in front of it.
 class _AmountRow extends StatelessWidget {
   final String label;
   final int amount;
@@ -733,7 +731,7 @@ class _AmountRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final negative = deduction;
+    final negative = deduction && amount > 0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),

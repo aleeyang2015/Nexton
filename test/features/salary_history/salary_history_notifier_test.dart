@@ -142,6 +142,36 @@ void main() {
       expect(state().all.map((p) => p.id), ['of-${thisYear - 1}']);
     });
 
+    test('an older answer for the same year, arriving late with a failure, '
+        'does not replace the list that is showing', () async {
+      final first = Completer<Result<List<PayslipRecord>>>();
+      final late = _QueuedRepository([first.future], Result.success([paid]));
+      final c = ProviderContainer(
+        overrides: [salaryRepositoryProvider.overrideWithValue(late)],
+      );
+      addTearDown(c.dispose);
+      c.listen(salaryHistoryNotifierProvider, (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+
+      // Back a year and forward again: this year is asked for a second time
+      // while its first answer is still on its way.
+      c.read(salaryHistoryNotifierProvider.notifier).previousYear();
+      c.read(salaryHistoryNotifierProvider.notifier).nextYear();
+      for (var i = 0; i < 4; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(c.read(salaryHistoryNotifierProvider).all, [paid]);
+
+      first.complete(const Result.failure(Failure.network(message: 'offline')));
+      for (var i = 0; i < 4; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      final after = c.read(salaryHistoryNotifierProvider);
+      expect(after.payslips.hasError, isFalse);
+      expect(after.all, [paid]);
+    });
+
     test('the chosen chip is kept across a year switch; the open rows are '
         'not', () async {
       await settle();
@@ -177,6 +207,23 @@ void main() {
       expect(repository.myPayslipsYears, [thisYear]);
     });
 
+    test('Paid goes by the run\'s status, as the issue says: a paid run '
+        'whose payment failed is listed (with its red pill), an approved '
+        'one is not', () async {
+      final approvedFailed = samplePayslipRecord(
+        id: 'p-approved-failed',
+        status: PayslipRunStatus.approved,
+        paymentStatus: PayslipPaymentStatus.failed,
+        paid: false,
+      );
+      repository.myPayslipsResult = Result.success([failed, approvedFailed]);
+      await settle();
+
+      notifier().setFilter(SalaryHistoryFilter.paid);
+
+      expect(state().filtered.map((p) => p.id), ['p-failed']);
+    });
+
     test('there are two chips: no "pending"', () {
       expect(SalaryHistoryFilter.values, [
         SalaryHistoryFilter.all,
@@ -194,4 +241,17 @@ void main() {
       expect(state().expandedIndexes, isEmpty);
     });
   });
+}
+
+/// Answers the first calls from [queue], in order, and every later one with
+/// [then].
+class _QueuedRepository extends FakeSalaryRepository {
+  _QueuedRepository(this.queue, this.then);
+
+  final List<Future<Result<List<PayslipRecord>>>> queue;
+  final Result<List<PayslipRecord>> then;
+
+  @override
+  FutureResult<List<PayslipRecord>> myPayslips(int year) =>
+      queue.isEmpty ? Future.value(then) : queue.removeAt(0);
 }

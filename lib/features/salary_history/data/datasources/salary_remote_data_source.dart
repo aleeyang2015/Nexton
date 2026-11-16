@@ -48,7 +48,7 @@ class SalaryRemoteDataSourceImpl implements SalaryRemoteDataSource {
 
   /// No `status` is sent: staff are only ever given payslips of runs HR has
   /// approved or paid, and every one of them belongs on the screen. The
-  /// order is the server's (`created_at`, newest first); nothing is sorted
+  /// order is the server's (newest pay month first); nothing is sorted
   /// here.
   ///
   /// A login with no employee record gets `200` with an empty list, not an

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/features/salary_history/domain/entities/payslip.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip_record.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip_pdf.dart';
 import 'package:next_on/features/salary_history/presentation/pages/payslip_detail_page.dart';
@@ -62,8 +63,10 @@ void main() {
         ),
         GoRoute(
           path: AppRoutes.payslipDetail,
-          builder: (_, state) =>
-              PayslipDetailPage(payslipId: state.extra as String),
+          builder: (_, state) {
+            final row = state.extra as PayslipRecord;
+            return PayslipDetailPage(payslipId: row.id, listRow: row);
+          },
         ),
       ],
     );
@@ -220,7 +223,7 @@ void main() {
       tester,
     ) async {
       repository.detailResult = const Result.failure(
-        Failure.network(message: 'gone', statusCode: 404),
+        Failure.server(message: 'boom', statusCode: 500),
       );
       await pumpPage(tester);
 
@@ -236,6 +239,89 @@ void main() {
       expect(repository.detailIds, [listRow.id, listRow.id]);
       expect(find.text('Welfare / Allowances'), findsOneWidget);
       expect(find.text('₭7,426,674'), findsOneWidget);
+    });
+
+    testWidgets('the page agrees with the row that opened it: an approved '
+        'payslip is "Approved" there too, never "Pending"', (tester) async {
+      await pumpPage(tester);
+
+      await tester.tap(find.text('September ${now.year}'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Payslip – September ${now.year}'), findsOneWidget);
+      // The header line and the pill.
+      expect(find.text('Approved'), findsNWidgets(2));
+      expect(find.text('Pending'), findsNothing);
+    });
+
+    testWidgets('October\'s payslip, made on 1 November, opens as October, '
+        'and its PDF is named for October', (tester) async {
+      final october = samplePayslipRecord(
+        id: 'p-oct',
+        periodYear: now.year,
+        periodMonth: 10,
+      );
+      repository
+        ..myPayslipsByYear = ((_) => Result.success([october]))
+        // The old entity behind the page says November (from created_at).
+        ..detailResult = Result.success(
+          samplePayslip(id: 'p-oct', year: now.year, month: 11),
+        );
+      await pumpPage(tester);
+
+      await tester.tap(find.text('October ${now.year}'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Payslip – October ${now.year}'), findsOneWidget);
+      expect(find.textContaining('November'), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.save_alt));
+      await tester.pumpAndSettle();
+      expect(saver.saves.single.fileName, 'payslip-${now.year}-10.pdf');
+    });
+
+    testWidgets('a failed payment says so on the page too, in place of '
+        '"Pending" or a paid date', (tester) async {
+      final failed = samplePayslipRecord(
+        id: 'p-failed',
+        periodYear: now.year,
+        periodMonth: 7,
+        paymentStatus: PayslipPaymentStatus.failed,
+      );
+      repository
+        ..myPayslipsByYear = ((_) => Result.success([failed]))
+        ..detailResult = Result.success(
+          samplePayslip(
+            id: 'p-failed',
+            year: now.year,
+            month: 7,
+            status: PayslipStatus.pending,
+          ),
+        );
+      await pumpPage(tester);
+
+      await tester.tap(find.text('July ${now.year}'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PayslipDetailPage), findsOneWidget);
+      expect(find.text('Payment failed'), findsNWidgets(2));
+      expect(find.text('Pending'), findsNothing);
+      expect(find.textContaining('Paid on'), findsNothing);
+    });
+
+    testWidgets('a payslip that is not there (404) has no Retry', (
+      tester,
+    ) async {
+      repository.detailResult = const Result.failure(
+        Failure.network(message: 'not found', statusCode: 404),
+      );
+      await pumpPage(tester);
+
+      await tester.tap(find.text('August ${now.year}'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Unable to load the payslip.'), findsOneWidget);
+      expect(find.text('Retry'), findsNothing);
     });
 
     testWidgets('the save icon fetches this payslip\'s PDF', (tester) async {
