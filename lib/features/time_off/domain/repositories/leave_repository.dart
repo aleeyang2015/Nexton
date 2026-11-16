@@ -47,7 +47,10 @@ abstract class LeaveRepository {
 
   /// `GET /leave/requests/my-approvals` — the approvals tab's list, scoped to
   /// the caller's role. [status] filters by the whole request's status.
-  FutureResult<List<LeaveRequest>> myApprovals({LeaveStatus? status});
+  FutureResult<CursorPage<LeaveRequest>> myApprovals({
+    LeaveStatus? status,
+    String? cursor,
+  });
 
   /// `PUT /leave/requests/:id/approve` — approves the current step.
   FutureResult<LeaveRequest> approve({

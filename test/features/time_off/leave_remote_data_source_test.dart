@@ -275,11 +275,30 @@ void main() {
 
       expect(method(), 'GET');
       expect(path(), '/core_hr/leave/requests/my-approvals');
-      expect(query(), {'status': 'pending', 'page': 1, 'per_page': 100});
+      expect(query(), {'status': 'pending', 'limit': 20});
 
       await source.myApprovals();
 
-      expect(query(), {'page': 1, 'per_page': 100});
+      expect(query(), {'limit': 20});
+    });
+
+    test('myApprovals sends the cursor for a later page and reads where to '
+        'go on from', () async {
+      adapter.body = {
+        'success': true,
+        'data': [_requestJson],
+        'meta': {'per_page': 20, 'has_more': true, 'next_cursor': 'c-3'},
+      };
+
+      final page = await source.myApprovals(
+        status: LeaveStatus.approved,
+        cursor: 'c-2',
+      );
+
+      expect(query(), {'status': 'approved', 'limit': 20, 'cursor': 'c-2'});
+      expect(page.items.single.id, 'req-1');
+      expect(page.hasMore, isTrue);
+      expect(page.nextCursor, 'c-3');
     });
   });
 

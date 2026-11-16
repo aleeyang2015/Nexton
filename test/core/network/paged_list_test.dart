@@ -9,7 +9,7 @@ void main() {
     'data': [
       for (final i in ids) {'id': i},
     ],
-    'meta': ?meta,
+    if (meta != null) 'meta': meta,
   };
 
   group('CursorPage.fromBody', () {

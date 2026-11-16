@@ -1,3 +1,4 @@
+import '../auth/presentation/providers/auth_session_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/network_providers.dart';
@@ -70,6 +71,17 @@ final updateLeaveRequestUseCaseProvider = Provider<UpdateLeaveRequestUseCase>(
 
 final cancelLeaveRequestUseCaseProvider = Provider<CancelLeaveRequestUseCase>(
   (ref) => CancelLeaveRequestUseCase(ref.watch(leaveRepositoryProvider)),
+);
+
+/// The signed-in user's own employee id, or null when it is not known (no
+/// session yet, or a login with no staff record). The approvals tab uses it
+/// to tell the approver's own request from someone else's.
+final leaveOwnEmployeeIdProvider = Provider<String?>(
+  (ref) => ref.watch(
+    authSessionProvider.select(
+      (session) => session.valueOrNull?.user?.employeeId,
+    ),
+  ),
 );
 
 final getLeaveApprovalsUseCaseProvider = Provider<GetLeaveApprovalsUseCase>(

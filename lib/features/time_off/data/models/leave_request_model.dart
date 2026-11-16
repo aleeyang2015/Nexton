@@ -27,6 +27,7 @@ class LeaveRequestModel {
 
     return LeaveRequest(
       id: LeaveJson.str(json['id']) ?? '',
+      employeeId: LeaveJson.nonEmpty(employeeMap['id']),
       employeeName: LeaveJson.str(employeeMap['name']) ?? '',
       employeeNumber: LeaveJson.nonEmpty(employeeMap['employee_number']),
       departmentName: department is Map

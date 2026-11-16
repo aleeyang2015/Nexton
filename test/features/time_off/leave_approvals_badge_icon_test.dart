@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
+import 'package:next_on/core/network/paged_list.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
 import 'package:next_on/features/time_off/presentation/widgets/leave_approvals_badge_icon.dart';
 import 'package:next_on/features/time_off/time_off_providers.dart';
@@ -49,6 +51,49 @@ void main() {
 
     expect(find.byType(Badge), findsNothing);
     expect(find.byIcon(Icons.approval), findsOneWidget);
+  });
+
+  testWidgets('20 loaded with more to load shows 20+, as the header does', (
+    tester,
+  ) async {
+    final repository = FakeLeaveRepository()
+      ..myApprovalsPage = (status, cursor) async => Result.success(
+        status == LeaveStatus.pending
+            ? CursorPage(
+                items: [
+                  for (var i = 0; i < 20; i++) pendingApproval(id: 'r-$i'),
+                ],
+                nextCursor: 'c-2',
+                hasMore: true,
+              )
+            : const CursorPage(items: []),
+      );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [leaveRepositoryProvider.overrideWithValue(repository)],
+        child: const MaterialApp(
+          home: Scaffold(body: LeaveApprovalsBadgeIcon()),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('20+'), findsOneWidget);
+    // The badge does not load more by itself: one page was asked for.
+    expect(
+      repository.myApprovalsCalls.where((s) => s == LeaveStatus.pending),
+      hasLength(1),
+    );
+  });
+
+  testWidgets('the last page in: the plain count', (tester) async {
+    await pumpBadge(
+      tester,
+      Result.success([for (var i = 0; i < 20; i++) pendingApproval(id: 'r-$i')]),
+    );
+
+    expect(find.text('20'), findsOneWidget);
   });
 
   testWidgets('caps a runaway queue at 99+', (tester) async {

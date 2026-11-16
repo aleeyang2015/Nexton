@@ -526,5 +526,9 @@
   "leaveViewRequest": "ເບິ່ງຄຳຮ້ອງ",
   "leaveCancelApprovedConfirm": "ການລານີ້ອະນຸມັດແລ້ວ. ຍົກເລີກ ແລະ ຄືນວັນລາເຂົ້າຍອດຄົງເຫຼືອບໍ?",
   "leaveStartedContactHr": "ການລານີ້ເລີ່ມແລ້ວ ຈຶ່ງຍົກເລີກໃນແອັບບໍ່ໄດ້. ຖ້າຕ້ອງການປ່ຽນ, ກະລຸນາຕິດຕໍ່ HR.",
-  "listLoadMoreFailed": "ໂຫຼດເພີ່ມບໍ່ໄດ້."
+  "listLoadMoreFailed": "ໂຫຼດເພີ່ມບໍ່ໄດ້.",
+  "leaveOwnRequestNoActions": "ນີ້ແມ່ນຄຳຮ້ອງຂອງທ່ານເອງ. ຕ້ອງໃຫ້ຄົນອື່ນເປັນຜູ້ຕັດສິນ.",
+  "leaveDecidedByMeApproved": "ທີ່ຂ້ອຍອະນຸມັດ",
+  "leaveDecidedByMeRejected": "ທີ່ຂ້ອຍປະຕິເສດ",
+  "leaveWaitingForStep": "ລໍຖ້າ{role}"
 }

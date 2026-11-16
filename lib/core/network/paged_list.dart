@@ -88,6 +88,11 @@ class PagedList<T> {
   /// a list scrolled to its end does not ask again and again).
   bool get canLoadMore => hasMore && !loadingMore && loadMoreError == null;
 
+  /// How many rows there are, as far as is known: the number loaded, with a
+  /// `+` when there are more to load (`20+`). A header and a badge that both
+  /// show this never disagree.
+  String get countLabel => '${items.length}${hasMore ? '+' : ''}';
+
   /// The list while its next page is on the way.
   PagedList<T> startLoadingMore() => PagedList(
     items: items,

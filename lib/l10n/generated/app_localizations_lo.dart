@@ -781,7 +781,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get timeOffApprovalsTab => 'ອະນຸມັດຂໍລາພັກ';
 
   @override
-  String leaveApprovalsPendingHeader(int count) {
+  String leaveApprovalsPendingHeader(String count) {
     return 'ລາຍການທີ່ຕ້ອງອະນຸມັດ ($count)';
   }
 
@@ -1676,4 +1676,19 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get listLoadMoreFailed => 'ໂຫຼດເພີ່ມບໍ່ໄດ້.';
+
+  @override
+  String get leaveOwnRequestNoActions =>
+      'ນີ້ແມ່ນຄຳຮ້ອງຂອງທ່ານເອງ. ຕ້ອງໃຫ້ຄົນອື່ນເປັນຜູ້ຕັດສິນ.';
+
+  @override
+  String get leaveDecidedByMeApproved => 'ທີ່ຂ້ອຍອະນຸມັດ';
+
+  @override
+  String get leaveDecidedByMeRejected => 'ທີ່ຂ້ອຍປະຕິເສດ';
+
+  @override
+  String leaveWaitingForStep(String role) {
+    return 'ລໍຖ້າ$role';
+  }
 }
