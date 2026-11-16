@@ -34,6 +34,7 @@ class PunchBlockDetailsModel {
       nextStarts: text(raw['next_starts']),
       employeeId: text(raw['employee_id']),
       clockInOpens: text(raw['clock_in_opens']),
+      clockIn: text(raw['clock_in']),
       raw: raw,
     );
   }

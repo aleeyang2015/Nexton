@@ -265,9 +265,8 @@ void main() {
       expect(find.text('FORM:${OffsiteMethod.checkOut}'), findsOneWidget);
     });
 
-    testWidgets('declining still shows the backend\'s own wording', (
-      tester,
-    ) async {
+    testWidgets('declining shows the App\'s text, not the backend\'s '
+        'English', (tester) async {
       await pumpFlow(
         tester,
         clockIn: Result.success(
@@ -285,12 +284,18 @@ void main() {
 
       expect(find.textContaining('FORM:'), findsNothing);
       expect(
-        find.text('Clock-in rejected: you are outside all work locations'),
+        find.text(
+          'You are outside every work area, so this punch was not accepted.',
+        ),
         findsOneWidget,
+      );
+      expect(
+        find.text('Clock-in rejected: you are outside all work locations'),
+        findsNothing,
       );
     });
 
-    testWidgets('falls back to localized copy when the backend sent none', (
+    testWidgets('shows the same text when the backend sent no message', (
       tester,
     ) async {
       await pumpFlow(
@@ -334,6 +339,102 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Outside the work area'), findsNothing);
+    });
+  });
+
+  group('a refusal that can only fail again', () {
+    testWidgets('too early: a toast naming the opening time, no Retry and no '
+        'reason dialog', (tester) async {
+      final repository = await pumpFlow(
+        tester,
+        clockIn: Result.success(
+          const PunchBlocked(
+            rule: AttendanceRule.tooEarlyCheckin,
+            message:
+                'Too early to clock in for the 08:00–12:00 session; '
+                'clock-in opens at 07:00.',
+            details: PunchBlockDetails(clockInOpens: '07:00'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('PUNCH'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'It isn\'t time to clock in yet \u2014 clock-in opens at 07:00.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Too early to clock in for'), findsNothing);
+      expect(find.text('Retry'), findsNothing);
+      expect(find.byType(Dialog), findsNothing);
+      expect(repository.clockInRequests, hasLength(1));
+    });
+
+    testWidgets('clock-out before clock-in: a toast, never the reason '
+        'dialog', (tester) async {
+      await pumpFlow(
+        tester,
+        today: _openDay(),
+        clockOut: Result.success(
+          const PunchBlocked(
+            rule: AttendanceRule.clockOutBeforeClockIn,
+            message: 'Clock-out time is before clock-in',
+            details: PunchBlockDetails(clockIn: '08:05'),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('PUNCH'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'You clocked in at 08:05. You can\'t clock out before that.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byType(Dialog), findsNothing);
+      expect(find.text('Retry'), findsNothing);
+    });
+
+    testWidgets('a 409 the App has no rule for shows the server\'s message '
+        'with no Retry', (tester) async {
+      await pumpFlow(
+        tester,
+        clockIn: const Result.failure(
+          Failure.network(
+            message: 'Shift is locked for payroll',
+            statusCode: 409,
+            errorCode: 'SHIFT_LOCKED',
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('PUNCH'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Shift is locked for payroll'), findsOneWidget);
+      expect(find.text('Retry'), findsNothing);
+    });
+
+    testWidgets('no connection still offers Retry', (tester) async {
+      await pumpFlow(
+        tester,
+        clockIn: const Result.failure(
+          Failure.network(
+            message: 'No internet connection',
+            errorCode: 'NO_INTERNET',
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('PUNCH'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Retry'), findsOneWidget);
     });
   });
 

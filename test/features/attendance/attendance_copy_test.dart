@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/features/attendance/domain/entities/punch_outcome.dart';
 import 'package:next_on/features/attendance/presentation/widgets/attendance_copy.dart';
 import 'package:next_on/features/profile/domain/entities/shift_detail.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
@@ -59,6 +60,158 @@ void main() {
 
     test('is null when the employee has no shift assigned', () {
       expect(AttendanceCopy.employeeShiftName(en, null, null), isNull);
+    });
+  });
+
+  group('AttendanceCopy.rule', () {
+    final lao = lookupAppLocalizations(lo);
+    const serverEnglish = 'Clock-in rejected by the server, in English.';
+
+    String text(
+      AppLocalizations l10n,
+      AttendanceRule rule, [
+      PunchBlockDetails details = PunchBlockDetails.empty,
+    ]) => AttendanceCopy.rule(
+      l10n,
+      PunchBlocked(rule: rule, message: serverEnglish, details: details),
+    );
+
+    test('every rule gives the App\'s Lao text, even though the server sent '
+        'a message', () {
+      for (final rule in AttendanceRule.values) {
+        final shown = text(lao, rule);
+
+        expect(shown, isNot(serverEnglish), reason: '$rule');
+        expect(shown, isNotEmpty, reason: '$rule');
+        // Lao script, not English copy that slipped through.
+        expect(
+          RegExp(r'[\u0E80-\u0EFF]').hasMatch(shown),
+          isTrue,
+          reason: '$rule shows "$shown"',
+        );
+      }
+    });
+
+    test('every rule gives English text under the English locale', () {
+      for (final rule in AttendanceRule.values) {
+        final shown = text(l10n, rule);
+
+        expect(shown, isNot(serverEnglish), reason: '$rule');
+        expect(
+          RegExp(r'[\u0E80-\u0EFF]').hasMatch(shown),
+          isFalse,
+          reason: '$rule shows "$shown"',
+        );
+      }
+    });
+
+    test('too early names when clock-in opens, and falls back without it', () {
+      expect(
+        text(
+          lao,
+          AttendanceRule.tooEarlyCheckin,
+          const PunchBlockDetails(clockInOpens: '07:00'),
+        ),
+        contains('07:00'),
+      );
+      expect(
+        text(lao, AttendanceRule.tooEarlyCheckin),
+        lao.ruleTooEarlyCheckin,
+      );
+    });
+
+    test('clock-out before clock-in names the clock-in time, and falls back '
+        'without it', () {
+      expect(
+        text(
+          lao,
+          AttendanceRule.clockOutBeforeClockIn,
+          const PunchBlockDetails(clockIn: '08:05'),
+        ),
+        'ທ່ານລົງເວລາເຂົ້າຕອນ 08:05. ລົງເວລາອອກກ່ອນນັ້ນບໍ່ໄດ້.',
+      );
+      expect(
+        text(
+          l10n,
+          AttendanceRule.clockOutBeforeClockIn,
+          const PunchBlockDetails(clockIn: '08:05'),
+        ),
+        'You clocked in at 08:05. You can\'t clock out before that.',
+      );
+      expect(
+        text(lao, AttendanceRule.clockOutBeforeClockIn),
+        lao.ruleClockOutBeforeClockIn,
+      );
+    });
+
+    test('a closed clock-out window names when it closed, and falls back '
+        'without it', () {
+      expect(
+        text(
+          lao,
+          AttendanceRule.afterCheckoutWindow,
+          const PunchBlockDetails(latestCheckout: '18:30'),
+        ),
+        'ເລີຍເວລາລົງເວລາອອກແລ້ວ (ເປີດຮອດ 18:30).',
+      );
+      expect(
+        text(
+          l10n,
+          AttendanceRule.afterCheckoutWindow,
+          const PunchBlockDetails(latestCheckout: '18:30'),
+        ),
+        'The clock-out window has closed (it was open until 18:30).',
+      );
+      expect(
+        text(lao, AttendanceRule.afterCheckoutWindow),
+        lao.ruleAfterCheckoutWindow,
+      );
+    });
+
+    test('closed check-in names when the last shift ended, and falls back '
+        'without it', () {
+      expect(
+        text(
+          lao,
+          AttendanceRule.outsideShiftHours,
+          const PunchBlockDetails(lastShiftEnd: '17:30'),
+        ),
+        'ໝົດເວລາລົງເວລາເຂົ້າຂອງມື້ນີ້ແລ້ວ (ກະສຸດທ້າຍຈົບ 17:30).',
+      );
+      expect(
+        text(
+          l10n,
+          AttendanceRule.outsideShiftHours,
+          const PunchBlockDetails(lastShiftEnd: '17:30'),
+        ),
+        'Check-in has closed for today (the last shift ended at 17:30).',
+      );
+      expect(
+        text(lao, AttendanceRule.outsideShiftHours),
+        lao.ruleOutsideShiftHours,
+      );
+    });
+
+    test('OT changed asks to try again', () {
+      expect(
+        text(lao, AttendanceRule.otChanged),
+        'ໂອທີຂອງທ່ານຫາກໍ່ປ່ຽນ. ກະລຸນາລອງໃໝ່.',
+      );
+      expect(
+        text(l10n, AttendanceRule.otChanged),
+        'Your OT just changed. Please try again.',
+      );
+    });
+
+    test('an empty detail is treated as missing, not shown as a blank', () {
+      expect(
+        text(
+          lao,
+          AttendanceRule.afterCheckoutWindow,
+          const PunchBlockDetails(latestCheckout: ''),
+        ),
+        lao.ruleAfterCheckoutWindow,
+      );
     });
   });
 }

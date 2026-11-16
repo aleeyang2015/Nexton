@@ -665,5 +665,25 @@
   "tooManyAttemptsWait": "Too many attempts. You can try again in {minutes} min.",
   "@tooManyAttemptsWait": {
     "placeholders": {"minutes": {"type": "int"}}
+  },
+  "ruleClockOutBeforeClockInAt": "You clocked in at {time}. You can't clock out before that.",
+  "@ruleClockOutBeforeClockInAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "ruleClockOutBeforeClockIn": "You can't clock out before your clock-in time.",
+  "ruleOtChanged": "Your OT just changed. Please try again.",
+  "ruleAfterCheckoutWindowAt": "The clock-out window has closed (it was open until {time}).",
+  "@ruleAfterCheckoutWindowAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "ruleOutsideShiftHoursAt": "Check-in has closed for today (the last shift ended at {time}).",
+  "@ruleOutsideShiftHoursAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
   }
 }

@@ -452,6 +452,9 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     // nothing is written. Both shapes are handled; whichever the backend
     // settles on, the employee is offered the off-site scan request.
     'OUTSIDE_GEOFENCE': AttendanceRule.outsideWorkArea,
+    'TOO_EARLY_CHECKIN': AttendanceRule.tooEarlyCheckin,
+    'CLOCK_OUT_BEFORE_CLOCK_IN': AttendanceRule.clockOutBeforeClockIn,
+    'OT_CHANGED': AttendanceRule.otChanged,
   };
 
   /// Lifts `error.details` out of the envelope — shared with the off-site

@@ -1599,4 +1599,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String tooManyAttemptsWait(int minutes) {
     return 'Too many attempts. You can try again in $minutes min.';
   }
+
+  @override
+  String ruleClockOutBeforeClockInAt(String time) {
+    return 'You clocked in at $time. You can\'t clock out before that.';
+  }
+
+  @override
+  String get ruleClockOutBeforeClockIn =>
+      'You can\'t clock out before your clock-in time.';
+
+  @override
+  String get ruleOtChanged => 'Your OT just changed. Please try again.';
+
+  @override
+  String ruleAfterCheckoutWindowAt(String time) {
+    return 'The clock-out window has closed (it was open until $time).';
+  }
+
+  @override
+  String ruleOutsideShiftHoursAt(String time) {
+    return 'Check-in has closed for today (the last shift ended at $time).';
+  }
 }

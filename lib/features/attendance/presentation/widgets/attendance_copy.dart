@@ -11,22 +11,21 @@ import '../../domain/entities/punch_receipt.dart';
 /// show. Pure functions, no widgets — the mapping is testable on its own and
 /// the widgets stay small.
 ///
-/// The governing rule comes from §5: the backend's `message` is already
-/// tailored to the situation ("the next session starts at 13:30"), so it is
-/// preferred wherever it exists. The localized strings here are the fallback
-/// for when it doesn't — never a replacement for it.
+/// A refused punch is told in the user's language: the backend's `message`
+/// is always English, so every rule the app knows has its own text here,
+/// filled from `error.details` where the backend says a time ("clock-in opens
+/// at 07:00"). The server's sentence is shown only for a code the app does not
+/// know, and such a code never becomes a [PunchBlocked] in the first place.
 class AttendanceCopy {
   AttendanceCopy._();
 
-  /// What to tell the user about a refused punch.
-  static String rule(AppLocalizations l10n, PunchBlocked blocked) {
-    final serverMessage = blocked.message.trim();
-    if (serverMessage.isNotEmpty) return serverMessage;
+  /// What to tell the user about a refused punch: the app's text for the
+  /// rule, never the server's English.
+  static String rule(AppLocalizations l10n, PunchBlocked blocked) =>
+      ruleFallback(l10n, blocked.rule, blocked.details);
 
-    return ruleFallback(l10n, blocked.rule, blocked.details);
-  }
-
-  /// The app's own wording for [rule], for when the backend sent none.
+  /// The app's own wording for [rule], naming the time from [details] where
+  /// the backend sent one.
   ///
   /// Public because the off-site scan form is refused by the same rules (its
   /// POST is gated by the same session guard) and must not invent a second set
@@ -40,7 +39,12 @@ class AttendanceCopy {
       AttendanceRule.mockLocationDetected => l10n.ruleMockLocationDetected,
       AttendanceRule.employeeNotFound => l10n.ruleEmployeeNotFound,
       AttendanceRule.noShiftAssigned => l10n.ruleNoShiftAssigned,
-      AttendanceRule.outsideShiftHours => l10n.ruleOutsideShiftHours,
+      AttendanceRule.outsideShiftHours => switch (detailTime(
+        details.lastShiftEnd,
+      )) {
+        final String ended => l10n.ruleOutsideShiftHoursAt(ended),
+        null => l10n.ruleOutsideShiftHours,
+      },
       AttendanceRule.overnightSessionDone => l10n.ruleOvernightSessionDone,
       AttendanceRule.sessionAlreadyStarted => l10n.ruleSessionAlreadyStarted,
       AttendanceRule.sessionAlreadyCompleted =>
@@ -48,7 +52,12 @@ class AttendanceCopy {
       AttendanceRule.sessionAlreadyCheckedOut =>
         l10n.ruleSessionAlreadyCheckedOut,
       AttendanceRule.sessionNotStarted => l10n.ruleSessionNotStarted,
-      AttendanceRule.afterCheckoutWindow => l10n.ruleAfterCheckoutWindow,
+      AttendanceRule.afterCheckoutWindow => switch (detailTime(
+        details.latestCheckout,
+      )) {
+        final String until => l10n.ruleAfterCheckoutWindowAt(until),
+        null => l10n.ruleAfterCheckoutWindow,
+      },
       AttendanceRule.earlyCheckoutRequiresReason =>
         l10n.ruleEarlyCheckoutRequiresReason,
       AttendanceRule.outsideWorkArea => l10n.ruleOutsideWorkArea,
@@ -61,6 +70,13 @@ class AttendanceCopy {
         final String opens => l10n.ruleTooEarlyCheckinAt(opens),
         null => l10n.ruleTooEarlyCheckin,
       },
+      AttendanceRule.clockOutBeforeClockIn => switch (detailTime(
+        details.clockIn,
+      )) {
+        final String at => l10n.ruleClockOutBeforeClockInAt(at),
+        null => l10n.ruleClockOutBeforeClockIn,
+      },
+      AttendanceRule.otChanged => l10n.ruleOtChanged,
     };
   }
 
