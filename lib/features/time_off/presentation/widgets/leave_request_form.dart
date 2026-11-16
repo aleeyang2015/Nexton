@@ -58,23 +58,17 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
   /// A back-out returns null and leaves the current selection alone.
   Future<void> _openLeaveTypePicker() async {
     final key = widget.requestId;
-    final current = ref.read(leaveRequestFormNotifierProvider(key)).leaveTypeId;
+    final current = ref.read(leaveRequestFormNotifierProvider(key));
     final picked = await context.push<String>(
       AppRoutes.timeOffLeaveTypePicker,
-      extra: (selectedTypeId: current, allowClear: false),
+      extra: (
+        selectedTypeId: current.leaveTypeId,
+        allowClear: false,
+        // The same exception the chips make for a request being edited.
+        keepTypeId: current.originalLeaveTypeId,
+      ),
     );
-    if (picked != null && picked.isNotEmpty) _selectLeaveType(picked);
-  }
-
-  /// Applies a leave type, telling the notifier whether it takes half days so
-  /// a half day picked under the previous type is not carried over.
-  void _selectLeaveType(String id) {
-    final types =
-        ref.read(leaveTypesNotifierProvider).valueOrNull ?? const <LeaveType>[];
-    _notifier.setLeaveType(
-      id,
-      allowHalfDay: _selectedType(types, id)?.allowHalfDay ?? true,
-    );
+    if (picked != null && picked.isNotEmpty) _notifier.setLeaveType(picked);
   }
 
   /// Opens the multi-select date calendar seeded with the current selection,
@@ -126,9 +120,12 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       state,
       ref.watch(clockProvider)(),
     );
-    final balances = ref
-        .watch(leaveBalancesNotifierProvider(balanceYear))
-        .valueOrNull;
+    final balancesAsync = ref.watch(leaveBalancesNotifierProvider(balanceYear));
+    final balances = balancesAsync.valueOrNull;
+    // Each year is loaded the first time a day in it is picked. Until it
+    // answers, what is left is not known, and the form waits rather than send
+    // a request the server is about to refuse.
+    final balanceLoading = balancesAsync.isLoading && !balancesAsync.hasValue;
 
     // Surface the outcome of an attachment upload; the file itself is rendered
     // inside the "attach file" section card.
@@ -160,12 +157,20 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       _reasonController.text = state.reason;
       _reasonSeeded = true;
     }
-    if (state.leaveTypeId == null && types.isNotEmpty) {
+    // A new request starts on the first type on offer, and goes back to it
+    // when the type it was on is no longer offered (HR switched it off while
+    // the form was open). An edit keeps its own type, which stays on offer.
+    final needsDefault =
+        types.isNotEmpty &&
+        (state.leaveTypeId == null ||
+            (!state.isEditing && selectedType == null));
+    if (needsDefault) {
+      final unusable = state.leaveTypeId;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted &&
             ref.read(leaveRequestFormNotifierProvider(key)).leaveTypeId ==
-                null) {
-          _selectLeaveType(types.first.id);
+                unusable) {
+          _notifier.setLeaveType(types.first.id);
         }
       });
     }
@@ -182,7 +187,10 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     // Never enable submit before the chosen type's rules are known.
     final typeResolved = types.isNotEmpty && selectedType != null;
     final canSubmit =
-        state.hasValidShape && blockMessage == null && typeResolved;
+        state.hasValidShape &&
+        blockMessage == null &&
+        typeResolved &&
+        !balanceLoading;
 
     return Container(
       color: AppColors.background,
@@ -203,7 +211,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
               loading: typesAsync.isLoading,
               failed: typesAsync.hasError,
               selectedId: state.leaveTypeId,
-              onSelect: _selectLeaveType,
+              onSelect: _notifier.setLeaveType,
             ),
           ),
           // The day-part card ("ຊ່ວງເວລາ": full day / first half / second half)
@@ -553,6 +561,17 @@ class _LeaveTypePicker extends StatelessWidget {
     }
     if (loading && types.isEmpty) {
       return customText('…', color: AppColors.subTitle);
+    }
+    // Loaded, and nothing to offer: every type is switched off.
+    if (types.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: customText(
+          l10n.leaveTypeSearchEmpty,
+          color: AppColors.subTitle,
+          fontSize: 13,
+        ),
+      );
     }
 
     return SizedBox(

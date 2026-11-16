@@ -10,6 +10,7 @@ import 'package:next_on/features/time_off/presentation/providers/leave_form_rule
 import 'package:next_on/features/time_off/presentation/providers/leave_history_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_request_form_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_request_form_state.dart';
+import 'package:next_on/features/time_off/presentation/providers/leave_types_notifier.dart';
 import 'package:next_on/features/time_off/time_off_providers.dart';
 
 import '../../support/leave_test_doubles.dart';
@@ -102,16 +103,29 @@ void main() {
   });
 
   group('setLeaveType', () {
-    test('a type that takes whole days only resets a half day to a full day, '
-        'in the same step', () {
+    /// A container whose type list has loaded: annual takes whole days only,
+    /// personal and sick take half days.
+    Future<ProviderContainer> withTypes() async {
+      repository.leaveTypesResult = Result.success([
+        sampleLeaveType(),
+        sampleLeaveType(id: 'lt-personal', allowHalfDay: true),
+        sampleLeaveType(id: 'lt-sick', allowHalfDay: true),
+      ]);
       final container = containerWith();
+      await container.read(leaveTypesNotifierProvider.future);
+      return container;
+    }
+
+    test('a type that takes whole days only resets a half day to a full day, '
+        'in the same step', () async {
+      final container = await withTypes();
       formOf(container)
-        ..setLeaveType('lt-personal', allowHalfDay: true)
+        ..setLeaveType('lt-personal')
         ..setDurationType(LeaveDurationType.firstHalf)
         ..setDates([DateTime(2026, 11, 18)]);
       expect(stateOf(container).durationType, LeaveDurationType.firstHalf);
 
-      formOf(container).setLeaveType('lt-annual', allowHalfDay: false);
+      formOf(container).setLeaveType('lt-annual');
 
       final state = stateOf(container);
       expect(state.leaveTypeId, 'lt-annual');
@@ -119,23 +133,23 @@ void main() {
       expect(state.totalDays, 1);
     });
 
-    test('a type that takes half days keeps the half day', () {
-      final container = containerWith();
+    test('a type that takes half days keeps the half day', () async {
+      final container = await withTypes();
       formOf(container)
-        ..setLeaveType('lt-personal', allowHalfDay: true)
+        ..setLeaveType('lt-personal')
         ..setDurationType(LeaveDurationType.secondHalf)
-        ..setLeaveType('lt-sick', allowHalfDay: true);
+        ..setLeaveType('lt-sick');
 
       expect(stateOf(container).durationType, LeaveDurationType.secondHalf);
     });
 
     test('after the reset, what is sent is full_day', () async {
-      final container = containerWith();
+      final container = await withTypes();
       final form = formOf(container)
-        ..setLeaveType('lt-personal', allowHalfDay: true)
+        ..setLeaveType('lt-personal')
         ..setDurationType(LeaveDurationType.firstHalf)
         ..setDates([DateTime(2026, 11, 18)])
-        ..setLeaveType('lt-annual', allowHalfDay: false);
+        ..setLeaveType('lt-annual');
 
       await form.submit();
 
@@ -143,6 +157,18 @@ void main() {
         repository.submitCalls.single.durationType,
         LeaveDurationType.fullDay,
       );
+    });
+
+    test('a type that is not in the loaded list changes the selection and '
+        'nothing else', () async {
+      final container = await withTypes();
+      formOf(container)
+        ..setLeaveType('lt-personal')
+        ..setDurationType(LeaveDurationType.firstHalf)
+        ..setLeaveType('lt-unknown');
+
+      expect(stateOf(container).leaveTypeId, 'lt-unknown');
+      expect(stateOf(container).durationType, LeaveDurationType.firstHalf);
     });
   });
 
@@ -306,6 +332,26 @@ void main() {
       final state = stateOf(container, 'req-7');
       expect(state.originalLeaveTypeId, existing.leaveType.id);
       expect(state.originalTotalDays, 2);
+      // The year of its first leave day, whatever order the days came in.
+      expect(state.originalBalanceYear, 2026);
+      expect(state.editsSameBalance, isTrue);
+    });
+
+    test('an edit moved to another type, or to another year, no longer draws '
+        'on the balance it had', () {
+      final container = containerWith();
+      final form = formOf(container, 'req-7')..seed(existing);
+
+      form.setLeaveType('lt-sick');
+      expect(stateOf(container, 'req-7').editsSameBalance, isFalse);
+
+      form
+        ..setLeaveType(existing.leaveType.id)
+        ..setDates([DateTime(2027, 1, 5), DateTime(2027, 1, 6)]);
+      expect(stateOf(container, 'req-7').editsSameBalance, isFalse);
+
+      form.setDates([DateTime(2026, 11, 25), DateTime(2026, 11, 26)]);
+      expect(stateOf(container, 'req-7').editsSameBalance, isTrue);
     });
 
     test('a new request has no original type or day count', () {

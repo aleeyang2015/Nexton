@@ -89,9 +89,18 @@ class LeaveFormRules {
   /// when it asks for **more** days than the request already had: the server
   /// does the same, so fixing the reason on a request made before the balance
   /// dropped is never refused.
+  ///
+  /// That holds only while the edit still draws on the balance the request
+  /// already drew on. Moved to another leave type, or to days in another
+  /// year, it is spending a balance it never had days in, and is checked like
+  /// a new request.
   static bool _exceedsBalance(LeaveRequestFormState state, double remaining) {
     final original = state.originalTotalDays;
-    if (original != null && state.totalDays <= original) return false;
+    if (state.editsSameBalance &&
+        original != null &&
+        state.totalDays <= original) {
+      return false;
+    }
     return state.totalDays > remaining;
   }
 }

@@ -24,6 +24,28 @@ void main() {
       expect(LeaveCopy.dayCount(2.5), '2.5');
     });
 
+    test('a count with two decimals keeps them; nothing is rounded to a '
+        'different number', () {
+      expect(LeaveCopy.dayCount(7.25), '7.25');
+      expect(LeaveCopy.dayCount(7.05), '7.05');
+      expect(LeaveCopy.dayCount(2.96), '2.96');
+      // Trailing zeros are dropped, not the digits before them.
+      expect(LeaveCopy.dayCount(10), '10');
+      expect(LeaveCopy.dayCount(10.5), '10.5');
+      expect(LeaveCopy.dayCount(100), '100');
+    });
+
+    test('a negative balance is written as it is', () {
+      expect(LeaveCopy.dayCount(-1), '-1');
+      expect(LeaveCopy.dayCount(-0.5), '-0.5');
+    });
+
+    test('something that is not a number is a dash, never a crash', () {
+      expect(LeaveCopy.dayCount(double.nan), '-');
+      expect(LeaveCopy.dayCount(double.infinity), '-');
+      expect(LeaveCopy.dayCount(double.negativeInfinity), '-');
+    });
+
     test('Latin digits, whatever the language', () {
       expect(LeaveCopy.dayCount(12.5), matches(r'^[0-9.]+$'));
     });

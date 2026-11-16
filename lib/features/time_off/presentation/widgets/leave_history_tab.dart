@@ -77,7 +77,12 @@ class _LeaveTypeFilter extends ConsumerWidget {
           onTap: () async {
             final picked = await context.push<String>(
               AppRoutes.timeOffLeaveTypePicker,
-              extra: (selectedTypeId: selectedId, allowClear: true),
+              extra: (
+                selectedTypeId: selectedId,
+                allowClear: true,
+                // A filter already set to a type stays able to show it.
+                keepTypeId: selectedId,
+              ),
             );
             // Nothing chosen (backed out) — leave the filter as it was.
             if (picked == null) return;

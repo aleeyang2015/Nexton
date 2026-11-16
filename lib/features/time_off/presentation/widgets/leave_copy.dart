@@ -105,14 +105,21 @@ class LeaveCopy {
     return l10n.leaveDaysSuffix(dayCount(days));
   }
 
-  /// A count of days as it is written: whole when it is whole (`3`), with one
-  /// decimal when it is not (`7.5`). Latin digits in every language, formatted
-  /// by hand like the dates, and never rounded to a number the user does not
-  /// have.
-  static String dayCount(double days) =>
-      days == days.roundToDouble()
-      ? days.round().toString()
-      : days.toStringAsFixed(1);
+  /// A count of days as it is written: whole when it is whole (`3`), with its
+  /// decimals when it has them (`7.5`, `7.25`), to two places at most. Latin
+  /// digits in every language, formatted by hand like the dates.
+  ///
+  /// A balance is never rounded to a whole number the user does not have:
+  /// 7.5 days left is not "8". Something that is not a number at all is a
+  /// dash.
+  static String dayCount(double days) {
+    if (!days.isFinite) return '-';
+
+    final text = days.toStringAsFixed(2);
+    if (!text.contains('.')) return text;
+    // "7.50" → "7.5", "3.00" → "3".
+    return text.replaceFirst(RegExp(r'\.?0+$'), '');
+  }
 
   /// The date line under a history/approval card's title: a single date for a
   /// one-day request, a "start – end" range otherwise, each followed by the

@@ -33,6 +33,10 @@ mixin _$LeaveRequestFormState {
   /// opened. The balance is checked on an edit only when the count grows
   /// past this, as the server does.
   double? get originalTotalDays => throw _privateConstructorUsedError;
+
+  /// Edit mode only: the year the request's days were charged to when it
+  /// was opened (the year of its first leave day).
+  int? get originalBalanceYear => throw _privateConstructorUsedError;
   AsyncValue<LeaveRequest?> get submission =>
       throw _privateConstructorUsedError;
 
@@ -57,6 +61,7 @@ abstract class $LeaveRequestFormStateCopyWith<$Res> {
     String reason,
     String? originalLeaveTypeId,
     double? originalTotalDays,
+    int? originalBalanceYear,
     AsyncValue<LeaveRequest?> submission,
   });
 }
@@ -85,6 +90,7 @@ class _$LeaveRequestFormStateCopyWithImpl<
     Object? reason = null,
     Object? originalLeaveTypeId = freezed,
     Object? originalTotalDays = freezed,
+    Object? originalBalanceYear = freezed,
     Object? submission = null,
   }) {
     return _then(
@@ -121,6 +127,10 @@ class _$LeaveRequestFormStateCopyWithImpl<
                 ? _value.originalTotalDays
                 : originalTotalDays // ignore: cast_nullable_to_non_nullable
                       as double?,
+            originalBalanceYear: freezed == originalBalanceYear
+                ? _value.originalBalanceYear
+                : originalBalanceYear // ignore: cast_nullable_to_non_nullable
+                      as int?,
             submission: null == submission
                 ? _value.submission
                 : submission // ignore: cast_nullable_to_non_nullable
@@ -149,6 +159,7 @@ abstract class _$$LeaveRequestFormStateImplCopyWith<$Res>
     String reason,
     String? originalLeaveTypeId,
     double? originalTotalDays,
+    int? originalBalanceYear,
     AsyncValue<LeaveRequest?> submission,
   });
 }
@@ -174,6 +185,7 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
     Object? reason = null,
     Object? originalLeaveTypeId = freezed,
     Object? originalTotalDays = freezed,
+    Object? originalBalanceYear = freezed,
     Object? submission = null,
   }) {
     return _then(
@@ -210,6 +222,10 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
             ? _value.originalTotalDays
             : originalTotalDays // ignore: cast_nullable_to_non_nullable
                   as double?,
+        originalBalanceYear: freezed == originalBalanceYear
+            ? _value.originalBalanceYear
+            : originalBalanceYear // ignore: cast_nullable_to_non_nullable
+                  as int?,
         submission: null == submission
             ? _value.submission
             : submission // ignore: cast_nullable_to_non_nullable
@@ -231,6 +247,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     this.reason = '',
     this.originalLeaveTypeId,
     this.originalTotalDays,
+    this.originalBalanceYear,
     this.submission = const AsyncValue<LeaveRequest?>.data(null),
   }) : _dates = dates,
        super._();
@@ -268,13 +285,18 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   /// past this, as the server does.
   @override
   final double? originalTotalDays;
+
+  /// Edit mode only: the year the request's days were charged to when it
+  /// was opened (the year of its first leave day).
+  @override
+  final int? originalBalanceYear;
   @override
   @JsonKey()
   final AsyncValue<LeaveRequest?> submission;
 
   @override
   String toString() {
-    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, dates: $dates, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, originalLeaveTypeId: $originalLeaveTypeId, originalTotalDays: $originalTotalDays, submission: $submission)';
+    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, dates: $dates, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, originalLeaveTypeId: $originalLeaveTypeId, originalTotalDays: $originalTotalDays, originalBalanceYear: $originalBalanceYear, submission: $submission)';
   }
 
   @override
@@ -296,6 +318,8 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
                 other.originalLeaveTypeId == originalLeaveTypeId) &&
             (identical(other.originalTotalDays, originalTotalDays) ||
                 other.originalTotalDays == originalTotalDays) &&
+            (identical(other.originalBalanceYear, originalBalanceYear) ||
+                other.originalBalanceYear == originalBalanceYear) &&
             (identical(other.submission, submission) ||
                 other.submission == submission));
   }
@@ -311,6 +335,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     reason,
     originalLeaveTypeId,
     originalTotalDays,
+    originalBalanceYear,
     submission,
   );
 
@@ -335,6 +360,7 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
     final String reason,
     final String? originalLeaveTypeId,
     final double? originalTotalDays,
+    final int? originalBalanceYear,
     final AsyncValue<LeaveRequest?> submission,
   }) = _$LeaveRequestFormStateImpl;
   const _LeaveRequestFormState._() : super._();
@@ -361,6 +387,10 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   /// opened. The balance is checked on an edit only when the count grows
   /// past this, as the server does.
   double? get originalTotalDays;
+  @override
+  /// Edit mode only: the year the request's days were charged to when it
+  /// was opened (the year of its first leave day).
+  int? get originalBalanceYear;
   @override
   AsyncValue<LeaveRequest?> get submission;
   @override

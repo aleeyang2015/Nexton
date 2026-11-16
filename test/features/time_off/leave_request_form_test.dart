@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/clock_provider.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_balance.dart';
@@ -155,7 +156,34 @@ void main() {
       expect(chipLabels(tester), contains('Annual leave 2025'));
     });
 
-    testWidgets('asks for all the types, 100 a page', (tester) async {
+    testWidgets('every type switched off: the form says there is none, and '
+        'cannot send', (tester) async {
+      repository.leaveTypesResult = Result.success([switchedOff]);
+
+      await pumpForm(tester);
+
+      expect(chipLabels(tester), isEmpty);
+      expect(find.text(en.leaveTypeSearchEmpty), findsOneWidget);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
+    });
+
+    testWidgets('a new request left on a type that is switched off goes back '
+        'to the first type on offer', (tester) async {
+      await pumpForm(tester);
+
+      // The form finds itself on a type that is not on offer, as it would if
+      // HR switched it off while the form was open.
+      form().setLeaveType('lt-old');
+      await tester.pump();
+      await tester.pump();
+
+      expect(
+        container.read(leaveRequestFormNotifierProvider(null)).leaveTypeId,
+        'lt-annual',
+      );
+    });
+
+    testWidgets('the type list loads once for the form', (tester) async {
       await pumpForm(tester);
 
       expect(repository.leaveTypesCalls, 1);
@@ -188,6 +216,41 @@ void main() {
       expect(find.text('12 days'), findsOneWidget);
       expect(find.text('6 days'), findsNothing);
       expect(repository.balancesCalls, contains(2027));
+    });
+
+    testWidgets('while a newly picked year\'s balance is on its way the form '
+        'waits: a dash, and no sending', (tester) async {
+      repository.balancesByYear[2027] = Result.success([
+        sampleLeaveBalance(year: 2027, remainingDays: 12, usedDays: 0),
+      ]);
+      await pumpForm(tester);
+
+      form().setDates([DateTime(2027, 1, 5)]);
+      // One frame: the form now watches 2027, which has not answered yet.
+      await tester.pump();
+
+      expect(find.text('-'), findsOneWidget);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
+
+      await tester.pump();
+
+      expect(find.text('12 days'), findsOneWidget);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+    });
+
+    testWidgets('a balance that failed to load does not block: the server '
+        'has the last word', (tester) async {
+      repository.balancesByYear[2026] = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+      await pumpForm(tester);
+
+      form().setDates([DateTime(2026, 12, 22)]);
+      await tester.pump();
+
+      expect(find.text('-'), findsOneWidget);
+      expect(find.text(en.leaveInsufficientBalanceHint), findsNothing);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
     });
 
     testWidgets('a leave across the new year is checked against its first '
@@ -307,6 +370,45 @@ void main() {
       ]);
       await tester.pump();
 
+      expect(find.text(en.leaveInsufficientBalanceHint), findsOneWidget);
+      expect(submitEnabled(tester, en.leaveEditAction), isFalse);
+    });
+
+    testWidgets('an edit that switches to another leave type is checked '
+        'against that type\'s balance, even with the same day count', (
+      tester,
+    ) async {
+      // Annual has days; sick has none this year.
+      repository.balancesByYear[2026] = Result.success([
+        sampleLeaveBalance(remainingDays: 6),
+      ]);
+      form('req-7').seed(pendingOn(annual));
+      await pumpForm(tester, requestId: 'req-7');
+      expect(submitEnabled(tester, en.leaveEditAction), isTrue);
+
+      form('req-7').setLeaveType('lt-sick');
+      await tester.pump();
+
+      expect(find.text('0 days'), findsOneWidget);
+      expect(find.text(en.leaveInsufficientBalanceHint), findsOneWidget);
+      expect(submitEnabled(tester, en.leaveEditAction), isFalse);
+    });
+
+    testWidgets('an edit that moves the days into another year is checked '
+        'against that year\'s balance', (tester) async {
+      repository
+        ..balancesByYear[2026] = Result.success([
+          sampleLeaveBalance(remainingDays: 6),
+        ])
+        ..balancesByYear[2027] = const Result.success(<LeaveBalance>[]);
+      form('req-7').seed(pendingOn(annual));
+      await pumpForm(tester, requestId: 'req-7');
+
+      form('req-7').setDates([DateTime(2027, 1, 5), DateTime(2027, 1, 6)]);
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(en.leaveYearLabel(2027)), findsOneWidget);
       expect(find.text(en.leaveInsufficientBalanceHint), findsOneWidget);
       expect(submitEnabled(tester, en.leaveEditAction), isFalse);
     });
