@@ -150,15 +150,28 @@ void main() {
       expect(h.authHeaderOf(0), 'Bearer access-1');
     });
 
-    test('sends the dev tenant slug header', () async {
+    test('sends no X-Tenant-Slug header when no slug is defined', () async {
       final h = await _Harness.create();
       h.adapter.queue(ApiPaths.me, [_okProfile]);
 
       await h.client.get<dynamic>(ApiPaths.me);
 
       expect(
-        h.adapter.requests.first.headers[AppConstants.tenantSlugHeader],
-        AppConstants.tenantSlug,
+        h.adapter.requests.first.headers,
+        isNot(contains(AppConstants.tenantSlugHeader)),
+      );
+    });
+
+    test('base options carry X-Tenant-Slug only for a non-empty slug', () {
+      expect(
+        ApiClient.buildBaseOptions().headers,
+        isNot(contains(AppConstants.tenantSlugHeader)),
+      );
+      expect(
+        ApiClient.buildBaseOptions(
+          tenantSlug: 'nexton-demo',
+        ).headers[AppConstants.tenantSlugHeader],
+        'nexton-demo',
       );
     });
 

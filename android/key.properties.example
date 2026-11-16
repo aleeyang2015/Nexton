@@ -1,0 +1,8 @@
+# Copy to android/key.properties and fill in the real values. Never commit key.properties or the
+# keystore: both are in android/.gitignore. Ask the lead for the upload key and its passwords.
+#
+# storeFile is read from android/app/, so an absolute path is the safest choice.
+storeFile=/absolute/path/to/nexton-upload.jks
+storePassword=change-me
+keyAlias=upload
+keyPassword=change-me
