@@ -271,7 +271,7 @@
   "leaveHistoryEmpty": "No leave requests found",
   "leaveDaysSuffix": "{days} days",
   "@leaveDaysSuffix": {
-    "placeholders": {"days": {"type": "int"}}
+    "placeholders": {"days": {"type": "String"}}
   },
   "leaveTotalDaysSuffix": "{days} days total",
   "@leaveTotalDaysSuffix": {
@@ -286,7 +286,7 @@
   "leaveBalanceRemainingLabel": "Leave days remaining",
   "leaveBalanceUsedLabel": "Used {days} days",
   "@leaveBalanceUsedLabel": {
-    "placeholders": {"days": {"type": "int"}}
+    "placeholders": {"days": {"type": "String"}}
   },
   "leaveYearLabel": "Year {year}",
   "@leaveYearLabel": {
@@ -334,7 +334,7 @@
   "leaveReturnDateHint": "The return-to-work date must be after your last leave day.",
   "leaveMaxDaysHint": "This leave type allows at most {days} days per request.",
   "@leaveMaxDaysHint": {
-    "placeholders": {"days": {"type": "int"}}
+    "placeholders": {"days": {"type": "String"}}
   },
   "leaveEditAction": "Edit request",
   "leaveCancelAction": "Cancel request",

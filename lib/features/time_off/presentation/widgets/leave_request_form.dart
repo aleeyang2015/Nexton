@@ -7,6 +7,7 @@ import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/clock_provider.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -14,8 +15,8 @@ import '../../domain/entities/leave_balance.dart';
 import '../../domain/entities/leave_type.dart';
 import '../providers/leave_attachment_notifier.dart';
 import '../providers/leave_balances_notifier.dart';
+import '../providers/leave_form_rules.dart';
 import '../providers/leave_request_form_notifier.dart';
-import '../providers/leave_request_form_state.dart';
 import '../providers/leave_types_notifier.dart';
 import 'leave_copy.dart';
 import 'leave_dates_calendar_dialog.dart';
@@ -57,10 +58,15 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
   /// A back-out returns null and leaves the current selection alone.
   Future<void> _openLeaveTypePicker() async {
     final key = widget.requestId;
-    final current = ref.read(leaveRequestFormNotifierProvider(key)).leaveTypeId;
+    final current = ref.read(leaveRequestFormNotifierProvider(key));
     final picked = await context.push<String>(
       AppRoutes.timeOffLeaveTypePicker,
-      extra: (selectedTypeId: current, allowClear: false),
+      extra: (
+        selectedTypeId: current.leaveTypeId,
+        allowClear: false,
+        // The same exception the chips make for a request being edited.
+        keepTypeId: current.originalLeaveTypeId,
+      ),
     );
     if (picked != null && picked.isNotEmpty) _notifier.setLeaveType(picked);
   }
@@ -85,30 +91,22 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     return null;
   }
 
-  /// The reason the submit button is blocked, or null when it can go through.
+  /// The words for why the submit button is blocked, or null when it is not.
+  /// Whether it is blocked is [LeaveFormRules.block]'s call, not this
+  /// widget's.
   String? _blockMessage(
     AppLocalizations l10n,
-    LeaveRequestFormState state,
+    LeaveFormBlock? block,
     LeaveType? type,
-    LeaveBalance? balance,
-  ) {
-    // Independent of the leave type: the return-to-work date can't land on or
-    // before the last leave day.
-    if (!state.hasValidReturnToWorkDate) return l10n.leaveReturnDateHint;
-
-    if (type == null) return null;
-    if (type.requiresAttachment) return l10n.leaveRequiresAttachmentBlocked;
-
-    final max = type.maxDaysPerRequest;
-    if (max != null && state.totalDays > max) return l10n.leaveMaxDaysHint(max);
-
-    if (balance != null &&
-        !type.allowNegativeBalance &&
-        state.totalDays > balance.remainingDays) {
-      return l10n.leaveInsufficientBalanceHint;
-    }
-    return null;
-  }
+  ) => switch (block) {
+    null => null,
+    LeaveFormBlock.returnDate => l10n.leaveReturnDateHint,
+    LeaveFormBlock.attachmentRequired => l10n.leaveRequiresAttachmentBlocked,
+    LeaveFormBlock.maxDays => l10n.leaveMaxDaysHint(
+      LeaveCopy.dayCount(type?.maxDaysPerRequest ?? 0),
+    ),
+    LeaveFormBlock.insufficientBalance => l10n.leaveInsufficientBalanceHint,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +114,18 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     final key = widget.requestId;
     final state = ref.watch(leaveRequestFormNotifierProvider(key));
     final typesAsync = ref.watch(leaveTypesNotifierProvider);
-    final balances = ref.watch(leaveBalancesNotifierProvider).valueOrNull;
+    // A request is charged to the year of its first leave day, so that is the
+    // year whose balance the card shows and the form checks.
+    final balanceYear = LeaveFormRules.balanceYear(
+      state,
+      ref.watch(clockProvider)(),
+    );
+    final balancesAsync = ref.watch(leaveBalancesNotifierProvider(balanceYear));
+    final balances = balancesAsync.valueOrNull;
+    // Each year is loaded the first time a day in it is picked. Until it
+    // answers, what is left is not known, and the form waits rather than send
+    // a request the server is about to refuse.
+    final balanceLoading = balancesAsync.isLoading && !balancesAsync.hasValue;
 
     // Surface the outcome of an attachment upload; the file itself is rendered
     // inside the "attach file" section card.
@@ -132,37 +141,67 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       }
     });
 
-    final types = typesAsync.valueOrNull ?? const <LeaveType>[];
+    final allTypes = typesAsync.valueOrNull ?? const <LeaveType>[];
+    // Only the types HR has switched on, plus, when editing, the request's
+    // own type even if it has been switched off since.
+    final types = LeaveFormRules.offered(
+      allTypes,
+      keepId: state.originalLeaveTypeId,
+    );
     final selectedType = _selectedType(types, state.leaveTypeId);
     final balance = leaveBalanceFor(balances, state.leaveTypeId);
+    final remaining = LeaveFormRules.remainingDays(balances, state.leaveTypeId);
 
     // Seed the reason field once, and default the leave type to the first one.
     if (!_reasonSeeded && state.reason.isNotEmpty) {
       _reasonController.text = state.reason;
       _reasonSeeded = true;
     }
-    if (state.leaveTypeId == null && types.isNotEmpty) {
+    // A new request starts on the first type on offer, and goes back to it
+    // when the type it was on is no longer offered (HR switched it off while
+    // the form was open). An edit keeps its own type, which stays on offer.
+    final needsDefault =
+        types.isNotEmpty &&
+        (state.leaveTypeId == null ||
+            (!state.isEditing && selectedType == null));
+    if (needsDefault) {
+      final unusable = state.leaveTypeId;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted &&
             ref.read(leaveRequestFormNotifierProvider(key)).leaveTypeId ==
-                null) {
+                unusable) {
           _notifier.setLeaveType(types.first.id);
         }
       });
     }
 
-    final blockMessage = _blockMessage(l10n, state, selectedType, balance);
+    final blockMessage = _blockMessage(
+      l10n,
+      LeaveFormRules.block(
+        state: state,
+        type: selectedType,
+        remaining: remaining,
+      ),
+      selectedType,
+    );
     // Never enable submit before the chosen type's rules are known.
     final typeResolved = types.isNotEmpty && selectedType != null;
     final canSubmit =
-        state.hasValidShape && blockMessage == null && typeResolved;
+        state.hasValidShape &&
+        blockMessage == null &&
+        typeResolved &&
+        !balanceLoading;
 
     return Container(
       color: AppColors.background,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(15, 15, 15, 40),
         children: [
-          _BalanceCard(balance: balance, hasType: selectedType != null),
+          _BalanceCard(
+            balance: balance,
+            remaining: selectedType == null ? null : remaining,
+            year: balanceYear,
+          ),
           heightBx(h: 16),
           _SectionCard(
             title: l10n.leaveRequestCategoryLabel,
@@ -292,20 +331,30 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
 
 // ---------------------------------------------------------------------------
 
+/// What is left of the selected leave type in [year], the year the request
+/// will be charged to.
 class _BalanceCard extends StatelessWidget {
+  /// The type's row for [year], or null when it has none (or nothing has
+  /// loaded yet).
   final LeaveBalance? balance;
-  final bool hasType;
 
-  const _BalanceCard({required this.balance, required this.hasType});
+  /// The days left to show: null while unknown, which shows a dash; 0 for a
+  /// type with no row that year.
+  final double? remaining;
+  final int year;
+
+  const _BalanceCard({
+    required this.balance,
+    required this.remaining,
+    required this.year,
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final year = balance?.year ?? DateTime.now().year;
-    final remaining = balance == null
-        ? '-'
-        : LeaveCopy.daysLabel(l10n, balance!.remainingDays);
-    final used = balance?.usedDays.round() ?? 0;
+    final days = remaining;
+    final remainingLabel = days == null ? '-' : LeaveCopy.daysLabel(l10n, days);
+    final used = LeaveCopy.dayCount(balance?.usedDays ?? 0);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -344,7 +393,7 @@ class _BalanceCard extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
                   child: customText(
-                    remaining,
+                    remainingLabel,
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
                     color: AppColors.primary,
@@ -512,6 +561,17 @@ class _LeaveTypePicker extends StatelessWidget {
     }
     if (loading && types.isEmpty) {
       return customText('…', color: AppColors.subTitle);
+    }
+    // Loaded, and nothing to offer: every type is switched off.
+    if (types.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: customText(
+          l10n.leaveTypeSearchEmpty,
+          color: AppColors.subTitle,
+          fontSize: 13,
+        ),
+      );
     }
 
     return SizedBox(

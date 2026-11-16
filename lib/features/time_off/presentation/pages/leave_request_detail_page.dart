@@ -10,7 +10,9 @@ import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_approval_step.dart';
 import '../../domain/entities/leave_request.dart';
+import '../../domain/entities/leave_type.dart';
 import '../providers/leave_history_notifier.dart';
+import '../providers/leave_types_notifier.dart';
 import '../widgets/leave_approval_timeline.dart';
 import '../widgets/leave_copy.dart';
 
@@ -27,6 +29,9 @@ class LeaveRequestDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final pill = LeaveCopy.statusPill(l10n, request.status);
+    // The request carries no Lao type name; the loaded list has it.
+    final types =
+        ref.watch(leaveTypesNotifierProvider).valueOrNull ?? const <LeaveType>[];
     final cancelling = ref
         .watch(leaveHistoryNotifierProvider)
         .cancellingIds
@@ -66,7 +71,11 @@ class LeaveRequestDetailPage extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: customText(
-                            LeaveCopy.leaveTypeLabel(l10n, request.leaveType),
+                            LeaveCopy.leaveTypeLabel(
+                              l10n,
+                              request.leaveType,
+                              types: types,
+                            ),
                             fontWeight: FontWeight.w700,
                             fontSize: 18,
                           ),

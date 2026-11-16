@@ -701,7 +701,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get leaveHistoryEmpty => 'ບໍ່ມີຂໍ້ມູນການລາພັກ';
 
   @override
-  String leaveDaysSuffix(int days) {
+  String leaveDaysSuffix(String days) {
     return '$days ວັນ';
   }
 
@@ -732,7 +732,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get leaveBalanceRemainingLabel => 'ວັນລາພັກຍັງເຫຼືອ';
 
   @override
-  String leaveBalanceUsedLabel(int days) {
+  String leaveBalanceUsedLabel(String days) {
     return 'ໃຊ້ໄປແລ້ວ $days ວັນ';
   }
 
@@ -858,7 +858,7 @@ class AppLocalizationsLo extends AppLocalizations {
       'ວັນທີ່ກັບມາເລີ່ມວຽກຕ້ອງຢູ່ຫຼັງວັນລາພັກສຸດທ້າຍ.';
 
   @override
-  String leaveMaxDaysHint(int days) {
+  String leaveMaxDaysHint(String days) {
     return 'ການລາປະເພດນີ້ຂໍໄດ້ສູງສຸດ $days ວັນຕໍ່ຄັ້ງ.';
   }
 

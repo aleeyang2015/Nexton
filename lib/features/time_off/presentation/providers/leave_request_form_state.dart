@@ -28,6 +28,19 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
     @Default(LeaveDurationType.fullDay) LeaveDurationType durationType,
     DateTime? returnToWorkOverride,
     @Default('') String reason,
+
+    /// Edit mode only: the leave type the request had when it was opened. The
+    /// form keeps offering it even after HR switched it off.
+    String? originalLeaveTypeId,
+
+    /// Edit mode only: how many days the request asked for when it was
+    /// opened. The balance is checked on an edit only when the count grows
+    /// past this, as the server does.
+    double? originalTotalDays,
+
+    /// Edit mode only: the year the request's days were charged to when it
+    /// was opened (the year of its first leave day).
+    int? originalBalanceYear,
     @Default(AsyncValue<LeaveRequest?>.data(null))
     AsyncValue<LeaveRequest?> submission,
   }) = _LeaveRequestFormState;
@@ -36,6 +49,22 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
 
   double get totalDays =>
       durationType.isHalfDay ? 0.5 : dates.length.toDouble();
+
+  /// The earliest picked leave day (normalized to midnight), or null when
+  /// none are picked. Its year is the one whose balance the request spends.
+  DateTime? get firstLeaveDate {
+    if (dates.isEmpty) return null;
+    final first = ([...dates]..sort()).first;
+    return DateTime(first.year, first.month, first.day);
+  }
+
+  /// True for an edit that still draws on the balance the request already
+  /// drew on: the same leave type, in the same year. Only then do the days it
+  /// already had count as covered.
+  bool get editsSameBalance =>
+      isEditing &&
+      leaveTypeId == originalLeaveTypeId &&
+      firstLeaveDate?.year == originalBalanceYear;
 
   /// The latest picked leave day (normalized to midnight), or null when none
   /// are picked.

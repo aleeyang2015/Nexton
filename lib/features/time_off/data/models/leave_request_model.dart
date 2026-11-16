@@ -19,6 +19,9 @@ class LeaveRequestModel {
         ? Map<String, dynamic>.from(employee)
         : const <String, dynamic>{};
 
+    // `employee.department` is `{id, name}` or null.
+    final department = employeeMap['department'];
+
     final start = LeaveJson.date(json['start_date']);
     final end = LeaveJson.date(json['end_date']);
 
@@ -26,7 +29,9 @@ class LeaveRequestModel {
       id: LeaveJson.str(json['id']) ?? '',
       employeeName: LeaveJson.str(employeeMap['name']) ?? '',
       employeeNumber: LeaveJson.nonEmpty(employeeMap['employee_number']),
-      departmentName: LeaveJson.nonEmpty(employeeMap['department_name']),
+      departmentName: department is Map
+          ? LeaveJson.nonEmpty(department['name'])
+          : null,
       leaveType: _leaveType(json['leave_type']),
       startDate: start ?? end ?? DateTime.now(),
       endDate: end ?? start ?? DateTime.now(),

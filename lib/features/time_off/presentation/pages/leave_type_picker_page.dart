@@ -7,13 +7,20 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_type.dart';
+import '../providers/leave_form_rules.dart';
 import '../providers/leave_types_notifier.dart';
 import '../widgets/leave_copy.dart';
 
-/// What the route accepts as `extra`: the id to tick, and whether to offer an
+/// What the route accepts as `extra`: the id to tick, whether to offer an
 /// "All" row that clears the selection (the history filter wants it, the
-/// request form does not).
-typedef LeaveTypePickerArgs = ({String? selectedTypeId, bool allowClear});
+/// request form does not), and a type to keep on offer even when HR has
+/// switched it off — the type of the request being edited, or the type the
+/// history filter is already set to.
+typedef LeaveTypePickerArgs = ({
+  String? selectedTypeId,
+  bool allowClear,
+  String? keepTypeId,
+});
 
 /// Full-screen leave-type chooser opened from the request form's "Leave type"
 /// card and the history tab's filter. Renders the session-cached
@@ -29,7 +36,12 @@ class LeaveTypePickerPage extends ConsumerStatefulWidget {
     super.key,
     this.selectedTypeId,
     this.allowClear = false,
+    this.keepTypeId,
   });
+
+  /// A type that stays in the list even when switched off. See
+  /// [LeaveTypePickerArgs].
+  final String? keepTypeId;
 
   /// The type currently chosen by the caller, ticked in the list. `null` when
   /// nothing is selected yet.
@@ -124,7 +136,12 @@ class _LeaveTypePickerPageState extends ConsumerState<LeaveTypePickerPage> {
                     ),
                   ),
                   data: (types) {
-                    final filtered = _filter(types);
+                    // Types HR switched off are not offered, except the one
+                    // the caller asked to keep: the same list as the form's
+                    // own chips.
+                    final filtered = _filter(
+                      LeaveFormRules.offered(types, keepId: widget.keepTypeId),
+                    );
                     if (filtered.isEmpty && !widget.allowClear) {
                       return Center(
                         child: customText(
