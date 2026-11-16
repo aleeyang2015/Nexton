@@ -48,18 +48,26 @@ class ShiftDetail extends Equatable {
   /// This part's times on [day]: the row for that weekday when HR set one,
   /// else the part's own.
   ///
+  /// A row changes times; it never takes one away. So each time falls back
+  /// on its own: a row that names only an end keeps the part's start, and a
+  /// row with no times at all (or a second row for the same day) changes
+  /// nothing it does not state.
+  ///
   /// For a part that runs past midnight, [day] is the day it **starts**: a
   /// 22:00–06:00 shift begun on Monday keeps Monday's row at 02:00 on
   /// Tuesday. Callers pass the date of the record the times belong to, not
   /// necessarily today's.
   ({String? start, String? end}) timesOn(DateTime day) {
     final code = _weekdayCodes[day.weekday - 1];
+
+    String? start;
+    String? end;
     for (final row in weeklys) {
-      if (row.weeklyDay.trim().toUpperCase() == code) {
-        return (start: row.startTime, end: row.endTime);
-      }
+      if (row.weeklyDay.trim().toUpperCase() != code) continue;
+      start ??= row.startTime;
+      end ??= row.endTime;
     }
-    return (start: startTime, end: endTime);
+    return (start: start ?? startTime, end: end ?? endTime);
   }
 
   @override

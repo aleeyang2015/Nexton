@@ -109,6 +109,120 @@ void main() {
     });
   });
 
+  group('ShiftSessionSlot.build on a weekday with its own times', () {
+    final saturday = DateTime(2026, 11, 14);
+    AttendanceSession at(int hour, int minute, {String? part, String? label}) =>
+        AttendanceSession(
+          clockIn: DateTime(2026, 11, 14, hour, minute),
+          partStartTime: part,
+          label: label,
+        );
+
+    test('a split day keeps each punch on its own tile', () {
+      final slots = ShiftSessionSlot.build(
+        [_morning, _afternoon],
+        [at(8, 2), at(13, 5)],
+        day: saturday,
+      );
+
+      expect(slots[0].clockIn!.hour, 8);
+      expect(slots[1].clockIn!.hour, 13);
+    });
+
+    test('a row that moves the windows moves where a punch lands', () {
+      // Saturday: 10:00–13:00 and 14:00–18:00 instead of 08–12 / 13–17.
+      const morning = ShiftDetail(
+        startTime: '08:00',
+        endTime: '12:00',
+        weeklys: [
+          ShiftDetailWeekly(weeklyDay: 'SAT', startTime: '10:00', endTime: '13:00'),
+        ],
+      );
+      const afternoon = ShiftDetail(
+        startTime: '13:00',
+        endTime: '17:00',
+        weeklys: [
+          ShiftDetailWeekly(weeklyDay: 'SAT', startTime: '14:00', endTime: '18:00'),
+        ],
+      );
+
+      // 12:30 is the afternoon on a weekday, still the morning on Saturday.
+      final onSaturday = ShiftSessionSlot.build(
+        [morning, afternoon],
+        [at(12, 30)],
+        day: saturday,
+      );
+      final onUsualHours = ShiftSessionSlot.build([morning, afternoon], [
+        at(12, 30),
+      ]);
+
+      expect(onSaturday[0].session, isNotNull);
+      expect(onSaturday[1].session, isNull);
+      expect(onUsualHours[1].session, isNotNull);
+    });
+
+    test('a row with only one time does not lose a punch', () {
+      const morning = ShiftDetail(
+        startTime: '08:00',
+        endTime: '12:00',
+        weeklys: [ShiftDetailWeekly(weeklyDay: 'SAT', startTime: '08:30')],
+      );
+
+      final slots = ShiftSessionSlot.build(
+        [morning, _afternoon],
+        [at(8, 32), at(13, 5)],
+        day: saturday,
+      );
+
+      expect(slots[0].clockIn!.hour, 8);
+      expect(slots[1].clockIn!.hour, 13);
+    });
+
+    test('when a row makes two windows overlap, the part the backend filed '
+        'the punch under decides', () {
+      // Saturday's morning runs to 14:00, over the afternoon's 13:00 start.
+      const morning = ShiftDetail(
+        startTime: '08:00',
+        endTime: '12:00',
+        weeklys: [ShiftDetailWeekly(weeklyDay: 'SAT', endTime: '14:00')],
+      );
+
+      final byPart = ShiftSessionSlot.build(
+        [morning, _afternoon],
+        [at(13, 5, part: '13:00:00')],
+        day: saturday,
+      );
+      final byLabel = ShiftSessionSlot.build(
+        [morning, _afternoon],
+        [at(13, 5, label: '13:00–17:00')],
+        day: saturday,
+      );
+
+      expect(byPart[1].session, isNotNull);
+      expect(byPart[0].session, isNull);
+      expect(byLabel[1].session, isNotNull);
+    });
+
+    test('a part time the backend sent as the usual start still finds its '
+        'tile when the weekday row moved that start', () {
+      const afternoon = ShiftDetail(
+        startTime: '13:00',
+        endTime: '17:00',
+        weeklys: [
+          ShiftDetailWeekly(weeklyDay: 'SAT', startTime: '14:00', endTime: '18:00'),
+        ],
+      );
+
+      final slots = ShiftSessionSlot.build(
+        [_morning, afternoon],
+        [at(13, 40, part: '13:00:00')],
+        day: saturday,
+      );
+
+      expect(slots[1].session, isNotNull);
+    });
+  });
+
   group('AttendanceStatusCard', () {
     late FakeAttendanceRepository repository;
 

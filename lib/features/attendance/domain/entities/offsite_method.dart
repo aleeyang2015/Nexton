@@ -3,7 +3,7 @@ import 'attendance_day.dart';
 /// Which punch an off-site scan request stands in for — §3's `method`.
 ///
 /// Deliberately separate from [ClockMethod], which says *how* a punch proves
-/// its location (`gps`/`wifi`/`field`). This says which *direction* the punch
+/// its location (GPS, the only method the App sends). This says which *direction* the punch
 /// goes, and the off-site endpoint is the only place the API asks for it.
 enum OffsiteMethod {
   checkIn('check_in'),

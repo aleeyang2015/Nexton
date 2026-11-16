@@ -397,6 +397,60 @@ void main() {
       expect(detail.timesOn(DateTime(2026, 11, 14)).end, '12:00');
     });
 
+    test('a row that names only one time keeps the part\'s other time', () {
+      const endOnly = ShiftDetail(
+        startTime: '08:00',
+        endTime: '12:00',
+        weeklys: [ShiftDetailWeekly(weeklyDay: 'SAT', endTime: '11:00')],
+      );
+      const startOnly = ShiftDetail(
+        startTime: '08:00',
+        endTime: '12:00',
+        weeklys: [ShiftDetailWeekly(weeklyDay: 'SAT', startTime: '09:00')],
+      );
+      final saturday = DateTime(2026, 11, 14);
+
+      expect(endOnly.timesOn(saturday), (start: '08:00', end: '11:00'));
+      expect(startOnly.timesOn(saturday), (start: '09:00', end: '12:00'));
+    });
+
+    test('a row with no times changes nothing, and does not hide a second '
+        'row for the same day', () {
+      const detail = ShiftDetail(
+        startTime: '08:00',
+        endTime: '17:00',
+        weeklys: [
+          ShiftDetailWeekly(weeklyDay: 'SAT'),
+          ShiftDetailWeekly(weeklyDay: 'SAT', startTime: '08:00', endTime: '12:00'),
+        ],
+      );
+      const emptyOnly = ShiftDetail(
+        startTime: '08:00',
+        endTime: '17:00',
+        weeklys: [ShiftDetailWeekly(weeklyDay: 'SAT')],
+      );
+      final saturday = DateTime(2026, 11, 14);
+
+      expect(detail.timesOn(saturday), (start: '08:00', end: '12:00'));
+      expect(emptyOnly.timesOn(saturday), (start: '08:00', end: '17:00'));
+    });
+
+    test('with two rows for a day, the first one that states a time wins', () {
+      const detail = ShiftDetail(
+        startTime: '08:00',
+        endTime: '17:00',
+        weeklys: [
+          ShiftDetailWeekly(weeklyDay: 'SAT', startTime: '09:00', endTime: '13:00'),
+          ShiftDetailWeekly(weeklyDay: 'SAT', startTime: '10:00', endTime: '14:00'),
+        ],
+      );
+
+      expect(
+        detail.timesOn(DateTime(2026, 11, 14)),
+        (start: '09:00', end: '13:00'),
+      );
+    });
+
     test('a row for another day changes nothing', () {
       const detail = ShiftDetail(
         startTime: '08:00',
