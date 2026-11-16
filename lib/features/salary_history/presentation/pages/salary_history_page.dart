@@ -10,7 +10,7 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../domain/entities/payslip.dart';
+import '../../domain/entities/payslip_record.dart';
 import '../providers/payslip_pdf_notifier.dart';
 import '../providers/salary_history_notifier.dart';
 import '../providers/salary_history_state.dart';
@@ -19,11 +19,13 @@ import '../widgets/salary_history_copy.dart';
 
 /// "ປະຫວັດເງິນເດືອນ" — the destination behind the list page's menu tile.
 ///
-/// A year switcher, an All/Paid/Pending filter, the latest payslip
-/// highlighted up top, and the year's payslips below, each expandable into
-/// its earnings/deductions breakdown. Everything comes from
-/// [salaryHistoryNotifierProvider]; the page holds no fetching logic of its
-/// own.
+/// A year switcher, an All/Paid filter, the latest payslip highlighted up
+/// top, and the year's payslips below, each expandable into its totals.
+/// Everything comes from [salaryHistoryNotifierProvider]; the page holds no
+/// fetching logic of its own.
+///
+/// Every figure shown is the server's. The page adds nothing up and takes no
+/// month from the day a payslip was made.
 class SalaryHistoryPage extends ConsumerWidget {
   const SalaryHistoryPage({super.key});
 
@@ -147,7 +149,6 @@ class _FilterChips extends ConsumerWidget {
     final chips = {
       SalaryHistoryFilter.all: l10n.salaryFilterAll,
       SalaryHistoryFilter.paid: l10n.salaryFilterPaid,
-      SalaryHistoryFilter.pending: l10n.salaryFilterPending,
     };
 
     // Scrolls sideways instead of overflowing when the chips don't fit next
@@ -162,7 +163,7 @@ class _FilterChips extends ConsumerWidget {
               selected: active == entry.key,
               onTap: () => notifier.setFilter(entry.key),
             ),
-            if (entry.key != SalaryHistoryFilter.pending) widthBx(w: 8),
+            if (entry.key != SalaryHistoryFilter.paid) widthBx(w: 8),
           ],
         ],
       ),
@@ -205,8 +206,8 @@ class _FilterChip extends StatelessWidget {
 }
 
 class _LatestSummaryCard extends StatelessWidget {
-  final AsyncValue<List<Payslip>> payslips;
-  final List<Payslip> all;
+  final AsyncValue<List<PayslipRecord>> payslips;
+  final List<PayslipRecord> all;
 
   const _LatestSummaryCard({required this.payslips, required this.all});
 
@@ -221,8 +222,10 @@ class _LatestSummaryCard extends StatelessWidget {
 
     if (payslips.hasError || all.isEmpty) return const SizedBox.shrink();
 
+    // The server lists the newest pay month first.
     final latest = all.first;
-    final status = SalaryHistoryCopy.statusColor(latest.status);
+    final status = SalaryHistoryCopy.recordStatus(l10n, latest);
+    final who = SalaryHistoryCopy.identityLine(latest);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
@@ -250,7 +253,7 @@ class _LatestSummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 customText(
-                  '${l10n.salaryNetSalaryLabel} • ${SalaryHistoryCopy.monthYear(l10n, latest.month, latest.year)}',
+                  '${l10n.salaryNetSalaryLabel} • ${SalaryHistoryCopy.periodTitle(l10n, latest)}',
                   color: AppColors.subTitle,
                   fontSize: 13,
                 ),
@@ -262,19 +265,19 @@ class _LatestSummaryCard extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
                 heightBx(h: 6),
-                customText(
-                  '${latest.employeeName} • ${latest.employeeCode} • ${latest.position}',
-                  color: AppColors.subTitle,
-                  fontSize: 13,
-                ),
-                heightBx(h: 12),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: _StatusPill(
-                    label: SalaryHistoryCopy.statusLabel(l10n, latest.status),
-                    color: status,
+                if (who.isNotEmpty)
+                  customText(who, color: AppColors.subTitle, fontSize: 13),
+                if (status != null) ...[
+                  heightBx(h: 12),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: _StatusPill(
+                      label: status.label,
+                      color: status.color,
+                      failed: SalaryHistoryCopy.isPaymentFailed(latest),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -300,7 +303,14 @@ class _StatusPill extends StatelessWidget {
   final String label;
   final Color color;
 
-  const _StatusPill({required this.label, required this.color});
+  /// A failed payment gets a warning mark, not the tick of one that is fine.
+  final bool failed;
+
+  const _StatusPill({
+    required this.label,
+    required this.color,
+    this.failed = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -314,7 +324,11 @@ class _StatusPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle, size: 14, color: color),
+          Icon(
+            failed ? Icons.error : Icons.check_circle,
+            size: 14,
+            color: color,
+          ),
           widthBx(w: 5),
           customText(label, color: color, fontWeight: FontWeight.w700, fontSize: 12),
         ],
@@ -324,8 +338,8 @@ class _StatusPill extends StatelessWidget {
 }
 
 class _RecordsList extends ConsumerWidget {
-  final AsyncValue<List<Payslip>> payslips;
-  final List<Payslip> records;
+  final AsyncValue<List<PayslipRecord>> payslips;
+  final List<PayslipRecord> records;
 
   const _RecordsList({required this.payslips, required this.records});
 
@@ -347,8 +361,11 @@ class _RecordsList extends ConsumerWidget {
     }
 
     if (payslips.hasError) {
-      return SalaryErrorBlock(
-        message: l10n.salaryHistoryLoadFailed,
+      // A company without payroll is told so, with no Retry.
+      return SalaryErrorBlock.forFailure(
+        l10n: l10n,
+        error: payslips.error,
+        fallbackMessage: l10n.salaryHistoryLoadFailed,
         onRetry: () => ref.read(salaryHistoryNotifierProvider.notifier).retry(),
       );
     }
@@ -373,7 +390,7 @@ class _RecordsList extends ConsumerWidget {
 
 class _PayslipCard extends ConsumerWidget {
   final int index;
-  final Payslip payslip;
+  final PayslipRecord payslip;
 
   const _PayslipCard({required this.index, required this.payslip});
 
@@ -383,7 +400,10 @@ class _PayslipCard extends ConsumerWidget {
     final expanded = ref.watch(
       salaryHistoryNotifierProvider.select((s) => s.expandedIndexes.contains(index)),
     );
-    final status = SalaryHistoryCopy.statusColor(payslip.status);
+    final status = SalaryHistoryCopy.recordStatus(l10n, payslip);
+    final statusColor = status?.color ?? AppColors.gray500;
+    final failed = SalaryHistoryCopy.isPaymentFailed(payslip);
+    final paidOn = SalaryHistoryCopy.paidOn(l10n, payslip);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -403,33 +423,39 @@ class _PayslipCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InkWell(
-            // Tapping the card body opens the full payslip; the expand
-            // chevron below keeps its own tap for the inline breakdown.
-            onTap: () =>
-                context.push(AppRoutes.payslipDetail, extra: payslip),
+            // Tapping the card body opens the full payslip, which loads
+            // itself by id. This row goes with it, so that page's month and
+            // status are the ones shown here. The expand chevron below keeps
+            // its own tap for the inline totals.
+            onTap: () => context.push(AppRoutes.payslipDetail, extra: payslip),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _MonthBadge(month: payslip.month, year: payslip.year, color: status),
+                _MonthBadge(
+                  month: payslip.periodMonth,
+                  year: payslip.periodYear,
+                  color: statusColor,
+                ),
                 widthBx(),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       customText(
-                        SalaryHistoryCopy.monthYear(l10n, payslip.month, payslip.year),
+                        SalaryHistoryCopy.periodTitle(l10n, payslip),
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
                         color: AppColors.textPrimary,
                       ),
-                      heightBx(h: 2),
-                      customText(
-                        payslip.paidDate == null
-                            ? SalaryHistoryCopy.statusLabel(l10n, payslip.status)
-                            : '${l10n.salaryPaidOnLabel} ${SalaryHistoryCopy.date(payslip.paidDate!)}',
-                        color: AppColors.subTitle,
-                        fontSize: 12,
-                      ),
+                      // Only once the server says when it was paid.
+                      if (paidOn != null) ...[
+                        heightBx(h: 2),
+                        customText(
+                          paidOn,
+                          color: AppColors.subTitle,
+                          fontSize: 12,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -446,10 +472,12 @@ class _PayslipCard extends ConsumerWidget {
                     heightBx(h: 4),
                     Row(
                       children: [
-                        _StatusPillOutline(
-                          label: SalaryHistoryCopy.statusLabel(l10n, payslip.status),
-                          color: status,
-                        ),
+                        if (status != null)
+                          _StatusPillOutline(
+                            label: status.label,
+                            color: status.color,
+                            failed: failed,
+                          ),
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () => ref
@@ -471,21 +499,35 @@ class _PayslipCard extends ConsumerWidget {
             heightBx(h: 14),
             const Divider(height: 1, color: AppColors.gray200),
             heightBx(h: 14),
+            if (failed) ...[
+              _PaymentFailedNotice(message: l10n.salaryPaymentFailedContactHr),
+              heightBx(h: 14),
+            ],
+            // Each row is one figure the server sent. Nothing is added up
+            // here: a sum made on the phone could disagree with the payslip
+            // HR approved.
             _SectionHeader(label: l10n.salaryIncomeSection, color: AppColors.primary),
             heightBx(h: 8),
             _AmountRow(label: l10n.salaryBaseSalary, amount: payslip.baseSalary),
-            _AmountRow(label: l10n.salaryAllowance, amount: payslip.allowance),
+            _AmountRow(label: l10n.salaryGrossLabel, amount: payslip.totalEarnings),
             heightBx(h: 12),
             _SectionHeader(label: l10n.salaryDeductionsSection, color: AppColors.danger),
             heightBx(h: 8),
             _AmountRow(
-              label: payslip.socialSecurityRate > 0
-                  ? '${l10n.salarySocialSecurity} (${(payslip.socialSecurityRate * 100).toStringAsFixed(1)}%)'
-                  : l10n.salarySocialSecurity,
-              amount: -payslip.socialSecurity,
+              label: l10n.salarySocialSecurity,
+              amount: payslip.employeeSs,
+              deduction: true,
             ),
-            _AmountRow(label: l10n.salaryIncomeTax, amount: -payslip.incomeTax),
-            _AmountRow(label: l10n.salaryOtherDeductions, amount: -payslip.otherDeductions),
+            _AmountRow(
+              label: l10n.salaryIncomeTax,
+              amount: payslip.incomeTax,
+              deduction: true,
+            ),
+            _AmountRow(
+              label: l10n.salaryTotalDeductionsLabel,
+              amount: payslip.totalDeductions,
+              deduction: true,
+            ),
             heightBx(h: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -516,7 +558,7 @@ class _PayslipCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: _StatBox(
-                    value: SalaryHistoryCopy.count(payslip.workingDays),
+                    value: SalaryHistoryCopy.count(payslip.workDays),
                     label: l10n.salaryWorkingDaysLabel,
                   ),
                 ),
@@ -545,15 +587,56 @@ class _PayslipCard extends ConsumerWidget {
   }
 }
 
+/// "Please contact HR", on a payslip whose payment failed.
+class _PaymentFailedNotice extends StatelessWidget {
+  final String message;
+
+  const _PaymentFailedNotice({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.danger.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.error_outline, size: 18, color: AppColors.danger),
+          widthBx(w: 8),
+          Expanded(
+            child: customText(
+              message,
+              color: AppColors.danger,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              maxLine: 3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The pay month as "10 / 2026". A payslip with no period gets a plain
+/// receipt mark: no month is made up for it.
 class _MonthBadge extends StatelessWidget {
-  final int month;
-  final int year;
+  final int? month;
+  final int? year;
   final Color color;
 
   const _MonthBadge({required this.month, required this.year, required this.color});
 
   @override
   Widget build(BuildContext context) {
+    final month = this.month;
+    final year = this.year;
+
     return Container(
       width: 56,
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -562,7 +645,12 @@ class _MonthBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
-      child: Column(
+      child: month == null || year == null
+          ? Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Icon(Icons.receipt_long_outlined, color: color, size: 24),
+            )
+          : Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           customText(
@@ -582,8 +670,13 @@ class _MonthBadge extends StatelessWidget {
 class _StatusPillOutline extends StatelessWidget {
   final String label;
   final Color color;
+  final bool failed;
 
-  const _StatusPillOutline({required this.label, required this.color});
+  const _StatusPillOutline({
+    required this.label,
+    required this.color,
+    this.failed = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -599,7 +692,7 @@ class _StatusPillOutline extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check, size: 11, color: color),
+            Icon(failed ? Icons.close : Icons.check, size: 11, color: color),
             widthBx(w: 2),
             customText(label, color: color, fontWeight: FontWeight.w700, fontSize: 11),
           ],
@@ -621,15 +714,24 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
+/// One figure from the payslip, whole kip. A [deduction] is shown with a
+/// minus and in red; the number itself is the server's. A deduction of zero
+/// or less (nothing taken, or money given back) is shown as the number it
+/// is, with no minus put in front of it.
 class _AmountRow extends StatelessWidget {
   final String label;
-  final double amount;
+  final int amount;
+  final bool deduction;
 
-  const _AmountRow({required this.label, required this.amount});
+  const _AmountRow({
+    required this.label,
+    required this.amount,
+    this.deduction = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final negative = amount < 0;
+    final negative = deduction && amount > 0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -641,8 +743,8 @@ class _AmountRow extends StatelessWidget {
           ),
           customText(
             negative
-                ? '- ${SalaryHistoryCopy.currency(-amount).replaceFirst('₭ ', '')}'
-                : SalaryHistoryCopy.currency(amount).replaceFirst('₭ ', ''),
+                ? '- ${SalaryHistoryCopy.amount(amount)}'
+                : SalaryHistoryCopy.amount(amount),
             color: negative ? AppColors.danger : AppColors.textPrimary,
             fontWeight: FontWeight.w700,
             fontSize: 14,
@@ -692,7 +794,7 @@ class _StatBox extends StatelessWidget {
 /// system save dialog. The icon becomes a spinner while the download runs;
 /// the outcome is toasted.
 class _DownloadButton extends ConsumerWidget {
-  final Payslip payslip;
+  final PayslipRecord payslip;
 
   const _DownloadButton({required this.payslip});
 
@@ -718,7 +820,9 @@ class _DownloadButton extends ConsumerWidget {
       child: OutlinedButton.icon(
         // Stays enabled so the border keeps its colour; the notifier ignores
         // a tap while a download is already running.
-        onPressed: () => ref.read(provider.notifier).download(payslip),
+        onPressed: () => ref
+            .read(provider.notifier)
+            .download(defaultFileName: SalaryHistoryCopy.pdfFileName(payslip)),
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 15),
           side: const BorderSide(color: AppColors.primary),

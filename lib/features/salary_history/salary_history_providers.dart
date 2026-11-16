@@ -8,7 +8,6 @@ import 'domain/usecases/download_payslip_pdf_usecase.dart';
 import 'domain/usecases/get_my_payslip_usecase.dart';
 import 'domain/usecases/get_my_payslips_usecase.dart';
 import 'domain/usecases/get_payslip_detail_usecase.dart';
-import 'domain/usecases/get_payslip_history_usecase.dart';
 
 /// Composition root for the salary-history feature: the one place the data
 /// layer is constructed and bound to the domain contracts. Presentation
@@ -20,10 +19,6 @@ final salaryRemoteDataSourceProvider = Provider<SalaryRemoteDataSource>(
 /// Exposed as the abstract type so consumers never see the impl.
 final salaryRepositoryProvider = Provider<SalaryRepository>((ref) {
   return SalaryRepositoryImpl(remote: ref.watch(salaryRemoteDataSourceProvider));
-});
-
-final getPayslipHistoryUseCaseProvider = Provider<GetPayslipHistoryUseCase>((ref) {
-  return GetPayslipHistoryUseCase(ref.watch(salaryRepositoryProvider));
 });
 
 final getPayslipDetailUseCaseProvider = Provider<GetPayslipDetailUseCase>((ref) {

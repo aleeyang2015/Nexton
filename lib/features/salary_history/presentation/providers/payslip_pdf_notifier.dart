@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/entities/payslip.dart';
 import '../../salary_history_providers.dart';
 import '../services/payslip_pdf_saver.dart';
 
@@ -22,10 +21,9 @@ class PayslipPdfNotifier
     return null;
   }
 
-  /// [payslip] must be the payslip this notifier is keyed by — its period
-  /// names the file when the server doesn't.
-  Future<void> download(Payslip payslip) async {
-    assert(payslip.id == arg, 'download() called with a different payslip');
+  /// Downloads the PDF of the payslip this notifier is keyed by.
+  /// [defaultFileName] names the saved file when the server doesn't.
+  Future<void> download({required String defaultFileName}) async {
     if (state.isLoading) return;
 
     // Keep the download alive while the card is collapsed or the page popped
@@ -33,14 +31,14 @@ class PayslipPdfNotifier
     final link = ref.keepAlive();
     state = const AsyncValue<String?>.loading();
 
-    final result = await ref.read(downloadPayslipPdfUseCaseProvider)(payslip.id);
+    final result = await ref.read(downloadPayslipPdfUseCaseProvider)(arg);
 
     final next = await result.fold(
       (failure) async => AsyncValue<String?>.error(failure, StackTrace.current),
       (pdf) async {
         final path = await ref
             .read(payslipPdfSaverProvider)
-            .save(pdf, fileName: pdf.fileName ?? _defaultFileName(payslip));
+            .save(pdf, fileName: pdf.fileName ?? defaultFileName);
         return AsyncValue<String?>.data(path);
       },
     );
@@ -48,10 +46,6 @@ class PayslipPdfNotifier
     if (!_disposed) state = next;
     link.close();
   }
-
-  /// "payslip-2026-08.pdf".
-  static String _defaultFileName(Payslip payslip) =>
-      'payslip-${payslip.year}-${payslip.month.toString().padLeft(2, '0')}.pdf';
 }
 
 final payslipPdfNotifierProvider =

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/payslip.dart';
+import '../../domain/entities/payslip_record.dart';
 
 /// Turns a [Payslip]'s raw fields into the words, colour and number strings
 /// the salary-history page renders. Pure functions, no widgets — same split
@@ -108,6 +109,102 @@ class SalaryHistoryCopy {
         'hours' => l10n.salaryUnitHours,
         _ => unit,
       };
+
+  /// A payslip's heading: its pay month ("ຕຸລາ 2026" / "October 2026"), or
+  /// just "Payslip" when the server sent no period. Never a month taken
+  /// from when the payslip was made.
+  static String periodTitle(AppLocalizations l10n, PayslipRecord payslip) {
+    final month = payslip.periodMonth;
+    final year = payslip.periodYear;
+    if (month == null || year == null) return l10n.payslipDetailTitle;
+    return monthYear(l10n, month, year);
+  }
+
+  /// "ຈ່າຍວັນທີ 05/11/2026" once the money was paid, else nothing. The date
+  /// is the server's `paid_at`; there is no stand-in for it. A payment that
+  /// failed has no "paid on", whatever date came with it.
+  static String? paidOn(AppLocalizations l10n, PayslipRecord payslip) {
+    final paidAt = payslip.paidAt;
+    if (paidAt == null || isPaymentFailed(payslip)) return null;
+    return '${l10n.salaryPaidOnLabel} ${date(paidAt)}';
+  }
+
+  /// True when the money did not reach the employee: they should contact HR.
+  static bool isPaymentFailed(PayslipRecord payslip) =>
+      payslip.paymentStatus == PayslipPaymentStatus.failed;
+
+  /// "Sandy Vang • EMP-002 • IT Developer": who the payslip is for, with the
+  /// parts the server did not send left out.
+  static String identityLine(PayslipRecord payslip) => [
+    payslip.employeeName.trim(),
+    payslip.employeeNumber.trim(),
+    payslip.positionTitle?.trim() ?? '',
+  ].where((part) => part.isNotEmpty).join(' • ');
+
+  /// What the payslip page's header shows, taken from the list's row so the
+  /// two screens say the same thing: the title with the pay month, the line
+  /// under it (paid on, or the status), the status pill, and the name a
+  /// saved PDF gets.
+  static ({
+    String title,
+    String subtitle,
+    Color color,
+    String? pill,
+    bool failed,
+    String pdfFileName,
+  })
+  detailHeader(AppLocalizations l10n, PayslipRecord row) {
+    final status = recordStatus(l10n, row);
+    final hasPeriod = row.periodMonth != null && row.periodYear != null;
+
+    return (
+      title: hasPeriod
+          ? '${l10n.payslipDetailTitle} – ${periodTitle(l10n, row)}'
+          : l10n.payslipDetailTitle,
+      subtitle: paidOn(l10n, row) ?? status?.label ?? '',
+      color: status?.color ?? AppColors.subTitle,
+      pill: status?.label,
+      failed: isPaymentFailed(row),
+      pdfFileName: pdfFileName(row),
+    );
+  }
+
+  /// What the status pill says for a payslip, or null when there is nothing
+  /// the App can truthfully say.
+  ///
+  /// A payment that failed says so, in red, whatever the run's status: that
+  /// is what the employee needs to know. Otherwise the run is Approved (the
+  /// money has not been sent yet) or Paid. There is no "Pending": staff are
+  /// never given a payslip in any other state, and a status the App does not
+  /// know gets no pill rather than a guess.
+  static ({String label, Color color})? recordStatus(
+    AppLocalizations l10n,
+    PayslipRecord payslip,
+  ) {
+    if (isPaymentFailed(payslip)) {
+      return (label: l10n.salaryPaymentFailed, color: AppColors.danger);
+    }
+    return switch (payslip.status) {
+      PayslipRunStatus.paid => (
+        label: l10n.salaryFilterPaid,
+        color: AppColors.success,
+      ),
+      PayslipRunStatus.approved => (
+        label: l10n.salaryStatusApproved,
+        color: AppColors.info,
+      ),
+      PayslipRunStatus.unknown => null,
+    };
+  }
+
+  /// "payslip-2026-10.pdf" for a saved PDF the server did not name, or
+  /// "payslip.pdf" when the payslip has no period.
+  static String pdfFileName(PayslipRecord payslip) {
+    final month = payslip.periodMonth;
+    final year = payslip.periodYear;
+    if (month == null || year == null) return 'payslip.pdf';
+    return 'payslip-$year-${_two(month)}.pdf';
+  }
 
   static String statusLabel(AppLocalizations l10n, PayslipStatus status) =>
       switch (status) {

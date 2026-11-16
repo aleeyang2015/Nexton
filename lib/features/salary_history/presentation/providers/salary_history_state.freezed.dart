@@ -18,7 +18,8 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$SalaryHistoryState {
   int get year => throw _privateConstructorUsedError;
   SalaryHistoryFilter get filter => throw _privateConstructorUsedError;
-  AsyncValue<List<Payslip>> get payslips => throw _privateConstructorUsedError;
+  AsyncValue<List<PayslipRecord>> get payslips =>
+      throw _privateConstructorUsedError;
   Set<int> get expandedIndexes => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
@@ -35,7 +36,7 @@ abstract class $SalaryHistoryStateCopyWith<$Res> {
   $Res call(
       {int year,
       SalaryHistoryFilter filter,
-      AsyncValue<List<Payslip>> payslips,
+      AsyncValue<List<PayslipRecord>> payslips,
       Set<int> expandedIndexes});
 }
 
@@ -69,7 +70,7 @@ class _$SalaryHistoryStateCopyWithImpl<$Res, $Val extends SalaryHistoryState>
       payslips: null == payslips
           ? _value.payslips
           : payslips // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<List<Payslip>>,
+              as AsyncValue<List<PayslipRecord>>,
       expandedIndexes: null == expandedIndexes
           ? _value.expandedIndexes
           : expandedIndexes // ignore: cast_nullable_to_non_nullable
@@ -89,7 +90,7 @@ abstract class _$$SalaryHistoryStateImplCopyWith<$Res>
   $Res call(
       {int year,
       SalaryHistoryFilter filter,
-      AsyncValue<List<Payslip>> payslips,
+      AsyncValue<List<PayslipRecord>> payslips,
       Set<int> expandedIndexes});
 }
 
@@ -121,7 +122,7 @@ class __$$SalaryHistoryStateImplCopyWithImpl<$Res>
       payslips: null == payslips
           ? _value.payslips
           : payslips // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<List<Payslip>>,
+              as AsyncValue<List<PayslipRecord>>,
       expandedIndexes: null == expandedIndexes
           ? _value._expandedIndexes
           : expandedIndexes // ignore: cast_nullable_to_non_nullable
@@ -136,7 +137,7 @@ class _$SalaryHistoryStateImpl extends _SalaryHistoryState {
   const _$SalaryHistoryStateImpl(
       {required this.year,
       this.filter = SalaryHistoryFilter.all,
-      this.payslips = const AsyncValue<List<Payslip>>.loading(),
+      this.payslips = const AsyncValue<List<PayslipRecord>>.loading(),
       final Set<int> expandedIndexes = const <int>{}})
       : _expandedIndexes = expandedIndexes,
         super._();
@@ -148,7 +149,7 @@ class _$SalaryHistoryStateImpl extends _SalaryHistoryState {
   final SalaryHistoryFilter filter;
   @override
   @JsonKey()
-  final AsyncValue<List<Payslip>> payslips;
+  final AsyncValue<List<PayslipRecord>> payslips;
   final Set<int> _expandedIndexes;
   @override
   @JsonKey()
@@ -192,7 +193,7 @@ abstract class _SalaryHistoryState extends SalaryHistoryState {
   const factory _SalaryHistoryState(
       {required final int year,
       final SalaryHistoryFilter filter,
-      final AsyncValue<List<Payslip>> payslips,
+      final AsyncValue<List<PayslipRecord>> payslips,
       final Set<int> expandedIndexes}) = _$SalaryHistoryStateImpl;
   const _SalaryHistoryState._() : super._();
 
@@ -201,7 +202,7 @@ abstract class _SalaryHistoryState extends SalaryHistoryState {
   @override
   SalaryHistoryFilter get filter;
   @override
-  AsyncValue<List<Payslip>> get payslips;
+  AsyncValue<List<PayslipRecord>> get payslips;
   @override
   Set<int> get expandedIndexes;
   @override
