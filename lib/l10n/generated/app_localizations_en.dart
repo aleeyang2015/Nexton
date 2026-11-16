@@ -1710,4 +1710,66 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get salaryPaymentFailedContactHr =>
       'The payment failed. Please contact HR.';
+
+  @override
+  String get payslipLineOvertime => 'Overtime (OT)';
+
+  @override
+  String get payslipLineLate => 'Late arrival';
+
+  @override
+  String get payslipLineAbsentLate => 'Late past the limit (counted as a day)';
+
+  @override
+  String get payslipLineEarlyOut => 'Left early';
+
+  @override
+  String get payslipLineMissedPart => 'Missed part of a shift';
+
+  @override
+  String get payslipLineAbsence => 'Absence';
+
+  @override
+  String get payslipLineUnpaidLeave => 'Unpaid leave';
+
+  @override
+  String get payslipLineAttendanceSettlement =>
+      'Attendance settlement (earlier days)';
+
+  @override
+  String get payslipLineLoan => 'Loan repayment';
+
+  @override
+  String payslipCaptionHoursMinutes(String h, String m) {
+    return '$h h $m min';
+  }
+
+  @override
+  String payslipCaptionMinutes(String m) {
+    return '$m min';
+  }
+
+  @override
+  String payslipCaptionTimes(String n) {
+    return '$n times';
+  }
+
+  @override
+  String payslipCaptionDays(String n) {
+    return '$n days';
+  }
+
+  @override
+  String payslipCaptionHours(String n) {
+    return '$n hours';
+  }
+
+  @override
+  String get payslipSectionAttendance => 'Deductions — attendance';
+
+  @override
+  String get payslipSectionStatutory => 'Deductions — by law';
+
+  @override
+  String get payslipSectionOther => 'Other deductions';
 }

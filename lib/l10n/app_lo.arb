@@ -531,5 +531,22 @@
   "leaveWaitingForStep": "ລໍຖ້າ{role}",
   "salaryStatusApproved": "ອະນຸມັດແລ້ວ",
   "salaryPaymentFailed": "ໂອນເງິນບໍ່ສຳເລັດ",
-  "salaryPaymentFailedContactHr": "ການໂອນເງິນບໍ່ສຳເລັດ, ກະລຸນາຕິດຕໍ່ຝ່າຍບຸກຄະລາກອນ"
+  "salaryPaymentFailedContactHr": "ການໂອນເງິນບໍ່ສຳເລັດ, ກະລຸນາຕິດຕໍ່ຝ່າຍບຸກຄະລາກອນ",
+  "payslipLineOvertime": "ຄ່າລ່ວງເວລາ (ໂອທີ)",
+  "payslipLineLate": "ຫັກມາວຽກຊ້າ",
+  "payslipLineAbsentLate": "ຫັກມື້ມາຊ້າເກີນກຳນົດ",
+  "payslipLineEarlyOut": "ຫັກອອກວຽກກ່ອນເວລາ",
+  "payslipLineMissedPart": "ຫັກບໍ່ໄດ້ເຂົ້າບາງຊ່ວງຂອງກະ",
+  "payslipLineAbsence": "ຫັກຂາດວຽກ",
+  "payslipLineUnpaidLeave": "ລາພັກບໍ່ໄດ້ຮັບເງິນ",
+  "payslipLineAttendanceSettlement": "ປັບຍອດການເຂົ້າວຽກວັນກ່ອນ",
+  "payslipLineLoan": "ຫັກເງິນກູ້",
+  "payslipCaptionHoursMinutes": "{h} ຊມ {m} ນາທີ",
+  "payslipCaptionMinutes": "{m} ນາທີ",
+  "payslipCaptionTimes": "{n} ເທື່ອ",
+  "payslipCaptionDays": "{n} ວັນ",
+  "payslipCaptionHours": "{n} ຊົ່ວໂມງ",
+  "payslipSectionAttendance": "ລາຍການຫັກ — ການເຂົ້າວຽກ",
+  "payslipSectionStatutory": "ລາຍການຫັກ — ຕາມກົດໝາຍ",
+  "payslipSectionOther": "ລາຍການຫັກອື່ນໆ"
 }
