@@ -98,11 +98,23 @@ class PagedList<T> {
 
   /// The list with [page] added after the rows it already has, in the order
   /// the server sent them, and the cursor moved on.
-  PagedList<T> append(CursorPage<T> page) => PagedList(
-    items: [...items, ...page.items],
-    nextCursor: page.nextCursor,
-    hasMore: page.hasMore,
-  );
+  ///
+  /// A page with no rows ends the list, whatever it says about there being
+  /// more: a screen that asks for the next page whenever its end is in view
+  /// would otherwise ask for ever while nothing new appears. So does a page
+  /// that hands back the cursor it was asked with: going on would fetch the
+  /// same rows again.
+  PagedList<T> append(CursorPage<T> page) {
+    final goesOn =
+        page.hasMore &&
+        page.items.isNotEmpty &&
+        page.nextCursor != nextCursor;
+    return PagedList(
+      items: [...items, ...page.items],
+      nextCursor: goesOn ? page.nextCursor : null,
+      hasMore: goesOn,
+    );
+  }
 
   /// The list after its next page failed: the rows and the cursor stay, so
   /// a Retry asks for the same page.

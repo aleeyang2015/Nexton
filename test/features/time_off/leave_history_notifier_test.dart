@@ -337,6 +337,24 @@ void main() {
         expect(state().requests.valueOrNull!.loadMoreError, isNull);
       });
 
+      test('another refusal (403, 422) is not a bad cursor: Retry asks for '
+          'the same page', () async {
+        repository.myRequestsPage = (query, cursor) async =>
+            cursor == 'c-2' && down
+            ? const Result.failure(
+                Failure.validation(message: 'Not allowed', code: 'FORBIDDEN'),
+              )
+            : threePages(query, cursor);
+        await settle();
+        await notifier().loadMore();
+
+        down = false;
+        await notifier().retryLoadMore();
+
+        expect(repository.myRequestsCursors, [null, 'c-2', 'c-2']);
+        expect(ids(), hasLength(40));
+      });
+
       test('Retry with nothing failed does nothing', () async {
         await settle();
         final calls = repository.myRequestsCalls.length;

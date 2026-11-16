@@ -130,6 +130,28 @@ void main() {
       expect(list.canLoadMore, isFalse);
     });
 
+    test('a page with no rows ends the list, even if it says there is more',
+        () {
+      final list = PagedList.first(first).append(
+        const CursorPage(items: [], nextCursor: 'c-3', hasMore: true),
+      );
+
+      expect(list.items, [1, 2]);
+      expect(list.hasMore, isFalse);
+      expect(list.nextCursor, isNull);
+      expect(list.canLoadMore, isFalse);
+    });
+
+    test('a page that hands back the same cursor ends the list', () {
+      final list = PagedList.first(first).append(
+        const CursorPage(items: [3, 4], nextCursor: 'c-2', hasMore: true),
+      );
+
+      expect(list.items, [1, 2, 3, 4]);
+      expect(list.hasMore, isFalse);
+      expect(list.canLoadMore, isFalse);
+    });
+
     test('append does not change the list it was called on', () {
       final before = PagedList.first(first);
 

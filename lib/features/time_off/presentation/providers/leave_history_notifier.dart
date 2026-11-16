@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failure.dart';
+import '../../../../core/network/api_error_mapper.dart';
 import '../../../../core/network/paged_list.dart';
 import '../../../../core/utils/result.dart';
 import '../../data/datasources/leave_error_code.dart';
@@ -76,15 +77,19 @@ class LeaveHistoryNotifier extends AutoDisposeNotifier<LeaveHistoryState> {
 
   /// The Retry under the rows, after a next page failed.
   ///
-  /// A page the server refused (`400`: the cursor is no longer good) cannot
-  /// be asked for again, so the list starts over from its first page.
-  /// Anything else (no signal, a server error) asks for the same page.
+  /// A page the server refused as invalid (`400 VALIDATION_ERROR`: the
+  /// cursor is no longer good) cannot be asked for again, so the list starts
+  /// over from its first page. Anything else (no signal, a server error)
+  /// asks for the same page.
   Future<void> retryLoadMore() async {
     final list = state.requests.valueOrNull;
     final error = list?.loadMoreError;
     if (list == null || error == null) return;
 
-    if (error is ValidationFailure) return _load();
+    if (error is ValidationFailure &&
+        error.code == ApiErrorCodes.validationError) {
+      return _load();
+    }
 
     state = state.copyWith(
       requests: AsyncValue.data(
