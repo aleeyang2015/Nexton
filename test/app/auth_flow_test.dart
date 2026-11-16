@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/app/app.dart';
 import 'package:next_on/app/router/app_router.dart';
+import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/session_end_reason.dart';
+import 'package:next_on/core/utils/clock_provider.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/auth/auth_providers.dart';
@@ -25,11 +27,17 @@ void main() {
   late FakeAuthRepository repository;
   late ProviderContainer container;
 
+  /// The App's clock. A test that waits on a timer points it at the test
+  /// binding's clock, so the time moves with `tester.pump`.
+  late DateTime Function() now;
+
   setUp(() {
     repository = FakeAuthRepository();
+    now = DateTime.now;
     container = ProviderContainer(
       overrides: [
         authRepositoryProvider.overrideWithValue(repository),
+        clockProvider.overrideWithValue(() => now()),
         // The home screen loads today's attendance as soon as it is shown;
         // without this it would reach for the real network stack.
         attendanceRepositoryProvider.overrideWithValue(
@@ -220,6 +228,101 @@ void main() {
 
     expect(repository.changePasswordCalls, 1);
     expect(find.byType(HomePage), findsOneWidget);
+  });
+
+  testWidgets('a throttled login turns the button off and says how many '
+      'minutes are left', (tester) async {
+    repository.loginResult = const Result.failure(
+      Failure.network(
+        message: 'Too many attempts',
+        statusCode: 429,
+        errorCode: 'TOO_MANY_LOGIN_ATTEMPTS',
+        retryAfter: Duration(seconds: 600),
+      ),
+    );
+    now = tester.binding.clock.now;
+
+    await launch(tester);
+    await signIn(tester);
+
+    expect(
+      find.text('ພະຍາຍາມຫຼາຍເກີນໄປ. ລອງໃໝ່ໄດ້ໃນອີກ 10 ນາທີ.'),
+      findsOneWidget,
+    );
+    expect(
+      tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+      isNull,
+    );
+    // What was typed is still there.
+    expect(
+      tester
+          .widget<TextField>(
+            find.descendant(
+              of: find.byType(AuthPasswordField),
+              matching: find.byType(TextField),
+            ),
+          )
+          .controller!
+          .text,
+      isNotEmpty,
+    );
+    expect(repository.loginCalls, 1);
+
+    // The line follows the clock, and the button comes back on its own.
+    await tester.pump(const Duration(minutes: 1));
+    expect(
+      find.text('ພະຍາຍາມຫຼາຍເກີນໄປ. ລອງໃໝ່ໄດ້ໃນອີກ 9 ນາທີ.'),
+      findsOneWidget,
+    );
+
+    await tester.pump(const Duration(minutes: 9));
+    await tester.pump();
+    expect(find.textContaining('ພະຍາຍາມຫຼາຍເກີນໄປ'), findsNothing);
+    expect(
+      tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+      isNotNull,
+    );
+  });
+
+  testWidgets('a wait that ran out while the phone slept ends when the App '
+      'comes back', (tester) async {
+    repository.loginResult = const Result.failure(
+      Failure.network(
+        message: 'Too many attempts',
+        statusCode: 429,
+        errorCode: 'TOO_MANY_LOGIN_ATTEMPTS',
+        retryAfter: Duration(seconds: 600),
+      ),
+    );
+    var asleepFor = Duration.zero;
+    now = () => tester.binding.clock.now().add(asleepFor);
+
+    await launch(tester);
+    await signIn(tester);
+    expect(
+      tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+      isNull,
+    );
+
+    // No timer runs while the phone sleeps; only the clock moves.
+    asleepFor = const Duration(minutes: 30);
+    for (final lifecycle in const [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(lifecycle);
+    }
+    await tester.pump();
+
+    expect(find.textContaining('ພະຍາຍາມຫຼາຍເກີນໄປ'), findsNothing);
+    expect(
+      tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+      isNotNull,
+    );
   });
 
   testWidgets('an unrecoverable 401 drops the user back to login', (

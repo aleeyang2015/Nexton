@@ -25,10 +25,24 @@ class LoginState with _$LoginState {
     /// a network blip (or a 429 throttle) never bumps it, so the typed
     /// password survives a retry.
     @Default(0) int passwordClearTick,
+
+    /// When the login throttle lets this network try again: the moment a
+    /// `429 TOO_MANY_LOGIN_ATTEMPTS` asked us to wait until, from its
+    /// `Retry-After` (at most `LoginNotifier.maxWait`). Null when nothing is
+    /// being waited for; the notifier clears it as soon as the moment passes.
+    @Default(null) DateTime? retryAt,
+
+    /// Whole minutes left until [retryAt], rounded up and never below 1 while
+    /// waiting. The notifier keeps it current; 0 when not waiting.
+    @Default(0) int waitMinutesLeft,
   }) = _LoginState;
 
   /// True while the login request is in flight
   bool get isSubmitting => submission.isLoading;
+
+  /// True while the server's login throttle is still running. The button is
+  /// off and [waitMinutesLeft] says for how long.
+  bool get isWaiting => retryAt != null;
 
   /// Set once login succeeded — the page listens for this to navigate
   AuthSession? get session => submission.valueOrNull;

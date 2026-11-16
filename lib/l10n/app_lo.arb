@@ -6,7 +6,7 @@
   "login": "ເຂົ້າສູ່ລະບົບ",
   "loginSubtitle": "ຍິນດີຕ້ອນຮັບສູ່ລະບົບບໍລິຫານ NEXTON",
   "email": "ອີເມວ",
-  "emailHint": "Example@gmail.com",
+  "emailHint": "example@gmail.com",
   "password": "ລະຫັດຜ່ານ",
   "passwordHint": "ປ້ອນລະຫັດຜ່ານ",
   "forgotPassword": "ລືມລະຫັດຜ່ານ ?",
@@ -499,5 +499,6 @@
   "errorTenantMismatch": "ບັນຊີນີ້ເປັນຂອງບໍລິສັດອື່ນ. ກະລຸນາອອກຈາກລະບົບ ແລ້ວເຂົ້າໃໝ່.",
   "errorModuleNotActive": "ບໍລິສັດຂອງທ່ານຍັງບໍ່ໄດ້ເປີດໃຊ້ສ່ວນນີ້.",
   "errorRateLimited": "ສົ່ງຄຳຂໍຖີ່ເກີນໄປ. ກະລຸນາລໍຖ້າໜຶ່ງນາທີ ແລ້ວລອງໃໝ່.",
-  "passwordChangedSignInAgain": "ປ່ຽນລະຫັດຜ່ານແລ້ວ. ກະລຸນາເຂົ້າສູ່ລະບົບດ້ວຍລະຫັດຜ່ານໃໝ່."
+  "passwordChangedSignInAgain": "ປ່ຽນລະຫັດຜ່ານແລ້ວ. ກະລຸນາເຂົ້າສູ່ລະບົບດ້ວຍລະຫັດຜ່ານໃໝ່.",
+  "tooManyAttemptsWait": "ພະຍາຍາມຫຼາຍເກີນໄປ. ລອງໃໝ່ໄດ້ໃນອີກ {minutes} ນາທີ."
 }

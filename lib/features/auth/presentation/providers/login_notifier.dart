@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failure.dart';
+import '../../../../core/network/api_error_mapper.dart';
+import '../../../../core/utils/clock_provider.dart';
 import '../../domain/auth_failure_x.dart';
 import '../../domain/usecases/login_usecase.dart';
 import 'auth_session_notifier.dart';
@@ -12,10 +16,30 @@ class LoginNotifier extends AutoDisposeNotifier<LoginState> {
   /// [submit] is still unwinding. Writing state after that throws.
   bool _disposed = false;
 
+  /// The longest the form will hold the button for one answer. The backend's
+  /// window is 15 minutes; a larger `Retry-After` is honoured up to here, and
+  /// the next try gets a fresh answer. It also keeps a broken header from
+  /// locking the form for days.
+  static const Duration maxWait = Duration(hours: 1);
+
+  /// Fires each time the minutes left on the login throttle change, and once
+  /// more when the wait is over.
+  Timer? _waitTimer;
+
+  /// How much of the wait was left when it was last checked, and how long the
+  /// running timer was set for. Together they bound the wait from above
+  /// without trusting the device clock: when a timer of five minutes fires,
+  /// at least five minutes have passed, whatever the clock now says.
+  Duration _waitLeft = Duration.zero;
+  Duration _tick = Duration.zero;
+
   @override
   LoginState build() {
     _disposed = false;
-    ref.onDispose(() => _disposed = true);
+    ref.onDispose(() {
+      _disposed = true;
+      _waitTimer?.cancel();
+    });
     return const LoginState();
   }
 
@@ -39,6 +63,12 @@ class LoginNotifier extends AutoDisposeNotifier<LoginState> {
   /// back into state.
   Future<void> submit() async {
     if (state.isSubmitting) return;
+
+    // The server has said when it will listen again; another request before
+    // then only earns another 429. A timer that fired late (the phone slept)
+    // must not hold the user back, so the clock is asked first.
+    syncWait();
+    if (state.isWaiting) return;
 
     state = state.copyWith(
       emailError: null,
@@ -64,7 +94,26 @@ class LoginNotifier extends AutoDisposeNotifier<LoginState> {
   /// A credential rejection also empties the password field. A transport
   /// failure — including the backend's 429 login throttle, which is *not* a
   /// credential failure — leaves what the user typed alone.
+  ///
+  /// The login throttle (`429 TOO_MANY_LOGIN_ATTEMPTS`) that says how long to
+  /// wait is not an error to show once: it starts the wait, and the page
+  /// shows the minutes left under the button for as long as it lasts. A
+  /// throttle with no `Retry-After` has nothing to count down and surfaces
+  /// like any other failure, and so does any other failure that happens to
+  /// carry a `Retry-After`: the line under the button speaks of wrong tries.
   LoginState _applyFailure(Failure failure) {
+    final wait = _throttleWaitOf(failure);
+    if (wait != null) {
+      final capped = wait > maxWait ? maxWait : wait;
+      _waitLeft = capped;
+      _scheduleWaitTick(capped);
+      return state.copyWith(
+        retryAt: ref.read(clockProvider)().add(capped),
+        waitMinutesLeft: _minutesLeft(capped),
+        submission: const AsyncValue.data(null),
+      );
+    }
+
     // Field-scoped errors — from the client rules or from a 422 — mark the
     // input and leave both values alone.
     if (failure is ValidationFailure) {
@@ -93,6 +142,76 @@ class LoginNotifier extends AutoDisposeNotifier<LoginState> {
       submission: AsyncValue.error(failure, StackTrace.current),
     );
   }
+
+  /// How long the login throttle asked us to wait, or null when [failure] is
+  /// not that throttle or did not say.
+  static Duration? _throttleWaitOf(Failure failure) {
+    if (failure is! NetworkFailure) return null;
+    if (failure.errorCode != ApiErrorCodes.tooManyLoginAttempts) return null;
+    return failure.retryAfter;
+  }
+
+  /// Brings the wait in line with the time: fewer minutes left, or over.
+  ///
+  /// The page calls this when the App comes back to the foreground: timers do
+  /// not run while the phone sleeps, and the button is off while waiting, so
+  /// nothing else would notice that the wait ended in the meantime.
+  ///
+  /// The clock can only shorten the wait. [elapsedAtLeast] is the time known
+  /// to have passed since the last check (a timer's own length), so a clock
+  /// set back cannot stretch the wait either.
+  void syncWait({Duration elapsedAtLeast = Duration.zero}) {
+    final retryAt = state.retryAt;
+    if (retryAt == null) return;
+
+    final now = ref.read(clockProvider)();
+    final byClock = retryAt.difference(now);
+    final byTimer = _waitLeft - elapsedAtLeast;
+    final left = byClock < byTimer ? byClock : byTimer;
+
+    if (left <= Duration.zero) {
+      _waitTimer?.cancel();
+      _waitTimer = null;
+      _waitLeft = Duration.zero;
+      state = state.copyWith(retryAt: null, waitMinutesLeft: 0);
+      return;
+    }
+
+    _waitLeft = left;
+    state = state.copyWith(
+      // Restated from what is really left, so a clock that jumped back does
+      // not come back to haunt the next check.
+      retryAt: now.add(left),
+      waitMinutesLeft: _minutesLeft(left),
+    );
+    _scheduleWaitTick(left);
+  }
+
+  /// Wakes up when the minutes left next change — the wait rarely ends on a
+  /// whole minute, so the first tick comes after the odd seconds — and at the
+  /// end of the wait.
+  void _scheduleWaitTick(Duration left) {
+    const minute = Duration(minutes: 1);
+    final odd = Duration(
+      microseconds: left.inMicroseconds % minute.inMicroseconds,
+    );
+
+    final tick = odd == Duration.zero ? minute : odd;
+    _tick = tick;
+    _waitTimer?.cancel();
+    _waitTimer = Timer(tick, () {
+      if (_disposed) return;
+      syncWait(elapsedAtLeast: _tick);
+    });
+  }
+}
+
+/// A wait in whole minutes, rounded up and at least 1: with 61 seconds to go
+/// the user is told 2 minutes, never 0.
+int _minutesLeft(Duration left) {
+  const minute = Duration.microsecondsPerMinute;
+  final minutes = (left.inMicroseconds + minute - 1) ~/ minute;
+  return minutes < 1 ? 1 : minutes;
 }
 
 final loginNotifierProvider =
