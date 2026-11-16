@@ -16,7 +16,9 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #7 (attendance: home card and history read the right month) is next in work order.
+1. #7: open the PR from `7-attendance-right-day` and review it. #8 is next.
+   Open question for the owner on #7: a night shift left open by a forgotten clock-out stays "current" all the next
+   day, so the next night's card offers clock-out. The issue sets no time limit on that rule.
    Still to try by hand for #4 and #5: on a phone against `nexton-demo` (the made-up host check; airplane mode and
    reopen; a password change that stays signed in).
 2. Still to try by hand for #2: a release APK on a phone signs in with a `nexton-demo` login, and a plain debug run
@@ -44,7 +46,7 @@ count), #56 (sign-out ends the session).
 | 3 | #4 | errors: Lao text for sign-in, company, session and module codes (shared table) | `4-error-codes-lao` | `e83a896` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 418 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 4 | #5 | sign-in: no surprise sign-outs on weak signal, a server restart or after a password change | `5-no-surprise-sign-outs` | `42b4c2b` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 442 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 5 | #6 | sign-in: show how long to wait after too many tries, and send the email as typed | `6-login-wait-and-email` | `5861257` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 456 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
-| 6 | #7 | attendance: home card and history read the right month | | | | | NOT STARTED |
+| 6 | #7 | attendance: home card and history read the right month | `7-attendance-right-day` | `4fdfd29` | to open | analyze: 1 warning already on `main`; `flutter test`: 483 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | IMPLEMENTED |
 | 7 | #8 | attendance: a refused punch says why in Lao, with no useless Retry | | | | | NOT STARTED |
 | 8 | #9 | attendance: the card shows the weekday's own shift times, and GPS only | | | | | NOT STARTED |
 | 9 | #10 | attendance: history rows show the real shift, method, place and day status | | | | | NOT STARTED |
