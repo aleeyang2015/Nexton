@@ -16,7 +16,17 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #16 (leave: refusals show Lao text and the screen reloads) is next in work order.
+1. #17 is next in work order.
+   Open after #16, none built there:
+   - an edit answered `NOT_FOUND` always reads "request gone" and closes the page, as the issue says; to confirm
+     with the backend that an edit never answers `NOT_FOUND` about something else (a leave type);
+   - the codes of phoudssp/Nexton-Backend#192 (`LEAVE_SPAN_TOO_LONG` and the rest) are not mapped; they show the
+     server's English message until that is merged, then a small follow-up maps them;
+   - a file attached during an edit that was refused as out of date is still attached at the next edit;
+   - the strings `leaveStepRefreshed` and `leaveRequestCancelFailed` are no longer used and are still in the arb
+     files;
+   - reloading the history after an edit resets its filter and month (already so for a successful edit);
+   - the detail page's cancel flow has no widget test (the notifier behind it has).
    Open after #15, none built there:
    - the shape of `GET /core_hr/rest-days` (rows, `meta.total_pages`) is from the issue text only; the backend repo
      is private. A rest-day row with a value the App cannot read is left out without a warning;
@@ -95,7 +105,7 @@ count), #56 (sign-out ends the session).
 | 12 | #13 | leave: tests for what works today, and drop the old guide copy | `13-leave-tests` | `debd358` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 726 passed, 0 failed; debug APK builds; tests only, no app behaviour changed | MERGED |
 | 13 | #14 | leave: the form offers only active types and checks the balance the server will charge | `14-leave-form-active-types-balance` | `fbae4aa` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 776 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 14 | #15 | leave: company days off are skipped, not charged | `15-leave-days-off` | `c9b73ee`, `8845610` | merged to main directly (`a103fc4`) | analyze clean, 854 tests, debug APK | MERGED — phone check on `nexton-demo` pending |
-| 15 | #16 | leave: refusals show Lao text and the screen reloads | | | | | NOT STARTED |
+| 15 | #16 | leave: refusals show Lao text and the screen reloads | `16-leave-refusals-reload` | `9d8f1f8`, `d60a2c2` | merged to main directly (`6889f2a`) | analyze clean, 890 tests, debug APK | MERGED — two-login check on `nexton-demo` pending |
 | 16 | #17 | leave: the request page opens by id, stays fresh, and shows a cancelled request plainly | | | | | NOT STARTED |
 | 17 | #18 | lists: load more as you scroll (leave history first) | | | | | NOT STARTED |
 | 18 | #19 | approvals: leave lists keep what I decided, hide buttons on my own request, and load more | | | | | NOT STARTED |
