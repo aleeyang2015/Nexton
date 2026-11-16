@@ -16,7 +16,7 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #23 is built and pushed (`23-payslip-page-by-id`), waiting for the owner's say to merge; #24 follows.
+1. #23 is merged; #24 is next in work order.
    #23 moves the payslip page onto #22's functions, so #22 is done on screen once #23 is merged.
    Open after #23, none built there:
    - the page does not refresh once loaded: an approved payslip left open does not turn to paid or failed until
@@ -203,7 +203,7 @@ count), #56 (sign-out ends the session).
 | 19 | #20 | payslip: read real payslips from the server (data layer) | `20-payslip-data-layer` | `62302e6`, `dd7400d` | merged to main directly (`bc25ec2`) | analyze clean, 1,101 tests, debug APK | MERGED — a real `nexton-demo` payslip to be checked against the reader |
 | 20 | #21 | payslip: the salary list shows real payslips, paid and failed | `21-salary-list-real-payslips` | `a8455eb`, `a6ed9fb` | merged to main directly (`cf7c936`) | analyze clean, 1,139 tests, debug APK | MERGED, phone check on `nexton-demo` pending — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
 | 21 | #22 | payslip: name, group and caption every payslip line | `22-payslip-line-names` | `123e7d3`, `c8626d5` | merged to main directly (`e9496d6`) | analyze clean, 1,225 tests, debug APK | MERGED — functions and strings only; no screen uses them until #23 |
-| 22 | #23 | payslip: the payslip page opens by id and shows the real lines | `23-payslip-page-by-id` | `61e9f13`, `5c3f1b5` | none yet: branch pushed, waiting for the owner's say to merge | analyze clean, 1,261 tests, debug APK | IN REVIEW — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
+| 22 | #23 | payslip: the payslip page opens by id and shows the real lines | `23-payslip-page-by-id` | `61e9f13`, `5c3f1b5` | merged to main directly (`b55b1ed`) | analyze clean, 1,261 tests, debug APK | MERGED, phone check on `nexton-demo` pending — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
 | 23 | #24 | payslip: tap the OT line to see what each OT paid | | | | | NOT STARTED |
 | 24 | #25 | payslip: open the PDF in the App and share it | | | | | NOT STARTED |
 | 25 | #26 | payslip: the summary card shows the latest payslip | | | | | NOT STARTED |
