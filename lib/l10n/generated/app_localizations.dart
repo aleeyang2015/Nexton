@@ -3145,6 +3145,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The payment failed. Please contact HR.'**
   String get salaryPaymentFailedContactHr;
+
+  /// No description provided for @payslipLineOvertime.
+  ///
+  /// In en, this message translates to:
+  /// **'Overtime (OT)'**
+  String get payslipLineOvertime;
+
+  /// No description provided for @payslipLineLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late arrival'**
+  String get payslipLineLate;
+
+  /// No description provided for @payslipLineAbsentLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late past the limit (counted as a day)'**
+  String get payslipLineAbsentLate;
+
+  /// No description provided for @payslipLineEarlyOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Left early'**
+  String get payslipLineEarlyOut;
+
+  /// No description provided for @payslipLineMissedPart.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed part of a shift'**
+  String get payslipLineMissedPart;
+
+  /// No description provided for @payslipLineAbsence.
+  ///
+  /// In en, this message translates to:
+  /// **'Absence'**
+  String get payslipLineAbsence;
+
+  /// No description provided for @payslipLineUnpaidLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid leave'**
+  String get payslipLineUnpaidLeave;
+
+  /// No description provided for @payslipLineAttendanceSettlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance settlement (earlier days)'**
+  String get payslipLineAttendanceSettlement;
+
+  /// No description provided for @payslipLineLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan repayment'**
+  String get payslipLineLoan;
+
+  /// No description provided for @payslipCaptionHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{h} h {m} min'**
+  String payslipCaptionHoursMinutes(String h, String m);
+
+  /// No description provided for @payslipCaptionMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{m} min'**
+  String payslipCaptionMinutes(String m);
+
+  /// No description provided for @payslipCaptionTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} times'**
+  String payslipCaptionTimes(String n);
+
+  /// No description provided for @payslipCaptionDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} days'**
+  String payslipCaptionDays(String n);
+
+  /// No description provided for @payslipCaptionHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} hours'**
+  String payslipCaptionHours(String n);
+
+  /// No description provided for @payslipSectionAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Deductions — attendance'**
+  String get payslipSectionAttendance;
+
+  /// No description provided for @payslipSectionStatutory.
+  ///
+  /// In en, this message translates to:
+  /// **'Deductions — by law'**
+  String get payslipSectionStatutory;
+
+  /// No description provided for @payslipSectionOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other deductions'**
+  String get payslipSectionOther;
 }
 
 class _AppLocalizationsDelegate
