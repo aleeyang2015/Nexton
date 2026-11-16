@@ -50,6 +50,9 @@ class LoginEmailField extends StatelessWidget {
             controller: controller,
             onChanged: onChanged,
             keyboardType: TextInputType.emailAddress,
+            // The email is sent as typed; the keyboard must not rewrite it.
+            autocorrect: false,
+            enableSuggestions: false,
             style: AppTextStyles.inputStyle,
             decoration: InputDecoration(
               hintText: l10n.emailHint,

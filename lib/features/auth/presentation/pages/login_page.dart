@@ -194,8 +194,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         LoginSubmitButton(
           label: l10n.login,
           loading: state.isSubmitting,
+          enabled: !state.isWaiting,
           onPressed: notifier.submit,
         ),
+        // The login throttle: said here for as long as it lasts, instead of
+        // in a toast that is gone before the wait is.
+        if (state.isWaiting) ...[
+          heightBx(h: 12),
+          customText(
+            l10n.tooManyAttemptsWait(state.waitMinutesLeft),
+            color: AppColors.error,
+            fontSize: 13,
+            alight: TextAlign.center,
+          ),
+        ],
       ],
     );
   }
