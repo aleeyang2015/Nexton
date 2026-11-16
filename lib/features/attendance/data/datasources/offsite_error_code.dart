@@ -8,11 +8,11 @@ import 'time_correction_error_code.dart';
 /// §3 is explicit that the off-site scan is gated by the *same* session rules
 /// as a normal clock-in/out, so eight of these codes are the punch endpoints'
 /// own and map to the punch vocabulary — and therefore to the copy that
-/// already exists for them. Only `OFFSITE_REQUEST_EXISTS` and
-/// `TOO_EARLY_CHECKIN` are new here.
+/// already exists for them. Only `OFFSITE_REQUEST_EXISTS` is this endpoint's
+/// alone; `TOO_EARLY_CHECKIN` is raised by a punch too.
 ///
 /// Deliberately *not* merged into `AttendanceRemoteDataSourceImpl._rules`: a
-/// punch can't raise the two off-site refusals, and keeping the tables apart is
+/// punch can't raise `OFFSITE_REQUEST_EXISTS`, and keeping the tables apart is
 /// what stops a punch from ever reporting a rule its endpoint never sends.
 class OffsiteErrorCode {
   OffsiteErrorCode._();
@@ -21,7 +21,7 @@ class OffsiteErrorCode {
   /// flight.
   static const String requestExists = 'OFFSITE_REQUEST_EXISTS';
 
-  /// Off-site only — the clock-in window hasn't opened yet.
+  /// The clock-in window hasn't opened yet. A punch is refused the same way.
   static const String tooEarlyCheckin = 'TOO_EARLY_CHECKIN';
 
   /// The account has no employee record (§3 answers this as a 400).

@@ -17,9 +17,13 @@ extension AttendanceFailureX on Failure {
   /// as `MODULE_NOT_ACTIVE`. Both are shown in a dialog the user acknowledges.
   bool get isMissingEvidence => this is ValidationFailure;
 
-  /// Worth offering a retry button for: the request never reached a verdict.
+  /// Worth offering a retry button for: the request never reached a verdict —
+  /// the server broke (5xx), or there was no answer at all (a timeout, no
+  /// connection: a network failure with no status). A 4xx is a verdict. The
+  /// same punch would get the same refusal, and for some refusals each try
+  /// alerts the employee's head and HR.
   bool get isRetryable =>
-      this is ServerFailure || (this is NetworkFailure && !isThrottled);
+      this is ServerFailure || (this is NetworkFailure && _statusCode == null);
 
   int? get _statusCode => switch (this) {
     NetworkFailure(:final statusCode) => statusCode,

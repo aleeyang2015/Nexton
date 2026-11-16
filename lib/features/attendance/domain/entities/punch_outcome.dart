@@ -65,8 +65,19 @@ enum AttendanceRule {
   offsiteRequestExists,
 
   /// 409 — the clock-in window hasn't opened yet. `details.clock_in_opens`
-  /// says when it will (`TOO_EARLY_CHECKIN`, §3). Off-site only, as above.
-  tooEarlyCheckin;
+  /// says when it will (`TOO_EARLY_CHECKIN`). A punch and an off-site scan
+  /// request are both refused this way.
+  tooEarlyCheckin,
+
+  /// 409 — clock-out only; the clock-out time is before the session's own
+  /// clock-in. `details.clock_in` says when that was
+  /// (`CLOCK_OUT_BEFORE_CLOCK_IN`). No reason can clear it.
+  clockOutBeforeClockIn,
+
+  /// 409 — the employee's OT was changed while the punch was on its way
+  /// (`OT_CHANGED`). The day has to be read again; the same punch may then
+  /// go through.
+  otChanged;
 
   /// True when re-sending the punch with `notes` clears the refusal. Only
   /// [earlyCheckoutRequiresReason] is recoverable this way — every other rule
@@ -112,6 +123,10 @@ class PunchBlockDetails extends Equatable {
   /// `TOO_EARLY_CHECKIN` — when clocking in starts being accepted.
   final String? clockInOpens;
 
+  /// `CLOCK_OUT_BEFORE_CLOCK_IN` — when the session was clocked in, on the
+  /// company's wall clock (`HH:MM`).
+  final String? clockIn;
+
   /// Everything the backend sent, so a detail added server-side is never
   /// silently dropped before it reaches a log.
   final Map<String, dynamic> raw;
@@ -127,6 +142,7 @@ class PunchBlockDetails extends Equatable {
     this.nextStarts,
     this.employeeId,
     this.clockInOpens,
+    this.clockIn,
     this.raw = const {},
   });
 
@@ -144,6 +160,7 @@ class PunchBlockDetails extends Equatable {
     nextStarts,
     employeeId,
     clockInOpens,
+    clockIn,
     raw,
   ];
 }
@@ -172,8 +189,10 @@ class PunchRecorded extends PunchOutcome with EquatableMixin {
 class PunchBlocked extends PunchOutcome with EquatableMixin {
   final AttendanceRule rule;
 
-  /// The backend's wording, already tailored to the situation — preferred
-  /// over any generic copy the app could invent (§5, §7 rule 7).
+  /// The backend's own wording, always in English. The punch card shows the
+  /// app's text for [rule] in the user's language instead, filled from
+  /// [details] (`AttendanceCopy.rule`); the data source writes this sentence
+  /// to the debug log.
   final String message;
 
   final PunchBlockDetails details;

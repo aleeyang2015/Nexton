@@ -2959,6 +2959,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Too many attempts. You can try again in {minutes} min.'**
   String tooManyAttemptsWait(int minutes);
+
+  /// No description provided for @ruleClockOutBeforeClockInAt.
+  ///
+  /// In en, this message translates to:
+  /// **'You clocked in at {time}. You can\'t clock out before that.'**
+  String ruleClockOutBeforeClockInAt(String time);
+
+  /// No description provided for @ruleClockOutBeforeClockIn.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t clock out before your clock-in time.'**
+  String get ruleClockOutBeforeClockIn;
+
+  /// No description provided for @ruleOtChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Your OT just changed. Please try again.'**
+  String get ruleOtChanged;
+
+  /// No description provided for @ruleAfterCheckoutWindowAt.
+  ///
+  /// In en, this message translates to:
+  /// **'The clock-out window has closed (it was open until {time}).'**
+  String ruleAfterCheckoutWindowAt(String time);
+
+  /// No description provided for @ruleOutsideShiftHoursAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in has closed for today (the last shift ended at {time}).'**
+  String ruleOutsideShiftHoursAt(String time);
 }
 
 class _AppLocalizationsDelegate

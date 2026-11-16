@@ -424,6 +424,14 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     final status = response?.statusCode;
     if (status == null || status >= 500) return null;
 
+    // The user is shown the app's own text for the rule, so the server's
+    // sentence would otherwise be seen by nobody. It names the session and
+    // the times; a developer chasing a refusal wants it.
+    _debugLog('punch refused (${apiError?.code})', {
+      'message': apiError?.bestMessage,
+      'details': _detailsOf(response?.data).raw,
+    });
+
     return PunchBlocked(
       rule: rule,
       message: apiError?.bestMessage ?? '',
@@ -452,6 +460,9 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     // nothing is written. Both shapes are handled; whichever the backend
     // settles on, the employee is offered the off-site scan request.
     'OUTSIDE_GEOFENCE': AttendanceRule.outsideWorkArea,
+    'TOO_EARLY_CHECKIN': AttendanceRule.tooEarlyCheckin,
+    'CLOCK_OUT_BEFORE_CLOCK_IN': AttendanceRule.clockOutBeforeClockIn,
+    'OT_CHANGED': AttendanceRule.otChanged,
   };
 
   /// Lifts `error.details` out of the envelope — shared with the off-site
