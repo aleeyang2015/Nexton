@@ -201,6 +201,40 @@ void main() {
       expect(repository.todayCalls, 2);
     });
 
+    test('OT_CHANGED re-reads the day: the OT that places the punch has '
+        'moved', () async {
+      repository.clockInResult = Result.success(
+        const PunchBlocked(
+          rule: AttendanceRule.otChanged,
+          message: 'OT changed, please retry',
+        ),
+      );
+
+      final notifier = await ready();
+      expect(repository.todayCalls, 1);
+
+      await notifier.punch();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.todayCalls, 2);
+    });
+
+    test('a refusal that says nothing about the day does not re-read it',
+        () async {
+      repository.clockInResult = Result.success(
+        const PunchBlocked(
+          rule: AttendanceRule.tooEarlyCheckin,
+          message: 'Too early',
+        ),
+      );
+
+      final notifier = await ready();
+      await notifier.punch();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.todayCalls, 1);
+    });
+
     test('a missing GPS fix never reaches the network', () async {
       location.reading = PunchLocationReading.unavailable;
 

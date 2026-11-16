@@ -500,5 +500,10 @@
   "errorModuleNotActive": "ບໍລິສັດຂອງທ່ານຍັງບໍ່ໄດ້ເປີດໃຊ້ສ່ວນນີ້.",
   "errorRateLimited": "ສົ່ງຄຳຂໍຖີ່ເກີນໄປ. ກະລຸນາລໍຖ້າໜຶ່ງນາທີ ແລ້ວລອງໃໝ່.",
   "passwordChangedSignInAgain": "ປ່ຽນລະຫັດຜ່ານແລ້ວ. ກະລຸນາເຂົ້າສູ່ລະບົບດ້ວຍລະຫັດຜ່ານໃໝ່.",
-  "tooManyAttemptsWait": "ພະຍາຍາມຫຼາຍເກີນໄປ. ລອງໃໝ່ໄດ້ໃນອີກ {minutes} ນາທີ."
+  "tooManyAttemptsWait": "ພະຍາຍາມຫຼາຍເກີນໄປ. ລອງໃໝ່ໄດ້ໃນອີກ {minutes} ນາທີ.",
+  "ruleClockOutBeforeClockInAt": "ທ່ານລົງເວລາເຂົ້າຕອນ {time}. ລົງເວລາອອກກ່ອນນັ້ນບໍ່ໄດ້.",
+  "ruleClockOutBeforeClockIn": "ລົງເວລາອອກກ່ອນເວລາລົງເວລາເຂົ້າບໍ່ໄດ້.",
+  "ruleOtChanged": "ໂອທີຂອງທ່ານຫາກໍ່ປ່ຽນ. ກະລຸນາລອງໃໝ່.",
+  "ruleAfterCheckoutWindowAt": "ເລີຍເວລາລົງເວລາອອກແລ້ວ (ເປີດຮອດ {time}).",
+  "ruleOutsideShiftHoursAt": "ໝົດເວລາລົງເວລາເຂົ້າຂອງມື້ນີ້ແລ້ວ (ກະສຸດທ້າຍຈົບ {time})."
 }

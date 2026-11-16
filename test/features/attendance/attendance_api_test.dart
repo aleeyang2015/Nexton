@@ -224,6 +224,89 @@ void main() {
       },
     );
 
+    test('TOO_EARLY_CHECKIN on a punch blocks and says when clock-in opens',
+        () async {
+      adapter
+        ..status = 409
+        ..body = {
+          'success': false,
+          'error': {
+            'code': 'TOO_EARLY_CHECKIN',
+            'message':
+                'Too early to clock in for the 08:00–12:00 session; '
+                'clock-in opens at 07:00.',
+            'details': {
+              'session_label': '08:00–12:00',
+              'session_order': 0,
+              'clock_in_opens': '07:00',
+            },
+          },
+        };
+
+      final blocked = await source.clockIn(gpsRequest) as PunchBlocked;
+
+      expect(blocked.rule, AttendanceRule.tooEarlyCheckin);
+      expect(blocked.rule.isResolvableWithReason, isFalse);
+      expect(blocked.details.clockInOpens, '07:00');
+      expect(blocked.details.sessionLabel, '08:00–12:00');
+    });
+
+    test('CLOCK_OUT_BEFORE_CLOCK_IN blocks and says when the clock-in was',
+        () async {
+      adapter
+        ..status = 409
+        ..body = {
+          'success': false,
+          'error': {
+            'code': 'CLOCK_OUT_BEFORE_CLOCK_IN',
+            'message': 'Clock-out time is before clock-in',
+            'details': {
+              'session_label': '08:00–12:00',
+              'session_order': 0,
+              'clock_in': '08:05',
+            },
+          },
+        };
+
+      final blocked = await source.clockOut(gpsRequest) as PunchBlocked;
+
+      expect(blocked.rule, AttendanceRule.clockOutBeforeClockIn);
+      // No reason clears it, so the reason dialog must never open.
+      expect(blocked.rule.isResolvableWithReason, isFalse);
+      expect(blocked.rule.isResolvableOffsite, isFalse);
+      expect(blocked.details.clockIn, '08:05');
+    });
+
+    test('OT_CHANGED blocks on a clock-in and on a clock-out', () async {
+      adapter
+        ..status = 409
+        ..body = {
+          'success': false,
+          'error': {'code': 'OT_CHANGED', 'message': 'OT changed, retry'},
+        };
+
+      final onIn = await source.clockIn(gpsRequest) as PunchBlocked;
+      final onOut = await source.clockOut(gpsRequest) as PunchBlocked;
+
+      expect(onIn.rule, AttendanceRule.otChanged);
+      expect(onOut.rule, AttendanceRule.otChanged);
+      expect(onIn.details, PunchBlockDetails.empty);
+    });
+
+    test('a 409 with a code the App does not know is not a rule', () async {
+      adapter
+        ..status = 409
+        ..body = {
+          'success': false,
+          'error': {'code': 'SHIFT_LOCKED', 'message': 'locked'},
+        };
+
+      await expectLater(
+        source.clockIn(gpsRequest),
+        throwsA(isA<DioException>()),
+      );
+    });
+
     test(
       '403 MOCK_LOCATION_DETECTED is a rule, not a transport error',
       () async {

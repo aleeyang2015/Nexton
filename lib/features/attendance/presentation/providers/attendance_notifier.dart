@@ -222,6 +222,8 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
     AttendanceRule.sessionAlreadyCompleted,
     AttendanceRule.sessionAlreadyCheckedOut,
     AttendanceRule.sessionNotStarted,
+    // The OT that decides which session a punch belongs to has just moved.
+    AttendanceRule.otChanged,
   };
 
   void _startCooldown() {

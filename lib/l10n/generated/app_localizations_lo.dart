@@ -1587,4 +1587,26 @@ class AppLocalizationsLo extends AppLocalizations {
   String tooManyAttemptsWait(int minutes) {
     return 'ພະຍາຍາມຫຼາຍເກີນໄປ. ລອງໃໝ່ໄດ້ໃນອີກ $minutes ນາທີ.';
   }
+
+  @override
+  String ruleClockOutBeforeClockInAt(String time) {
+    return 'ທ່ານລົງເວລາເຂົ້າຕອນ $time. ລົງເວລາອອກກ່ອນນັ້ນບໍ່ໄດ້.';
+  }
+
+  @override
+  String get ruleClockOutBeforeClockIn =>
+      'ລົງເວລາອອກກ່ອນເວລາລົງເວລາເຂົ້າບໍ່ໄດ້.';
+
+  @override
+  String get ruleOtChanged => 'ໂອທີຂອງທ່ານຫາກໍ່ປ່ຽນ. ກະລຸນາລອງໃໝ່.';
+
+  @override
+  String ruleAfterCheckoutWindowAt(String time) {
+    return 'ເລີຍເວລາລົງເວລາອອກແລ້ວ (ເປີດຮອດ $time).';
+  }
+
+  @override
+  String ruleOutsideShiftHoursAt(String time) {
+    return 'ໝົດເວລາລົງເວລາເຂົ້າຂອງມື້ນີ້ແລ້ວ (ກະສຸດທ້າຍຈົບ $time).';
+  }
 }
