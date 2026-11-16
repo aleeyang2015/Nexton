@@ -416,11 +416,6 @@ class AppLocalizationsLo extends AppLocalizations {
   }
 
   @override
-  String attendanceOvertimeHours(String hours) {
-    return 'ໂອທີ $hours ຊົ່ວໂມງ';
-  }
-
-  @override
   String get hoursUnit => 'ຊົ່ວໂມງ';
 
   @override
@@ -1602,4 +1597,13 @@ class AppLocalizationsLo extends AppLocalizations {
   String ruleOutsideShiftHoursAt(String time) {
     return 'ໝົດເວລາລົງເວລາເຂົ້າຂອງມື້ນີ້ແລ້ວ (ກະສຸດທ້າຍຈົບ $time).';
   }
+
+  @override
+  String get attendanceAbsentStatus => 'ຂາດວຽກ';
+
+  @override
+  String get attendanceIncompleteStatus => 'ບໍ່ຄົບ';
+
+  @override
+  String get attendanceHalfDayStatus => 'ເຄິ່ງມື້';
 }

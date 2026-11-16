@@ -11,11 +11,11 @@ enum ClockAction { clockIn, clockOut }
 /// One block of a shift — a day can be split (08:00–12:00, 13:30–17:30), and
 /// each block is punched in and out independently (§6.2).
 class AttendanceSession extends Equatable {
-  final int? order;
-
-  /// e.g. `08:00–12:00`. §5's note recommends showing this rather than
-  /// [order], which is 0-based in error details but not in records.
-  final String? label;
+  /// The name of the shift part this session belongs to, as HR named it
+  /// (`shift_detail.name` / `name_lo`): "Morning" / "ກະເຊົ້າ". Null for a
+  /// punch outside any shift part; a row then falls back to its position.
+  final String? partName;
+  final String? partNameLo;
 
   /// Local time; the API sends UTC.
   final DateTime? clockIn;
@@ -36,7 +36,8 @@ class AttendanceSession extends Equatable {
 
   /// How the punch was made (`gps`, `wifi`, …) and where, when the backend
   /// reports them on the record — the history list's "GPS · Office Center"
-  /// line. Either can be null; the row hides what it doesn't have.
+  /// line. They are the clock-in's, or the clock-out's for a session that has
+  /// only a clock-out. Either can be null; the row hides what it doesn't have.
   final String? method;
   final String? locationLabel;
 
@@ -47,8 +48,8 @@ class AttendanceSession extends Equatable {
   final String? partEndTime;
 
   const AttendanceSession({
-    this.order,
-    this.label,
+    this.partName,
+    this.partNameLo,
     this.clockIn,
     this.clockOut,
     this.isLate = false,
@@ -97,8 +98,8 @@ class AttendanceSession extends Equatable {
 
   @override
   List<Object?> get props => [
-    order,
-    label,
+    partName,
+    partNameLo,
     clockIn,
     clockOut,
     isLate,
