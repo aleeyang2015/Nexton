@@ -34,12 +34,13 @@ extension FailureLocalization on Failure {
 }
 
 /// Localizes a bare field-error string held directly in a form's state
-/// (`LoginState.emailError`, `ChangePasswordState.newError`, …) — either one
-/// of [ValidationCode]'s semantic codes, or already-human text from a
+/// (`LoginState.emailError`, `ChangePasswordState.newError`, …) — one of
+/// [ValidationCode]'s semantic codes, a backend error code (a wrong current
+/// password is `PASSWORD_MISMATCH`), or already-human text from a
 /// field-scoped 422 the backend sent with no code to look up.
 String? localizeFieldError(AppLocalizations l10n, String? code) {
   if (code == null) return null;
-  return _byValidationCode(l10n, code) ?? code;
+  return _byValidationCode(l10n, code) ?? _byErrorCode(l10n, code) ?? code;
 }
 
 /// Client-side rules from [ValidationCode] — the login and change-password

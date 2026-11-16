@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
+import 'package:next_on/core/network/session_end_reason.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/auth/auth_providers.dart';
 import 'package:next_on/features/auth/domain/entities/auth_session.dart';
@@ -113,9 +114,11 @@ void main() {
       );
     });
 
-    test('releases the session and reloads the profile', () async {
+    test('signs in again with the user\'s email and the new password', () async {
       await session();
-      repository.profileResult = Result.success(testUser(id: 'refreshed'));
+      repository.loginResult = Result.success(
+        AuthSession.signedIn(testUser(id: 'refreshed')),
+      );
 
       final result = await container
           .read(authSessionProvider.notifier)
@@ -126,19 +129,24 @@ void main() {
           );
 
       expect(result.isSuccess, isTrue);
-      expect(repository.fetchProfileCalls, 1);
+      // The old refresh token died with the change; this is what stores a
+      // pair that still refreshes.
+      expect(repository.loginCalls, 1);
+      expect(repository.lastLoginEmail, 'somphone.vilaysone@nexton.la');
+      expect(repository.lastLoginPassword, 'new-password');
       expect(current().status, AuthStatus.authenticated);
       expect(current().mustChangePassword, isFalse);
       expect(current().user!.id, 'refreshed');
+      expect(current().endReason, isNull);
     });
 
-    test('a failed profile reload still releases the session', () async {
+    test('a failed re-login ends the session with passwordChanged', () async {
       await session();
-      repository.profileResult = const Result.failure(
+      repository.loginResult = const Result.failure(
         Failure.network(message: 'No internet connection'),
       );
 
-      await container
+      final result = await container
           .read(authSessionProvider.notifier)
           .changePassword(
             currentPassword: 'current-pass',
@@ -146,9 +154,11 @@ void main() {
             confirmPassword: 'new-password',
           );
 
-      expect(current().status, AuthStatus.authenticated);
-      // Falls back to the profile already in hand.
-      expect(current().user!.id, 'cce14a0e');
+      // The change itself went through.
+      expect(result.isSuccess, isTrue);
+      expect(repository.logoutCalls, 1);
+      expect(current().status, AuthStatus.unauthenticated);
+      expect(current().endReason, SessionEndReason.passwordChanged);
     });
 
     test('a rejected change keeps the user on the hook', () async {
@@ -167,7 +177,7 @@ void main() {
 
       expect(result.failureOrNull, isA<AuthFailure>());
       expect(current().status, AuthStatus.mustChangePassword);
-      expect(repository.fetchProfileCalls, 0);
+      expect(repository.loginCalls, 0);
     });
 
     test('client-side validation never reaches the repository', () async {
@@ -209,7 +219,7 @@ void main() {
         await session();
         expect(current().status, AuthStatus.authenticated);
 
-        repository.sessionExpired.add(null);
+        repository.sessionExpired.add(SessionEndReason.expired);
         // Let the stream listener and its async logout settle.
         await Future<void>.delayed(Duration.zero);
 
@@ -218,13 +228,41 @@ void main() {
       },
     );
 
+    test('a forced sign-out carries its reason until it has been said', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      await session();
+
+      repository.sessionExpired.add(SessionEndReason.accountDisabled);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(current().endReason, SessionEndReason.accountDisabled);
+
+      container.read(authSessionProvider.notifier).clearEndReason();
+
+      expect(current().status, AuthStatus.unauthenticated);
+      expect(current().endReason, isNull);
+    });
+
+    test('a sign-out the user chose has no reason', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      await session();
+
+      await container.read(authSessionProvider.notifier).logout();
+
+      expect(current().endReason, isNull);
+    });
+
     test('a forced sign-out also drops a pending password change', () async {
       repository.restoreResult = Result.success(
         AuthSession.signedIn(testUser(), mustChangePassword: true),
       );
       await session();
 
-      repository.sessionExpired.add(null);
+      repository.sessionExpired.add(SessionEndReason.expired);
       await Future<void>.delayed(Duration.zero);
 
       expect(current().status, AuthStatus.unauthenticated);

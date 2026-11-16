@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/l10n/locale_provider.dart';
+import '../../../../core/network/session_end_reason.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/auth_session.dart';
+import '../providers/auth_session_notifier.dart';
 import '../providers/login_notifier.dart';
 import '../providers/login_state.dart';
 import '../widgets/login_alternative_section.dart';
@@ -32,6 +34,35 @@ class LoginPage extends ConsumerStatefulWidget {
 class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // A forced sign-out lands here with its reason. Say it once, whether the
+    // page is just opening or was already on screen.
+    ref.listenManual(
+      authSessionProvider.select((session) => session.valueOrNull?.endReason),
+      (_, reason) {
+        if (reason != null) Future.microtask(() => _announceEndReason(reason));
+      },
+      fireImmediately: true,
+    );
+  }
+
+  /// Tells the user why the App signed them out, then forgets the reason so
+  /// it is not repeated.
+  void _announceEndReason(SessionEndReason reason) {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+
+    AppToast.info(switch (reason) {
+      SessionEndReason.expired => l10n.sessionExpired,
+      SessionEndReason.accountDisabled => l10n.userInactive,
+      SessionEndReason.passwordChanged => l10n.passwordChangedSignInAgain,
+      SessionEndReason.companyInactive => l10n.errorTenantInactive,
+    });
+    ref.read(authSessionProvider.notifier).clearEndReason();
+  }
 
   @override
   void dispose() {

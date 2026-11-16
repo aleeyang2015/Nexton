@@ -181,7 +181,32 @@ void main() {
     expect(repository.changePasswordCalls, 0);
   });
 
-  testWidgets('a wrong current password shows the server message and clears '
+  testWidgets('PASSWORD_MISMATCH shows the Lao text under the current '
+      'password and clears the field', (tester) async {
+    repository.changePasswordResult = const Result.failure(
+      Failure.auth(
+        message: 'Current password is incorrect',
+        code: 'PASSWORD_MISMATCH',
+      ),
+    );
+    await pumpPage(tester);
+    await fillForm(
+      tester,
+      current: 'wrong-pass',
+      next: 'new-password',
+      confirm: 'new-password',
+    );
+
+    await tester.tap(find.text(_submitLabel));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ລະຫັດຜ່ານປັດຈຸບັນບໍ່ຖືກຕ້ອງ.'), findsOneWidget);
+    expect(find.text('Current password is incorrect'), findsNothing);
+    expect(tester.widget<TextField>(fieldAt(0)).controller!.text, isEmpty);
+    expect(find.byType(ChangePasswordPage), findsOneWidget);
+  });
+
+  testWidgets('a refusal with no code shows the server message and clears '
       'the field', (tester) async {
     repository.changePasswordResult = const Result.failure(
       Failure.auth(message: 'Current password is incorrect'),

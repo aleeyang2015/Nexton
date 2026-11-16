@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/constants/app_constants.dart';
 import 'package:next_on/core/errors/failure.dart';
+import 'package:next_on/core/network/session_end_reason.dart';
 import 'package:next_on/core/network/api_error_mapper.dart';
 import 'package:next_on/core/network/token_storage.dart';
 import 'package:next_on/features/auth/data/datasources/auth_local_data_source.dart';
@@ -44,7 +45,7 @@ void main() {
   late FakeAuthRemoteDataSource remote;
   late InMemorySecureStore store;
   late AuthLocalDataSource local;
-  late StreamController<void> sessionExpired;
+  late StreamController<SessionEndReason> sessionExpired;
   late AuthRepositoryImpl repository;
 
   setUp(() {
@@ -54,7 +55,7 @@ void main() {
       store: store,
       tokenStorage: SecureTokenStorage(store),
     );
-    sessionExpired = StreamController<void>.broadcast();
+    sessionExpired = StreamController<SessionEndReason>.broadcast();
     repository = AuthRepositoryImpl(
       remote: remote,
       local: local,

@@ -7,9 +7,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/constants/app_constants.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/api_client.dart';
+import 'package:next_on/core/network/api_error_mapper.dart';
 import 'package:next_on/core/network/api_paths.dart';
 import 'package:next_on/core/network/auth_interceptor.dart';
 import 'package:next_on/core/network/network_info.dart';
+import 'package:next_on/core/network/session_end_reason.dart';
 import 'package:next_on/core/network/token_storage.dart';
 
 import '../../support/auth_test_doubles.dart';
@@ -19,7 +21,26 @@ class _Reply {
   final int status;
   final Map<String, dynamic> body;
 
-  const _Reply(this.status, [this.body = const {}]);
+  /// A body sent as it is, in place of [body]: what a Wi-Fi login page looks
+  /// like to the App.
+  final String? html;
+
+  /// When set, the request never gets an answer: the adapter throws this.
+  final DioExceptionType? transportError;
+
+  const _Reply(this.status, [this.body = const {}])
+    : html = null,
+      transportError = null;
+
+  const _Reply.html(this.html)
+    : status = 200,
+      body = const {},
+      transportError = null;
+
+  const _Reply.noAnswer(DioExceptionType this.transportError)
+    : status = 0,
+      body = const {},
+      html = null;
 }
 
 /// Stands in for the network. Answers from a per-path queue and records every
@@ -48,6 +69,22 @@ class _FakeAdapter implements HttpClientAdapter {
         ? const _Reply(404, {'success': false})
         : (queued.length == 1 ? queued.first : queued.removeAt(0));
 
+    final transportError = reply.transportError;
+    if (transportError != null) {
+      throw DioException(requestOptions: options, type: transportError);
+    }
+
+    final html = reply.html;
+    if (html != null) {
+      return ResponseBody.fromString(
+        html,
+        reply.status,
+        headers: {
+          Headers.contentTypeHeader: ['text/html'],
+        },
+      );
+    }
+
     return ResponseBody.fromString(
       jsonEncode(reply.body),
       reply.status,
@@ -67,7 +104,7 @@ class _Harness {
   final SecureTokenStorage tokens;
   final AuthInterceptor interceptor;
   final ApiClient client;
-  final List<void> sessionExpiredEvents = [];
+  final List<SessionEndReason> sessionExpiredEvents = [];
 
   _Harness._(
     this.adapter,
@@ -303,7 +340,163 @@ void main() {
       expect(await h.tokens.readAccessToken(), isNull);
       expect(await h.tokens.readRefreshToken(), isNull);
       expect(await h.tokens.readAccessTokenExpiry(), isNull);
-      expect(h.sessionExpiredEvents, hasLength(1));
+      expect(h.sessionExpiredEvents, [SessionEndReason.expired]);
+    });
+
+    test('a disabled account clears the session and says so', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(ApiPaths.me, [_unauthorized]);
+      h.adapter.queue(ApiPaths.refresh, [
+        const _Reply(403, {
+          'success': false,
+          'error': {'code': 'USER_INACTIVE', 'message': 'User is inactive'},
+        }),
+      ]);
+
+      await expectLater(
+        h.client.get<dynamic>(ApiPaths.me),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(await h.tokens.readAccessToken(), isNull);
+      expect(await h.tokens.readRefreshToken(), isNull);
+      expect(h.sessionExpiredEvents, [SessionEndReason.accountDisabled]);
+    });
+
+    test('a switched-off company on refresh clears the session and says '
+        'so', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(ApiPaths.me, [_unauthorized]);
+      h.adapter.queue(ApiPaths.refresh, [
+        const _Reply(403, {
+          'success': false,
+          'error': {'code': 'TENANT_INACTIVE', 'message': 'Tenant is off'},
+        }),
+      ]);
+
+      await expectLater(
+        h.client.get<dynamic>(ApiPaths.me),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(await h.tokens.readAccessToken(), isNull);
+      expect(h.sessionExpiredEvents, [SessionEndReason.companyInactive]);
+    });
+
+    /// Runs one request whose refresh comes back as [refresh], and returns
+    /// the failure the caller is handed.
+    Future<(Object?, _Harness)> refreshAnswering(_Reply refresh) async {
+      final h = await _Harness.create();
+      h.adapter.queue(ApiPaths.me, [_unauthorized]);
+      h.adapter.queue(ApiPaths.refresh, [refresh]);
+
+      Object? failure;
+      try {
+        await h.client.get<dynamic>(ApiPaths.me);
+      } on DioException catch (e) {
+        failure = e.error;
+      }
+      return (failure, h);
+    }
+
+    Future<void> expectSessionKept(_Harness h) async {
+      expect(await h.tokens.readAccessToken(), 'access-1');
+      expect(await h.tokens.readRefreshToken(), 'refresh-1');
+      expect(h.sessionExpiredEvents, isEmpty);
+      // One attempt, no replay of the request that asked.
+      expect(h.requestsTo(ApiPaths.refresh).length, 1);
+      expect(h.requestsTo(ApiPaths.me).length, 1);
+    }
+
+    test('a refresh that times out keeps the session; the caller sees a '
+        'network failure, not a 401', () async {
+      final (failure, h) = await refreshAnswering(
+        const _Reply.noAnswer(DioExceptionType.receiveTimeout),
+      );
+
+      await expectSessionKept(h);
+      expect(failure, isA<NetworkFailure>());
+      expect((failure as NetworkFailure).errorCode, ApiErrorCodes.timeout);
+    });
+
+    test('a refresh with no connection keeps the session', () async {
+      final (failure, h) = await refreshAnswering(
+        const _Reply.noAnswer(DioExceptionType.connectionError),
+      );
+
+      await expectSessionKept(h);
+      expect((failure as NetworkFailure).errorCode, ApiErrorCodes.noInternet);
+    });
+
+    test('a refresh answered 503 keeps the session; the caller sees a server '
+        'failure', () async {
+      final (failure, h) = await refreshAnswering(
+        const _Reply(503, {
+          'success': false,
+          'error': {'code': 'TENANT_UNAVAILABLE', 'message': 'restarting'},
+        }),
+      );
+
+      await expectSessionKept(h);
+      expect(failure, isA<ServerFailure>());
+    });
+
+    test('a refresh answered 429 keeps the session', () async {
+      final (failure, h) = await refreshAnswering(
+        const _Reply(429, {
+          'success': false,
+          'error': {'code': 'RATE_LIMITED', 'message': 'slow down'},
+        }),
+      );
+
+      await expectSessionKept(h);
+      expect(failure, isA<NetworkFailure>());
+    });
+
+    test('a refresh answered with a Wi-Fi login page keeps the session',
+        () async {
+      final (failure, h) = await refreshAnswering(
+        const _Reply.html('<html><body>Sign in to Wi-Fi</body></html>'),
+      );
+
+      await expectSessionKept(h);
+      expect(failure, isA<NetworkFailure>());
+    });
+
+    test('a refresh answered 200 with no tokens keeps the session', () async {
+      final (failure, h) = await refreshAnswering(
+        const _Reply(200, {'success': true, 'data': <String, dynamic>{}}),
+      );
+
+      await expectSessionKept(h);
+      expect(failure, isA<NetworkFailure>());
+    });
+
+    test('a wrong password on login makes no refresh call and ends '
+        'nothing', () async {
+      // A stale token is still stored, so the login goes out with a bearer.
+      final h = await _Harness.create();
+      h.adapter.queue(ApiPaths.login, [
+        const _Reply(401, {
+          'success': false,
+          'error': {
+            'code': 'INVALID_CREDENTIALS',
+            'message': 'Invalid email or password',
+          },
+        }),
+      ]);
+
+      Object? failure;
+      try {
+        await h.client.post<dynamic>(ApiPaths.login, data: const {});
+      } on DioException catch (e) {
+        failure = e.error;
+      }
+
+      expect((failure as AuthFailure).code, 'INVALID_CREDENTIALS');
+      expect(h.requestsTo(ApiPaths.refresh), isEmpty);
+      expect(h.sessionExpiredEvents, isEmpty);
+      expect(await h.tokens.readAccessToken(), 'access-1');
     });
 
     test('no refresh token means no refresh call at all', () async {

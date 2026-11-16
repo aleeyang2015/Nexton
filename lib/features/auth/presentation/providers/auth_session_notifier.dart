@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/network/session_end_reason.dart';
 import '../../../../core/utils/result.dart';
 import '../../auth_providers.dart';
 import '../../domain/entities/auth_session.dart';
@@ -14,12 +15,13 @@ import '../../domain/usecases/login_usecase.dart';
 class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
   @override
   Future<AuthSession> build() async {
-    // The network layer clears the tokens and signals here when a refresh
-    // fails or a refreshed token still can't read the profile.
+    // The network layer clears the tokens and signals here when the server
+    // refuses a refresh, a refreshed token still can't read the profile, or
+    // the company is switched off.
     final subscription = ref
         .watch(authRepositoryProvider)
         .onSessionExpired
-        .listen((_) => _forceLogout());
+        .listen(_forceLogout);
     ref.onDispose(subscription.cancel);
 
     final result = await ref.read(restoreSessionUseCaseProvider)();
@@ -45,9 +47,16 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
   /// Sets a new password and, on success, releases the session out of
   /// [AuthStatus.mustChangePassword].
   ///
-  /// The backend stamps `password_set_at`, which kills every outstanding
-  /// refresh token — the current access token keeps working until it expires,
-  /// and the next 401 will ask for a fresh login.
+  /// The backend stamps `password_set_at`, which kills every refresh token
+  /// issued before the change, while the access token keeps working until it
+  /// expires. Left alone, the session would die mid-task weeks later. So this
+  /// signs in again at once with the user's email and the new password, which
+  /// stores a pair that still refreshes and reloads the profile. The new
+  /// password is held only for that call.
+  ///
+  /// When that sign-in fails the password *has* changed, so the session ends
+  /// with [SessionEndReason.passwordChanged] and the sign-in screen asks for
+  /// the new one.
   Future<Result<Unit>> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -63,18 +72,27 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
 
     if (result.isFailure) return result;
 
-    // Pick up anything the change altered on the profile. A failure here must
-    // not strand the user on the change-password screen, so fall back to the
-    // profile already in hand.
-    final refreshed = await ref.read(authRepositoryProvider).fetchProfile();
-    final user = refreshed.dataOrNull ?? state.valueOrNull?.user;
+    final email = state.valueOrNull?.user?.email;
+    final session = email == null
+        ? null
+        : (await ref.read(loginUseCaseProvider)(
+            LoginParams(email: email, password: newPassword),
+          )).dataOrNull;
 
-    state = user == null
-        // No profile to release into — safest exit is a fresh login.
-        ? const AsyncValue.data(AuthSession.unauthenticated())
-        : AsyncValue.data(AuthSession.signedIn(user));
+    if (session == null || !session.hasSession) {
+      await _forceLogout(SessionEndReason.passwordChanged);
+      return result;
+    }
 
+    state = AsyncValue.data(session);
     return result;
+  }
+
+  /// The sign-in screen has told the user why the last session ended.
+  void clearEndReason() {
+    final current = state.valueOrNull;
+    if (current == null || current.endReason == null) return;
+    state = const AsyncValue.data(AuthSession.unauthenticated());
   }
 
   /// Re-reads `/auth/me`. Used to pick up a role or module change after a
@@ -108,11 +126,12 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
     state = const AsyncValue.data(AuthSession.unauthenticated());
   }
 
-  /// Interceptor-forced sign-out. The tokens are already gone by the time
-  /// this runs; this clears the cached profile and the in-memory session.
-  Future<void> _forceLogout() async {
+  /// A sign-out the user did not ask for. When the interceptor forced it the
+  /// tokens are already gone; this clears the cached profile and the
+  /// in-memory session, and keeps [reason] for the sign-in screen.
+  Future<void> _forceLogout(SessionEndReason reason) async {
     await ref.read(logoutUseCaseProvider)();
-    state = const AsyncValue.data(AuthSession.unauthenticated());
+    state = AsyncValue.data(AuthSession.unauthenticated(endReason: reason));
   }
 }
 
