@@ -11,8 +11,11 @@ class ApiClient {
   }
 
   /// Base options every client in the app shares — the authed [ApiClient] and
-  /// the bare Dio the token refresh runs on.
-  static BaseOptions buildBaseOptions() => BaseOptions(
+  /// the bare Dio the token refresh runs on. [tenantSlug] is sent as
+  /// `X-Tenant-Slug` only when it is not empty.
+  static BaseOptions buildBaseOptions({
+    String tenantSlug = AppConstants.tenantSlug,
+  }) => BaseOptions(
     baseUrl: '${AppConstants.baseUrl}/${AppConstants.apiVersion}',
     connectTimeout: AppConstants.connectTimeout,
     receiveTimeout: AppConstants.receiveTimeout,
@@ -20,8 +23,8 @@ class ApiClient {
       AppConstants.acceptHeader: AppConstants.jsonContentType,
       AppConstants.contentTypeHeader: AppConstants.jsonContentType,
       AppConstants.userAgentHeader: 'NextOn App ${AppConstants.appVersion}',
-      // Dev-only override on the backend; harmless in production.
-      AppConstants.tenantSlugHeader: AppConstants.tenantSlug,
+      // Dev servers only; the live server ignores it.
+      if (tenantSlug.isNotEmpty) AppConstants.tenantSlugHeader: tenantSlug,
     },
   );
 
