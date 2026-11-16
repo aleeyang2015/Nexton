@@ -2905,6 +2905,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Approved, but it isn\'t time to clock in yet — the punch was not recorded.'**
   String get offsiteTooEarlyCheckin;
+
+  /// No description provided for @errorWrongServer.
+  ///
+  /// In en, this message translates to:
+  /// **'This App is connected to the wrong address. Please update the App.'**
+  String get errorWrongServer;
+
+  /// No description provided for @errorTenantNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This company was not found.'**
+  String get errorTenantNotFound;
+
+  /// No description provided for @errorTenantInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Your company\'s account is switched off. Please contact HR.'**
+  String get errorTenantInactive;
+
+  /// No description provided for @errorTenantUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Your company\'s system is not ready. Please try again in a few minutes.'**
+  String get errorTenantUnavailable;
+
+  /// No description provided for @errorTenantMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'This login belongs to another company. Please sign out and sign in again.'**
+  String get errorTenantMismatch;
+
+  /// No description provided for @errorModuleNotActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Your company has not turned this on.'**
+  String get errorModuleNotActive;
+
+  /// No description provided for @errorRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests. Please wait a minute and try again.'**
+  String get errorRateLimited;
 }
 
 class _AppLocalizationsDelegate

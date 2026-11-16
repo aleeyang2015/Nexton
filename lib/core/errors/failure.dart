@@ -24,10 +24,16 @@ class Failure with _$Failure {
     String? errorCode,
   }) = ServerFailure;
 
-  /// Validation failures (form validation, data validation, etc.)
+  /// Validation failures (form validation, data validation, etc.), and every
+  /// request the server refused with a 400, 403 or 422: nothing to retry.
   const factory Failure.validation({
     required String message,
     String? field,
+
+    /// The server's `error.code` when the refusal came from the API, so the
+    /// localizer and the features can tell refusals apart. Null for the
+    /// client's own rules.
+    String? code,
   }) = ValidationFailure;
 
   /// Cache-related failures (storage, retrieval, etc.)
@@ -54,7 +60,7 @@ extension FailureX on Failure {
   String get message => when(
         network: (message, _, __, ___) => message,
         server: (message, _, __) => message,
-        validation: (message, _) => message,
+        validation: (message, _, __) => message,
         cache: (message, _) => message,
         auth: (message, _) => message,
         unknown: (message, _) => message,

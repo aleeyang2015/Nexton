@@ -1553,4 +1553,29 @@ class AppLocalizationsLo extends AppLocalizations {
   @override
   String get offsiteTooEarlyCheckin =>
       'ອະນຸມັດແລ້ວ ແຕ່ຍັງບໍ່ເຖິງເວລາລົງເວລາເຂົ້າ — ຍັງບໍ່ໄດ້ບັນທຶກເວລາ';
+
+  @override
+  String get errorWrongServer => 'ແອັບນີ້ເຊື່ອມຕໍ່ຜິດບ່ອນ. ກະລຸນາອັບເດດແອັບ.';
+
+  @override
+  String get errorTenantNotFound => 'ບໍ່ພົບບໍລິສັດນີ້ໃນລະບົບ.';
+
+  @override
+  String get errorTenantInactive =>
+      'ບໍລິສັດຂອງທ່ານຖືກປິດການໃຊ້ງານ. ກະລຸນາຕິດຕໍ່ HR.';
+
+  @override
+  String get errorTenantUnavailable =>
+      'ລະບົບຂອງບໍລິສັດຍັງບໍ່ພ້ອມ. ກະລຸນາລອງໃໝ່ໃນອີກບໍ່ເທົ່າໃດນາທີ.';
+
+  @override
+  String get errorTenantMismatch =>
+      'ບັນຊີນີ້ເປັນຂອງບໍລິສັດອື່ນ. ກະລຸນາອອກຈາກລະບົບ ແລ້ວເຂົ້າໃໝ່.';
+
+  @override
+  String get errorModuleNotActive => 'ບໍລິສັດຂອງທ່ານຍັງບໍ່ໄດ້ເປີດໃຊ້ສ່ວນນີ້.';
+
+  @override
+  String get errorRateLimited =>
+      'ສົ່ງຄຳຂໍຖີ່ເກີນໄປ. ກະລຸນາລໍຖ້າໜຶ່ງນາທີ ແລ້ວລອງໃໝ່.';
 }

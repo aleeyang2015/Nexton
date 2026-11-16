@@ -11,8 +11,10 @@ extension AttendanceFailureX on Failure {
   /// has already torn the session down by the time this is true.
   bool get isSessionFailure => this is AuthFailure;
 
-  /// A signal the client itself refused to send a punch without — GPS off,
-  /// no BSSID, no field-work reason (§7 rules 1–2).
+  /// The punch was refused and retrying as it stands cannot help: a signal
+  /// the client would not send it without — GPS off, no BSSID, no field-work
+  /// reason (§7 rules 1–2) — or a refusal from the server with its code, such
+  /// as `MODULE_NOT_ACTIVE`. Both are shown in a dialog the user acknowledges.
   bool get isMissingEvidence => this is ValidationFailure;
 
   /// Worth offering a retry button for: the request never reached a verdict.

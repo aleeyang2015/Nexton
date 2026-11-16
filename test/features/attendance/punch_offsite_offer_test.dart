@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:next_on/app/router/app_router.dart';
+import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
@@ -333,6 +334,27 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Outside the work area'), findsNothing);
+    });
+  });
+
+  group('a punch the server refused with a 403', () {
+    testWidgets('a module the company has not bought shows the refusal, not '
+        'nothing', (tester) async {
+      await pumpFlow(
+        tester,
+        clockIn: const Result.failure(
+          Failure.validation(
+            message: "Module 'attendance' is not active for this subscription",
+            code: 'MODULE_NOT_ACTIVE',
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('PUNCH'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(Dialog), findsOneWidget);
+      expect(find.text('Your company has not turned this on.'), findsOneWidget);
     });
   });
 }

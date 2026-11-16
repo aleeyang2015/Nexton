@@ -1,3 +1,4 @@
+import '../../../../core/errors/failure.dart';
 import '../../../../core/utils/base_repository.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/auth_failure_x.dart';
@@ -91,7 +92,12 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       } catch (error) {
         final failure = toFailure(error);
 
-        if (failure.isSessionFailure) {
+        // The server answered and will not give this token its profile: a
+        // dead session, or a refusal with a code (`FORBIDDEN`,
+        // `TENANT_MISMATCH`, …). Neither is a blip that the cached identity
+        // should paper over, and leaving the tokens behind would send them
+        // along with the next login.
+        if (failure.isSessionFailure || _isServerRefusal(failure)) {
           await _local.clear();
           return const AuthSession.unauthenticated();
         }
@@ -110,6 +116,11 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       }
     });
   }
+
+  /// A 400/403 the server sent with an `error.code`. A [ValidationFailure]
+  /// with no code is the client's own (an unreadable body), not a refusal.
+  static bool _isServerRefusal(Failure failure) =>
+      failure is ValidationFailure && failure.code != null;
 
   @override
   FutureResult<User> fetchProfile() {

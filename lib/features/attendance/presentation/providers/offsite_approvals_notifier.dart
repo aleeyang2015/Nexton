@@ -119,7 +119,7 @@ class OffsiteApprovalsNotifier
   }
 
   bool _isStepChanged(Failure failure) => failure.maybeWhen(
-    validation: (message, _) => message == LeaveErrorCode.tokenStepChanged,
+    validation: (message, _, _) => message == LeaveErrorCode.tokenStepChanged,
     orElse: () => false,
   );
 }

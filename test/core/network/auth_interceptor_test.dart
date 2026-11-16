@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/constants/app_constants.dart';
+import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/api_client.dart';
 import 'package:next_on/core/network/api_paths.dart';
 import 'package:next_on/core/network/auth_interceptor.dart';
@@ -362,6 +363,103 @@ void main() {
       );
 
       expect(h.requestsTo(ApiPaths.refresh), isEmpty);
+      expect(h.sessionExpiredEvents, isEmpty);
+    });
+  });
+
+  group('403 handling', () {
+    const companyOff = _Reply(403, {
+      'success': false,
+      'error': {'code': 'TENANT_INACTIVE', 'message': 'Tenant is not active'},
+    });
+
+    test('TENANT_INACTIVE on a signed-in call ends the session, with no '
+        'refresh', () async {
+      final h = await _Harness.create();
+      h.adapter.queue('/core_hr/employees', [companyOff]);
+
+      Object? thrown;
+      try {
+        await h.client.get<dynamic>('/core_hr/employees');
+      } on DioException catch (e) {
+        thrown = e.error;
+      }
+
+      // The caller still gets the failure, with the code the Lao text hangs on.
+      expect(thrown, isA<AuthFailure>());
+      expect((thrown as AuthFailure).code, 'TENANT_INACTIVE');
+      expect(h.requestsTo(ApiPaths.refresh), isEmpty);
+      expect(await h.tokens.readAccessToken(), isNull);
+      expect(await h.tokens.readRefreshToken(), isNull);
+      expect(h.sessionExpiredEvents, hasLength(1));
+    });
+
+    test('a late TENANT_INACTIVE for the previous user spares the new '
+        'session', () async {
+      final h = await _Harness.create();
+      h.adapter
+        ..slow = true
+        ..queue('/core_hr/employees', [companyOff]);
+
+      // The request leaves with access-1; before its answer lands, that user
+      // signs out and another signs in on the same phone.
+      final pending = h.client.get<dynamic>('/core_hr/employees');
+      while (h.adapter.requests.isEmpty) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(h.authHeaderOf(0), 'Bearer access-1');
+      await h.tokens.writeAccessToken('access-other-user');
+
+      await expectLater(pending, throwsA(isA<DioException>()));
+
+      expect(await h.tokens.readAccessToken(), 'access-other-user');
+      expect(h.sessionExpiredEvents, isEmpty);
+    });
+
+    test('TENANT_INACTIVE on a login that still carries a stale token ends '
+        'that stale session', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(ApiPaths.login, [companyOff]);
+
+      await expectLater(
+        h.client.post<dynamic>(ApiPaths.login, data: const {}),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(await h.tokens.readAccessToken(), isNull);
+    });
+
+    test('TENANT_INACTIVE on a login has no session to end', () async {
+      final h = await _Harness.create(accessToken: null, refreshToken: null);
+      h.adapter.queue(ApiPaths.login, [companyOff]);
+
+      await expectLater(
+        h.client.post<dynamic>(ApiPaths.login, data: const {}),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(h.sessionExpiredEvents, isEmpty);
+    });
+
+    test('any other 403 leaves the session alone', () async {
+      final h = await _Harness.create();
+      h.adapter.queue('/core_hr/employees', [
+        const _Reply(403, {
+          'success': false,
+          'error': {'code': 'MODULE_NOT_ACTIVE', 'message': 'not bought'},
+        }),
+      ]);
+
+      Object? thrown;
+      try {
+        await h.client.get<dynamic>('/core_hr/employees');
+      } on DioException catch (e) {
+        thrown = e.error;
+      }
+
+      expect(thrown, isA<ValidationFailure>());
+      expect((thrown as ValidationFailure).code, 'MODULE_NOT_ACTIVE');
+      expect(await h.tokens.readAccessToken(), 'access-1');
       expect(h.sessionExpiredEvents, isEmpty);
     });
   });
