@@ -26,6 +26,10 @@ class AttendanceRecordModel {
   }
 
   static AttendanceSession _session(Map<String, dynamic> json) {
+    // The shift part this session belongs to; null for a punch outside any.
+    final part = json['shift_detail'];
+    final partJson = part is Map ? part : const <dynamic, dynamic>{};
+
     return AttendanceSession(
       order: _int(json['session_order'] ?? json['order']),
       label: _nonEmpty(_string(json['session_label'] ?? json['label'])),
@@ -45,6 +49,8 @@ class AttendanceRecordModel {
           json['location_name'] ?? json['site_name'] ?? json['location_label'],
         ),
       ),
+      partStartTime: _nonEmpty(_string(partJson['start_time'])),
+      partEndTime: _nonEmpty(_string(partJson['end_time'])),
     );
   }
 

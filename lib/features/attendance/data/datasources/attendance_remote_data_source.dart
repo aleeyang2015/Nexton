@@ -38,7 +38,9 @@ abstract class AttendanceRemoteDataSource {
 
   Future<PunchOutcome> clockOut(PunchRequest request);
 
-  /// Today's record, or [AttendanceDay.empty] when nothing is punched yet.
+  /// The record the home card is about right now — usually today's, but see
+  /// [AttendanceDay.pickCurrent] — or [AttendanceDay.empty] when nothing is
+  /// punched yet.
   Future<AttendanceDay> todayRecord();
 
   /// The history page's daily list over [range], newest first.
@@ -95,14 +97,31 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   /// the last 90 days, so this comfortably covers them.
   static const int _correctionPageSize = 100;
 
+  /// Rows asked for per month when looking for the current record. `records/my`
+  /// answers newest first, so the first few rows of a month hold yesterday,
+  /// today and tomorrow — unless the month has rows dated later than that, in
+  /// which case [_rowsAround] reads the whole month instead.
+  static const int _currentRecordPageSize = 5;
+
+  /// Max per the spec (§6.2) — a calendar month never has more days than
+  /// this, so one page is always the whole month.
+  static const int _monthPageSize = 100;
+
   final ApiClient _client;
+
+  /// The time, injected so a test can stand on the last day of a month.
+  final DateTime Function() _now;
 
   /// For evidence files: they live on the object store, not the API, so they
   /// are fetched without the API client's session token.
   final Dio _files;
 
-  AttendanceRemoteDataSourceImpl(this._client, {Dio? files})
-    : _files = files ?? Dio();
+  AttendanceRemoteDataSourceImpl(
+    this._client, {
+    Dio? files,
+    DateTime Function() now = DateTime.now,
+  }) : _files = files ?? Dio(),
+       _now = now;
 
   @override
   Future<PunchOutcome> clockIn(PunchRequest request) =>
@@ -112,34 +131,75 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   Future<PunchOutcome> clockOut(PunchRequest request) =>
       _punch(AttendancePaths.clockOut, request);
 
-  /// Read from the same `month` query the history page uses — the param
-  /// `records/my` is known to honour — then narrowed to today's record by
-  /// its `date`, so the card and the history list always agree. A record
-  /// with no `date` can't be placed in the month, so it is skipped.
+  /// Read from the same `month` query the history page uses, so the card and
+  /// the history list always agree.
+  ///
+  /// The record for "now" can be dated yesterday (a night shift still
+  /// running) or tomorrow (a 23:50 punch for a 00:00 shift), so the newest
+  /// rows of each month those three days fall in are read — one call on most
+  /// days, two on the first or last day of a month, in parallel — and
+  /// [AttendanceDay.pickCurrent] chooses among them.
   @override
   Future<AttendanceDay> todayRecord() async {
-    final now = DateTime.now();
-    final today = _isoDate(now);
+    final now = _now();
 
-    final days = await records(DateRange.month(now));
-    for (final day in days) {
-      final date = day.date;
-      if (date != null && _isoDate(date) == today) return day;
+    // The earliest of the three days in each month they fall in: the day a
+    // page of that month has to reach back to.
+    final earliestByMonth = <String, DateTime>{};
+    for (final offset in const [-1, 0, 1]) {
+      final day = DateTime(now.year, now.month, now.day + offset);
+      earliestByMonth.putIfAbsent(_isoMonth(day), () => day);
     }
-    return AttendanceDay.empty;
+
+    final pages = await Future.wait([
+      for (final MapEntry(key: month, value: earliest)
+          in earliestByMonth.entries)
+        _rowsAround(month, reachingBackTo: earliest),
+    ]);
+
+    return AttendanceDay.pickCurrent([
+      for (final page in pages) ...page,
+    ], now);
+  }
+
+  /// The newest rows of [month], enough to hold every day from
+  /// [reachingBackTo] on.
+  ///
+  /// The short page is enough when the month's newest rows are the days
+  /// around now. If it comes back full and still has not reached
+  /// [reachingBackTo] (the month holds rows dated later than tomorrow), the
+  /// days wanted may lie beyond it, so the whole month is read: a card that
+  /// missed today's record would offer the wrong punch.
+  Future<List<AttendanceDay>> _rowsAround(
+    String month, {
+    required DateTime reachingBackTo,
+  }) async {
+    final page = await _recordsOf(month, perPage: _currentRecordPageSize);
+    if (page.length < _currentRecordPageSize) return page;
+
+    final reached = page.any((row) {
+      final date = row.date;
+      return date != null && !date.isAfter(reachingBackTo);
+    });
+    if (reached) return page;
+
+    return _recordsOf(month, perPage: _monthPageSize);
   }
 
   @override
-  Future<List<AttendanceDay>> records(DateRange range) async {
+  Future<List<AttendanceDay>> records(DateRange range) {
+    assert(_isOneMonth(range), 'records() reads one month, got $range');
+    return _recordsOf(_isoMonth(range.start), perPage: _monthPageSize);
+  }
+
+  /// One page of `records/my` for [month] (`YYYY-MM`), newest first.
+  Future<List<AttendanceDay>> _recordsOf(
+    String month, {
+    required int perPage,
+  }) async {
     final response = await _client.get<dynamic>(
       AttendancePaths.myRecords,
-      queryParameters: {
-        'month': _isoMonth(range.start),
-        'page': 1,
-        // Max per the spec (§6.2) — a calendar month never has more days
-        // than this, so one page is always the whole range.
-        'per_page': 100,
-      },
+      queryParameters: {'month': month, 'page': 1, 'per_page': perPage},
     );
 
     final days = ApiEnvelope.unwrapList(
@@ -158,6 +218,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
 
   @override
   Future<AttendanceSummary> summary(DateRange range) async {
+    assert(_isOneMonth(range), 'summary() reads one month, got $range');
     final response = await _client.get<dynamic>(
       AttendancePaths.mySummary,
       queryParameters: {'month': _isoMonth(range.start)},
@@ -398,19 +459,18 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   static PunchBlockDetails _detailsOf(dynamic body) =>
       PunchBlockDetailsModel.fromErrorBody(body);
 
-  /// `YYYY-MM-DD` in the device's own timezone.
+  /// The endpoints read a range as its start's month, so a range that
+  /// spans two would silently lose the second.
+  static bool _isOneMonth(DateRange range) =>
+      range.start.year == range.end.year &&
+      range.start.month == range.end.month;
+
+  /// `YYYY-MM` in the device's own timezone, for the `month` query param on
+  /// the records and summary endpoints.
   ///
   /// Formatted by hand rather than through `DateFormat`, which would render
   /// the digits in the active locale's numerals — Lao digits would make the
   /// query string unparseable to the backend.
-  static String _isoDate(DateTime date) {
-    final month = date.month.toString().padLeft(2, '0');
-    final day = date.day.toString().padLeft(2, '0');
-    return '${date.year}-$month-$day';
-  }
-
-  /// `YYYY-MM`, for the `month` query param on the records and summary
-  /// endpoints.
   static String _isoMonth(DateTime date) =>
       '${date.year}-${date.month.toString().padLeft(2, '0')}';
 }
