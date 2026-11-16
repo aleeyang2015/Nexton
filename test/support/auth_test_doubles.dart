@@ -116,8 +116,15 @@ class FakeAuthRepository implements AuthRepository {
     return loginResult;
   }
 
+  /// Runs while a restore is in flight, before it answers: where a test can
+  /// have the network layer give up on the session mid-restore.
+  Future<void> Function()? whileRestoring;
+
   @override
-  FutureResult<AuthSession> restoreSession() async => restoreResult;
+  FutureResult<AuthSession> restoreSession() async {
+    await whileRestoring?.call();
+    return restoreResult;
+  }
 
   @override
   FutureResult<User> fetchProfile() async {

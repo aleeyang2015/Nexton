@@ -18,14 +18,37 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
     // The network layer clears the tokens and signals here when the server
     // refuses a refresh, a refreshed token still can't read the profile, or
     // the company is switched off.
+    //
+    // On a cold start that signal arrives while the restore below is still
+    // waiting on `/auth/me`, and the restore then answers with a plain
+    // "unauthenticated". The reason is kept aside so the sign-in screen still
+    // gets it: this is how most dead sessions are found.
+    SessionEndReason? endedWhileRestoring;
+    var restoring = true;
+
     final subscription = ref
         .watch(authRepositoryProvider)
         .onSessionExpired
-        .listen(_forceLogout);
+        .listen((reason) {
+          if (restoring) {
+            endedWhileRestoring ??= reason;
+            return;
+          }
+          _forceLogout(reason);
+        });
     ref.onDispose(subscription.cancel);
 
     final result = await ref.read(restoreSessionUseCaseProvider)();
-    return result.getOrElse(const AuthSession.unauthenticated());
+    restoring = false;
+
+    final session = result.getOrElse(const AuthSession.unauthenticated());
+    final reason = endedWhileRestoring;
+    if (reason == null) return session;
+
+    // The network layer gave up on the stored session while it was being
+    // restored. Whatever the restore made of it, that session is gone.
+    await ref.read(logoutUseCaseProvider)();
+    return AuthSession.unauthenticated(endReason: reason);
   }
 
   /// Signs in and, on success, publishes the new session. The [Result] goes
@@ -129,7 +152,16 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
   /// A sign-out the user did not ask for. When the interceptor forced it the
   /// tokens are already gone; this clears the cached profile and the
   /// in-memory session, and keeps [reason] for the sign-in screen.
+  ///
+  /// Requests that were in flight together each report the same loss. Once
+  /// the session is down, a repeat changes nothing: the first reason stands,
+  /// and one the sign-in screen has already said is not said again.
   Future<void> _forceLogout(SessionEndReason reason) async {
+    final current = state.valueOrNull;
+    if (current != null && current.status == AuthStatus.unauthenticated) {
+      return;
+    }
+
     await ref.read(logoutUseCaseProvider)();
     state = AsyncValue.data(AuthSession.unauthenticated(endReason: reason));
   }

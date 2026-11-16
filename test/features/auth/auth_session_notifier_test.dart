@@ -34,6 +34,37 @@ void main() {
       expect((await session()).status, AuthStatus.unauthenticated);
     });
 
+    test('a session the network layer gave up on mid-restore keeps its '
+        'reason', () async {
+      // /auth/me got a 401, the refresh was refused, and only then does the
+      // restore answer, with a plain "unauthenticated".
+      repository.whileRestoring = () async {
+        repository.sessionExpired.add(SessionEndReason.accountDisabled);
+        await Future<void>.delayed(Duration.zero);
+      };
+
+      final restored = await session();
+
+      expect(restored.status, AuthStatus.unauthenticated);
+      expect(restored.endReason, SessionEndReason.accountDisabled);
+      expect(repository.logoutCalls, 1);
+    });
+
+    test('a restore that kept a cached identity still ends when the network '
+        'layer gave up', () async {
+      repository
+        ..restoreResult = Result.success(AuthSession.signedIn(testUser()))
+        ..whileRestoring = () async {
+          repository.sessionExpired.add(SessionEndReason.expired);
+          await Future<void>.delayed(Duration.zero);
+        };
+
+      final restored = await session();
+
+      expect(restored.hasSession, isFalse);
+      expect(restored.endReason, SessionEndReason.expired);
+    });
+
     test('restores a full session', () async {
       repository.restoreResult = Result.success(
         AuthSession.signedIn(testUser()),
@@ -242,6 +273,40 @@ void main() {
       container.read(authSessionProvider.notifier).clearEndReason();
 
       expect(current().status, AuthStatus.unauthenticated);
+      expect(current().endReason, isNull);
+    });
+
+    test('a repeat of the same loss keeps the first reason', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      await session();
+
+      // Requests in flight together each report it; a straggler may even
+      // report a different reason.
+      repository.sessionExpired
+        ..add(SessionEndReason.accountDisabled)
+        ..add(SessionEndReason.accountDisabled)
+        ..add(SessionEndReason.expired);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(current().endReason, SessionEndReason.accountDisabled);
+      expect(repository.logoutCalls, 1);
+    });
+
+    test('a late report after the reason was said is not said again', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      await session();
+
+      repository.sessionExpired.add(SessionEndReason.accountDisabled);
+      await Future<void>.delayed(Duration.zero);
+      container.read(authSessionProvider.notifier).clearEndReason();
+
+      repository.sessionExpired.add(SessionEndReason.expired);
+      await Future<void>.delayed(Duration.zero);
+
       expect(current().endReason, isNull);
     });
 

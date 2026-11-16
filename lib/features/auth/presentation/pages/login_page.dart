@@ -23,7 +23,8 @@ import '../widgets/auth_password_field.dart';
 import '../widgets/remember_me_checkbox.dart';
 
 /// Login screen. Holds only text controllers — every decision lives in
-/// [LoginNotifier].
+/// [LoginNotifier]. It also says, once, why the App ended the last session,
+/// when [AuthSessionNotifier] left a reason.
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 

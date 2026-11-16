@@ -29,9 +29,9 @@ class _Dead extends _RefreshOutcome {
 }
 
 /// No answer about the token at all: a timeout, no connection, a 5xx, a 429,
-/// or a body that is not the refresh response (a Wi-Fi login page). The
-/// tokens are kept; [error] is what the refresh call failed with, when it
-/// failed.
+/// a 4xx from something that is not the API, or a body that is not the
+/// refresh response (a Wi-Fi login page). The tokens are kept; [error] is
+/// what the refresh call failed with, when it failed.
 class _Unreachable extends _RefreshOutcome {
   final DioException? error;
 
@@ -48,13 +48,17 @@ class _Unreachable extends _RefreshOutcome {
 ///   mutex so parallel 401s share one in-flight refresh. A `401` on
 ///   `POST /auth/login` is a wrong password, not an expired token, and passes
 ///   straight on;
-/// * only a refresh the server **refused** ends the session: a `401`, a
-///   `403 USER_INACTIVE`, or no refresh token to send. The tokens are cleared
-///   and [onSessionExpired] says why;
+/// * only a refresh the server **refused** ends the session: a `401`, any
+///   other 4xx that carries the API's own `error.code` (`USER_INACTIVE`,
+///   `TENANT_INACTIVE`, …), or no refresh token to send. The tokens are
+///   cleared and [onSessionExpired] says why;
 /// * a refresh that got **no answer about the token** (timeout, no
-///   connection, 5xx, 429, a body that is not the refresh response) keeps the
-///   session. The request that asked fails with that transport error, so the
-///   screen shows "no connection" or "server error" instead of signing out;
+///   connection, 5xx, 429, a 4xx that is not the API's, a body that is not the
+///   refresh response) keeps the session. The request that asked fails as a
+///   transport or server error, so the screen shows "no connection" or
+///   "server error" instead of signing out;
+/// * a `401` that arrives when no token is stored any more (the session has
+///   already ended) passes straight on: there is nothing left to end;
 /// * a second `401` on `/auth/me` after a successful refresh ends the session.
 ///   A second `401` on any other path propagates as a normal error and leaves
 ///   the session alone;
@@ -81,9 +85,10 @@ class AuthInterceptor extends Interceptor {
   }) : _tokenStorage = tokenStorage,
        _refreshClient = refreshClient;
 
-  /// Emits once per unrecoverable session loss, with the reason. The auth
-  /// feature listens and tears the session down; nothing in `core` knows what
-  /// that means.
+  /// Emits when the session is lost for good, with the reason. Requests that
+  /// were in flight together can each report the same loss, so a listener
+  /// must treat a repeat as the same event. The auth feature listens and
+  /// tears the session down; nothing in `core` knows what that means.
   Stream<SessionEndReason> get onSessionExpired => _sessionExpired.stream;
 
   /// Registers this interceptor on [dio] and remembers it for retries.
@@ -139,6 +144,13 @@ class AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
+    // A straggler: the session this request belonged to has already ended
+    // (a refused refresh, or the user signed out) and nothing is stored. It
+    // must not report a second loss, least of all with a different reason.
+    if (!await _hasStoredSession()) {
+      return handler.next(err);
+    }
+
     if (request.extra[_retriedFlag] == true) {
       // A refreshed token still can't read the profile: the session is gone.
       // On any other path, let the caller deal with the 401.
@@ -158,15 +170,7 @@ class AuthInterceptor extends Interceptor {
         // hand over what the refresh failed with, on the original request,
         // and [NetworkInterceptor] maps it to a network or server failure.
         // `restoreSession` keeps the cached session for those.
-        return handler.next(
-          DioException(
-            requestOptions: request,
-            type: error?.type ?? DioExceptionType.connectionError,
-            error: error?.error,
-            response: error?.response,
-            message: error?.message,
-          ),
-        );
+        return handler.next(_unreachableFor(request, error));
 
       case _Refreshed(:final accessToken):
         try {
@@ -231,20 +235,62 @@ class AuthInterceptor extends Interceptor {
   }
 
   /// Why the server refused a refresh, or null when [error] is not a refusal
-  /// of the token: no answer at all, a 5xx, a 429.
+  /// of the token: no answer at all, a 5xx, a 429, or a 4xx with no API error
+  /// code in it (a proxy or a Wi-Fi gate answering in the server's place).
+  ///
+  /// A 4xx that does carry the API's `error.code` is the server saying no:
+  /// this refresh token will never work, so keeping it would leave a session
+  /// that can only fail.
   static SessionEndReason? _refusalOf(DioException error) {
     final status = error.response?.statusCode;
     if (status == 401) return SessionEndReason.expired;
-    if (status != 403) return null;
+    if (status == null || status < 400 || status >= 500 || status == 429) {
+      return null;
+    }
 
     switch (ApiError.tryParse(error.response?.data)?.code) {
+      case null:
+        return null;
       case ApiErrorCodes.userInactive:
         return SessionEndReason.accountDisabled;
       case ApiErrorCodes.tenantInactive:
         return SessionEndReason.companyInactive;
       default:
-        return null;
+        return SessionEndReason.expired;
     }
+  }
+
+  /// What the request that asked is told when the refresh got no answer
+  /// about the token.
+  ///
+  /// A timeout or a lost connection keeps its own type, and a 5xx keeps its
+  /// response, so they read as "timed out", "no connection" and "server
+  /// error". Any other response belongs to the refresh call, not to this
+  /// request: passing a refresh's 429 on would make a punch look throttled.
+  /// Those, and a refresh body that could not be read, become a plain
+  /// connection error.
+  static DioException _unreachableFor(
+    RequestOptions request,
+    DioException? error,
+  ) {
+    final status = error?.response?.statusCode;
+    final noResponse = error != null && error.response == null;
+    final serverError = status != null && status >= 500;
+
+    if (error != null && (noResponse || serverError)) {
+      return DioException(
+        requestOptions: request,
+        type: error.type,
+        error: error.error,
+        response: error.response,
+        message: error.message,
+      );
+    }
+
+    return DioException(
+      requestOptions: request,
+      type: DioExceptionType.connectionError,
+    );
   }
 
   Future<Response<dynamic>> _replay(RequestOptions request, String token) {
@@ -261,6 +307,13 @@ class AuthInterceptor extends Interceptor {
   Future<void> _expireSession(SessionEndReason reason) async {
     await _tokenStorage.clear();
     if (!_sessionExpired.isClosed) _sessionExpired.add(reason);
+  }
+
+  Future<bool> _hasStoredSession() async {
+    final access = await _tokenStorage.readAccessToken();
+    if (access != null && access.isNotEmpty) return true;
+    final refresh = await _tokenStorage.readRefreshToken();
+    return refresh != null && refresh.isNotEmpty;
   }
 
   bool _isLoginCall(RequestOptions options) =>

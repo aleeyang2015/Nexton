@@ -472,6 +472,117 @@ void main() {
       expect(failure, isA<NetworkFailure>());
     });
 
+    test('a refresh the API refused with another code ends the session: '
+        'that token will never work', () async {
+      for (final reply in const [
+        _Reply(400, {
+          'success': false,
+          'error': {'code': 'INVALID_REQUEST', 'message': 'bad body'},
+        }),
+        _Reply(404, {
+          'success': false,
+          'error': {'code': 'TENANT_NOT_FOUND', 'message': 'no such company'},
+        }),
+        _Reply(403, {
+          'success': false,
+          'error': {'code': 'TENANT_MISMATCH', 'message': 'other company'},
+        }),
+      ]) {
+        final h = await _Harness.create();
+        h.adapter.queue(ApiPaths.me, [_unauthorized]);
+        h.adapter.queue(ApiPaths.refresh, [reply]);
+
+        await expectLater(
+          h.client.get<dynamic>(ApiPaths.me),
+          throwsA(isA<DioException>()),
+        );
+
+        expect(
+          await h.tokens.readRefreshToken(),
+          isNull,
+          reason: 'refresh answered ${reply.status}',
+        );
+        expect(h.sessionExpiredEvents, [SessionEndReason.expired]);
+      }
+    });
+
+    test('a 4xx that is not the API\'s keeps the session: a proxy answered, '
+        'not the server', () async {
+      final (failure, h) = await refreshAnswering(const _Reply(403));
+
+      await expectSessionKept(h);
+      expect(failure, isA<NetworkFailure>());
+    });
+
+    test('a throttled refresh does not make the request that asked look '
+        'throttled', () async {
+      final (failure, _) = await refreshAnswering(
+        const _Reply(429, {
+          'success': false,
+          'error': {'code': 'RATE_LIMITED', 'message': 'slow down'},
+        }),
+      );
+
+      // A punch reads a 429 as its own cooldown; this one was the refresh's.
+      expect((failure as NetworkFailure).statusCode, isNull);
+      expect(failure.errorCode, ApiErrorCodes.noInternet);
+    });
+
+    test('a 401 that lands after the session ended reports nothing '
+        'more', () async {
+      final h = await _Harness.create();
+      h.adapter.queue('/core_hr/employees', [_unauthorized]);
+      h.adapter.queue(ApiPaths.refresh, [
+        const _Reply(403, {
+          'success': false,
+          'error': {'code': 'USER_INACTIVE', 'message': 'User is inactive'},
+        }),
+      ]);
+
+      await expectLater(
+        h.client.get<dynamic>('/core_hr/employees'),
+        throwsA(isA<DioException>()),
+      );
+      expect(h.sessionExpiredEvents, [SessionEndReason.accountDisabled]);
+
+      // A straggler from the same screen. Nothing is stored any more, so it
+      // must not start a refresh or replace the reason with "expired".
+      await expectLater(
+        h.client.get<dynamic>('/core_hr/employees'),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(h.sessionExpiredEvents, [SessionEndReason.accountDisabled]);
+      expect(h.requestsTo(ApiPaths.refresh).length, 1);
+    });
+
+    test('parallel 401s on a refused refresh all report the same reason',
+        () async {
+      final h = await _Harness.create();
+      h.adapter
+        ..slow = true
+        ..queue('/a', [_unauthorized])
+        ..queue('/b', [_unauthorized])
+        ..queue(ApiPaths.refresh, [
+          const _Reply(403, {
+            'success': false,
+            'error': {'code': 'USER_INACTIVE', 'message': 'User is inactive'},
+          }),
+        ]);
+
+      await Future.wait([
+        h.client.get<dynamic>('/a').then<void>((_) {}, onError: (_) {}),
+        h.client.get<dynamic>('/b').then<void>((_) {}, onError: (_) {}),
+      ]);
+
+      expect(h.requestsTo(ApiPaths.refresh).length, 1);
+      expect(h.sessionExpiredEvents, isNotEmpty);
+      expect(
+        h.sessionExpiredEvents.toSet(),
+        {SessionEndReason.accountDisabled},
+      );
+    });
+
     test('a wrong password on login makes no refresh call and ends '
         'nothing', () async {
       // A stale token is still stored, so the login goes out with a bearer.
