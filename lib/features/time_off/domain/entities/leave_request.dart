@@ -72,6 +72,40 @@ class LeaveRequest extends Equatable {
     return null;
   }
 
+  /// The last step that has already approved, if any — who cleared this
+  /// request before it reached the step now pending.
+  ///
+  /// The chain runs dept head (or team lead) first, HR last, so a non-null
+  /// answer on a pending request means it is past its first approval.
+  LeaveApprovalStep? get lastApprovedStep {
+    LeaveApprovalStep? latest;
+    for (final step in steps) {
+      if (step.status != LeaveStepStatus.approved) continue;
+      if (latest == null || step.stepNo > latest.stepNo) latest = step;
+    }
+    return latest;
+  }
+
+  /// True while nobody in the chain has approved yet — the request is still
+  /// sitting with its first approver.
+  bool get awaitsFirstApproval => lastApprovedStep == null;
+
+  /// True when the step now pending is the last one in the chain, so
+  /// approving it grants the leave outright rather than passing it on.
+  ///
+  /// A request whose chain never arrived (empty [steps]) is not treated as
+  /// final: the safe reading of "no chain" is "we don't know yet", and the
+  /// plain approve wording says nothing that could turn out to be wrong.
+  bool get isFinalApprovalStep {
+    final current = currentStep;
+    if (current == null) return false;
+
+    for (final step in steps) {
+      if (step.stepNo > current.stepNo) return false;
+    }
+    return true;
+  }
+
   /// The reviewer's note on a rejection, surfaced on the history card.
   String? get rejectionNote {
     for (final step in steps) {

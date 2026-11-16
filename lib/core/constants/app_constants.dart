@@ -3,25 +3,38 @@ class AppConstants {
   AppConstants._();
 
   // App Configuration
-  static const String appName = 'Next On';
+  static const String appName = 'NEXTON';
   static const String appVersion = '1.0.0';
 
   // API Configuration
   //
-  // `https://api.nexton.work/api` + `/v1` resolves to the `/api/v1/auth` route
-  // group auth.md documents, and auth.md states this reserved host is what the
-  // app points at today — so it is kept as the default rather than guessed at.
+  // `https://app.nexton.work/api` + `/v1` resolves to the `/api/v1/auth`
+  // route group auth.md documents.
   //
-  // Caveat from the same doc: `api.` is RESERVED on the backend and bypasses
-  // tenant resolution, so a login against it mints an ADMIN-audience token, or
-  // is rejected 400 SUBDOMAIN_REQUIRED under TenantStrictMode. A multi-tenant
-  // build must point at `<company>.nexton.work`; override without a code
-  // change via `--dart-define=NEXTON_API_BASE_URL=https://acme.nexton.work/api`.
+  // In production the backend resolves the tenant from the leftmost label of
+  // the Host header, and `api.` / `admin.` are RESERVED labels that bypass
+  // tenant resolution entirely — a login against `api.nexton.work` is rejected
+  // 400 SUBDOMAIN_REQUIRED under TenantStrictMode (verified live), so never
+  // point this at the reserved host. Point a different tenant build at its own
+  // subdomain without a code change:
+  // `--dart-define=NEXTON_API_BASE_URL=https://acme.nexton.work/api`.
   static const String baseUrl = String.fromEnvironment(
     'NEXTON_API_BASE_URL',
-    defaultValue: 'https://api.nexton.work/api',
+    defaultValue: 'https://app.nexton.work/api',
   );
   static const String apiVersion = 'v1';
+
+  // Time-correction requests ("ລືມລົງເວລາ")
+  /// How far back a correction may be filed, in days.
+  static const int timeCorrectionMaxAgeDays = 90;
+
+  /// Longest reason a correction request accepts.
+  static const int timeCorrectionReasonMaxLength = 200;
+
+  // Off-site scan requests ("ລົງເວລານອກພື້ນທີ່")
+  /// Longest reason an off-site scan request accepts. The endpoint only asks
+  /// for it to be non-empty; the cap is the app's, so the card stays readable.
+  static const int offsiteReasonMaxLength = 200;
   static const Duration apiTimeout = Duration(seconds: 30);
   static const Duration connectTimeout = Duration(seconds: 10);
   static const Duration receiveTimeout = Duration(seconds: 30);
@@ -32,15 +45,21 @@ class AppConstants {
   static const String authorizationHeader = 'Authorization';
   static const String userAgentHeader = 'User-Agent';
 
+  /// Sent by a throttled response (429) to say how many seconds to wait
+  /// before retrying — see auth-login.md §2.
+  static const String retryAfterHeader = 'retry-after';
+
   /// Dev-only tenant override on the backend (ignored in production, where the
   /// tenant is the leftmost label of the Host header). See auth.md.
   static const String tenantSlugHeader = 'X-Tenant-Slug';
 
   /// Mirrors the RN app's `EXPO_PUBLIC_TENANT_SLUG`; override per build with
-  /// `--dart-define=NEXTON_TENANT_SLUG=<slug>`.
+  /// `--dart-define=NEXTON_TENANT_SLUG=<slug>`. Kept in step with the leftmost
+  /// label of [baseUrl] so a dev server honouring the header resolves the same
+  /// tenant the host would resolve in production.
   static const String tenantSlug = String.fromEnvironment(
     'NEXTON_TENANT_SLUG',
-    defaultValue: 'nexton-vientiane',
+    defaultValue: 'nexton-demo',
   );
 
   // Content Types
@@ -52,6 +71,11 @@ class AppConstants {
   static const String accessTokenKey = 'access_token';
   static const String refreshTokenKey = 'refresh_token';
   static const String cachedUserKey = 'cached_user';
+
+  /// Unix-seconds expiry of the stored access token, as `/auth/login` and
+  /// `/auth/refresh` report it (auth-login.md §5). Stored beside the tokens so
+  /// it is rotated and cleared with them.
+  static const String expiresAtKey = 'expires_at';
 
   /// Mirrors the login response's `must_change_password` so the requirement
   /// survives a cold start — `/auth/me` never re-reports it.

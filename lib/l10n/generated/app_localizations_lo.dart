@@ -9,10 +9,13 @@ class AppLocalizationsLo extends AppLocalizations {
   AppLocalizationsLo([String locale = 'lo']) : super(locale);
 
   @override
-  String get appTitle => 'Next On';
+  String get appTitle => 'NEXTON';
 
   @override
   String get login => 'ເຂົ້າສູ່ລະບົບ';
+
+  @override
+  String get loginSubtitle => 'ຍິນດີຕ້ອນຮັບສູ່ລະບົບບໍລິຫານ NEXTON';
 
   @override
   String get email => 'ອີເມວ';
@@ -33,10 +36,21 @@ class AppLocalizationsLo extends AppLocalizations {
   String get rememberMe => 'ຈື່ອີເມວຂ້ອຍໄວ້';
 
   @override
+  String get loginOrLoginWith => 'ຫຼື ເຂົ້າສູ່ລະບົບດ້ວຍ';
+
+  @override
+  String loginFooter(Object version) {
+    return 'NEXTON v$version • ລະບົບບໍລິຫານບຸກຄະລາກອນ';
+  }
+
+  @override
   String get genericError => 'ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່';
 
   @override
   String get changePassword => 'ປ່ຽນລະຫັດຜ່ານ';
+
+  @override
+  String get changePasswordSecurityTitle => 'ຮັກສາບັນຊີຂອງທ່ານໃຫ້ປອດໄພ';
 
   @override
   String get changePasswordForcedNotice =>
@@ -95,6 +109,9 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryHistoryMenu => 'ປະຫວັດເງິນເດືອນ';
 
   @override
+  String get forgotClockInMenu => 'ລືມລົງເວລາ';
+
+  @override
   String get activities => 'ການເຄື່ອນໄຫວ';
 
   @override
@@ -139,16 +156,19 @@ class AppLocalizationsLo extends AppLocalizations {
   String get regularTimeBadge => 'REG - ເວລາປົກກະຕິ';
 
   @override
-  String get shiftHoursPlaceholder =>
-      'ກະເຊົ້າ: 08:00 - 12:00 | ກະແລງ: 13:00 - 17:00';
-
-  @override
   String get slideToClockIn => 'ເລື່ອນເພື່ອລົງເວລາເຂົ້າ';
 
   @override
-  String clockMethodsLabel(String methods) {
-    return 'ວິທີລົງເວລາ: $methods';
-  }
+  String get clockMethodsLabel => 'ວິທີລົງເວລາ:';
+
+  @override
+  String get sessionClockInLabel => 'ເຂົ້າ';
+
+  @override
+  String get sessionClockOutLabel => 'ອອກ';
+
+  @override
+  String get sessionAwaitingClockOut => '(ລໍຖ້າ)';
 
   @override
   String get methodGps => 'GPS';
@@ -292,11 +312,11 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get locationPermissionDenied =>
-      'Next On ຕ້ອງການສະຖານທີ່ຂອງທ່ານເພື່ອລົງເວລາ. ກະລຸນາອະນຸຍາດການເຂົ້າເຖິງສະຖານທີ່ ແລ້ວລອງໃໝ່.';
+      'NEXTON ຕ້ອງການສະຖານທີ່ຂອງທ່ານເພື່ອລົງເວລາ. ກະລຸນາອະນຸຍາດການເຂົ້າເຖິງສະຖານທີ່ ແລ້ວລອງໃໝ່.';
 
   @override
   String get locationPermissionDeniedForever =>
-      'ການເຂົ້າເຖິງສະຖານທີ່ຖືກບລັອກ. ກະລຸນາເປີດ ຕັ້ງຄ່າ ແລ້ວອະນຸຍາດສະຖານທີ່ໃຫ້ Next On ແລ້ວລອງໃໝ່.';
+      'ການເຂົ້າເຖິງສະຖານທີ່ຖືກບລັອກ. ກະລຸນາເປີດ ຕັ້ງຄ່າ ແລ້ວອະນຸຍາດສະຖານທີ່ໃຫ້ NEXTON ແລ້ວລອງໃໝ່.';
 
   @override
   String get locationTimeout =>
@@ -328,6 +348,14 @@ class AppLocalizationsLo extends AppLocalizations {
   String get navList => 'ລາຍການ';
 
   @override
+  String get homeServicesTitle => 'ລາຍການ & ບໍລິການ (Services)';
+
+  @override
+  String menuItemCount(int count) {
+    return '$count ລາຍການ';
+  }
+
+  @override
   String get navHome => 'ໜ້າຫຼັກ';
 
   @override
@@ -337,13 +365,13 @@ class AppLocalizationsLo extends AppLocalizations {
   String get comingSoon => 'ກຳລັງພັດທະນາ';
 
   @override
-  String get workHours => 'ຊົ່ວໂມງເຮັດວຽກ';
+  String get workHours => 'ຊົ່ວໂມງວຽກ';
 
   @override
-  String get leaveDays => 'ວັນລາພັກ';
+  String get lateArrivals => 'ມາຊ້າ';
 
   @override
-  String get tasksDone => 'ວຽກສຳເລັດ';
+  String get absences => 'ຂາດວຽກ';
 
   @override
   String get personal => 'ຂໍ້ມູນສ່ວນຕົວ';
@@ -352,16 +380,22 @@ class AppLocalizationsLo extends AppLocalizations {
   String get help => 'ຊ່ວຍເຫຼືອ';
 
   @override
+  String get profileStatusActive => 'ປະຈຸບັນ (Active)';
+
+  @override
   String get attendanceHistoryTitle => 'ປະຫວັດການເຂົ້າວຽກ';
 
   @override
-  String get viewAll => 'ເບິ່ງທັງໝົດ';
+  String get homeMonthStatsTitle => 'ສະຖິຕິການເຮັດວຽກເດືອນນີ້';
 
   @override
-  String get daysPresent => 'ມື້ມາວຽກ';
+  String get viewDetails => 'ເບິ່ງລາຍລະອຽດ';
 
   @override
-  String get daysLate => 'ມາວຽກຊ້າ';
+  String get daysPresent => 'ມາວຽກ';
+
+  @override
+  String get daysLate => 'ມາຊ້າ';
 
   @override
   String get daysAbsent => 'ຂາດວຽກ';
@@ -448,7 +482,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryOvertimeLabel => 'ຊົ່ວໂມງໂອທີ';
 
   @override
-  String get salaryPaidLeaveLabel => 'ລາພັກຮັບເງິນ';
+  String get salaryUnpaidLeaveLabel => 'ລາພັກບໍ່ຮັບເງິນ';
 
   @override
   String get salaryDownloadPdf => 'ດາວໂຫລດໃບເງິນເດືອນ (PDF)';
@@ -466,23 +500,64 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryAllowancesSection => 'ສະຫວັດດີການ / ເບ້ຍລ້ຽງ';
 
   @override
-  String get salaryAttendanceDeductionsSection => 'ລາຍການຫัก — ການເຂົ້າວຽກ';
+  String get salaryAttendanceDeductionsSection => 'ລາຍການຫັກ — ການເຂົ້າວຽກ';
 
   @override
   String get salaryStatutoryDeductionsSection =>
-      'ລາຍການຫัก — ຕາມກົດໝາຍ / ອື່ນໆ';
+      'ລາຍການຫັກ — ຕາມກົດໝາຍ / ອື່ນໆ';
 
   @override
   String get salaryTaxableIncomeLabel => 'ລາຍໄດ້ຄິດອາກອນ (taxable income)';
 
   @override
-  String get salarySocialSecurityBaseLabel => 'ຖານປະກັນສັງຄົມ (SS base)';
+  String get salaryEmployerSocialSecurityLabel => 'ປະກັນສັງຄົມ (ນາຍຈ້າງ)';
+
+  @override
+  String get salaryComponentOtherDeduction => 'ລາຍການຫັກອື່ນໆ';
+
+  @override
+  String salaryPayslipLineBase(String amount) {
+    return 'ຈາກຖານ $amount';
+  }
 
   @override
   String get salaryHistoryEmpty => 'ບໍ່ມີຂໍ້ມູນເງິນເດືອນ';
 
   @override
   String get salaryHistoryLoadFailed => 'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນເງິນເດືອນໄດ້.';
+
+  @override
+  String get payslipDetailLoadFailed => 'ບໍ່ສາມາດໂຫຼດໃບເງິນເດືອນໄດ້.';
+
+  @override
+  String get salaryPdfSaved => 'ບັນທຶກໃບເງິນເດືອນແລ້ວ';
+
+  @override
+  String get salaryPdfInvalid => 'ບໍ່ສາມາດອ່ານໄຟລ໌ PDF ໃບເງິນເດືອນໄດ້.';
+
+  @override
+  String get salaryComponentLate => 'ຫັກເງິນມາຊ້າ';
+
+  @override
+  String get salaryComponentAbsentLate => 'ຫັກເງິນຂາດວຽກຍ້ອນມາຊ້າ';
+
+  @override
+  String get salaryComponentEarlyOut => 'ຫັກເງິນອອກກ່ອນເວລາ';
+
+  @override
+  String get salaryComponentAbsence => 'ຫັກເງິນຂາດວຽກ';
+
+  @override
+  String get salaryUnitMinutes => 'ນາທີ';
+
+  @override
+  String get salaryUnitTimes => 'ຄັ້ງ';
+
+  @override
+  String get salaryUnitDays => 'ມື້';
+
+  @override
+  String get salaryUnitHours => 'ຊົ່ວໂມງ';
 
   @override
   String get language => 'ພາສາ';
@@ -703,7 +778,19 @@ class AppLocalizationsLo extends AppLocalizations {
   String get leaveChooseFileButton => 'ເລືອກໄຟລ໌';
 
   @override
-  String get timeOffApprovalsTab => 'ອະນຸມັດຈາກສາຍງານ';
+  String get leaveAttachNoFiles => 'ຍັງບໍ່ໄດ້ແນບໄຟລ໌';
+
+  @override
+  String get leaveAttachUploading => 'ກຳລັງອັບໂຫລດ…';
+
+  @override
+  String get leaveAttachUploaded => 'ອັບໂຫລດໄຟລ໌ແລ້ວ';
+
+  @override
+  String get leaveAttachUploadFailed => 'ອັບໂຫລດໄຟລ໌ບໍ່ສຳເລັດ. ກະລຸນາລອງໃໝ່.';
+
+  @override
+  String get timeOffApprovalsTab => 'ອະນຸມັດຂໍລາພັກ';
 
   @override
   String leaveApprovalsPendingHeader(int count) {
@@ -718,6 +805,12 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get leaveApprovalApproveAction => 'ອະນຸມັດ';
+
+  @override
+  String get leaveApprovalFinalAction => 'ອະນຸມັດຂັ້ນສຸດທ້າຍ';
+
+  @override
+  String get leaveApprovalClearedNotice => 'ຫົວໜ້າພະແນກອະນຸມັດແລ້ວ';
 
   @override
   String get leaveApprovalRejectAction => 'ປະຕິເສດ';
@@ -857,4 +950,607 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get leaveTypeSearchEmpty => 'ບໍ່ພົບປະເພດການລາທີ່ກົງກັນ';
+
+  @override
+  String get timeCorrectionTitle => 'ແກ້ໄຂເວລາເຂົ້າ ອອກວຽກ';
+
+  @override
+  String get timeCorrectionNoticeTitle => 'ແຈ້ງເຕືອນລະບົບ';
+
+  @override
+  String get timeCorrectionNoticeBody =>
+      'ຄຳຮ້ອງຂອງທ່ານຈະຖືກສົ່ງໄປຍັງຫົວໜ້າງານ (Manager) ເພື່ອພິຈາລະນາອະນຸມັດ';
+
+  @override
+  String get timeCorrectionDateLabel => 'ວັນທີຕ້ອງການແກ້ໄຂ';
+
+  @override
+  String get timeCorrectionTypeLabel => 'ປະເພດການແກ້ໄຂ';
+
+  @override
+  String get timeCorrectionTypeForgotIn => 'ລືມລົງເວລາເຂົ້າ';
+
+  @override
+  String get timeCorrectionTypeForgotOut => 'ລືມລົງເວລາອອກ';
+
+  @override
+  String get timeCorrectionTypeBoth => 'ທັງສອງ (ເຂົ້າ & ອອກ)';
+
+  @override
+  String get timeCorrectionTypeWrongTime => 'ເວລາບໍ່ຖືກຕ້ອງ';
+
+  @override
+  String get timeCorrectionShiftLabel => 'ກະການເຮັດວຽກທີ່ກ່ຽວຂ້ອງ';
+
+  @override
+  String get timeCorrectionClockInLabel => 'ເວລາເຂົ້າຂໍແກ້';
+
+  @override
+  String get timeCorrectionClockOutLabel => 'ເວລາອອກຂໍແກ້';
+
+  @override
+  String get timeCorrectionMorning => 'ຕອນເຊົ້າ';
+
+  @override
+  String get timeCorrectionAfternoon => 'ຕອນບ່າຍ';
+
+  @override
+  String get timeCorrectionEvening => 'ຕອນແລງ';
+
+  @override
+  String get timeCorrectionInvalidTimes => 'ເວລາອອກຕ້ອງຫຼັງເວລາເຂົ້າ';
+
+  @override
+  String get timeCorrectionReasonLabel => 'ເຫດຜົນ / ລາຍລະອຽດ';
+
+  @override
+  String get timeCorrectionReasonHint => 'ລະບຸເຫດຜົນ';
+
+  @override
+  String get timeCorrectionAttachmentLabel => 'ໄຟລ໌ ຫຼື ຮູບພາບປະກອບ';
+
+  @override
+  String get timeCorrectionUploadTitle => 'ກົດເພື່ອອັບໂຫຼດ ຫຼື ຖ່າຍຮູບຫຼັກຖານ';
+
+  @override
+  String get timeCorrectionUploadHint =>
+      'ຮອງຮັບຮູບຖ່າຍໃບຄຳຮ້ອງ, ຫຼັກຖານ JPG, PNG, PDF\n(ສູງສຸດ 5MB)';
+
+  @override
+  String get timeCorrectionTakePhoto => 'ຖ່າຍຮູບ';
+
+  @override
+  String get timeCorrectionChooseFile => 'ເລືອກໄຟລ໌';
+
+  @override
+  String get timeCorrectionFileTooLarge => 'ໄຟລ໌ໃຫຍ່ເກີນ 5MB';
+
+  @override
+  String get timeCorrectionSubmit => 'ສົ່ງຄຳຮ້ອງແກ້ໄຂ';
+
+  @override
+  String get timeCorrectionNoShift => 'ທ່ານຍັງບໍ່ມີກະການເຮັດວຽກ';
+
+  @override
+  String get timeCorrectionPickSegment => 'ເລືອກຊ່ວງກະ';
+
+  @override
+  String get timeCorrectionDateInFuture => 'ວັນທີຕ້ອງບໍ່ເກີນມື້ນີ້';
+
+  @override
+  String timeCorrectionDateTooOld(int days) {
+    return 'ແກ້ໄຂໄດ້ສະເພາະ $days ມື້ຜ່ານມາ';
+  }
+
+  @override
+  String get timeCorrectionShiftRequired =>
+      'ທ່ານຍັງບໍ່ມີກະການເຮັດວຽກ, ບໍ່ສາມາດສົ່ງຄຳຮ້ອງແກ້ໄຂໄດ້';
+
+  @override
+  String get timeCorrectionTimeRequired => 'ກະລຸນາເລືອກເວລາ';
+
+  @override
+  String get timeCorrectionReasonRequired => 'ກະລຸນາລະບຸເຫດຜົນ';
+
+  @override
+  String timeCorrectionReasonTooLong(int max) {
+    return 'ເຫດຜົນຍາວໄດ້ບໍ່ເກີນ $max ຕົວອັກສອນ';
+  }
+
+  @override
+  String get timeCorrectionSubmitSuccess => 'ສົ່ງຄຳຮ້ອງແກ້ໄຂສຳເລັດ';
+
+  @override
+  String get cameraUnavailable => 'ບໍ່ພົບກ້ອງຖ່າຍຮູບໃນອຸປະກອນນີ້';
+
+  @override
+  String get cameraPermissionDenied =>
+      'ກະລຸນາອະນຸຍາດໃຫ້ເຂົ້າເຖິງກ້ອງໃນການຕັ້ງຄ່າ ເພື່ອຖ່າຍຮູບ';
+
+  @override
+  String get cameraCaptureFailed => 'ຖ່າຍຮູບບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່';
+
+  @override
+  String get cameraRetake => 'ຖ່າຍໃໝ່';
+
+  @override
+  String get cameraUsePhoto => 'ໃຊ້ຮູບນີ້';
+
+  @override
+  String get timeCorrectionHistoryMenu => 'ປະຫວັດແກ້ໄຂເວລາ';
+
+  @override
+  String get timeCorrectionHistoryTitle => 'ປະຫວັດການຮ້ອງຂໍແກ້ໄຂເວລາ';
+
+  @override
+  String get timeCorrectionSummaryTotal => 'ທັງໝົດ';
+
+  @override
+  String get timeCorrectionSummaryTotalUnit => 'ລາຍການ';
+
+  @override
+  String get timeCorrectionSummaryPending => 'ລໍຖ້າກວດ';
+
+  @override
+  String get timeCorrectionSummaryPendingUnit => 'ລໍຖ້າ';
+
+  @override
+  String get timeCorrectionSummaryApproved => 'ອະນຸມັດ';
+
+  @override
+  String get timeCorrectionSummaryApprovedUnit => 'ສຳເລັດ';
+
+  @override
+  String timeCorrectionFilterAll(int count) {
+    return 'ທັງໝົດ ($count)';
+  }
+
+  @override
+  String timeCorrectionFilterPending(int count) {
+    return 'ລໍຖ້າ ($count)';
+  }
+
+  @override
+  String timeCorrectionFilterApproved(int count) {
+    return 'ອະນຸມັດ ($count)';
+  }
+
+  @override
+  String timeCorrectionFilterRejected(int count) {
+    return 'ປະຕິເສດ ($count)';
+  }
+
+  @override
+  String get timeCorrectionStatusPending => 'ລໍຖ້າອະນຸມັດ';
+
+  @override
+  String get timeCorrectionStatusApproved => 'ອະນຸມັດແລ້ວ';
+
+  @override
+  String get timeCorrectionStatusRejected => 'ຖືກປະຕິເສດ';
+
+  @override
+  String timeCorrectionClockInAt(String time) {
+    return 'ເຂົ້າ $time';
+  }
+
+  @override
+  String timeCorrectionClockOutAt(String time) {
+    return 'ອອກ $time';
+  }
+
+  @override
+  String get timeCorrectionHistoryEmpty => 'ບໍ່ມີຄຳຮ້ອງ';
+
+  @override
+  String get timeCorrectionNewRequestTitle => 'ສ້າງຄຳຮ້ອງໃໝ່';
+
+  @override
+  String get timeCorrectionNewRequestSubtitle => 'ຮ້ອງຂໍແກ້ໄຂເວລາເຂົ້າ-ອອກວຽກ';
+
+  @override
+  String get timeCorrectionHistoryLoadFailed =>
+      'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງແກ້ໄຂເວລາໄດ້.';
+
+  @override
+  String get timeCorrectionStatusCancelled => 'ຍົກເລີກແລ້ວ';
+
+  @override
+  String get timeCorrectionDetailTitle => 'ລາຍລະອຽດຄຳຮ້ອງ';
+
+  @override
+  String get timeCorrectionDetailLoadFailed => 'ບໍ່ສາມາດໂຫຼດລາຍລະອຽດຄຳຮ້ອງໄດ້.';
+
+  @override
+  String timeCorrectionSubmittedOn(String date) {
+    return 'ວັນທີສົ່ງ: $date';
+  }
+
+  @override
+  String get timeCorrectionRequestDateLabel => 'ວັນທີຮ້ອງຂໍ';
+
+  @override
+  String get timeCorrectionDetailsSection => 'ລາຍລະອຽດການແກ້ໄຂເວລາ';
+
+  @override
+  String get timeCorrectionRequestedIn => 'ເວລາເຂົ້າ (Requested)';
+
+  @override
+  String get timeCorrectionRequestedOut => 'ເວລາອອກ (Requested)';
+
+  @override
+  String timeCorrectionNormalTime(String time) {
+    return 'ປົກກະຕິ: $time';
+  }
+
+  @override
+  String get timeCorrectionTotalHours => 'ລວມຊົ່ວໂມງທີ່ແກ້ໄຂ:';
+
+  @override
+  String timeCorrectionHoursValue(String hours) {
+    return '$hours ຊົ່ວໂມງ';
+  }
+
+  @override
+  String get timeCorrectionShiftGroup => 'ກຸ່ມການກວດສອບກະວຽກ (SHIFT)';
+
+  @override
+  String get timeCorrectionOtEligible => 'OT Eligible';
+
+  @override
+  String timeCorrectionShiftBreak(String hours, int minutes) {
+    return '$hours (ພັກ $minutes ນາທີ)';
+  }
+
+  @override
+  String timeCorrectionShiftType(String type) {
+    return 'ປະເພດ: $type';
+  }
+
+  @override
+  String get timeCorrectionReasonSection => 'ເຫດຜົນ / ລາຍລະອຽດ (Reason)';
+
+  @override
+  String get timeCorrectionAttachmentsSection => 'ເອກະສານ ຫຼື ຮູບພາບຕິດຄັດ';
+
+  @override
+  String timeCorrectionFileCount(int count) {
+    return '$count ໄຟລ໌';
+  }
+
+  @override
+  String get timeCorrectionEvidencePhoto => 'ຮູບພາບຫຼັກຖານ';
+
+  @override
+  String get timeCorrectionEvidenceDocument => 'ເອກະສານຫຼັກຖານ';
+
+  @override
+  String get timeCorrectionWorkflowSection =>
+      'ຂັ້ນຕອນການອະນຸມັດ (Approval Workflow)';
+
+  @override
+  String timeCorrectionStepOf(int current, int total) {
+    return 'ຂັ້ນຕອນທີ $current ຈາກ $total';
+  }
+
+  @override
+  String get timeCorrectionRoleDeptHead => 'ຫົວໜ້າພະແນກ (Dept Head)';
+
+  @override
+  String get timeCorrectionRoleHr => 'ຝ່າຍບຸກຄະລາກອນ (HR)';
+
+  @override
+  String get timeCorrectionRoleOther => 'ຜູ້ອະນຸມັດ';
+
+  @override
+  String get timeCorrectionStepReviewing => 'ກຳລັງກວດສອບ';
+
+  @override
+  String timeCorrectionStepWaitingFor(int step) {
+    return 'ລໍຖ້າຂັ້ນຕອນ $step';
+  }
+
+  @override
+  String get timeCorrectionStepApproved => 'ອະນຸມັດແລ້ວ';
+
+  @override
+  String get timeCorrectionStepRejected => 'ປະຕິເສດ';
+
+  @override
+  String get timeCorrectionApproverUnassigned =>
+      'ລໍຖ້າການກຳນົດ (To be assigned)';
+
+  @override
+  String timeCorrectionSentAt(String time) {
+    return 'ສົ່ງຄຳຮ້ອງເມື່ອ: $time';
+  }
+
+  @override
+  String timeCorrectionActedAt(String time) {
+    return 'ດຳເນີນການເມື່ອ: $time';
+  }
+
+  @override
+  String get timeCorrectionCancelAction => 'ຍົກເລີກຄຳຮ້ອງ (Cancel Request)';
+
+  @override
+  String get timeCorrectionCancelConfirm =>
+      'ຕ້ອງການຍົກເລີກຄຳຮ້ອງແກ້ໄຂເວລານີ້ບໍ?';
+
+  @override
+  String get timeCorrectionCancelled => 'ຍົກເລີກຄຳຮ້ອງແລ້ວ';
+
+  @override
+  String get timeCorrectionCancelFailed => 'ບໍ່ສາມາດຍົກເລີກຄຳຮ້ອງໄດ້.';
+
+  @override
+  String get timeCorrectionContactNote =>
+      'ຫາກມີຂໍ້ສົງໄສ ສາມາດຕິດຕໍ່ຫົວໜ້າພະແນກ ຫຼື HR ໄດ້ໂດຍກົງ';
+
+  @override
+  String get timeCorrectionAttachmentSaved => 'ບັນທຶກໄຟລ໌ແລ້ວ';
+
+  @override
+  String get timeCorrectionAttachmentSaveFailed => 'ດາວໂຫຼດໄຟລ໌ບໍ່ສຳເລັດ.';
+
+  @override
+  String get timeCorrectionApprovalsMenu => 'ອະນຸມັດແກ້ໄຂເວລາ';
+
+  @override
+  String get timeCorrectionApprovalsTitle => 'ຄຳຮ້ອງແກ້ໄຂເວລາ';
+
+  @override
+  String get timeCorrectionApprovalsSearchHint =>
+      'ຄົ້ນຫາຊື່ພະນັກງານ ຫຼື ລະຫັດ (EMP-007)...';
+
+  @override
+  String get timeCorrectionApprovalStatusPending => 'ລໍຖ້າກວດສອບ';
+
+  @override
+  String timeCorrectionApprovalDepartment(String name) {
+    return 'ພະແນກ: $name';
+  }
+
+  @override
+  String timeCorrectionApprovalShift(String name, String hours) {
+    return 'ກະ $name ($hours)';
+  }
+
+  @override
+  String get timeCorrectionApprovalTypeMissingIn =>
+      'ລືມລົງເວລາເຂົ້າ (Missing In)';
+
+  @override
+  String get timeCorrectionApprovalTypeMissingOut =>
+      'ລືມລົງເວລາອອກ (Missing Out)';
+
+  @override
+  String get timeCorrectionApprovalTypeBoth => 'ແກ້ໄຂທັງ ເຂົ້າ ແລະ ອອກ (Both)';
+
+  @override
+  String get timeCorrectionApprovalTypeWrongTime => 'ແກ້ໄຂເວລາຜິດ (Wrong Time)';
+
+  @override
+  String get timeCorrectionApprovalClockIn => 'ເວລາເຂົ້າ (In)';
+
+  @override
+  String get timeCorrectionApprovalClockOut => 'ເວລາອອກ (Out)';
+
+  @override
+  String get timeCorrectionApprovalNewIn => 'ເວລາຂໍແກ້ໄຂເຂົ້າ (New In)';
+
+  @override
+  String get timeCorrectionApprovalNewOut => 'ເວລາຂໍແກ້ໄຂອອກ (New Out)';
+
+  @override
+  String get timeCorrectionApprovalReason => 'ເຫດຜົນ:';
+
+  @override
+  String get timeCorrectionApprovalNoAttachment => 'ບໍ່ມີເອກະສານແນບ';
+
+  @override
+  String get timeCorrectionApprovalAttachmentSubtitle => 'ເອກະສານຫຼັກຖານແນບ';
+
+  @override
+  String get timeCorrectionApprovalViewImage => 'ເບິ່ງຮູບ';
+
+  @override
+  String get timeCorrectionApprovalApprove => 'ອະນຸມັດ';
+
+  @override
+  String get timeCorrectionApprovalReject => 'ປະຕິເສດ';
+
+  @override
+  String get timeCorrectionApprovalApproved => 'ອະນຸມັດຄຳຮ້ອງແລ້ວ';
+
+  @override
+  String get timeCorrectionApprovalRejected => 'ປະຕິເສດຄຳຮ້ອງແລ້ວ';
+
+  @override
+  String get timeCorrectionApprovalsLoadFailed =>
+      'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງແກ້ໄຂເວລາໄດ້.';
+
+  @override
+  String get timeCorrectionApprovalsEmpty => 'ບໍ່ມີຄຳຮ້ອງແກ້ໄຂເວລາ';
+
+  @override
+  String get approvalsMenu => 'ອະນຸມັດ';
+
+  @override
+  String get approvalsLeaveTab => 'ອະນຸມັດລາພັກ';
+
+  @override
+  String get approvalsTimeCorrectionTab => 'ອະນຸມັດແກ້ໄຂເວລາ';
+
+  @override
+  String get offsiteMenu => 'ລົງເວລານອກພື້ນທີ່';
+
+  @override
+  String get offsiteTitle => 'ລົງເວລານອກພື້ນທີ່';
+
+  @override
+  String get offsiteNoticeTitle => 'ການລົງເວລານອກພື້ນທີ່ວຽກ';
+
+  @override
+  String get offsiteNoticeBody =>
+      'ຕຳແໜ່ງຂອງທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ. ກະລຸນາແນບຮູບຖ່າຍ ແລະ ເຫດຜົນ: ຖ້າທ່ານມີສິດເຮັດວຽກນອກພື້ນທີ່ ລະບົບຈະບັນທຶກເວລາທັນທີ, ຖ້າບໍ່ມີ ຝ່າຍບຸຄຄົນຈະພິຈາລະນາອະນຸມັດກ່ອນ';
+
+  @override
+  String get offsiteMethodLabel => 'ປະເພດການລົງເວລາ';
+
+  @override
+  String get offsiteMethodCheckIn => 'ລົງເວລາເຂົ້າ';
+
+  @override
+  String get offsiteMethodCheckOut => 'ລົງເວລາອອກ';
+
+  @override
+  String get offsiteLocationLabel => 'ຕຳແໜ່ງຂອງທ່ານ';
+
+  @override
+  String get offsiteLocating => 'ກຳລັງອ່ານຕຳແໜ່ງ…';
+
+  @override
+  String offsiteAccuracy(int metres) {
+    return 'ຄວາມຄາດເຄື່ອນປະມານ $metres ແມັດ';
+  }
+
+  @override
+  String get offsiteReasonLabel => 'ເຫດຜົນ';
+
+  @override
+  String get offsiteReasonHint => 'ລະບຸເຫດຜົນທີ່ລົງເວລາຢູ່ນອກພື້ນທີ່';
+
+  @override
+  String get offsiteReasonRequired => 'ກະລຸນາລະບຸເຫດຜົນ';
+
+  @override
+  String offsiteReasonTooLong(int max) {
+    return 'ເຫດຜົນຕ້ອງບໍ່ເກີນ $max ຕົວອັກສອນ';
+  }
+
+  @override
+  String get offsitePhotoLabel => 'ຮູບຖ່າຍ';
+
+  @override
+  String get offsitePhotoTitle => 'ກົດເພື່ອຖ່າຍຮູບສະຖານທີ່ທີ່ທ່ານຢູ່';
+
+  @override
+  String get offsitePhotoHint =>
+      'ຕ້ອງແນບຮູບຖ່າຍ: JPG, PNG, HEIC ຫຼື WEBP\n(ສູງສຸດ 5MB)';
+
+  @override
+  String get offsiteChooseImage => 'ເລືອກຮູບ';
+
+  @override
+  String get offsitePhotoRequired => 'ກະລຸນາແນບຮູບຖ່າຍ';
+
+  @override
+  String get offsiteSubmit => 'ສົ່ງຄຳຮ້ອງ';
+
+  @override
+  String get offsiteSubmitApproved => 'ບັນທຶກການລົງເວລານອກພື້ນທີ່ແລ້ວ';
+
+  @override
+  String get offsiteSubmitPending => 'ສົ່ງຄຳຮ້ອງແລ້ວ — ລໍຖ້າການອະນຸມັດ';
+
+  @override
+  String get ruleOutsideWorkArea =>
+      'ທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ ການລົງເວລານີ້ຈຶ່ງບໍ່ຜ່ານການຕວດສອບ';
+
+  @override
+  String get ruleOffsiteRequestExists =>
+      'ທ່ານມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່ຂອງຊ່ວງເວລານີ້ຢູ່ແລ້ວ ກະລຸນາລໍຖ້າຜົນການອະນຸມັດ';
+
+  @override
+  String get ruleTooEarlyCheckin => 'ຍັງບໍ່ເຖິງເວລາລົງເວລາເຂົ້າ';
+
+  @override
+  String ruleTooEarlyCheckinAt(String time) {
+    return 'ຍັງບໍ່ເຖິງເວລາລົງເວລາເຂົ້າ — ເປີດໃຫ້ລົງເວລາຕອນ $time';
+  }
+
+  @override
+  String get approvalsOffsiteTab => 'ອະນຸມັດນອກພື້ນທີ່';
+
+  @override
+  String get offsiteHistoryTitle => 'ປະຫວັດລົງເວລານອກພື້ນທີ່';
+
+  @override
+  String get offsiteHistoryEmpty => 'ບໍ່ມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
+
+  @override
+  String get offsiteHistoryLoadFailed =>
+      'ບໍ່ສາມາດໂຫຼດຄຳຮ້ອງລົງເວລານອກພື້ນທີ່ໄດ້.';
+
+  @override
+  String get offsiteNewRequestTitle => 'ລົງເວລານອກພື້ນທີ່ໃໝ່';
+
+  @override
+  String get offsiteNewRequestSubtitle => 'ຍື່ນຄຳຮ້ອງການລົງເວລານອກພື້ນທີ່ວຽກ';
+
+  @override
+  String get offsiteOfferTitle => 'ຢູ່ນອກພື້ນທີ່ວຽກ';
+
+  @override
+  String get offsiteOfferClockIn =>
+      'ທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ ການລົງເວລາເຂົ້າຖືກບັນທຶກແຕ່ບໍ່ຜ່ານການຕວດສອບ. ຕ້ອງການຍື່ນຄຳຮ້ອງລົງເວລາເຂົ້ານອກພື້ນທີ່ຈາກຈຸດນີ້ບໍ?';
+
+  @override
+  String get offsiteOfferClockOut =>
+      'ທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ ການລົງເວລາອອກຖືກບັນທຶກແຕ່ບໍ່ຜ່ານການຕວດສອບ. ຕ້ອງການຍື່ນຄຳຮ້ອງລົງເວລາອອກນອກພື້ນທີ່ຈາກຈຸດນີ້ບໍ?';
+
+  @override
+  String get offsiteOfferRefusedClockIn =>
+      'ທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ ການລົງເວລາເຂົ້າຈຶ່ງບໍ່ຖືກຮັບ ແລະ ບໍ່ມີການບັນທຶກ. ຕ້ອງການຍື່ນຄຳຮ້ອງລົງເວລາເຂົ້ານອກພື້ນທີ່ຈາກຈຸດນີ້ບໍ?';
+
+  @override
+  String get offsiteOfferRefusedClockOut =>
+      'ທ່ານຢູ່ນອກພື້ນທີ່ວຽກທັງໝົດ ການລົງເວລາອອກຈຶ່ງບໍ່ຖືກຮັບ ແລະ ບໍ່ມີການບັນທຶກ. ຕ້ອງການຍື່ນຄຳຮ້ອງລົງເວລາອອກນອກພື້ນທີ່ຈາກຈຸດນີ້ບໍ?';
+
+  @override
+  String get offsiteOfferConfirm => 'ຍື່ນຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
+
+  @override
+  String get offsiteCancelAction => 'ຍົກເລີກຄຳຮ້ອງ';
+
+  @override
+  String get offsiteCancelConfirm =>
+      'ຕ້ອງການຍົກເລີກຄຳຮ້ອງລົງເວລານອກພື້ນທີ່ນີ້ບໍ? ທ່ານຈະຕ້ອງຍື່ນຄຳຮ້ອງໃໝ່ອີກຄັ້ງ.';
+
+  @override
+  String get offsiteCancelled => 'ຍົກເລີກຄຳຮ້ອງແລ້ວ';
+
+  @override
+  String get offsiteCannotCancel =>
+      'ຄຳຮ້ອງນີ້ຍົກເລີກບໍ່ໄດ້ແລ້ວ — ຖືກພິຈາລະນາໄປແລ້ວ.';
+
+  @override
+  String get offsiteApprovalScannedAt => 'ເວລາທີ່ລົງເວລາ';
+
+  @override
+  String get offsiteApprovalPosition => 'ຕຳແໜ່ງ';
+
+  @override
+  String get offsiteApprovalNoFix => 'ບໍ່ມີຕຳແໜ່ງ';
+
+  @override
+  String get offsiteApprovalNoScanDate => 'ບໍ່ມີວັນທີລົງເວລາ';
+
+  @override
+  String get offsiteApprovalApproved => 'ອະນຸມັດຄຳຮ້ອງແລ້ວ';
+
+  @override
+  String get offsiteApprovalRejected => 'ປະຕິເສດຄຳຮ້ອງແລ້ວ';
+
+  @override
+  String get offsiteApprovalsLoadFailed =>
+      'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງລົງເວລານອກພື້ນທີ່ໄດ້.';
+
+  @override
+  String get offsiteApprovalsEmpty => 'ບໍ່ມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
+
+  @override
+  String get offsiteTooEarlyCheckin =>
+      'ອະນຸມັດແລ້ວ ແຕ່ຍັງບໍ່ເຖິງເວລາລົງເວລາເຂົ້າ — ຍັງບໍ່ໄດ້ບັນທຶກເວລາ';
 }

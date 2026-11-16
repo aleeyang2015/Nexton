@@ -1,20 +1,24 @@
 {
   "@@locale": "en",
 
-  "appTitle": "Next On",
+  "appTitle": "NEXTON",
   "@appTitle": {"description": "Application name shown as the window/task title"},
 
   "login": "Login",
   "@login": {"description": "Login screen heading and submit button"},
+  "loginSubtitle": "Enter your credentials to sign in to NEXTON",
   "email": "Email",
   "emailHint": "Example@gmail.com",
   "password": "Password",
   "passwordHint": "Enter your password",
   "forgotPassword": "Forgot password?",
   "rememberMe": "Remember my email",
+  "loginOrLoginWith": "Or log in with",
+  "loginFooter": "NEXTON v{version} • Human resource management system",
   "genericError": "Something went wrong. Please try again.",
 
   "changePassword": "Change Password",
+  "changePasswordSecurityTitle": "Keep your account secure",
   "changePasswordForcedNotice": "Please set a new password before continuing.",
   "changePasswordVoluntaryNotice": "Set a new password for your account.",
   "currentPassword": "Current Password",
@@ -34,6 +38,7 @@
   "delegateTaskMenu": "Delegate Task",
   "delegateTaskHistoryMenu": "Delegation History",
   "salaryHistoryMenu": "Salary History",
+  "forgotClockInMenu": "Forgot to Clock In",
   "activities": "Activities",
   "documents": "Documents",
   "reports": "Reports",
@@ -52,15 +57,11 @@
   "timeOut": "Time out",
   "currentTimeLabel": "Current time",
   "regularTimeBadge": "REG - Regular Time",
-  "shiftHoursPlaceholder": "Morning: 08:00 - 12:00 | Afternoon: 13:00 - 17:00",
-  "@shiftHoursPlaceholder": {
-    "description": "Fallback only, shown by AttendanceCopy.shiftHoursLine before today's first punch — records/my has no sessions yet at that point, so there is nothing real to show."
-  },
   "slideToClockIn": "Slide to check in",
-  "clockMethodsLabel": "Clock methods: {methods}",
-  "@clockMethodsLabel": {
-    "placeholders": {"methods": {"type": "String"}}
-  },
+  "clockMethodsLabel": "Clock methods:",
+  "sessionClockInLabel": "In",
+  "sessionClockOutLabel": "Out",
+  "sessionAwaitingClockOut": "(waiting)",
   "methodGps": "GPS",
   "methodWifi": "WiFi",
   "methodBiometric": "Biometric",
@@ -120,8 +121,8 @@
 
   "locationUnavailable": "Your location is unavailable. Turn on GPS, allow location access, then try again.",
   "locationServiceDisabled": "Location Services are turned off. Turn them on, then try again.",
-  "locationPermissionDenied": "Next On needs your location to check you in. Please allow location access and try again.",
-  "locationPermissionDeniedForever": "Location access is blocked. Open Settings, allow location for Next On, then try again.",
+  "locationPermissionDenied": "NEXTON needs your location to check you in. Please allow location access and try again.",
+  "locationPermissionDeniedForever": "Location access is blocked. Open Settings, allow location for NEXTON, then try again.",
   "locationTimeout": "Could not get a location fix. Move somewhere with a clearer view of the sky and try again.",
   "wifiUnavailable": "The WiFi network could not be read. Connect to the office WiFi and try again.",
   "fieldReasonRequired": "Please give a reason for the field work.",
@@ -131,18 +132,25 @@
   "attendanceLoadFailed": "Could not load today\u0027s attendance.",
   "noTimeYet": "--:--",
   "navList": "List",
+  "homeServicesTitle": "Lists \u0026 Services",
+  "menuItemCount": "{count} items",
+  "@menuItemCount": {
+    "placeholders": {"count": {"type": "int"}}
+  },
   "navHome": "Home",
   "navProfile": "Profile",
   "comingSoon": "Coming soon",
 
   "workHours": "Work Hours",
-  "leaveDays": "Leave Days",
-  "tasksDone": "Tasks Done",
+  "lateArrivals": "Late Arrivals",
+  "absences": "Absences",
   "personal": "Personal",
   "help": "Help",
+  "profileStatusActive": "Active",
 
   "attendanceHistoryTitle": "Attendance History",
-  "viewAll": "View all",
+  "homeMonthStatsTitle": "This Month\u0027s Work Stats",
+  "viewDetails": "View details",
   "daysPresent": "Days present",
   "daysLate": "Days late",
   "daysAbsent": "Days absent",
@@ -181,7 +189,7 @@
   "salaryOtherDeductions": "Other Deductions",
   "salaryWorkingDaysLabel": "Working Days",
   "salaryOvertimeLabel": "OT Hours",
-  "salaryPaidLeaveLabel": "Paid Leave",
+  "salaryUnpaidLeaveLabel": "Unpaid Leave",
   "salaryDownloadPdf": "Download Payslip (PDF)",
   "payslipDetailTitle": "Payslip",
   "salaryGrossLabel": "Gross",
@@ -190,9 +198,23 @@
   "salaryAttendanceDeductionsSection": "Deductions — Attendance",
   "salaryStatutoryDeductionsSection": "Deductions — Statutory / Other",
   "salaryTaxableIncomeLabel": "Taxable income",
-  "salarySocialSecurityBaseLabel": "Social security base",
+  "salaryEmployerSocialSecurityLabel": "Social security (employer)",
+  "salaryComponentOtherDeduction": "Other deduction",
+  "salaryPayslipLineBase": "on base {amount}",
+  "@salaryPayslipLineBase": {"placeholders": {"amount": {"type": "String"}}},
   "salaryHistoryEmpty": "No salary records",
   "salaryHistoryLoadFailed": "Unable to load salary records.",
+  "payslipDetailLoadFailed": "Unable to load the payslip.",
+  "salaryPdfSaved": "Payslip saved",
+  "salaryPdfInvalid": "The payslip PDF could not be read.",
+  "salaryComponentLate": "Late arrival penalty",
+  "salaryComponentAbsentLate": "Absent-late penalty",
+  "salaryComponentEarlyOut": "Early leave penalty",
+  "salaryComponentAbsence": "Absence penalty",
+  "salaryUnitMinutes": "minutes",
+  "salaryUnitTimes": "times",
+  "salaryUnitDays": "days",
+  "salaryUnitHours": "hours",
 
   "language": "Language",
   "lao": "Lao",
@@ -284,6 +306,10 @@
   "leaveAttachFileLabel": "Attach file",
   "leaveOptionalBadge": "Optional",
   "leaveChooseFileButton": "Choose file",
+  "leaveAttachNoFiles": "No file attached yet",
+  "leaveAttachUploading": "Uploading…",
+  "leaveAttachUploaded": "File uploaded",
+  "leaveAttachUploadFailed": "Couldn't upload the file. Please try again.",
   "timeOffApprovalsTab": "Team Approvals",
   "leaveApprovalsPendingHeader": "Needs your approval ({count})",
   "@leaveApprovalsPendingHeader": {
@@ -292,6 +318,8 @@
   "leaveApprovalsHistoryHeader": "Approval history",
   "leaveApprovalNewBadge": "New",
   "leaveApprovalApproveAction": "Approve",
+  "leaveApprovalFinalAction": "Final approval",
+  "leaveApprovalClearedNotice": "Approved by the department head",
   "leaveApprovalRejectAction": "Reject",
   "leaveApprovalsLoadFailed": "Could not load the approval data.",
   "leaveApprovalsPendingEmpty": "Nothing needs your approval",
@@ -337,5 +365,293 @@
   "leaveEmployeeNotFound": "Your account isn't linked to an employee record.",
   "leaveTypePickerTitle": "Select leave type",
   "leaveTypeSearchHint": "Search",
-  "leaveTypeSearchEmpty": "No matching leave types"
+  "leaveTypeSearchEmpty": "No matching leave types",
+  "timeCorrectionTitle": "Time Correction",
+  "timeCorrectionNoticeTitle": "System notice",
+  "timeCorrectionNoticeBody": "Your request will be sent to your manager for approval.",
+  "timeCorrectionDateLabel": "Date to correct",
+  "timeCorrectionTypeLabel": "Correction type",
+  "timeCorrectionTypeForgotIn": "Missed clock-in",
+  "timeCorrectionTypeForgotOut": "Missed clock-out",
+  "timeCorrectionTypeBoth": "Both (in & out)",
+  "timeCorrectionTypeWrongTime": "Wrong time",
+  "timeCorrectionShiftLabel": "Related shift",
+  "timeCorrectionClockInLabel": "Corrected clock-in",
+  "timeCorrectionClockOutLabel": "Corrected clock-out",
+  "timeCorrectionMorning": "morning",
+  "timeCorrectionAfternoon": "afternoon",
+  "timeCorrectionEvening": "evening",
+  "timeCorrectionInvalidTimes": "Clock-out must be after clock-in.",
+  "timeCorrectionReasonLabel": "Reason / details",
+  "timeCorrectionReasonHint": "Describe what happened",
+  "timeCorrectionAttachmentLabel": "File or photo",
+  "timeCorrectionUploadTitle": "Tap to upload or take a photo of your evidence",
+  "timeCorrectionUploadHint": "Request form photos or evidence: JPG, PNG, PDF\n(max 5MB)",
+  "timeCorrectionTakePhoto": "Take photo",
+  "timeCorrectionChooseFile": "Choose file",
+  "timeCorrectionFileTooLarge": "The file is larger than 5MB.",
+  "timeCorrectionSubmit": "Submit correction",
+  "timeCorrectionNoShift": "No shift is assigned to you yet.",
+  "timeCorrectionPickSegment": "Select a shift segment",
+  "timeCorrectionDateInFuture": "The date can't be in the future.",
+  "timeCorrectionDateTooOld": "You can only correct the last {days} days.",
+  "@timeCorrectionDateTooOld": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "timeCorrectionShiftRequired": "No shift is assigned to you, so a correction can't be filed.",
+  "timeCorrectionTimeRequired": "Please pick the corrected time.",
+  "timeCorrectionReasonRequired": "Please enter a reason.",
+  "timeCorrectionReasonTooLong": "The reason can be at most {max} characters.",
+  "@timeCorrectionReasonTooLong": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "timeCorrectionSubmitSuccess": "Correction request submitted",
+  "cameraUnavailable": "No camera was found on this device.",
+  "cameraPermissionDenied": "Allow camera access in Settings to take a photo.",
+  "cameraCaptureFailed": "Couldn't take the photo. Please try again.",
+  "cameraRetake": "Retake",
+  "cameraUsePhoto": "Use photo",
+  "timeCorrectionHistoryMenu": "Time Correction History",
+  "timeCorrectionHistoryTitle": "Time Correction History",
+  "timeCorrectionSummaryTotal": "Total",
+  "timeCorrectionSummaryTotalUnit": "items",
+  "timeCorrectionSummaryPending": "Awaiting review",
+  "timeCorrectionSummaryPendingUnit": "pending",
+  "timeCorrectionSummaryApproved": "Approved",
+  "timeCorrectionSummaryApprovedUnit": "done",
+  "timeCorrectionFilterAll": "All ({count})",
+  "@timeCorrectionFilterAll": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeCorrectionFilterPending": "Pending ({count})",
+  "@timeCorrectionFilterPending": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeCorrectionFilterApproved": "Approved ({count})",
+  "@timeCorrectionFilterApproved": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeCorrectionFilterRejected": "Rejected ({count})",
+  "@timeCorrectionFilterRejected": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeCorrectionStatusPending": "Awaiting approval",
+  "timeCorrectionStatusApproved": "Approved",
+  "timeCorrectionStatusRejected": "Rejected",
+  "timeCorrectionClockInAt": "In {time}",
+  "@timeCorrectionClockInAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "timeCorrectionClockOutAt": "Out {time}",
+  "@timeCorrectionClockOutAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "timeCorrectionHistoryEmpty": "No correction requests",
+  "timeCorrectionNewRequestTitle": "New request",
+  "timeCorrectionNewRequestSubtitle": "Request a clock-in/out time correction",
+  "timeCorrectionHistoryLoadFailed": "Could not load your correction requests.",
+  "timeCorrectionStatusCancelled": "Cancelled",
+  "timeCorrectionDetailTitle": "Request Details",
+  "timeCorrectionDetailLoadFailed": "Could not load this request.",
+  "timeCorrectionSubmittedOn": "Submitted: {date}",
+  "@timeCorrectionSubmittedOn": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "timeCorrectionRequestDateLabel": "Request date",
+  "timeCorrectionDetailsSection": "Correction details",
+  "timeCorrectionRequestedIn": "Clock in (Requested)",
+  "timeCorrectionRequestedOut": "Clock out (Requested)",
+  "timeCorrectionNormalTime": "Normal: {time}",
+  "@timeCorrectionNormalTime": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "timeCorrectionTotalHours": "Total corrected hours:",
+  "timeCorrectionHoursValue": "{hours} h",
+  "@timeCorrectionHoursValue": {
+    "placeholders": {
+      "hours": {"type": "String"}
+    }
+  },
+  "timeCorrectionShiftGroup": "Shift group (SHIFT)",
+  "timeCorrectionOtEligible": "OT Eligible",
+  "timeCorrectionShiftBreak": "{hours} ({minutes} min break)",
+  "@timeCorrectionShiftBreak": {
+    "placeholders": {
+      "hours": {"type": "String"},
+      "minutes": {"type": "int"}
+    }
+  },
+  "timeCorrectionShiftType": "Type: {type}",
+  "@timeCorrectionShiftType": {
+    "placeholders": {
+      "type": {"type": "String"}
+    }
+  },
+  "timeCorrectionReasonSection": "Reason",
+  "timeCorrectionAttachmentsSection": "Attachments",
+  "timeCorrectionFileCount": "{count} file(s)",
+  "@timeCorrectionFileCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeCorrectionEvidencePhoto": "Evidence photo",
+  "timeCorrectionEvidenceDocument": "Evidence document",
+  "timeCorrectionWorkflowSection": "Approval Workflow",
+  "timeCorrectionStepOf": "Step {current} of {total}",
+  "@timeCorrectionStepOf": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "timeCorrectionRoleDeptHead": "Department Head",
+  "timeCorrectionRoleHr": "Human Resources (HR)",
+  "timeCorrectionRoleOther": "Approver",
+  "timeCorrectionStepReviewing": "Reviewing",
+  "timeCorrectionStepWaitingFor": "Waiting for step {step}",
+  "@timeCorrectionStepWaitingFor": {
+    "placeholders": {
+      "step": {"type": "int"}
+    }
+  },
+  "timeCorrectionStepApproved": "Approved",
+  "timeCorrectionStepRejected": "Rejected",
+  "timeCorrectionApproverUnassigned": "To be assigned",
+  "timeCorrectionSentAt": "Sent: {time}",
+  "@timeCorrectionSentAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "timeCorrectionActedAt": "Decided: {time}",
+  "@timeCorrectionActedAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "timeCorrectionCancelAction": "Cancel Request",
+  "timeCorrectionCancelConfirm": "Cancel this time correction request?",
+  "timeCorrectionCancelled": "Request cancelled",
+  "timeCorrectionCancelFailed": "Couldn't cancel the request.",
+  "timeCorrectionContactNote": "Questions? Contact your department head or HR directly.",
+  "timeCorrectionAttachmentSaved": "File saved",
+  "timeCorrectionAttachmentSaveFailed": "Couldn't download the file.",
+
+  "timeCorrectionApprovalsMenu": "Approve Time Corrections",
+  "timeCorrectionApprovalsTitle": "Time Correction Requests",
+  "timeCorrectionApprovalsSearchHint": "Search by employee name or ID (EMP-007)...",
+  "timeCorrectionApprovalStatusPending": "Awaiting review",
+  "timeCorrectionApprovalDepartment": "Department: {name}",
+  "@timeCorrectionApprovalDepartment": {"placeholders": {"name": {"type": "String"}}},
+  "timeCorrectionApprovalShift": "Shift {name} ({hours})",
+  "@timeCorrectionApprovalShift": {"placeholders": {"name": {"type": "String"}, "hours": {"type": "String"}}},
+  "timeCorrectionApprovalTypeMissingIn": "Missing In",
+  "timeCorrectionApprovalTypeMissingOut": "Missing Out",
+  "timeCorrectionApprovalTypeBoth": "Both in & out",
+  "timeCorrectionApprovalTypeWrongTime": "Wrong time",
+  "timeCorrectionApprovalClockIn": "Clock in (In)",
+  "timeCorrectionApprovalClockOut": "Clock out (Out)",
+  "timeCorrectionApprovalNewIn": "Requested in (New In)",
+  "timeCorrectionApprovalNewOut": "Requested out (New Out)",
+  "timeCorrectionApprovalReason": "Reason:",
+  "timeCorrectionApprovalNoAttachment": "No attachment",
+  "timeCorrectionApprovalAttachmentSubtitle": "Attached evidence",
+  "timeCorrectionApprovalViewImage": "View",
+  "timeCorrectionApprovalApprove": "Approve",
+  "timeCorrectionApprovalReject": "Reject",
+  "timeCorrectionApprovalApproved": "Request approved",
+  "timeCorrectionApprovalRejected": "Request rejected",
+  "timeCorrectionApprovalsLoadFailed": "Couldn't load the correction requests.",
+  "timeCorrectionApprovalsEmpty": "No correction requests",
+
+  "approvalsMenu": "Approvals",
+  "approvalsLeaveTab": "Approve Leave",
+  "approvalsTimeCorrectionTab": "Approve Corrections",
+  "offsiteMenu": "Off-site Clock-in",
+  "offsiteTitle": "Off-site Clock-in",
+  "offsiteNoticeTitle": "Clocking in outside the work area",
+  "offsiteNoticeBody": "Your position is outside every work area. Attach a photo and a reason: if you are cleared for off-site work your punch is recorded at once, otherwise HR reviews the request first.",
+  "offsiteMethodLabel": "Clock-in type",
+  "offsiteMethodCheckIn": "Clock in",
+  "offsiteMethodCheckOut": "Clock out",
+  "offsiteLocationLabel": "Your position",
+  "offsiteLocating": "Reading your position\u2026",
+  "offsiteAccuracy": "Accurate to about {metres} m",
+  "@offsiteAccuracy": {
+    "placeholders": {
+      "metres": {"type": "int"}
+    }
+  },
+  "offsiteReasonLabel": "Reason",
+  "offsiteReasonHint": "Why are you clocking in from outside the work area?",
+  "offsiteReasonRequired": "Please enter a reason.",
+  "offsiteReasonTooLong": "The reason can be at most {max} characters.",
+  "@offsiteReasonTooLong": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "offsitePhotoLabel": "Photo",
+  "offsitePhotoTitle": "Tap to take a photo of where you are",
+  "offsitePhotoHint": "A photo is required: JPG, PNG, HEIC or WEBP\n(max 5MB)",
+  "offsiteChooseImage": "Choose image",
+  "offsitePhotoRequired": "Please attach a photo.",
+  "offsiteSubmit": "Send request",
+  "offsiteSubmitApproved": "Off-site clock-in recorded",
+  "offsiteSubmitPending": "Request sent \u2014 waiting for approval",
+  "ruleOutsideWorkArea": "You are outside every work area, so this punch was not accepted.",
+  "ruleOffsiteRequestExists": "You already have an off-site request for this session. Please wait for the decision.",
+  "ruleTooEarlyCheckin": "It isn't time to clock in yet.",
+  "ruleTooEarlyCheckinAt": "It isn't time to clock in yet \u2014 clock-in opens at {time}.",
+  "@ruleTooEarlyCheckinAt": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "approvalsOffsiteTab": "Approve Off-site",
+  "offsiteHistoryTitle": "Off-site Clock-in History",
+  "offsiteHistoryEmpty": "No off-site clock-in requests",
+  "offsiteHistoryLoadFailed": "Could not load your off-site clock-in requests.",
+  "offsiteNewRequestTitle": "New off-site clock-in",
+  "offsiteNewRequestSubtitle": "File a clock-in taken outside the work area",
+  "offsiteOfferTitle": "Outside the work area",
+  "offsiteOfferClockIn": "You are outside every work area, so this clock-in was recorded but not accepted. Do you want to request an off-site clock-in from here?",
+  "offsiteOfferClockOut": "You are outside every work area, so this clock-out was recorded but not accepted. Do you want to request an off-site clock-out from here?",
+  "offsiteOfferRefusedClockIn": "You are outside every work area, so this clock-in was not accepted and nothing was recorded. Do you want to request an off-site clock-in from here?",
+  "offsiteOfferRefusedClockOut": "You are outside every work area, so this clock-out was not accepted and nothing was recorded. Do you want to request an off-site clock-out from here?",
+  "offsiteOfferConfirm": "Request off-site clock-in",
+  "offsiteCancelAction": "Cancel request",
+  "offsiteCancelConfirm": "Withdraw this off-site clock-in request? You will have to file the clock-in again.",
+  "offsiteCancelled": "Request withdrawn",
+  "offsiteCannotCancel": "This request can no longer be withdrawn \u2014 it has already been decided.",
+  "offsiteApprovalScannedAt": "Clocked in at",
+  "offsiteApprovalPosition": "Position",
+  "offsiteApprovalNoFix": "No position",
+  "offsiteApprovalNoScanDate": "No clock-in date",
+  "offsiteApprovalApproved": "Request approved",
+  "offsiteApprovalRejected": "Request rejected",
+  "offsiteApprovalsLoadFailed": "Couldn't load the off-site clock-in requests.",
+  "offsiteApprovalsEmpty": "No off-site clock-in requests",
+  "offsiteTooEarlyCheckin": "Approved, but it isn't time to clock in yet \u2014 the punch was not recorded."
 }

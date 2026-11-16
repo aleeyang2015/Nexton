@@ -3,6 +3,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
 import 'secure_store.dart';
 
+/// Reads an `expires_at` off the wire — Unix **seconds**, as both
+/// `/auth/login` and `/auth/refresh` report it (auth-login.md §2, §3).
+///
+/// Returns null for a missing, malformed or non-positive value: that is an
+/// *unknown* expiry, which is not the same as an expiry of "now". Shared by
+/// the login model and the refresh handling in [AuthInterceptor], which parse
+/// the same field on either side of the layer boundary.
+DateTime? tokenExpiryFromUnixSeconds(dynamic value) {
+  final seconds = value is num ? value.toInt() : int.tryParse('${value ?? ''}');
+  if (seconds == null || seconds <= 0) return null;
+
+  return DateTime.fromMillisecondsSinceEpoch(seconds * 1000, isUtc: true);
+}
+
 /// Where the session tokens live. Kept behind an interface so the backing
 /// store can be swapped without touching the interceptor or the auth feature.
 abstract class TokenStorage {
@@ -14,7 +28,20 @@ abstract class TokenStorage {
 
   Future<void> writeRefreshToken(String token);
 
-  /// Drops both tokens. Callers that also cache a profile clear it separately.
+  /// When the stored access token expires, or null when the server never said.
+  ///
+  /// Nothing refreshes off this clock — the app still refreshes reactively on
+  /// a 401 (auth-login.md §5) — so a null here is never a reason to treat a
+  /// stored token as dead.
+  Future<DateTime?> readAccessTokenExpiry();
+
+  /// Records the expiry that came with the current access token. A null
+  /// [expiry] drops any stored value, so an expiry can never outlive the token
+  /// it described.
+  Future<void> writeAccessTokenExpiry(DateTime? expiry);
+
+  /// Drops both tokens and the access-token expiry. Callers that also cache a
+  /// profile clear it separately.
   Future<void> clear();
 }
 
@@ -27,6 +54,10 @@ class SecureTokenStorage implements TokenStorage {
   /// In-memory mirror of the access token so the request interceptor never
   /// waits on the keychain for the header it attaches to every call.
   String? _accessToken;
+
+  /// Mirror of the stored expiry, in the same raw Unix-seconds form it is
+  /// written in.
+  String? _expiresAt;
 
   SecureTokenStorage(this._store);
 
@@ -49,10 +80,31 @@ class SecureTokenStorage implements TokenStorage {
       _store.write(AppConstants.refreshTokenKey, token);
 
   @override
+  Future<DateTime?> readAccessTokenExpiry() async {
+    final raw = _expiresAt ??= await _store.read(AppConstants.expiresAtKey);
+    return tokenExpiryFromUnixSeconds(raw);
+  }
+
+  @override
+  Future<void> writeAccessTokenExpiry(DateTime? expiry) async {
+    if (expiry == null) {
+      _expiresAt = null;
+      await _store.delete(AppConstants.expiresAtKey);
+      return;
+    }
+
+    final raw = '${expiry.toUtc().millisecondsSinceEpoch ~/ 1000}';
+    _expiresAt = raw;
+    await _store.write(AppConstants.expiresAtKey, raw);
+  }
+
+  @override
   Future<void> clear() async {
     _accessToken = null;
+    _expiresAt = null;
     await _store.delete(AppConstants.accessTokenKey);
     await _store.delete(AppConstants.refreshTokenKey);
+    await _store.delete(AppConstants.expiresAtKey);
   }
 }
 

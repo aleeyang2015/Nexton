@@ -4,6 +4,7 @@ import '../../domain/entities/leave_duration_type.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_request_draft.dart';
 import '../../time_off_providers.dart';
+import 'leave_attachment_notifier.dart';
 import 'leave_balances_notifier.dart';
 import 'leave_history_notifier.dart';
 import 'leave_request_form_state.dart';
@@ -85,6 +86,7 @@ class LeaveRequestFormNotifier
       durationType: state.durationType,
       returnDate: state.returnToWorkDate,
       reason: state.reason,
+      attachment: ref.read(leaveAttachmentNotifierProvider(arg)).valueOrNull,
     );
 
     final editingId = state.editingRequestId;
@@ -105,6 +107,7 @@ class LeaveRequestFormNotifier
       (request) {
         if (editingId == null) {
           state = const LeaveRequestFormState();
+          ref.read(leaveAttachmentNotifierProvider(arg).notifier).clear();
         } else {
           state = state.copyWith(submission: AsyncValue.data(request));
         }

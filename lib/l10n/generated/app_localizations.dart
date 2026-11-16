@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// Application name shown as the window/task title
   ///
   /// In en, this message translates to:
-  /// **'Next On'**
+  /// **'NEXTON'**
   String get appTitle;
 
   /// Login screen heading and submit button
@@ -109,6 +109,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Login'**
   String get login;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your credentials to sign in to NEXTON'**
+  String get loginSubtitle;
 
   /// No description provided for @email.
   ///
@@ -146,6 +152,18 @@ abstract class AppLocalizations {
   /// **'Remember my email'**
   String get rememberMe;
 
+  /// No description provided for @loginOrLoginWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Or log in with'**
+  String get loginOrLoginWith;
+
+  /// No description provided for @loginFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXTON v{version} • Human resource management system'**
+  String loginFooter(Object version);
+
   /// No description provided for @genericError.
   ///
   /// In en, this message translates to:
@@ -157,6 +175,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change Password'**
   String get changePassword;
+
+  /// No description provided for @changePasswordSecurityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your account secure'**
+  String get changePasswordSecurityTitle;
 
   /// No description provided for @changePasswordForcedNotice.
   ///
@@ -266,6 +290,12 @@ abstract class AppLocalizations {
   /// **'Salary History'**
   String get salaryHistoryMenu;
 
+  /// No description provided for @forgotClockInMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot to Clock In'**
+  String get forgotClockInMenu;
+
   /// No description provided for @activities.
   ///
   /// In en, this message translates to:
@@ -350,12 +380,6 @@ abstract class AppLocalizations {
   /// **'REG - Regular Time'**
   String get regularTimeBadge;
 
-  /// Fallback only, shown by AttendanceCopy.shiftHoursLine before today's first punch — records/my has no sessions yet at that point, so there is nothing real to show.
-  ///
-  /// In en, this message translates to:
-  /// **'Morning: 08:00 - 12:00 | Afternoon: 13:00 - 17:00'**
-  String get shiftHoursPlaceholder;
-
   /// No description provided for @slideToClockIn.
   ///
   /// In en, this message translates to:
@@ -365,8 +389,26 @@ abstract class AppLocalizations {
   /// No description provided for @clockMethodsLabel.
   ///
   /// In en, this message translates to:
-  /// **'Clock methods: {methods}'**
-  String clockMethodsLabel(String methods);
+  /// **'Clock methods:'**
+  String get clockMethodsLabel;
+
+  /// No description provided for @sessionClockInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'In'**
+  String get sessionClockInLabel;
+
+  /// No description provided for @sessionClockOutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Out'**
+  String get sessionClockOutLabel;
+
+  /// No description provided for @sessionAwaitingClockOut.
+  ///
+  /// In en, this message translates to:
+  /// **'(waiting)'**
+  String get sessionAwaitingClockOut;
 
   /// No description provided for @methodGps.
   ///
@@ -611,13 +653,13 @@ abstract class AppLocalizations {
   /// No description provided for @locationPermissionDenied.
   ///
   /// In en, this message translates to:
-  /// **'Next On needs your location to check you in. Please allow location access and try again.'**
+  /// **'NEXTON needs your location to check you in. Please allow location access and try again.'**
   String get locationPermissionDenied;
 
   /// No description provided for @locationPermissionDeniedForever.
   ///
   /// In en, this message translates to:
-  /// **'Location access is blocked. Open Settings, allow location for Next On, then try again.'**
+  /// **'Location access is blocked. Open Settings, allow location for NEXTON, then try again.'**
   String get locationPermissionDeniedForever;
 
   /// No description provided for @locationTimeout.
@@ -668,6 +710,18 @@ abstract class AppLocalizations {
   /// **'List'**
   String get navList;
 
+  /// No description provided for @homeServicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists & Services'**
+  String get homeServicesTitle;
+
+  /// No description provided for @menuItemCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String menuItemCount(int count);
+
   /// No description provided for @navHome.
   ///
   /// In en, this message translates to:
@@ -692,17 +746,17 @@ abstract class AppLocalizations {
   /// **'Work Hours'**
   String get workHours;
 
-  /// No description provided for @leaveDays.
+  /// No description provided for @lateArrivals.
   ///
   /// In en, this message translates to:
-  /// **'Leave Days'**
-  String get leaveDays;
+  /// **'Late Arrivals'**
+  String get lateArrivals;
 
-  /// No description provided for @tasksDone.
+  /// No description provided for @absences.
   ///
   /// In en, this message translates to:
-  /// **'Tasks Done'**
-  String get tasksDone;
+  /// **'Absences'**
+  String get absences;
 
   /// No description provided for @personal.
   ///
@@ -716,17 +770,29 @@ abstract class AppLocalizations {
   /// **'Help'**
   String get help;
 
+  /// No description provided for @profileStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get profileStatusActive;
+
   /// No description provided for @attendanceHistoryTitle.
   ///
   /// In en, this message translates to:
   /// **'Attendance History'**
   String get attendanceHistoryTitle;
 
-  /// No description provided for @viewAll.
+  /// No description provided for @homeMonthStatsTitle.
   ///
   /// In en, this message translates to:
-  /// **'View all'**
-  String get viewAll;
+  /// **'This Month\'s Work Stats'**
+  String get homeMonthStatsTitle;
+
+  /// No description provided for @viewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get viewDetails;
 
   /// No description provided for @daysPresent.
   ///
@@ -896,11 +962,11 @@ abstract class AppLocalizations {
   /// **'OT Hours'**
   String get salaryOvertimeLabel;
 
-  /// No description provided for @salaryPaidLeaveLabel.
+  /// No description provided for @salaryUnpaidLeaveLabel.
   ///
   /// In en, this message translates to:
-  /// **'Paid Leave'**
-  String get salaryPaidLeaveLabel;
+  /// **'Unpaid Leave'**
+  String get salaryUnpaidLeaveLabel;
 
   /// No description provided for @salaryDownloadPdf.
   ///
@@ -950,11 +1016,23 @@ abstract class AppLocalizations {
   /// **'Taxable income'**
   String get salaryTaxableIncomeLabel;
 
-  /// No description provided for @salarySocialSecurityBaseLabel.
+  /// No description provided for @salaryEmployerSocialSecurityLabel.
   ///
   /// In en, this message translates to:
-  /// **'Social security base'**
-  String get salarySocialSecurityBaseLabel;
+  /// **'Social security (employer)'**
+  String get salaryEmployerSocialSecurityLabel;
+
+  /// No description provided for @salaryComponentOtherDeduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Other deduction'**
+  String get salaryComponentOtherDeduction;
+
+  /// No description provided for @salaryPayslipLineBase.
+  ///
+  /// In en, this message translates to:
+  /// **'on base {amount}'**
+  String salaryPayslipLineBase(String amount);
 
   /// No description provided for @salaryHistoryEmpty.
   ///
@@ -967,6 +1045,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to load salary records.'**
   String get salaryHistoryLoadFailed;
+
+  /// No description provided for @payslipDetailLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the payslip.'**
+  String get payslipDetailLoadFailed;
+
+  /// No description provided for @salaryPdfSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Payslip saved'**
+  String get salaryPdfSaved;
+
+  /// No description provided for @salaryPdfInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The payslip PDF could not be read.'**
+  String get salaryPdfInvalid;
+
+  /// No description provided for @salaryComponentLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Late arrival penalty'**
+  String get salaryComponentLate;
+
+  /// No description provided for @salaryComponentAbsentLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent-late penalty'**
+  String get salaryComponentAbsentLate;
+
+  /// No description provided for @salaryComponentEarlyOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Early leave penalty'**
+  String get salaryComponentEarlyOut;
+
+  /// No description provided for @salaryComponentAbsence.
+  ///
+  /// In en, this message translates to:
+  /// **'Absence penalty'**
+  String get salaryComponentAbsence;
+
+  /// No description provided for @salaryUnitMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'minutes'**
+  String get salaryUnitMinutes;
+
+  /// No description provided for @salaryUnitTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'times'**
+  String get salaryUnitTimes;
+
+  /// No description provided for @salaryUnitDays.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get salaryUnitDays;
+
+  /// No description provided for @salaryUnitHours.
+  ///
+  /// In en, this message translates to:
+  /// **'hours'**
+  String get salaryUnitHours;
 
   /// No description provided for @language.
   ///
@@ -1376,6 +1520,30 @@ abstract class AppLocalizations {
   /// **'Choose file'**
   String get leaveChooseFileButton;
 
+  /// No description provided for @leaveAttachNoFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'No file attached yet'**
+  String get leaveAttachNoFiles;
+
+  /// No description provided for @leaveAttachUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading…'**
+  String get leaveAttachUploading;
+
+  /// No description provided for @leaveAttachUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'File uploaded'**
+  String get leaveAttachUploaded;
+
+  /// No description provided for @leaveAttachUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t upload the file. Please try again.'**
+  String get leaveAttachUploadFailed;
+
   /// No description provided for @timeOffApprovalsTab.
   ///
   /// In en, this message translates to:
@@ -1405,6 +1573,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Approve'**
   String get leaveApprovalApproveAction;
+
+  /// No description provided for @leaveApprovalFinalAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Final approval'**
+  String get leaveApprovalFinalAction;
+
+  /// No description provided for @leaveApprovalClearedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved by the department head'**
+  String get leaveApprovalClearedNotice;
 
   /// No description provided for @leaveApprovalRejectAction.
   ///
@@ -1663,6 +1843,1068 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No matching leave types'**
   String get leaveTypeSearchEmpty;
+
+  /// No description provided for @timeCorrectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Correction'**
+  String get timeCorrectionTitle;
+
+  /// No description provided for @timeCorrectionNoticeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'System notice'**
+  String get timeCorrectionNoticeTitle;
+
+  /// No description provided for @timeCorrectionNoticeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request will be sent to your manager for approval.'**
+  String get timeCorrectionNoticeBody;
+
+  /// No description provided for @timeCorrectionDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date to correct'**
+  String get timeCorrectionDateLabel;
+
+  /// No description provided for @timeCorrectionTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction type'**
+  String get timeCorrectionTypeLabel;
+
+  /// No description provided for @timeCorrectionTypeForgotIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed clock-in'**
+  String get timeCorrectionTypeForgotIn;
+
+  /// No description provided for @timeCorrectionTypeForgotOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed clock-out'**
+  String get timeCorrectionTypeForgotOut;
+
+  /// No description provided for @timeCorrectionTypeBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Both (in & out)'**
+  String get timeCorrectionTypeBoth;
+
+  /// No description provided for @timeCorrectionTypeWrongTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong time'**
+  String get timeCorrectionTypeWrongTime;
+
+  /// No description provided for @timeCorrectionShiftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Related shift'**
+  String get timeCorrectionShiftLabel;
+
+  /// No description provided for @timeCorrectionClockInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrected clock-in'**
+  String get timeCorrectionClockInLabel;
+
+  /// No description provided for @timeCorrectionClockOutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrected clock-out'**
+  String get timeCorrectionClockOutLabel;
+
+  /// No description provided for @timeCorrectionMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'morning'**
+  String get timeCorrectionMorning;
+
+  /// No description provided for @timeCorrectionAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'afternoon'**
+  String get timeCorrectionAfternoon;
+
+  /// No description provided for @timeCorrectionEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'evening'**
+  String get timeCorrectionEvening;
+
+  /// No description provided for @timeCorrectionInvalidTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock-out must be after clock-in.'**
+  String get timeCorrectionInvalidTimes;
+
+  /// No description provided for @timeCorrectionReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason / details'**
+  String get timeCorrectionReasonLabel;
+
+  /// No description provided for @timeCorrectionReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe what happened'**
+  String get timeCorrectionReasonHint;
+
+  /// No description provided for @timeCorrectionAttachmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'File or photo'**
+  String get timeCorrectionAttachmentLabel;
+
+  /// No description provided for @timeCorrectionUploadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to upload or take a photo of your evidence'**
+  String get timeCorrectionUploadTitle;
+
+  /// No description provided for @timeCorrectionUploadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Request form photos or evidence: JPG, PNG, PDF\n(max 5MB)'**
+  String get timeCorrectionUploadHint;
+
+  /// No description provided for @timeCorrectionTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get timeCorrectionTakePhoto;
+
+  /// No description provided for @timeCorrectionChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose file'**
+  String get timeCorrectionChooseFile;
+
+  /// No description provided for @timeCorrectionFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is larger than 5MB.'**
+  String get timeCorrectionFileTooLarge;
+
+  /// No description provided for @timeCorrectionSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit correction'**
+  String get timeCorrectionSubmit;
+
+  /// No description provided for @timeCorrectionNoShift.
+  ///
+  /// In en, this message translates to:
+  /// **'No shift is assigned to you yet.'**
+  String get timeCorrectionNoShift;
+
+  /// No description provided for @timeCorrectionPickSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a shift segment'**
+  String get timeCorrectionPickSegment;
+
+  /// No description provided for @timeCorrectionDateInFuture.
+  ///
+  /// In en, this message translates to:
+  /// **'The date can\'t be in the future.'**
+  String get timeCorrectionDateInFuture;
+
+  /// No description provided for @timeCorrectionDateTooOld.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only correct the last {days} days.'**
+  String timeCorrectionDateTooOld(int days);
+
+  /// No description provided for @timeCorrectionShiftRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'No shift is assigned to you, so a correction can\'t be filed.'**
+  String get timeCorrectionShiftRequired;
+
+  /// No description provided for @timeCorrectionTimeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please pick the corrected time.'**
+  String get timeCorrectionTimeRequired;
+
+  /// No description provided for @timeCorrectionReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a reason.'**
+  String get timeCorrectionReasonRequired;
+
+  /// No description provided for @timeCorrectionReasonTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'The reason can be at most {max} characters.'**
+  String timeCorrectionReasonTooLong(int max);
+
+  /// No description provided for @timeCorrectionSubmitSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction request submitted'**
+  String get timeCorrectionSubmitSuccess;
+
+  /// No description provided for @cameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No camera was found on this device.'**
+  String get cameraUnavailable;
+
+  /// No description provided for @cameraPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow camera access in Settings to take a photo.'**
+  String get cameraPermissionDenied;
+
+  /// No description provided for @cameraCaptureFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t take the photo. Please try again.'**
+  String get cameraCaptureFailed;
+
+  /// No description provided for @cameraRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake'**
+  String get cameraRetake;
+
+  /// No description provided for @cameraUsePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Use photo'**
+  String get cameraUsePhoto;
+
+  /// No description provided for @timeCorrectionHistoryMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Correction History'**
+  String get timeCorrectionHistoryMenu;
+
+  /// No description provided for @timeCorrectionHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Correction History'**
+  String get timeCorrectionHistoryTitle;
+
+  /// No description provided for @timeCorrectionSummaryTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get timeCorrectionSummaryTotal;
+
+  /// No description provided for @timeCorrectionSummaryTotalUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'items'**
+  String get timeCorrectionSummaryTotalUnit;
+
+  /// No description provided for @timeCorrectionSummaryPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting review'**
+  String get timeCorrectionSummaryPending;
+
+  /// No description provided for @timeCorrectionSummaryPendingUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'pending'**
+  String get timeCorrectionSummaryPendingUnit;
+
+  /// No description provided for @timeCorrectionSummaryApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get timeCorrectionSummaryApproved;
+
+  /// No description provided for @timeCorrectionSummaryApprovedUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'done'**
+  String get timeCorrectionSummaryApprovedUnit;
+
+  /// No description provided for @timeCorrectionFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All ({count})'**
+  String timeCorrectionFilterAll(int count);
+
+  /// No description provided for @timeCorrectionFilterPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending ({count})'**
+  String timeCorrectionFilterPending(int count);
+
+  /// No description provided for @timeCorrectionFilterApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved ({count})'**
+  String timeCorrectionFilterApproved(int count);
+
+  /// No description provided for @timeCorrectionFilterRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected ({count})'**
+  String timeCorrectionFilterRejected(int count);
+
+  /// No description provided for @timeCorrectionStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting approval'**
+  String get timeCorrectionStatusPending;
+
+  /// No description provided for @timeCorrectionStatusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get timeCorrectionStatusApproved;
+
+  /// No description provided for @timeCorrectionStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get timeCorrectionStatusRejected;
+
+  /// No description provided for @timeCorrectionClockInAt.
+  ///
+  /// In en, this message translates to:
+  /// **'In {time}'**
+  String timeCorrectionClockInAt(String time);
+
+  /// No description provided for @timeCorrectionClockOutAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Out {time}'**
+  String timeCorrectionClockOutAt(String time);
+
+  /// No description provided for @timeCorrectionHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No correction requests'**
+  String get timeCorrectionHistoryEmpty;
+
+  /// No description provided for @timeCorrectionNewRequestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New request'**
+  String get timeCorrectionNewRequestTitle;
+
+  /// No description provided for @timeCorrectionNewRequestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request a clock-in/out time correction'**
+  String get timeCorrectionNewRequestSubtitle;
+
+  /// No description provided for @timeCorrectionHistoryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your correction requests.'**
+  String get timeCorrectionHistoryLoadFailed;
+
+  /// No description provided for @timeCorrectionStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get timeCorrectionStatusCancelled;
+
+  /// No description provided for @timeCorrectionDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Details'**
+  String get timeCorrectionDetailTitle;
+
+  /// No description provided for @timeCorrectionDetailLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this request.'**
+  String get timeCorrectionDetailLoadFailed;
+
+  /// No description provided for @timeCorrectionSubmittedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted: {date}'**
+  String timeCorrectionSubmittedOn(String date);
+
+  /// No description provided for @timeCorrectionRequestDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Request date'**
+  String get timeCorrectionRequestDateLabel;
+
+  /// No description provided for @timeCorrectionDetailsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction details'**
+  String get timeCorrectionDetailsSection;
+
+  /// No description provided for @timeCorrectionRequestedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock in (Requested)'**
+  String get timeCorrectionRequestedIn;
+
+  /// No description provided for @timeCorrectionRequestedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock out (Requested)'**
+  String get timeCorrectionRequestedOut;
+
+  /// No description provided for @timeCorrectionNormalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal: {time}'**
+  String timeCorrectionNormalTime(String time);
+
+  /// No description provided for @timeCorrectionTotalHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Total corrected hours:'**
+  String get timeCorrectionTotalHours;
+
+  /// No description provided for @timeCorrectionHoursValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h'**
+  String timeCorrectionHoursValue(String hours);
+
+  /// No description provided for @timeCorrectionShiftGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift group (SHIFT)'**
+  String get timeCorrectionShiftGroup;
+
+  /// No description provided for @timeCorrectionOtEligible.
+  ///
+  /// In en, this message translates to:
+  /// **'OT Eligible'**
+  String get timeCorrectionOtEligible;
+
+  /// No description provided for @timeCorrectionShiftBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} ({minutes} min break)'**
+  String timeCorrectionShiftBreak(String hours, int minutes);
+
+  /// No description provided for @timeCorrectionShiftType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type: {type}'**
+  String timeCorrectionShiftType(String type);
+
+  /// No description provided for @timeCorrectionReasonSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get timeCorrectionReasonSection;
+
+  /// No description provided for @timeCorrectionAttachmentsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get timeCorrectionAttachmentsSection;
+
+  /// No description provided for @timeCorrectionFileCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} file(s)'**
+  String timeCorrectionFileCount(int count);
+
+  /// No description provided for @timeCorrectionEvidencePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence photo'**
+  String get timeCorrectionEvidencePhoto;
+
+  /// No description provided for @timeCorrectionEvidenceDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence document'**
+  String get timeCorrectionEvidenceDocument;
+
+  /// No description provided for @timeCorrectionWorkflowSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval Workflow'**
+  String get timeCorrectionWorkflowSection;
+
+  /// No description provided for @timeCorrectionStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String timeCorrectionStepOf(int current, int total);
+
+  /// No description provided for @timeCorrectionRoleDeptHead.
+  ///
+  /// In en, this message translates to:
+  /// **'Department Head'**
+  String get timeCorrectionRoleDeptHead;
+
+  /// No description provided for @timeCorrectionRoleHr.
+  ///
+  /// In en, this message translates to:
+  /// **'Human Resources (HR)'**
+  String get timeCorrectionRoleHr;
+
+  /// No description provided for @timeCorrectionRoleOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Approver'**
+  String get timeCorrectionRoleOther;
+
+  /// No description provided for @timeCorrectionStepReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewing'**
+  String get timeCorrectionStepReviewing;
+
+  /// No description provided for @timeCorrectionStepWaitingFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for step {step}'**
+  String timeCorrectionStepWaitingFor(int step);
+
+  /// No description provided for @timeCorrectionStepApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get timeCorrectionStepApproved;
+
+  /// No description provided for @timeCorrectionStepRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get timeCorrectionStepRejected;
+
+  /// No description provided for @timeCorrectionApproverUnassigned.
+  ///
+  /// In en, this message translates to:
+  /// **'To be assigned'**
+  String get timeCorrectionApproverUnassigned;
+
+  /// No description provided for @timeCorrectionSentAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent: {time}'**
+  String timeCorrectionSentAt(String time);
+
+  /// No description provided for @timeCorrectionActedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Decided: {time}'**
+  String timeCorrectionActedAt(String time);
+
+  /// No description provided for @timeCorrectionCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Request'**
+  String get timeCorrectionCancelAction;
+
+  /// No description provided for @timeCorrectionCancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this time correction request?'**
+  String get timeCorrectionCancelConfirm;
+
+  /// No description provided for @timeCorrectionCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Request cancelled'**
+  String get timeCorrectionCancelled;
+
+  /// No description provided for @timeCorrectionCancelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t cancel the request.'**
+  String get timeCorrectionCancelFailed;
+
+  /// No description provided for @timeCorrectionContactNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions? Contact your department head or HR directly.'**
+  String get timeCorrectionContactNote;
+
+  /// No description provided for @timeCorrectionAttachmentSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'File saved'**
+  String get timeCorrectionAttachmentSaved;
+
+  /// No description provided for @timeCorrectionAttachmentSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t download the file.'**
+  String get timeCorrectionAttachmentSaveFailed;
+
+  /// No description provided for @timeCorrectionApprovalsMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Time Corrections'**
+  String get timeCorrectionApprovalsMenu;
+
+  /// No description provided for @timeCorrectionApprovalsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Correction Requests'**
+  String get timeCorrectionApprovalsTitle;
+
+  /// No description provided for @timeCorrectionApprovalsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by employee name or ID (EMP-007)...'**
+  String get timeCorrectionApprovalsSearchHint;
+
+  /// No description provided for @timeCorrectionApprovalStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting review'**
+  String get timeCorrectionApprovalStatusPending;
+
+  /// No description provided for @timeCorrectionApprovalDepartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Department: {name}'**
+  String timeCorrectionApprovalDepartment(String name);
+
+  /// No description provided for @timeCorrectionApprovalShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift {name} ({hours})'**
+  String timeCorrectionApprovalShift(String name, String hours);
+
+  /// No description provided for @timeCorrectionApprovalTypeMissingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing In'**
+  String get timeCorrectionApprovalTypeMissingIn;
+
+  /// No description provided for @timeCorrectionApprovalTypeMissingOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing Out'**
+  String get timeCorrectionApprovalTypeMissingOut;
+
+  /// No description provided for @timeCorrectionApprovalTypeBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Both in & out'**
+  String get timeCorrectionApprovalTypeBoth;
+
+  /// No description provided for @timeCorrectionApprovalTypeWrongTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong time'**
+  String get timeCorrectionApprovalTypeWrongTime;
+
+  /// No description provided for @timeCorrectionApprovalClockIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock in (In)'**
+  String get timeCorrectionApprovalClockIn;
+
+  /// No description provided for @timeCorrectionApprovalClockOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock out (Out)'**
+  String get timeCorrectionApprovalClockOut;
+
+  /// No description provided for @timeCorrectionApprovalNewIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested in (New In)'**
+  String get timeCorrectionApprovalNewIn;
+
+  /// No description provided for @timeCorrectionApprovalNewOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested out (New Out)'**
+  String get timeCorrectionApprovalNewOut;
+
+  /// No description provided for @timeCorrectionApprovalReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason:'**
+  String get timeCorrectionApprovalReason;
+
+  /// No description provided for @timeCorrectionApprovalNoAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'No attachment'**
+  String get timeCorrectionApprovalNoAttachment;
+
+  /// No description provided for @timeCorrectionApprovalAttachmentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached evidence'**
+  String get timeCorrectionApprovalAttachmentSubtitle;
+
+  /// No description provided for @timeCorrectionApprovalViewImage.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get timeCorrectionApprovalViewImage;
+
+  /// No description provided for @timeCorrectionApprovalApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get timeCorrectionApprovalApprove;
+
+  /// No description provided for @timeCorrectionApprovalReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get timeCorrectionApprovalReject;
+
+  /// No description provided for @timeCorrectionApprovalApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Request approved'**
+  String get timeCorrectionApprovalApproved;
+
+  /// No description provided for @timeCorrectionApprovalRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Request rejected'**
+  String get timeCorrectionApprovalRejected;
+
+  /// No description provided for @timeCorrectionApprovalsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the correction requests.'**
+  String get timeCorrectionApprovalsLoadFailed;
+
+  /// No description provided for @timeCorrectionApprovalsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No correction requests'**
+  String get timeCorrectionApprovalsEmpty;
+
+  /// No description provided for @approvalsMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Approvals'**
+  String get approvalsMenu;
+
+  /// No description provided for @approvalsLeaveTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Leave'**
+  String get approvalsLeaveTab;
+
+  /// No description provided for @approvalsTimeCorrectionTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Corrections'**
+  String get approvalsTimeCorrectionTab;
+
+  /// No description provided for @offsiteMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Off-site Clock-in'**
+  String get offsiteMenu;
+
+  /// No description provided for @offsiteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Off-site Clock-in'**
+  String get offsiteTitle;
+
+  /// No description provided for @offsiteNoticeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clocking in outside the work area'**
+  String get offsiteNoticeTitle;
+
+  /// No description provided for @offsiteNoticeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your position is outside every work area. Attach a photo and a reason: if you are cleared for off-site work your punch is recorded at once, otherwise HR reviews the request first.'**
+  String get offsiteNoticeBody;
+
+  /// No description provided for @offsiteMethodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock-in type'**
+  String get offsiteMethodLabel;
+
+  /// No description provided for @offsiteMethodCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock in'**
+  String get offsiteMethodCheckIn;
+
+  /// No description provided for @offsiteMethodCheckOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock out'**
+  String get offsiteMethodCheckOut;
+
+  /// No description provided for @offsiteLocationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your position'**
+  String get offsiteLocationLabel;
+
+  /// No description provided for @offsiteLocating.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading your position…'**
+  String get offsiteLocating;
+
+  /// No description provided for @offsiteAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Accurate to about {metres} m'**
+  String offsiteAccuracy(int metres);
+
+  /// No description provided for @offsiteReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get offsiteReasonLabel;
+
+  /// No description provided for @offsiteReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you clocking in from outside the work area?'**
+  String get offsiteReasonHint;
+
+  /// No description provided for @offsiteReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a reason.'**
+  String get offsiteReasonRequired;
+
+  /// No description provided for @offsiteReasonTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'The reason can be at most {max} characters.'**
+  String offsiteReasonTooLong(int max);
+
+  /// No description provided for @offsitePhotoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get offsitePhotoLabel;
+
+  /// No description provided for @offsitePhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to take a photo of where you are'**
+  String get offsitePhotoTitle;
+
+  /// No description provided for @offsitePhotoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A photo is required: JPG, PNG, HEIC or WEBP\n(max 5MB)'**
+  String get offsitePhotoHint;
+
+  /// No description provided for @offsiteChooseImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose image'**
+  String get offsiteChooseImage;
+
+  /// No description provided for @offsitePhotoRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please attach a photo.'**
+  String get offsitePhotoRequired;
+
+  /// No description provided for @offsiteSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get offsiteSubmit;
+
+  /// No description provided for @offsiteSubmitApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Off-site clock-in recorded'**
+  String get offsiteSubmitApproved;
+
+  /// No description provided for @offsiteSubmitPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent — waiting for approval'**
+  String get offsiteSubmitPending;
+
+  /// No description provided for @ruleOutsideWorkArea.
+  ///
+  /// In en, this message translates to:
+  /// **'You are outside every work area, so this punch was not accepted.'**
+  String get ruleOutsideWorkArea;
+
+  /// No description provided for @ruleOffsiteRequestExists.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have an off-site request for this session. Please wait for the decision.'**
+  String get ruleOffsiteRequestExists;
+
+  /// No description provided for @ruleTooEarlyCheckin.
+  ///
+  /// In en, this message translates to:
+  /// **'It isn\'t time to clock in yet.'**
+  String get ruleTooEarlyCheckin;
+
+  /// No description provided for @ruleTooEarlyCheckinAt.
+  ///
+  /// In en, this message translates to:
+  /// **'It isn\'t time to clock in yet — clock-in opens at {time}.'**
+  String ruleTooEarlyCheckinAt(String time);
+
+  /// No description provided for @approvalsOffsiteTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Off-site'**
+  String get approvalsOffsiteTab;
+
+  /// No description provided for @offsiteHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Off-site Clock-in History'**
+  String get offsiteHistoryTitle;
+
+  /// No description provided for @offsiteHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No off-site clock-in requests'**
+  String get offsiteHistoryEmpty;
+
+  /// No description provided for @offsiteHistoryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your off-site clock-in requests.'**
+  String get offsiteHistoryLoadFailed;
+
+  /// No description provided for @offsiteNewRequestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New off-site clock-in'**
+  String get offsiteNewRequestTitle;
+
+  /// No description provided for @offsiteNewRequestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'File a clock-in taken outside the work area'**
+  String get offsiteNewRequestSubtitle;
+
+  /// No description provided for @offsiteOfferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside the work area'**
+  String get offsiteOfferTitle;
+
+  /// No description provided for @offsiteOfferClockIn.
+  ///
+  /// In en, this message translates to:
+  /// **'You are outside every work area, so this clock-in was recorded but not accepted. Do you want to request an off-site clock-in from here?'**
+  String get offsiteOfferClockIn;
+
+  /// No description provided for @offsiteOfferClockOut.
+  ///
+  /// In en, this message translates to:
+  /// **'You are outside every work area, so this clock-out was recorded but not accepted. Do you want to request an off-site clock-out from here?'**
+  String get offsiteOfferClockOut;
+
+  /// No description provided for @offsiteOfferRefusedClockIn.
+  ///
+  /// In en, this message translates to:
+  /// **'You are outside every work area, so this clock-in was not accepted and nothing was recorded. Do you want to request an off-site clock-in from here?'**
+  String get offsiteOfferRefusedClockIn;
+
+  /// No description provided for @offsiteOfferRefusedClockOut.
+  ///
+  /// In en, this message translates to:
+  /// **'You are outside every work area, so this clock-out was not accepted and nothing was recorded. Do you want to request an off-site clock-out from here?'**
+  String get offsiteOfferRefusedClockOut;
+
+  /// No description provided for @offsiteOfferConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Request off-site clock-in'**
+  String get offsiteOfferConfirm;
+
+  /// No description provided for @offsiteCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel request'**
+  String get offsiteCancelAction;
+
+  /// No description provided for @offsiteCancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw this off-site clock-in request? You will have to file the clock-in again.'**
+  String get offsiteCancelConfirm;
+
+  /// No description provided for @offsiteCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Request withdrawn'**
+  String get offsiteCancelled;
+
+  /// No description provided for @offsiteCannotCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'This request can no longer be withdrawn — it has already been decided.'**
+  String get offsiteCannotCancel;
+
+  /// No description provided for @offsiteApprovalScannedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Clocked in at'**
+  String get offsiteApprovalScannedAt;
+
+  /// No description provided for @offsiteApprovalPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get offsiteApprovalPosition;
+
+  /// No description provided for @offsiteApprovalNoFix.
+  ///
+  /// In en, this message translates to:
+  /// **'No position'**
+  String get offsiteApprovalNoFix;
+
+  /// No description provided for @offsiteApprovalNoScanDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No clock-in date'**
+  String get offsiteApprovalNoScanDate;
+
+  /// No description provided for @offsiteApprovalApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Request approved'**
+  String get offsiteApprovalApproved;
+
+  /// No description provided for @offsiteApprovalRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Request rejected'**
+  String get offsiteApprovalRejected;
+
+  /// No description provided for @offsiteApprovalsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the off-site clock-in requests.'**
+  String get offsiteApprovalsLoadFailed;
+
+  /// No description provided for @offsiteApprovalsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No off-site clock-in requests'**
+  String get offsiteApprovalsEmpty;
+
+  /// No description provided for @offsiteTooEarlyCheckin.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved, but it isn\'t time to clock in yet — the punch was not recorded.'**
+  String get offsiteTooEarlyCheckin;
 }
 
 class _AppLocalizationsDelegate

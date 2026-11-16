@@ -32,10 +32,25 @@ class AttendanceState with _$AttendanceState {
   /// True while today's record is being fetched for the first time.
   bool get isLoadingToday => today.isLoading;
 
-  bool get isClockedIn => day.isClockedIn;
+  /// True only when the open session actually belongs to today. A session
+  /// left open across midnight by a forgotten clock-out no longer counts —
+  /// otherwise the card would hang on "clock out" forever instead of letting
+  /// the employee start the new day with a fresh clock-in.
+  bool get isClockedIn {
+    final clockIn = day.openSession?.clockIn;
+    return clockIn != null && _isToday(clockIn);
+  }
 
   /// Which endpoint the slide action should hit next.
-  ClockAction get nextAction => day.nextAction;
+  ClockAction get nextAction =>
+      isClockedIn ? ClockAction.clockOut : ClockAction.clockIn;
+
+  static bool _isToday(DateTime value) {
+    final now = DateTime.now();
+    return value.year == now.year &&
+        value.month == now.month &&
+        value.day == now.day;
+  }
 
   bool get isCoolingDown {
     final until = cooldownUntil;

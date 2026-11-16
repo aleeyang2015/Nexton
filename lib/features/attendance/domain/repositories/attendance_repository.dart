@@ -1,9 +1,15 @@
+import 'dart:typed_data';
+
 import '../../../../core/utils/result.dart';
 import '../entities/attendance_day.dart';
 import '../entities/attendance_summary.dart';
 import '../entities/date_range.dart';
 import '../entities/punch_outcome.dart';
 import '../entities/punch_request.dart';
+import '../entities/time_correction_detail.dart';
+import '../entities/time_correction_record.dart';
+import '../entities/time_correction_request.dart';
+import '../entities/time_correction_status.dart';
 
 /// Contract the presentation layer depends on. The implementation lives in
 /// data/repositories.
@@ -33,4 +39,44 @@ abstract class AttendanceRepository {
   /// `GET /attendance/records/summary/my` over [range] — the history page's
   /// stat cards (§6.3).
   FutureResult<AttendanceSummary> summary(DateRange range);
+
+  /// `POST /attendance/correction-requests` — files a "ລືມລົງເວລາ" request
+  /// for a manager to approve.
+  FutureResult<Unit> submitTimeCorrection(TimeCorrectionRequest request);
+
+  /// `GET /attendance/correction-requests/my` — the employee's filed
+  /// requests, newest first.
+  FutureResult<List<TimeCorrectionRecord>> myTimeCorrections();
+
+  /// `GET /attendance/correction-requests/:id` — one request in full.
+  FutureResult<TimeCorrectionDetail> timeCorrectionDetail(String id);
+
+  /// `PUT /attendance/correction-requests/:id/cancel` — withdraws a pending
+  /// request.
+  FutureResult<Unit> cancelTimeCorrection(String id);
+
+  /// `GET /attendance/correction-requests/my-approvals` — the requests the
+  /// signed-in approver decides on, newest first.
+  ///
+  /// [status] is read against the caller's own step: `pending` is what still
+  /// waits on them, `approved`/`rejected` what they have already decided.
+  FutureResult<List<TimeCorrectionDetail>> timeCorrectionApprovals({
+    TimeCorrectionStatus? status,
+  });
+
+  /// `PUT /attendance/correction-requests/:id/approve` — [stepId] is the
+  /// step the caller saw pending, so a decision aimed at a step that has
+  /// since moved on is refused rather than applied to the wrong one.
+  FutureResult<Unit> approveTimeCorrection(String id, {String? stepId});
+
+  /// `PUT /attendance/correction-requests/:id/reject` — [note] is required,
+  /// and is what the employee is told.
+  FutureResult<Unit> rejectTimeCorrection(
+    String id, {
+    required String note,
+    String? stepId,
+  });
+
+  /// The bytes of an evidence file, from its storage URL.
+  FutureResult<Uint8List> timeCorrectionAttachment(String url);
 }

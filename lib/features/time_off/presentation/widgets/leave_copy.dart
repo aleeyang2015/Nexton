@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_approval_step.dart';
 import '../../domain/entities/leave_duration_type.dart';
+import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_status.dart';
 import '../../domain/entities/leave_type.dart';
 
@@ -124,6 +125,17 @@ class LeaveCopy {
         LeaveStepRole.hr => l10n.leaveStepHr,
         LeaveStepRole.unknown => l10n.leaveStepManagerReview,
       };
+
+  /// What the primary button on a pending approval card should say.
+  ///
+  /// The last step in the chain grants the leave outright, so it is named
+  /// differently from a step that merely passes the request along.
+  static String approveActionLabel(
+    AppLocalizations l10n,
+    LeaveRequest request,
+  ) => request.isFinalApprovalStep
+      ? l10n.leaveApprovalFinalAction
+      : l10n.leaveApprovalApproveAction;
 
   static ({String label, Color color}) statusPill(
     AppLocalizations l10n,

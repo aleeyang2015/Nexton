@@ -93,6 +93,47 @@ void main() {
       },
     );
 
+    test('persists the access-token expiry the login reported', () async {
+      final expiry = DateTime.fromMillisecondsSinceEpoch(
+        1773504662 * 1000,
+        isUtc: true,
+      );
+      remote
+        ..loginResponse = testTokens(expiresAt: expiry)
+        ..profile = testUserModel();
+
+      await repository.login(email: 'a@b.la', password: 'password1');
+
+      expect(store.values[AppConstants.expiresAtKey], '1773504662');
+    });
+
+    test('a login that reports no expiry stores none', () async {
+      remote
+        ..loginResponse = testTokens()
+        ..profile = testUserModel();
+
+      await repository.login(email: 'a@b.la', password: 'password1');
+
+      expect(store.values.containsKey(AppConstants.expiresAtKey), isFalse);
+    });
+
+    test('a rolled-back login leaves no expiry behind', () async {
+      remote
+        ..loginResponse = testTokens(
+          expiresAt: DateTime.now().toUtc().add(const Duration(hours: 1)),
+        )
+        ..profileError = _mappedError(500, 'INTERNAL_ERROR', 'boom');
+
+      final result = await repository.login(
+        email: 'a@b.la',
+        password: 'password1',
+      );
+
+      expect(result.isFailure, isTrue);
+      // The whole session write is rolled back, expiry included.
+      expect(store.values, isEmpty);
+    });
+
     test(
       'must_change_password: true lands in the pending state and persists',
       () async {
