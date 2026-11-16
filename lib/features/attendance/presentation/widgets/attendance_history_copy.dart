@@ -91,6 +91,7 @@ class AttendanceHistoryCopy {
   static const String _statusAbsent = 'absent';
   static const String _statusIncomplete = 'incomplete';
   static const String _statusHalfDay = 'half_day';
+  static const String _statusLate = 'late';
 
   /// The one status pill a day's row shows.
   ///
@@ -99,7 +100,8 @@ class AttendanceHistoryCopy {
   /// like — a day with only a clock-out is absent, not "present". For a day
   /// that was worked (`present`, `late`, or a status this app does not know)
   /// a late arrival outranks an early exit, and a day with neither is a
-  /// plain "present".
+  /// plain "present". A day the backend calls `late` is late even when no
+  /// session carries the flag.
   ///
   /// There is no overtime pill. Time worked past the shift is not overtime
   /// unless it was approved, and this list cannot know that.
@@ -110,7 +112,8 @@ class AttendanceHistoryCopy {
     AppLocalizations l10n,
     AttendanceDay day,
   ) {
-    switch (day.status?.trim().toLowerCase()) {
+    final dayStatus = day.status?.trim().toLowerCase();
+    switch (dayStatus) {
       case _statusAbsent:
         return (
           label: l10n.attendanceAbsentStatus,
@@ -128,7 +131,7 @@ class AttendanceHistoryCopy {
         );
     }
 
-    if (day.isLate) {
+    if (day.isLate || dayStatus == _statusLate) {
       final minutes = day.lateMinutes;
       return (
         label: minutes == null

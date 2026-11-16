@@ -64,8 +64,12 @@ class AttendanceRecordModel {
 
   static String? _string(dynamic value) => value is String ? value : null;
 
-  static String? _nonEmpty(String? value) =>
-      (value == null || value.isEmpty) ? null : value;
+  /// Blank text is no text: a name or a place made only of spaces must not
+  /// stand in for a real one, nor leave a row with an empty label.
+  static String? _nonEmpty(String? value) {
+    final text = value?.trim() ?? '';
+    return text.isEmpty ? null : text;
+  }
 
   static double? _double(dynamic value) => (value as num?)?.toDouble();
 

@@ -195,6 +195,37 @@ void main() {
       expect(session.partNameLo, isNull);
     });
 
+    test('blank text is no text: it neither names a row nor hides the '
+        'clock-out\'s method and place', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            {
+              'date': '2026-06-16',
+              'sessions': [
+                {
+                  'clock_in': '2026-06-16 08:00:00',
+                  'clock_out': '2026-06-16 17:00:00',
+                  'clock_in_method': ' ',
+                  'clock_out_method': 'gps',
+                  'clock_in_location_name': '',
+                  'clock_out_location_name': ' Head Office ',
+                  'shift_detail': {'name': '  ', 'name_lo': null},
+                },
+              ],
+            },
+          ],
+        };
+
+      final session = (await source.records(range)).single.sessions.single;
+
+      expect(session.method, 'gps');
+      expect(session.locationLabel, 'Head Office');
+      expect(session.partName, isNull);
+    });
+
     test('the day\'s hours come from work_hours, and the made-up keys are '
         'not read', () async {
       adapter
@@ -375,6 +406,19 @@ void main() {
       }
     });
 
+    test('a day the backend calls late is late, even with no session flag',
+        () {
+      const day = AttendanceDay(
+        status: 'late',
+        sessions: [AttendanceSession()],
+      );
+
+      final status = AttendanceHistoryCopy.status(en, day);
+
+      expect(status.label, 'Late');
+      expect(status.color, AppColors.attendanceLate);
+    });
+
     test('present with an early exit: the early-exit pill', () {
       const day = AttendanceDay(
         status: 'present',
@@ -398,14 +442,14 @@ void main() {
       expect(
         AttendanceHistoryCopy.status(
           en,
-          const AttendanceDay(status: 'on_leave', sessions: late),
+          const AttendanceDay(status: 'a_new_status', sessions: late),
         ).label,
         'Late',
       );
       expect(
         AttendanceHistoryCopy.status(
           en,
-          const AttendanceDay(status: 'on_leave'),
+          const AttendanceDay(status: 'a_new_status'),
         ).label,
         'Present',
       );
@@ -678,6 +722,19 @@ void main() {
       // is `localeProvider`'s, which defaults to Lao, so the Lao names show.
       expect(find.text('ກະເຊົ້າ'), findsOneWidget);
       expect(find.text('ກະແລງ'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a session with no shift part is named by its position', (
+      tester,
+    ) async {
+      final en = lookupAppLocalizations(const Locale('en'));
+
+      await pumpPage(tester);
+      await tester.tap(find.text(AttendanceHistoryCopy.dayTitle(en, day21)));
+      await tester.pump();
+
+      expect(find.text(en.shiftMorningLabel), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
