@@ -203,6 +203,33 @@ void main() {
       );
     });
 
+    test('the wordings that name a time are in the user\'s language too', () {
+      const details = PunchBlockDetails(
+        clockInOpens: '07:00',
+        clockIn: '08:05',
+        latestCheckout: '18:30',
+        lastShiftEnd: '17:30',
+      );
+      const timed = {
+        AttendanceRule.tooEarlyCheckin: '07:00',
+        AttendanceRule.clockOutBeforeClockIn: '08:05',
+        AttendanceRule.afterCheckoutWindow: '18:30',
+        AttendanceRule.outsideShiftHours: '17:30',
+      };
+
+      for (final MapEntry(key: rule, value: time) in timed.entries) {
+        final inLao = text(lao, rule, details);
+        final inEnglish = text(l10n, rule, details);
+
+        expect(inLao, contains(time), reason: '$rule');
+        expect(RegExp(r'[\u0E80-\u0EFF]').hasMatch(inLao), isTrue);
+        expect(inEnglish, contains(time), reason: '$rule');
+        expect(RegExp(r'[\u0E80-\u0EFF]').hasMatch(inEnglish), isFalse);
+        // And not the same sentence as the one that names no time.
+        expect(inLao, isNot(text(lao, rule)), reason: '$rule');
+      }
+    });
+
     test('an empty detail is treated as missing, not shown as a blank', () {
       expect(
         text(
@@ -212,6 +239,40 @@ void main() {
         ),
         lao.ruleAfterCheckoutWindow,
       );
+    });
+  });
+
+  group('AttendanceCopy.detailTime', () {
+    test('a wall-clock time is shown as HH:MM, without seconds', () {
+      expect(AttendanceCopy.detailTime('17:30'), '17:30');
+      expect(AttendanceCopy.detailTime('17:30:00'), '17:30');
+      expect(AttendanceCopy.detailTime('7:05'), '07:05');
+      expect(AttendanceCopy.detailTime(' 07:00 '), '07:00');
+    });
+
+    test('a date-time stamp becomes the local HH:mm', () {
+      final stamp = DateTime(2026, 11, 16, 18, 30).toUtc().toIso8601String();
+
+      expect(AttendanceCopy.detailTime(stamp), '18:30');
+    });
+
+    test('nothing to show reads as missing, so the plain wording is used', () {
+      expect(AttendanceCopy.detailTime(null), isNull);
+      expect(AttendanceCopy.detailTime(''), isNull);
+      expect(AttendanceCopy.detailTime('   '), isNull);
+    });
+
+    test('a value that is not a time is left out, not shown as 00:00', () {
+      // The zero date a missing Go time serialises to.
+      expect(AttendanceCopy.detailTime('0001-01-01T00:00:00Z'), isNull);
+      // `DateTime.tryParse` would read these as dates.
+      expect(AttendanceCopy.detailTime('20261116'), isNull);
+      expect(AttendanceCopy.detailTime('1794812400'), isNull);
+      expect(AttendanceCopy.detailTime('730'), isNull);
+    });
+
+    test('other text passes through untouched', () {
+      expect(AttendanceCopy.detailTime('13:30–17:30'), '13:30–17:30');
     });
   });
 }

@@ -96,8 +96,9 @@ class OffsiteCopy {
   ///
   /// The backend's own wording is preferred wherever it exists — §3's messages
   /// name the session and the time ("clocking in opens at 07:45") — with the
-  /// app's copy as the fallback. Shared with the punch card, which is refused
-  /// by the same rules.
+  /// app's copy as the fallback. The punch card is refused by the same rules
+  /// but always shows the app's copy (`AttendanceCopy.rule`); this form still
+  /// puts the server's sentence first.
   static String blocked(AppLocalizations l10n, OffsiteBlocked blocked) {
     final serverMessage = blocked.message.trim();
     if (serverMessage.isNotEmpty) return serverMessage;

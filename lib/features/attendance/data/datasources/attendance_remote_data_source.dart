@@ -424,6 +424,14 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     final status = response?.statusCode;
     if (status == null || status >= 500) return null;
 
+    // The user is shown the app's own text for the rule, so the server's
+    // sentence would otherwise be seen by nobody. It names the session and
+    // the times; a developer chasing a refusal wants it.
+    _debugLog('punch refused (${apiError?.code})', {
+      'message': apiError?.bestMessage,
+      'details': _detailsOf(response?.data).raw,
+    });
+
     return PunchBlocked(
       rule: rule,
       message: apiError?.bestMessage ?? '',

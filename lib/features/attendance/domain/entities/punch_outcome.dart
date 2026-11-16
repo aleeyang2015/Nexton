@@ -189,9 +189,10 @@ class PunchRecorded extends PunchOutcome with EquatableMixin {
 class PunchBlocked extends PunchOutcome with EquatableMixin {
   final AttendanceRule rule;
 
-  /// The backend's own wording, always in English. Kept for logs; the user
-  /// is shown the app's text for [rule] in their language, filled from
-  /// [details] (`AttendanceCopy.rule`).
+  /// The backend's own wording, always in English. The punch card shows the
+  /// app's text for [rule] in the user's language instead, filled from
+  /// [details] (`AttendanceCopy.rule`); the data source writes this sentence
+  /// to the debug log.
   final String message;
 
   final PunchBlockDetails details;

@@ -245,12 +245,32 @@ class AttendanceCopy {
     };
   }
 
-  /// A `details` value rendered for display: an RFC3339 stamp becomes a local
-  /// `HH:mm`, anything else (`"17:30"`, a label) is passed through untouched.
+  /// A `details` time rendered for display, or null when there is nothing
+  /// fit to show — the caller then uses the wording that names no time.
+  ///
+  /// The backend sends these as the company's wall clock, `HH:MM` (seconds
+  /// are dropped when present). A full date-time stamp becomes a local
+  /// `HH:mm`. Since every refusal's text is now built from these, anything
+  /// that is not a time is left out rather than shown: a bare number, or the
+  /// zero date a missing value serialises to. Other text (a label) passes
+  /// through untouched.
   static String? detailTime(String? raw) {
-    if (raw == null || raw.isEmpty) return null;
-    final parsed = DateTime.tryParse(raw);
-    return parsed == null ? raw : hourMinute(parsed.toLocal());
+    final value = raw?.trim() ?? '';
+    if (value.isEmpty) return null;
+
+    final clock = RegExp(r'^(\d{1,2}):(\d{2})(?::\d{2})?$').firstMatch(value);
+    if (clock != null) {
+      return '${clock.group(1)!.padLeft(2, '0')}:${clock.group(2)}';
+    }
+
+    // `DateTime.tryParse` reads "20261116" as a date; a number is not a time.
+    if (RegExp(r'^[\d.]+$').hasMatch(value)) return null;
+
+    final parsed = DateTime.tryParse(value);
+    if (parsed == null) return value;
+    // Go's zero time, sent for a value the backend did not have.
+    if (parsed.year <= 1) return null;
+    return hourMinute(parsed.toLocal());
   }
 
   /// Formatted by hand rather than through `DateFormat`: under the Lao locale
