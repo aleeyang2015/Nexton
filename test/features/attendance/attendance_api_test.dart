@@ -18,8 +18,15 @@ class _StubAdapter implements HttpClientAdapter {
   int status = 200;
   Object body = const <String, dynamic>{};
 
+  /// When set, answers each request from its own query instead of [body] —
+  /// for calls that go out in parallel to different months.
+  Object Function(RequestOptions options)? bodyFor;
+
   RequestOptions? lastRequest;
   String? lastBody;
+
+  /// Every request seen, in order.
+  final List<RequestOptions> requests = [];
 
   @override
   Future<ResponseBody> fetch(
@@ -28,10 +35,11 @@ class _StubAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     lastRequest = options;
+    requests.add(options);
     lastBody = options.data == null ? null : jsonEncode(options.data);
 
     return ResponseBody.fromString(
-      jsonEncode(body),
+      jsonEncode(bodyFor?.call(options) ?? body),
       status,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],
@@ -302,6 +310,20 @@ void main() {
   });
 
   group('today record', () {
+    /// A Monday in the middle of a month, mid-morning.
+    final monday = DateTime(2026, 11, 16, 10);
+
+    /// A source that believes it is [now].
+    AttendanceRemoteDataSourceImpl sourceAt(DateTime now) {
+      final dio = Dio()..httpClientAdapter = adapter;
+      return AttendanceRemoteDataSourceImpl(ApiClient(dio: dio), now: () => now);
+    }
+
+    List<String> monthsAsked() => [
+      for (final request in adapter.requests)
+        request.queryParameters['month'] as String,
+    ];
+
     test('reads sessions and reports an open one as clocked in', () async {
       adapter
         ..status = 200
@@ -309,18 +331,18 @@ void main() {
           'success': true,
           'data': [
             {
-              'date': _today(),
+              'date': '2026-11-16',
               'status': 'present',
               'sessions': [
                 {
                   'session_label': '08:00–12:00',
-                  'clock_in': '2026-08-24T01:05:00Z',
-                  'clock_out': '2026-08-24T05:00:00Z',
+                  'clock_in': '2026-11-16T01:05:00Z',
+                  'clock_out': '2026-11-16T05:00:00Z',
                   'is_late': false,
                 },
                 {
                   'session_label': '13:30–17:30',
-                  'clock_in': '2026-08-24T06:30:00Z',
+                  'clock_in': '2026-11-16T06:30:00Z',
                   'is_late': true,
                 },
               ],
@@ -328,49 +350,183 @@ void main() {
           ],
         };
 
-      final day = await source.todayRecord();
+      final day = await sourceAt(monday).todayRecord();
 
       expect(day.sessions, hasLength(2));
       expect(day.isClockedIn, isTrue);
       expect(day.nextAction, ClockAction.clockOut);
       expect(day.openSession?.label, '13:30–17:30');
-      expect(day.firstClockIn!.toUtc(), DateTime.utc(2026, 8, 24, 1, 5));
-      expect(day.lastClockOut!.toUtc(), DateTime.utc(2026, 8, 24, 5));
+      expect(day.firstClockIn!.toUtc(), DateTime.utc(2026, 11, 16, 1, 5));
+      expect(day.lastClockOut!.toUtc(), DateTime.utc(2026, 11, 16, 5));
     });
 
-    test(
-      'reads the month the history page reads and picks today out of it',
-      () async {
-        adapter
-          ..status = 200
-          ..body = {
-            'success': true,
-            'data': [
-              {
-                'date': '2020-01-01',
-                'sessions': [
-                  {'session_label': '08:00–12:00'},
-                ],
-              },
-              {
-                'date': _today(),
-                'sessions': [
-                  {'session_label': '13:00–17:00'},
-                ],
-              },
-            ],
-          };
+    test('mid-month it asks for one month, five rows, in ASCII digits and '
+        'with no date range', () async {
+      adapter
+        ..status = 200
+        ..body = {'success': true, 'data': []};
 
-        final day = await source.todayRecord();
+      await sourceAt(monday).todayRecord();
 
-        final now = DateTime.now();
-        expect(
-          adapter.lastRequest!.queryParameters['month'],
-          '${now.year}-${now.month.toString().padLeft(2, '0')}',
-        );
-        expect(day.sessions.single.label, '13:00–17:00');
-      },
-    );
+      expect(monthsAsked(), ['2026-11']);
+      final query = adapter.requests.single.queryParameters;
+      expect(query['per_page'], 5);
+      expect(query['page'], 1);
+      expect(query.containsKey('start_date'), isFalse);
+      expect(query.containsKey('end_date'), isFalse);
+      // ASCII digits, never the active locale's numerals.
+      expect(query['month'], matches(r'^\d{4}-\d{2}$'));
+    });
+
+    test('on 1 December it also asks for November: yesterday is there',
+        () async {
+      adapter
+        ..status = 200
+        ..body = {'success': true, 'data': []};
+
+      await sourceAt(DateTime(2026, 12, 1, 2)).todayRecord();
+
+      expect(monthsAsked(), unorderedEquals(['2026-12', '2026-11']));
+    });
+
+    test('on 30 November it also asks for December: tomorrow is there',
+        () async {
+      adapter
+        ..status = 200
+        ..body = {'success': true, 'data': []};
+
+      await sourceAt(DateTime(2026, 11, 30, 23, 55)).todayRecord();
+
+      expect(monthsAsked(), unorderedEquals(['2026-11', '2026-12']));
+    });
+
+    test('on 31 December and 1 January the year turns with the month',
+        () async {
+      adapter
+        ..status = 200
+        ..body = {'success': true, 'data': []};
+
+      await sourceAt(DateTime(2026, 12, 31, 12)).todayRecord();
+      expect(monthsAsked(), unorderedEquals(['2026-12', '2027-01']));
+
+      adapter.requests.clear();
+      await sourceAt(DateTime(2027, 1, 1, 12)).todayRecord();
+      expect(monthsAsked(), unorderedEquals(['2026-12', '2027-01']));
+    });
+
+    test('a night shift opened on the last day of last month is found on '
+        'the 1st', () async {
+      adapter
+        ..status = 200
+        ..bodyFor = (options) => {
+          'success': true,
+          'data': options.queryParameters['month'] == '2026-11'
+              ? [
+                  {
+                    'date': '2026-11-30',
+                    'sessions': [
+                      {
+                        'session_label': '23:30–07:30',
+                        'clock_in': '2026-11-30 23:35:00',
+                        'shift_detail': {
+                          'start_time': '23:30',
+                          'end_time': '07:30',
+                        },
+                      },
+                    ],
+                  },
+                ]
+              : <dynamic>[],
+        };
+
+      final day = await sourceAt(DateTime(2026, 12, 1, 2)).todayRecord();
+
+      expect(day.nextAction, ClockAction.clockOut);
+      expect(day.openSession?.label, '23:30–07:30');
+      expect(day.openSession?.crossesMidnight, isTrue);
+    });
+
+    test('a 23:50 punch filed under tomorrow, in the next month, is found',
+        () async {
+      adapter
+        ..status = 200
+        ..bodyFor = (options) => {
+          'success': true,
+          'data': options.queryParameters['month'] == '2026-12'
+              ? [
+                  {
+                    'date': '2026-12-01',
+                    'sessions': [
+                      {
+                        'session_label': '00:00–08:00',
+                        'clock_in': '2026-11-30 23:50:00',
+                        'shift_detail': {
+                          'start_time': '00:00:00',
+                          'end_time': '08:00:00',
+                        },
+                      },
+                    ],
+                  },
+                ]
+              : <dynamic>[],
+        };
+
+      final day = await sourceAt(DateTime(2026, 11, 30, 23, 55)).todayRecord();
+
+      expect(day.nextAction, ClockAction.clockOut);
+      expect(day.openSession?.label, '00:00–08:00');
+    });
+
+    test('picks today out of the rows of the month', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            {
+              'date': '2026-11-16',
+              'sessions': [
+                {'session_label': '13:00–17:00'},
+              ],
+            },
+            {
+              'date': '2026-11-13',
+              'sessions': [
+                {'session_label': '08:00–12:00'},
+              ],
+            },
+          ],
+        };
+
+      final day = await sourceAt(monday).todayRecord();
+
+      expect(day.sessions.single.label, '13:00–17:00');
+    });
+
+    test('a day shift left open yesterday still offers clock-in', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            {
+              'date': '2026-11-15',
+              'sessions': [
+                {
+                  'session_label': '08:00–17:00',
+                  'clock_in': '2026-11-15 08:02:00',
+                  'shift_detail': {'start_time': '08:00', 'end_time': '17:00'},
+                },
+              ],
+            },
+          ],
+        };
+
+      final day = await sourceAt(monday).todayRecord();
+
+      expect(day, AttendanceDay.empty);
+      expect(day.nextAction, ClockAction.clockIn);
+    });
 
     test('skips a record with no date, since it cannot be placed', () async {
       adapter
@@ -380,34 +536,13 @@ void main() {
           'data': [
             {
               'sessions': [
-                {'clock_in': '2026-08-24T01:05:00Z'},
+                {'clock_in': '2026-11-16T01:05:00Z'},
               ],
             },
           ],
         };
 
-      expect(await source.todayRecord(), AttendanceDay.empty);
-    });
-
-    test('ignores a record that is not dated today', () async {
-      adapter
-        ..status = 200
-        ..body = {
-          'success': true,
-          'data': [
-            {
-              'date': '2020-01-01',
-              'sessions': [
-                {'clock_in': '2020-01-01T01:05:00Z'},
-              ],
-            },
-          ],
-        };
-
-      final day = await source.todayRecord();
-
-      expect(day, AttendanceDay.empty);
-      expect(day.nextAction, ClockAction.clockIn);
+      expect(await sourceAt(monday).todayRecord(), AttendanceDay.empty);
     });
 
     test('a day with no records is empty, not a failure', () async {
@@ -415,7 +550,7 @@ void main() {
         ..status = 200
         ..body = {'success': true, 'data': []};
 
-      final day = await source.todayRecord();
+      final day = await sourceAt(monday).todayRecord();
 
       expect(day, AttendanceDay.empty);
       expect(day.nextAction, ClockAction.clockIn);
@@ -428,34 +563,50 @@ void main() {
           'success': true,
           'data': [
             {
-              'date': _today(),
+              'date': '2026-11-16',
               'sessions': [
                 {
-                  'clock_in': '2026-08-24T01:05:00Z',
-                  'clock_out': '2026-08-24T10:00:00Z',
+                  'clock_in': '2026-11-16T01:05:00Z',
+                  'clock_out': '2026-11-16T10:00:00Z',
                 },
               ],
             },
           ],
         };
 
-      final day = await source.todayRecord();
+      final day = await sourceAt(monday).todayRecord();
 
       expect(day.isClockedIn, isFalse);
       expect(day.nextAction, ClockAction.clockIn);
     });
 
-    test('queries the current month in ASCII digits', () async {
+    test('one month failing fails the read: half an answer could offer the '
+        'wrong punch', () async {
+      adapter.status = 500;
+      adapter.body = {
+        'success': false,
+        'error': {'code': 'INTERNAL_ERROR', 'message': 'boom'},
+      };
+
+      await expectLater(
+        sourceAt(DateTime(2026, 12, 1, 2)).todayRecord(),
+        throwsA(isA<DioException>()),
+      );
+    });
+
+    test('without an injected clock it reads the real current month',
+        () async {
       adapter
         ..status = 200
         ..body = {'success': true, 'data': []};
 
       await source.todayRecord();
 
-      final query = adapter.lastRequest!.queryParameters;
-      expect(query.containsKey('start_date'), isFalse);
-      // ASCII digits, never the active locale's numerals.
-      expect(query['month'], matches(r'^\d{4}-\d{2}$'));
+      final now = DateTime.now();
+      expect(
+        monthsAsked(),
+        contains('${now.year}-${now.month.toString().padLeft(2, '0')}'),
+      );
     });
   });
 }
@@ -470,12 +621,4 @@ class PunchLocationReadingStub {
     gpsAccuracy: 12.5,
     isMockLocation: false,
   );
-}
-
-/// Today as `YYYY-MM-DD`, the date `todayRecord()` accepts.
-String _today() {
-  final now = DateTime.now();
-  final month = now.month.toString().padLeft(2, '0');
-  final day = now.day.toString().padLeft(2, '0');
-  return '${now.year}-$month-$day';
 }

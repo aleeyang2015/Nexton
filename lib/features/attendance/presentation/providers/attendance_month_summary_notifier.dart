@@ -59,13 +59,13 @@ class AttendanceMonthSummaryNotifier
   void _logFallback(DateRange range, String reason) {
     debugPrint(
       '[AttendanceMonthSummary] GET records/summary/my '
-      '(${_isoDate(range.start)}..${_isoDate(range.end)}) $reason — '
+      '(month=${_isoMonth(range.start)}) $reason — '
       'showing 0s on the home card instead.',
     );
   }
 
-  static String _isoDate(DateTime date) =>
-      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  static String _isoMonth(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}';
 }
 
 final attendanceMonthSummaryNotifierProvider =
