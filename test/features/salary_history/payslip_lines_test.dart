@@ -214,6 +214,17 @@ void main() {
       expect(codes(sections.attendance), ['BONUS']);
     });
 
+    test('BASIC sent as a deduction is a deduction: the type decides, and '
+        'it is not hoisted into earnings', () {
+      final sections = groupLines(
+        payslip(lines: [line('BASIC', type: deduction, category: 'fixed')]),
+      );
+
+      expect(sections.earnings, isEmpty);
+      expect(codes(sections.otherDeductions), ['BASIC']);
+      expect(sections.otherDeductions.single.isDeduction, isTrue);
+    });
+
     test('the old guide\'s category names mean nothing here: a deduction '
         'called "tax" is not statutory', () {
       final sections = groupLines(
@@ -311,6 +322,30 @@ void main() {
     });
   });
 
+  test('the groups are handed out read-only', () {
+    final sections = groupLines(
+      payslip(lines: [line('BASIC', type: earning, category: 'fixed')]),
+    );
+    const extra = PayslipRow(
+      code: 'X',
+      title: null,
+      name: 'x',
+      caption: null,
+      amount: 1,
+      isDeduction: false,
+    );
+
+    for (final list in [
+      sections.earnings,
+      sections.attendance,
+      sections.statutory,
+      sections.otherDeductions,
+      sections.unplaced,
+    ]) {
+      expect(() => list.add(extra), throwsUnsupportedError);
+    }
+  });
+
   group('groupLines: what is not there', () {
     test('no lines, no benefits, no items: four empty groups', () {
       final sections = groupLines(payslip());
@@ -406,6 +441,20 @@ void main() {
       expect(record.totalEarnings, 99999999);
       expect(record.totalDeductions, 88888888);
       expect(record.netSalary, 77777777);
+    });
+
+    test('a benefit or deduction item of zero is kept, as zero', () {
+      final sections = groupLines(
+        payslip(
+          benefits: const [PayslipBenefit(id: 'b', name: 'a', amount: 0)],
+          deductionItems: const [
+            PayslipDeductionItem(id: 'd', name: 'c', amount: 0),
+          ],
+        ),
+      );
+
+      expect(sections.earnings.single.amount, 0);
+      expect(sections.otherDeductions.single.amount, 0);
     });
 
     test('a benefit or deduction item is rounded to whole kip the way the '
@@ -530,6 +579,68 @@ void main() {
       expect(number(1.10), '1.1');
     });
 
+    test('near-whole numbers have no ".0" left on them', () {
+      String? number(double q) => caption(q, 'days')?.number;
+
+      expect(number(1.999), '2');
+      expect(number(7.999), '8');
+      expect(number(1.005), isNot(endsWith('.0')));
+      expect(number(0.004), '0');
+      expect(number(-0.004), '0');
+      expect(number(10), '10');
+      expect(number(100.5), '100.5');
+    });
+
+    test('minutes below zero are shown as sent, never as a positive count',
+        () {
+      String? text(double q) => PayslipLineCopy.caption(
+        en,
+        PayslipRow(
+          code: 'X',
+          title: null,
+          name: 'x',
+          caption: caption(q, 'minutes'),
+          amount: 0,
+          isDeduction: true,
+        ),
+      );
+
+      expect(text(-95), '-95 min');
+      expect(text(-1), '-1 min');
+    });
+
+    test('a quantity that is not a number has no caption', () {
+      expect(caption(double.nan, 'minutes'), isNull);
+      expect(caption(double.infinity, 'days'), isNull);
+      expect(caption(double.negativeInfinity, 'hours'), isNull);
+    });
+
+    test('a caption with nothing in it is no caption', () {
+      String? text(PayslipCaption c) => PayslipLineCopy.caption(
+        lo,
+        PayslipRow(
+          code: 'X',
+          title: null,
+          name: 'x',
+          caption: c,
+          amount: 0,
+          isDeduction: false,
+        ),
+      );
+
+      expect(text(const PayslipCaption.text('')), isNull);
+      expect(text(const PayslipCaption.text('  ')), isNull);
+      expect(
+        text(
+          const PayslipCaption.count(
+            unit: PayslipQuantityUnit.other,
+            number: '',
+          ),
+        ),
+        isNull,
+      );
+    });
+
     test('a unit the App does not know keeps the server\'s word', () {
       final row = PayslipRow(
         code: 'X',
@@ -645,6 +756,36 @@ void main() {
         expect(RegExp(r'[຀-໿]').hasMatch(enText), isFalse);
         expect(RegExp(r'[฀-๿]').hasMatch(laoText), isFalse);
       }
+    });
+
+    test('the English titles are the issue\'s', () {
+      String title(PayslipLineTitle t) => PayslipLineCopy.title(
+        en,
+        PayslipRow(
+          code: 'X',
+          title: t,
+          name: 'server name',
+          caption: null,
+          amount: 0,
+          isDeduction: false,
+        ),
+      );
+
+      expect(title(PayslipLineTitle.overtime), 'Overtime (OT)');
+      expect(title(PayslipLineTitle.late), 'Late arrival');
+      expect(
+        title(PayslipLineTitle.absentLate),
+        'Late past the limit (counted as a day)',
+      );
+      expect(title(PayslipLineTitle.earlyOut), 'Left early');
+      expect(title(PayslipLineTitle.missedPart), 'Missed part of a shift');
+      expect(title(PayslipLineTitle.absence), 'Absence');
+      expect(title(PayslipLineTitle.unpaidLeave), 'Unpaid leave');
+      expect(
+        title(PayslipLineTitle.attendanceSettlement),
+        'Attendance settlement (earlier days)',
+      );
+      expect(title(PayslipLineTitle.loan), 'Loan repayment');
     });
 
     test('the four section names', () {

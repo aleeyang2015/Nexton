@@ -38,7 +38,7 @@ class PayslipLineCopy {
     if (caption == null) return null;
 
     final number = caption.number ?? '';
-    return switch (caption.unit) {
+    final text = switch (caption.unit) {
       PayslipQuantityUnit.minutes =>
         (caption.hours ?? 0) > 0
             ? l10n.payslipCaptionHoursMinutes(
@@ -51,8 +51,10 @@ class PayslipLineCopy {
       PayslipQuantityUnit.hours => l10n.payslipCaptionHours(number),
       // A unit the App has no word for: the number, with the server's.
       PayslipQuantityUnit.other => '$number ${caption.text ?? ''}'.trim(),
-      null => caption.text,
+      null => caption.text ?? '',
     };
+    // Nothing to say is no caption, not an empty line.
+    return text.trim().isEmpty ? null : text;
   }
 
   static String earningsSection(AppLocalizations l10n) =>

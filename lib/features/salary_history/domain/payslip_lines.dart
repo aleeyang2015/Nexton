@@ -224,8 +224,9 @@ PayslipSections groupLines(PayslipRecord payslip) {
     }
   }
 
+  // Handed out read-only: the page shows these rows, it does not edit them.
   return PayslipSections(
-    earnings: [
+    earnings: List.unmodifiable([
       ...basic,
       ...earnings,
       for (final benefit in payslip.benefits)
@@ -237,10 +238,10 @@ PayslipSections groupLines(PayslipRecord payslip) {
           amount: roundKip(benefit.amount),
           isDeduction: false,
         ),
-    ],
-    attendance: attendance,
-    statutory: statutory,
-    otherDeductions: [
+    ]),
+    attendance: List.unmodifiable(attendance),
+    statutory: List.unmodifiable(statutory),
+    otherDeductions: List.unmodifiable([
       ...other,
       for (final item in payslip.deductionItems)
         PayslipRow(
@@ -251,8 +252,8 @@ PayslipSections groupLines(PayslipRecord payslip) {
           amount: roundKip(item.amount),
           isDeduction: true,
         ),
-    ],
-    unplaced: unplaced,
+    ]),
+    unplaced: List.unmodifiable(unplaced),
   );
 }
 
@@ -306,13 +307,18 @@ PayslipLineTitle? lineTitleKey(String code) => switch (code) {
 /// * a unit the App does not know → the number, with the server's word.
 ///
 /// A count of zero still has a caption: "0 minutes" is shown, not hidden.
+/// A quantity that is not a finite number has none.
 PayslipCaption? caption(double quantity, String? unit) {
   final word = unit?.trim() ?? '';
-  if (word.isEmpty) return null;
+  // A count that is not a number has nothing to show.
+  if (word.isEmpty || !quantity.isFinite) return null;
 
   switch (word) {
     case 'minutes':
       final total = quantity.round();
+      // Below zero there are no hours to split off: shown as the minutes
+      // sent, sign and all, never as a positive count.
+      if (total < 0) return PayslipCaption.minutes(hours: 0, minutes: total);
       return PayslipCaption.minutes(hours: total ~/ 60, minutes: total % 60);
     case 'times':
       return PayslipCaption.count(
@@ -338,17 +344,22 @@ PayslipCaption? caption(double quantity, String? unit) {
   }
 }
 
-/// "2", "0.5", "1.25": a count with its decimals only when it has some, two
-/// at most.
+/// "2", "0.5", "1.25": a count to two decimal places at most, with no
+/// zeros left hanging on the end: 2.0 is "2", 1.10 is "1.1", and 1.999 is
+/// "2", not "2.0".
 String _number(double value) {
-  if (value == value.roundToDouble()) return value.round().toString();
-
-  final fixed = value.toStringAsFixed(2);
-  return fixed.endsWith('0') ? fixed.substring(0, fixed.length - 1) : fixed;
+  var text = value.toStringAsFixed(2);
+  if (text.contains('.')) {
+    text = text.replaceFirst(RegExp(r'0+$'), '');
+    if (text.endsWith('.')) text = text.substring(0, text.length - 1);
+  }
+  // Rounding a tiny negative leaves "-0".
+  return text == '-0' ? '0' : text;
 }
 
 /// A benefit's or a deduction item's amount as whole kip. The server holds
 /// these with decimals and rounds each one half away from zero (25.50 is
 /// 26, 25.49 is 25); this rounds the same way, so the row matches the
-/// payslip HR sees.
+/// payslip HR sees. The amount must be a finite number, which the payslip
+/// reader guarantees.
 int roundKip(num amount) => amount.round();
