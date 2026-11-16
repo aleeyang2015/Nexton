@@ -1,3 +1,4 @@
+import '../../../../core/network/paged_list.dart';
 import '../../../../core/utils/base_repository.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/company_days_off.dart';
@@ -28,8 +29,10 @@ class LeaveRepositoryImpl extends BaseRepository implements LeaveRepository {
       guard(() => _remote.balances(year));
 
   @override
-  FutureResult<List<LeaveRequest>> myRequests(LeaveHistoryQuery query) =>
-      guard(() => _remote.myRequests(query));
+  FutureResult<CursorPage<LeaveRequest>> myRequests(
+    LeaveHistoryQuery query, {
+    String? cursor,
+  }) => guard(() => _remote.myRequests(query, cursor: cursor));
 
   @override
   FutureResult<LeaveRequest?> pendingRequest() =>

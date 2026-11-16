@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
+import '../../../../core/network/paged_list.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
+import '../../../../core/widgets/load_more_footer.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_request.dart';
@@ -19,16 +21,60 @@ import 'leave_copy.dart';
 /// fetched list of leave requests, each with its real approval-chain timeline
 /// and a tap-through to the detail page. Everything comes from
 /// [leaveHistoryNotifierProvider].
-class LeaveHistoryTab extends ConsumerWidget {
+///
+/// The list comes a page at a time. When the user is within
+/// [_loadMoreWithin] of its end the tab asks the notifier for the next page;
+/// whether there is one, and whether one is already on its way, is the
+/// notifier's to decide.
+class LeaveHistoryTab extends ConsumerStatefulWidget {
   const LeaveHistoryTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LeaveHistoryTab> createState() => _LeaveHistoryTabState();
+}
+
+class _LeaveHistoryTabState extends ConsumerState<LeaveHistoryTab> {
+  /// How close to the end of the list, in pixels, the next page is asked
+  /// for.
+  static const double _loadMoreWithin = 300;
+
+  final _scroll = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_loadMoreIfNearEnd);
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _loadMoreIfNearEnd() {
+    if (!_scroll.hasClients) return;
+    if (_scroll.position.extentAfter > _loadMoreWithin) return;
+    ref.read(leaveHistoryNotifierProvider.notifier).loadMore();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(leaveHistoryNotifierProvider);
+    final list = state.requests.valueOrNull;
+
+    // A page that does not fill the screen leaves nothing to scroll, so no
+    // scroll would ever ask for the next one. Check once it is laid out.
+    ref.listen(leaveHistoryNotifierProvider.select((s) => s.requests), (_, _) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadMoreIfNearEnd();
+      });
+    });
 
     return Container(
       color: AppColors.background,
       child: ListView(
+        controller: _scroll,
         padding: const EdgeInsets.fromLTRB(15, 15, 15, 40),
         children: [
           _LeaveTypeFilter(selectedId: state.leaveTypeId),
@@ -36,6 +82,14 @@ class LeaveHistoryTab extends ConsumerWidget {
           _DateRangeRow(from: state.from, to: state.to),
           heightBx(h: 20),
           _RequestsList(requests: state.requests),
+          if (list != null && !state.requests.isLoading)
+            LoadMoreFooter(
+              loadingMore: list.loadingMore,
+              failed: list.loadMoreError != null,
+              onRetry: () => ref
+                  .read(leaveHistoryNotifierProvider.notifier)
+                  .retryLoadMore(),
+            ),
         ],
       ),
     );
@@ -230,7 +284,7 @@ class _DateField extends StatelessWidget {
 }
 
 class _RequestsList extends ConsumerWidget {
-  final AsyncValue<List<LeaveRequest>> requests;
+  final AsyncValue<PagedList<LeaveRequest>> requests;
 
   const _RequestsList({required this.requests});
 
@@ -258,7 +312,7 @@ class _RequestsList extends ConsumerWidget {
       );
     }
 
-    final list = requests.valueOrNull ?? const [];
+    final list = requests.valueOrNull?.items ?? const <LeaveRequest>[];
     if (list.isEmpty) {
       return Center(
         child: Padding(

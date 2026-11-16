@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/failure.dart';
+import '../../../../core/network/paged_list.dart';
 import '../../../../core/utils/result.dart';
 import '../../data/datasources/leave_error_code.dart';
 import '../../domain/entities/leave_history_query.dart';
@@ -38,9 +40,63 @@ class LeaveHistoryNotifier extends AutoDisposeNotifier<LeaveHistoryState> {
     _load();
   }
 
-  /// Re-runs the current filter's fetch, e.g. after the user retries a
-  /// failed load.
+  /// Re-runs the current filter's fetch from its first page, e.g. after the
+  /// user retries a failed load.
   void retry() => _load();
+
+  /// Fetches the page after the rows already shown and adds it under them.
+  /// Called as the user nears the end of the list.
+  ///
+  /// Does nothing when there is no next page, while one is on its way (one
+  /// page at a time), or after one failed: that waits for [retryLoadMore].
+  /// An answer for a filter or range the user has since left, or for a list
+  /// that has been reloaded meanwhile, is dropped.
+  Future<void> loadMore() async {
+    final list = state.requests.valueOrNull;
+    if (list == null || state.requests.isLoading || !list.canLoadMore) return;
+
+    final query = _query();
+    final loadedAs = _loads;
+    state = state.copyWith(
+      requests: AsyncValue.data(list.startLoadingMore()),
+    );
+
+    final result = await ref.read(getLeaveHistoryUseCaseProvider)((
+      query: query,
+      cursor: list.nextCursor,
+    ));
+    if (_disposed || loadedAs != _loads || query != _query()) return;
+
+    state = state.copyWith(
+      requests: AsyncValue.data(
+        result.fold(list.failLoadingMore, list.append),
+      ),
+    );
+  }
+
+  /// The Retry under the rows, after a next page failed.
+  ///
+  /// A page the server refused (`400`: the cursor is no longer good) cannot
+  /// be asked for again, so the list starts over from its first page.
+  /// Anything else (no signal, a server error) asks for the same page.
+  Future<void> retryLoadMore() async {
+    final list = state.requests.valueOrNull;
+    final error = list?.loadMoreError;
+    if (list == null || error == null) return;
+
+    if (error is ValidationFailure) return _load();
+
+    state = state.copyWith(
+      requests: AsyncValue.data(
+        PagedList(
+          items: list.items,
+          nextCursor: list.nextCursor,
+          hasMore: list.hasMore,
+        ),
+      ),
+    );
+    return loadMore();
+  }
 
   /// Cancels [requestId] (`PUT /leave/requests/:id/cancel`) and returns the
   /// server's answer, so the page can say why it was refused.
@@ -71,29 +127,36 @@ class LeaveHistoryNotifier extends AutoDisposeNotifier<LeaveHistoryState> {
     return result;
   }
 
+  /// How many times the list has been loaded from its first page. A page
+  /// asked for before the latest of them belongs to a list that is gone.
+  int _loads = 0;
+
+  LeaveHistoryQuery _query() => LeaveHistoryQuery(
+    leaveTypeId: state.leaveTypeId,
+    from: state.from,
+    to: state.to,
+  );
+
+  /// Loads the first page for the current filter and range, replacing
+  /// whatever was shown.
   Future<void> _load() async {
-    final query = LeaveHistoryQuery(
-      leaveTypeId: state.leaveTypeId,
-      from: state.from,
-      to: state.to,
-    );
+    final query = _query();
+    final loadedAs = ++_loads;
     state = state.copyWith(requests: const AsyncValue.loading());
 
-    final result = await ref.read(getLeaveHistoryUseCaseProvider)(query);
-    if (_disposed ||
-        state.leaveTypeId != query.leaveTypeId ||
-        state.from != query.from ||
-        state.to != query.to) {
-      return;
-    }
-    state = state.copyWith(requests: _toAsync(result));
-  }
+    final result = await ref.read(getLeaveHistoryUseCaseProvider)((
+      query: query,
+      cursor: null,
+    ));
+    if (_disposed || loadedAs != _loads || query != _query()) return;
 
-  AsyncValue<List<LeaveRequest>> _toAsync(Result<List<LeaveRequest>> result) =>
-      result.fold(
+    state = state.copyWith(
+      requests: result.fold(
         (failure) => AsyncValue.error(failure, StackTrace.current),
-        (data) => AsyncValue.data(data),
-      );
+        (page) => AsyncValue.data(PagedList.first(page)),
+      ),
+    );
+  }
 }
 
 final leaveHistoryNotifierProvider =
