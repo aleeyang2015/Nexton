@@ -1,5 +1,6 @@
 import '../../../../core/utils/base_repository.dart';
 import '../../../../core/utils/result.dart';
+import '../../domain/entities/company_days_off.dart';
 import '../../domain/entities/leave_balance.dart';
 import '../../domain/entities/leave_history_query.dart';
 import '../../domain/entities/leave_request.dart';
@@ -18,6 +19,9 @@ class LeaveRepositoryImpl extends BaseRepository implements LeaveRepository {
 
   @override
   FutureResult<List<LeaveType>> leaveTypes() => guard(_remote.types);
+
+  @override
+  FutureResult<CompanyDaysOff> companyDaysOff() => guard(_remote.restDays);
 
   @override
   FutureResult<List<LeaveBalance>> balances(int year) =>

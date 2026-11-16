@@ -8,7 +8,9 @@ import 'package:next_on/features/time_off/domain/entities/leave_balance.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_type.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_attachment_notifier.dart';
+import 'package:next_on/features/time_off/presentation/providers/company_days_off_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_request_form_notifier.dart';
+import 'package:next_on/features/time_off/presentation/providers/leave_request_form_state.dart';
 import 'package:next_on/features/time_off/presentation/widgets/leave_filter_chip.dart';
 import 'package:next_on/features/time_off/presentation/widgets/leave_request_form.dart';
 import 'package:next_on/features/time_off/time_off_providers.dart';
@@ -85,11 +87,15 @@ void main() {
   LeaveRequestFormNotifier form([String? id]) =>
       container.read(leaveRequestFormNotifierProvider(id).notifier);
 
+  /// The leave-type chips on screen. The two chips that switch between a
+  /// date range and separate days are the same widget and are left out.
   List<String> chipLabels(WidgetTester tester) => [
     for (final chip in tester.widgetList<LeaveFilterChip>(
       find.byType(LeaveFilterChip),
     ))
-      chip.label,
+      if (chip.label != en.leaveModeRange &&
+          chip.label != en.leaveModeSeparateDays)
+        chip.label,
   ];
 
   bool submitEnabled(WidgetTester tester, String label) =>
@@ -449,6 +455,157 @@ void main() {
 
       expect(find.text(en.leaveMaxDaysHint('2.5')), findsOneWidget);
       expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
+    });
+  });
+
+  group('company days off', () {
+    // 2026-11-20 is a Friday; the 22nd a Sunday; the 23rd a Monday.
+    final friday = DateTime(2026, 11, 20);
+    final monday = DateTime(2026, 11, 23);
+
+    testWidgets('a new request opens on a date range, with the switch above '
+        'the dates', (tester) async {
+      await pumpForm(tester);
+
+      expect(find.text(en.leaveModeRange), findsOneWidget);
+      expect(find.text(en.leaveModeSeparateDays), findsOneWidget);
+      expect(
+        container.read(leaveRequestFormNotifierProvider(null)).isRange,
+        isTrue,
+      );
+    });
+
+    testWidgets('a range Friday to Monday at a company closed on Sundays '
+        'shows 3 days, and says days off are not counted', (tester) async {
+      repository.companyDaysOffResult = const Result.success(sundaysOff);
+      await pumpForm(tester);
+
+      form().setRange(friday, monday);
+      await tester.pump();
+
+      expect(find.textContaining('3 days'), findsOneWidget);
+      expect(find.text(en.leaveRangeSkipsDaysOff), findsOneWidget);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+    });
+
+    testWidgets('a range made only of days off cannot be sent', (tester) async {
+      repository.companyDaysOffResult = const Result.success(sundaysOff);
+      await pumpForm(tester);
+
+      form().setRange(DateTime(2026, 11, 22), DateTime(2026, 11, 22));
+      await tester.pump();
+
+      expect(find.text(en.leaveAllDaysOff), findsOneWidget);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
+    });
+
+    testWidgets('when the days off cannot be loaded: a warning with Retry, '
+        'the count is left to the server, and a range can still be sent', (
+      tester,
+    ) async {
+      repository.companyDaysOffResult = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+      await pumpForm(tester);
+
+      form().setRange(friday, monday);
+      await tester.pump();
+
+      expect(find.text(en.leaveDaysOffLoadFailed), findsOneWidget);
+      expect(find.text(en.retry), findsOneWidget);
+      expect(find.text(en.leaveRangeCountByServer), findsOneWidget);
+      // No count is shown, and nothing is blocked on one.
+      expect(find.text('20 Nov 2026 – 23 Nov 2026'), findsOneWidget);
+      expect(find.textContaining('20 Nov 2026 – 23 Nov 2026 ·'), findsNothing);
+      expect(find.text(en.leaveInsufficientBalanceHint), findsNothing);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+    });
+
+    testWidgets('Retry loads the days off, and the count appears', (
+      tester,
+    ) async {
+      repository.companyDaysOffResult = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+      await pumpForm(tester);
+      form().setRange(friday, monday);
+      await tester.pump();
+
+      repository.companyDaysOffResult = const Result.success(sundaysOff);
+      await tester.tap(find.text(en.retry));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(en.leaveDaysOffLoadFailed), findsNothing);
+      expect(find.textContaining('3 days'), findsOneWidget);
+    });
+
+    testWidgets('a range over the balance is blocked on the days it would '
+        'be charged, not on its length', (tester) async {
+      repository
+        ..companyDaysOffResult = const Result.success(sundaysOff)
+        ..balancesByYear[2026] = Result.success([
+          sampleLeaveBalance(remainingDays: 3),
+        ]);
+      await pumpForm(tester);
+
+      // Four days long, three charged: within the balance.
+      form().setRange(friday, monday);
+      await tester.pump();
+      expect(find.text(en.leaveInsufficientBalanceHint), findsNothing);
+
+      // One more working day: over it.
+      form().setRange(friday, DateTime(2026, 11, 24));
+      await tester.pump();
+      expect(find.text(en.leaveInsufficientBalanceHint), findsOneWidget);
+    });
+
+    testWidgets('an edit opens on its own days, with the switch still '
+        'there', (tester) async {
+      form('req-7').seed(pendingOn(annual));
+      await pumpForm(tester, requestId: 'req-7');
+
+      expect(
+        container.read(leaveRequestFormNotifierProvider('req-7')).mode,
+        LeaveDaysMode.separateDays,
+      );
+      expect(find.text('18/11/2026'), findsOneWidget);
+      expect(find.text('19/11/2026'), findsOneWidget);
+    });
+
+    testWidgets('a form opened for a new login starts with the days off '
+        'unknown, not with the ones the draft was last told', (tester) async {
+      // The draft outlives the screen; it was told the last company's rules.
+      form().setDaysOff(sundaysOff);
+      repository.companyDaysOffResult = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+
+      await pumpForm(tester);
+
+      expect(
+        container.read(leaveRequestFormNotifierProvider(null)).daysOff,
+        isNull,
+      );
+    });
+
+    testWidgets('days off that load after the range was picked are counted', (
+      tester,
+    ) async {
+      repository.companyDaysOffResult = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+      await pumpForm(tester);
+      form().setRange(friday, monday);
+      await tester.pump();
+      expect(find.text(en.leaveRangeCountByServer), findsOneWidget);
+
+      repository.companyDaysOffResult = const Result.success(sundaysOff);
+      container.invalidate(companyDaysOffNotifierProvider);
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.textContaining('3 days'), findsOneWidget);
     });
   });
 }

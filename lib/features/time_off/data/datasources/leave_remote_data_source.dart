@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_response.dart';
+import '../../domain/entities/company_days_off.dart';
 import '../../domain/entities/leave_balance.dart';
 import '../../domain/entities/leave_history_query.dart';
 import '../../domain/entities/leave_request.dart';
@@ -13,12 +14,16 @@ import '../models/leave_balance_model.dart';
 import '../models/leave_draft_body.dart';
 import '../models/leave_request_model.dart';
 import '../models/leave_type_model.dart';
+import '../models/rest_day_model.dart';
 import 'leave_api_paths.dart';
 import 'leave_error_code.dart';
 
 /// The leave calls the time-off screen can make (leave-request-flutter.md §3).
 abstract class LeaveRemoteDataSource {
   Future<List<LeaveType>> types();
+
+  /// The company's days off, read to the last page.
+  Future<CompanyDaysOff> restDays();
   Future<List<LeaveBalance>> balances(int year);
   Future<List<LeaveRequest>> myRequests(LeaveHistoryQuery query);
   Future<LeaveRequest> requestDetail(String id);
@@ -61,6 +66,44 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
     return ApiEnvelope.unwrapList(
       response.data,
     ).map(LeaveTypeModel.fromJson).toList();
+  }
+
+  /// A company can have more rules than one page holds (20 by default, 100 at
+  /// most), and a day off missing from the list is a day the form would let
+  /// someone pick and be charged for. So every page is read, following
+  /// `meta.total_pages`.
+  @override
+  Future<CompanyDaysOff> restDays() async {
+    final rules = <RestDayRule>[];
+
+    for (var page = 1; page <= _maxRestDayPages; page++) {
+      final response = await _client.get<dynamic>(
+        LeavePaths.restDays,
+        queryParameters: {'page': page, 'per_page': _pageSize},
+      );
+
+      rules.addAll(
+        ApiEnvelope.unwrapList(
+          response.data,
+        ).map(RestDayModel.fromJson).whereType<RestDayRule>(),
+      );
+
+      if (page >= _totalPagesOf(response.data)) break;
+    }
+
+    return CompanyDaysOff(rules);
+  }
+
+  /// A stop for a `total_pages` that is wrong, so a bad answer cannot keep
+  /// the form asking for ever. 2,000 rules is far past any real company.
+  static const int _maxRestDayPages = 20;
+
+  /// `meta.total_pages` of a paged answer, or 1 when it carries none.
+  static int _totalPagesOf(dynamic body) {
+    if (body is! Map) return 1;
+    final meta = body['meta'];
+    if (meta is! Map) return 1;
+    return (meta['total_pages'] as num?)?.toInt() ?? 1;
   }
 
   @override

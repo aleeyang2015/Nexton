@@ -1,4 +1,5 @@
 import '../../../../core/utils/result.dart';
+import '../entities/company_days_off.dart';
 import '../entities/leave_balance.dart';
 import '../entities/leave_history_query.dart';
 import '../entities/leave_request.dart';
@@ -12,6 +13,9 @@ import '../entities/leave_type.dart';
 abstract class LeaveRepository {
   /// `GET /leave/types` — the dropdown of leave categories.
   FutureResult<List<LeaveType>> leaveTypes();
+
+  /// `GET /core_hr/rest-days` — the company's days off, every page of them.
+  FutureResult<CompanyDaysOff> companyDaysOff();
 
   /// `GET /leave/balances/my` — the per-type quota rollup for [year].
   FutureResult<List<LeaveBalance>> balances(int year);

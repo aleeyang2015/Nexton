@@ -20,6 +20,12 @@ class _StubAdapter implements HttpClientAdapter {
   RequestOptions? lastRequest;
   Object? lastBody;
 
+  /// Every request, in order, for a call that makes more than one.
+  final List<RequestOptions> requests = [];
+
+  /// When set, answers each request by itself instead of with [body].
+  Object Function(RequestOptions options)? respond;
+
   @override
   Future<ResponseBody> fetch(
     RequestOptions options,
@@ -28,8 +34,9 @@ class _StubAdapter implements HttpClientAdapter {
   ) async {
     lastRequest = options;
     lastBody = options.data;
+    requests.add(options);
     return ResponseBody.fromString(
-      jsonEncode(body),
+      jsonEncode(respond?.call(options) ?? body),
       status,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],
@@ -441,5 +448,112 @@ void main() {
 
       expect(result.isFailure, isTrue);
     });
+  });
+
+  group('restDays', () {
+    Map<String, dynamic> row(String type, String value) => {
+      'id': 'rd-$value',
+      'name': value,
+      'type': type,
+      'value': value,
+    };
+
+    test('asks /core_hr/rest-days for 100 a page', () async {
+      adapter.body = {
+        'success': true,
+        'data': [row('weekly', 'SUN')],
+        'meta': {'page': 1, 'per_page': 100, 'total': 1, 'total_pages': 1},
+      };
+
+      final daysOff = await source.restDays();
+
+      expect(adapter.requests, hasLength(1));
+      expect(adapter.lastRequest!.path, '/core_hr/rest-days');
+      expect(adapter.lastRequest!.queryParameters, {
+        'page': 1,
+        'per_page': 100,
+      });
+      expect(daysOff.isDayOff(DateTime(2026, 11, 22)), isTrue);
+    });
+
+    test('reads two pages when the answer says there are two', () async {
+      adapter.respond = (options) {
+        final page = options.queryParameters['page'];
+        return {
+          'success': true,
+          'data': [
+            page == 1 ? row('weekly', 'SUN') : row('custom', '2026-11-25'),
+          ],
+          'meta': {'page': page, 'per_page': 100, 'total': 2, 'total_pages': 2},
+        };
+      };
+
+      final daysOff = await source.restDays();
+
+      expect(
+        [for (final r in adapter.requests) r.queryParameters['page']],
+        [1, 2],
+      );
+      expect(daysOff.rules, hasLength(2));
+      expect(daysOff.isDayOff(DateTime(2026, 11, 22)), isTrue);
+      // The rule on the second page counts too.
+      expect(daysOff.isDayOff(DateTime(2026, 11, 25)), isTrue);
+    });
+
+    test('an answer with no meta is one page', () async {
+      adapter.body = {
+        'success': true,
+        'data': [row('monthly', '08')],
+      };
+
+      final daysOff = await source.restDays();
+
+      expect(adapter.requests, hasLength(1));
+      expect(daysOff.isDayOff(DateTime(2026, 11, 8)), isTrue);
+    });
+
+    test('no rows: a company with no days off', () async {
+      adapter.body = {'success': true, 'data': <Object>[]};
+
+      expect((await source.restDays()).rules, isEmpty);
+    });
+
+    test(
+      'a total_pages that is wrong does not keep it asking for ever',
+      () async {
+        adapter.respond = (_) => {
+          'success': true,
+          'data': <Object>[],
+          'meta': {'total_pages': 100000},
+        };
+
+        await source.restDays();
+
+        expect(adapter.requests.length, lessThanOrEqualTo(20));
+      },
+    );
+
+    test(
+      'a failed page fails the whole read, through the repository',
+      () async {
+        adapter.respond = (options) => options.queryParameters['page'] == 1
+            ? {
+                'success': true,
+                'data': [row('weekly', 'SUN')],
+                'meta': {'total_pages': 2},
+              }
+            : {
+                'success': false,
+                'error': {'code': 'INTERNAL', 'message': 'boom'},
+              };
+
+        final result = await LeaveRepositoryImpl(
+          remote: source,
+        ).companyDaysOff();
+
+        // Half a list would grey out some days off and not others.
+        expect(result.isFailure, isTrue);
+      },
+    );
   });
 }
