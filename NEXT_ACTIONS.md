@@ -16,7 +16,7 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #21 is built and pushed (`21-salary-list-real-payslips`), waiting for the owner's say to merge; #22 follows.
+1. #21 is merged; #22 is next in work order.
    #23 is still on the owner's BLOCKED list; its backend dependency is the same one #21 had, now live.
    Open after #21, none built there:
    - product question for the owner: the Paid chip goes by the run's status, as the issue says, so a paid run
@@ -172,7 +172,7 @@ count), #56 (sign-out ends the session).
 | 17 | #18 | lists: load more as you scroll (leave history first) | `18-lists-load-more` | `a4cf8ad`, `e5b7b5e` | merged to main directly (`65b81bf`) | analyze clean, 1,015 tests, debug APK | MERGED — phone check on `nexton-demo` pending |
 | 18 | #19 | approvals: leave lists keep what I decided, hide buttons on my own request, and load more | `19-approvals-decided-own-load-more` | `88c9004`, `47d9f67` | merged to main directly (`4327616`) | analyze clean, 1,046 tests, debug APK | MERGED — two-login check on `nexton-demo` pending |
 | 19 | #20 | payslip: read real payslips from the server (data layer) | `20-payslip-data-layer` | `62302e6`, `dd7400d` | merged to main directly (`bc25ec2`) | analyze clean, 1,101 tests, debug APK | MERGED — a real `nexton-demo` payslip to be checked against the reader |
-| 20 | #21 | payslip: the salary list shows real payslips, paid and failed | `21-salary-list-real-payslips` | `a8455eb`, `a6ed9fb` | none yet: branch pushed, waiting for the owner's say to merge | analyze clean, 1,139 tests, debug APK | IN REVIEW — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
+| 20 | #21 | payslip: the salary list shows real payslips, paid and failed | `21-salary-list-real-payslips` | `a8455eb`, `a6ed9fb` | merged to main directly (`cf7c936`) | analyze clean, 1,139 tests, debug APK | MERGED, phone check on `nexton-demo` pending — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
 | 21 | #22 | payslip: name, group and caption every payslip line | | | | | NOT STARTED |
 | 22 | #23 | payslip: the payslip page opens by id and shows the real lines | | | | | BLOCKED: backend, payslip month |
 | 23 | #24 | payslip: tap the OT line to see what each OT paid | | | | | NOT STARTED |
