@@ -688,5 +688,6 @@
   "@attWorkingDaysBase": {
     "placeholders": {"days": {"type": "int"}}
   },
-  "attSummaryLoadFailed": "Could not load attendance."
+  "attSummaryLoadFailed": "Could not load attendance.",
+  "profileLoadFailed": "Could not load your profile."
 }

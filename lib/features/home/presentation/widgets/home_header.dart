@@ -7,13 +7,16 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../profile/presentation/profile_error_copy.dart';
 import '../../../profile/presentation/providers/profile_notifier.dart';
 
 /// Avatar, name/role and the notification bell across the top of the home
 /// screen. Tapping the avatar or the name opens the profile screen.
 ///
 /// Everything it shows comes from [profileNotifierProvider]; the widget
-/// fetches nothing itself and holds no profile logic.
+/// fetches nothing itself and holds no profile logic. When the profile could
+/// not be loaded it says why in a short line ([profileErrorCopy], the same
+/// wording as the profile page), with a Retry only when one can help.
 class HomeHeader extends ConsumerWidget {
   const HomeHeader({super.key});
 
@@ -22,7 +25,8 @@ class HomeHeader extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final profile = ref.watch(profileNotifierProvider);
     final loading = profile.isLoading && !profile.hasValue;
-    final failed = profile.hasError;
+    final error = profile.hasError ? profile.error : null;
+    final failed = error != null;
     final data = profile.valueOrNull;
 
     return Row(
@@ -40,14 +44,10 @@ class HomeHeader extends ConsumerWidget {
               if (loading)
                 const _HeaderLoading()
               else if (failed)
-                InkWell(
-                  onTap: () =>
+                _HeaderLoadError(
+                  copy: profileErrorCopy(l10n, error),
+                  onRetry: () =>
                       ref.read(profileNotifierProvider.notifier).refresh(),
-                  child: customText(
-                    l10n.retry,
-                    color: AppColors.secondary,
-                    fontWeight: FontWeight.w600,
-                  ),
                 )
               else
                 GestureDetector(
@@ -68,6 +68,45 @@ class HomeHeader extends ConsumerWidget {
         widthBx(),
         const _BellButton(),
         widthBx(w: 20),
+      ],
+    );
+  }
+}
+
+/// The line shown in place of the name when the profile could not be loaded:
+/// why, in at most two lines, then a small Retry link when one can help.
+class _HeaderLoadError extends StatelessWidget {
+  final ({String text, bool canRetry}) copy;
+  final VoidCallback onRetry;
+
+  const _HeaderLoadError({required this.copy, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Row(
+      children: [
+        Flexible(
+          child: customText(
+            copy.text,
+            color: AppColors.subTitle,
+            fontSize: 13,
+            maxLine: 2,
+          ),
+        ),
+        if (copy.canRetry) ...[
+          widthBx(w: 8),
+          InkWell(
+            onTap: onRetry,
+            child: customText(
+              l10n.retry,
+              color: AppColors.secondary,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ],
       ],
     );
   }

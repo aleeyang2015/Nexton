@@ -3007,6 +3007,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load attendance.'**
   String get attSummaryLoadFailed;
+
+  /// No description provided for @profileLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your profile.'**
+  String get profileLoadFailed;
 }
 
 class _AppLocalizationsDelegate
