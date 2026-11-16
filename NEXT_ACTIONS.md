@@ -16,7 +16,11 @@ Last updated: 2026-11-16.
 
 ## Next
 
-1. #8 (attendance: a refused punch says why in Lao, with no useless Retry) is next in work order.
+1. #8: open the PR from `8-refused-punch-lao` and review it. #9 is next.
+   Open points for the owner on #8: the Lao text of the added string `ruleClockOutBeforeClockIn` needs a Lao
+   speaker's check; the "too early" wording on `main` differs from the issue's table; refusals such as "session
+   already started" no longer name the session or the next start time, which the server's English sentence did;
+   the off-site form still shows the server's English first.
    Owner decision on #7, 2026-11-16: leave the night-shift rule as the issue has it. A night shift left open by a
    forgotten clock-out stays "current" all the next day; no cut-off is added.
    Still to try by hand for #4 and #5: on a phone against `nexton-demo` (the made-up host check; airplane mode and
@@ -47,7 +51,7 @@ count), #56 (sign-out ends the session).
 | 4 | #5 | sign-in: no surprise sign-outs on weak signal, a server restart or after a password change | `5-no-surprise-sign-outs` | `42b4c2b` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 442 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 5 | #6 | sign-in: show how long to wait after too many tries, and send the email as typed | `6-login-wait-and-email` | `5861257` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 456 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
 | 6 | #7 | attendance: home card and history read the right month | `7-attendance-right-day` | `4fdfd29` | none: pushed to `main` directly on the owner's say, 2026-11-16 | analyze: 1 warning already on `main`; `flutter test`: 483 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | MERGED |
-| 7 | #8 | attendance: a refused punch says why in Lao, with no useless Retry | | | | | NOT STARTED |
+| 7 | #8 | attendance: a refused punch says why in Lao, with no useless Retry | `8-refused-punch-lao` | `1c4f9bd` | to open | analyze: 1 warning already on `main`; `flutter test`: 514 passed, 0 failed; debug APK builds; not yet tried on a phone against `nexton-demo` | IMPLEMENTED |
 | 8 | #9 | attendance: the card shows the weekday's own shift times, and GPS only | | | | | NOT STARTED |
 | 9 | #10 | attendance: history rows show the real shift, method, place and day status | | | | | NOT STARTED |
 | 10 | #11 | attendance: the month summary shows the server's numbers, and "not linked to an employee" | | | | | NOT STARTED |
