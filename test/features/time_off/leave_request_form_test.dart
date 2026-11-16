@@ -8,6 +8,7 @@ import 'package:next_on/features/time_off/domain/entities/leave_balance.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_type.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_attachment_notifier.dart';
+import 'package:next_on/features/time_off/presentation/providers/company_days_off_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_request_form_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_request_form_state.dart';
 import 'package:next_on/features/time_off/presentation/widgets/leave_filter_chip.dart';
@@ -570,6 +571,41 @@ void main() {
       );
       expect(find.text('18/11/2026'), findsOneWidget);
       expect(find.text('19/11/2026'), findsOneWidget);
+    });
+
+    testWidgets('a form opened for a new login starts with the days off '
+        'unknown, not with the ones the draft was last told', (tester) async {
+      // The draft outlives the screen; it was told the last company's rules.
+      form().setDaysOff(sundaysOff);
+      repository.companyDaysOffResult = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+
+      await pumpForm(tester);
+
+      expect(
+        container.read(leaveRequestFormNotifierProvider(null)).daysOff,
+        isNull,
+      );
+    });
+
+    testWidgets('days off that load after the range was picked are counted', (
+      tester,
+    ) async {
+      repository.companyDaysOffResult = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+      await pumpForm(tester);
+      form().setRange(friday, monday);
+      await tester.pump();
+      expect(find.text(en.leaveRangeCountByServer), findsOneWidget);
+
+      repository.companyDaysOffResult = const Result.success(sundaysOff);
+      container.invalidate(companyDaysOffNotifierProvider);
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.textContaining('3 days'), findsOneWidget);
     });
   });
 }

@@ -50,8 +50,8 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
     @Default('') String reason,
 
     /// The company's days off, or null while they are not known (still
-    /// loading, or the load failed). Kept here by the notifier so the counts
-    /// below need nothing handed to them.
+    /// loading, or the load failed). Handed in by the form on screen
+    /// (`setDaysOff`) so the counts below need nothing passed to them.
     CompanyDaysOff? daysOff,
 
     /// Edit mode only: the leave type the request had when it was opened. The
@@ -135,9 +135,11 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
       date == null ? null : DateTime(date.year, date.month, date.day);
 
   /// The earliest date the return-to-work picker may offer: the day after the
-  /// last leave day. Null when no leave days are picked yet.
+  /// last leave day, and for a range the day after its last day even when
+  /// that one is a day off, so the return never falls inside the range that
+  /// is sent. Null when no leave days are picked yet.
   DateTime? get earliestReturnToWorkDate {
-    final last = lastLeaveDate;
+    final last = isRange ? _dateOnly(rangeEnd) ?? lastLeaveDate : lastLeaveDate;
     return last == null ? null : DateTime(last.year, last.month, last.day + 1);
   }
 

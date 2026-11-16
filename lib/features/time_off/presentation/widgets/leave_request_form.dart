@@ -51,6 +51,20 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       ref.read(leaveRequestFormNotifierProvider(widget.requestId).notifier);
 
   @override
+  void initState() {
+    super.initState();
+    // The draft outlives this screen, and so would the days off it was last
+    // told. Start from what is known now: nothing while they load, so a new
+    // login is never counted by the last one's company.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _notifier.setDaysOff(
+        ref.read(companyDaysOffNotifierProvider).valueOrNull,
+      );
+    });
+  }
+
+  @override
   void dispose() {
     _reasonController.dispose();
     super.dispose();
@@ -77,9 +91,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
   /// pick, and applies whatever it returns: a range's two ends, or the
   /// separate days. A back-out leaves the selection alone.
   Future<void> _openDatesCalendar() async {
-    final current = ref.read(
-      leaveRequestFormNotifierProvider(widget.requestId),
-    );
+    final current = ref.read(leaveRequestFormNotifierProvider(widget.requestId));
     final picked = await LeaveDatesCalendarDialog.show(
       context,
       mode: current.mode,
@@ -131,9 +143,14 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     final key = widget.requestId;
     final state = ref.watch(leaveRequestFormNotifierProvider(key));
     final typesAsync = ref.watch(leaveTypesNotifierProvider);
-    // Shown as a warning when it fails; the list itself reaches the form
-    // through its state.
-    final daysOffFailed = ref.watch(companyDaysOffNotifierProvider).hasError;
+    // Shown as a warning when it fails. The list itself is handed to the
+    // form's state as it arrives, changes or is lost.
+    final daysOffFailed = ref.watch(
+      companyDaysOffNotifierProvider.select((value) => value.hasError),
+    );
+    ref.listen(companyDaysOffNotifierProvider, (_, next) {
+      _notifier.setDaysOff(next.valueOrNull);
+    });
     // A request is charged to the year of its first leave day, so that is the
     // year whose balance the card shows and the form checks.
     final balanceYear = LeaveFormRules.balanceYear(
@@ -154,9 +171,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       if (next.hasError) {
         final error = next.error;
         AppToast.error(
-          error is Failure
-              ? error.localize(l10n)
-              : l10n.leaveAttachUploadFailed,
+          error is Failure ? error.localize(l10n) : l10n.leaveAttachUploadFailed,
         );
       } else if ((previous?.valueOrNull) == null && next.valueOrNull != null) {
         AppToast.success(l10n.leaveAttachUploaded);
@@ -373,7 +388,9 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
         .read(leaveRequestFormNotifierProvider(widget.requestId))
         .submission
         .error;
-    AppToast.error(error is Failure ? error.localize(l10n) : l10n.genericError);
+    AppToast.error(
+      error is Failure ? error.localize(l10n) : l10n.genericError,
+    );
   }
 }
 
@@ -1155,10 +1172,7 @@ class _UploadSpinner extends StatelessWidget {
     return const SizedBox(
       width: 14,
       height: 14,
-      child: CircularProgressIndicator(
-        strokeWidth: 2,
-        color: AppColors.primary,
-      ),
+      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
     );
   }
 }

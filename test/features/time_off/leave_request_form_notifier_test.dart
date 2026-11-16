@@ -4,7 +4,6 @@ import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_duration_type.dart';
 import 'package:next_on/features/time_off/domain/entities/uploaded_attachment.dart';
-import 'package:next_on/features/time_off/presentation/providers/company_days_off_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_attachment_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_balances_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_form_rules.dart';
@@ -548,12 +547,12 @@ void main() {
     final sunday = DateTime(2026, 11, 22);
     final monday = DateTime(2026, 11, 23);
 
-    /// A container whose company is closed on Sundays, with that list loaded.
+    /// A container whose form has been told the company is closed on
+    /// Sundays, as the form on screen tells it.
     Future<ProviderContainer> closedOnSundays() async {
-      repository.companyDaysOffResult = const Result.success(sundaysOff);
       final container = containerWith();
-      container.listen(leaveRequestFormNotifierProvider(null), (_, _) {});
-      await container.read(companyDaysOffNotifierProvider.future);
+      formOf(container).setDaysOff(sundaysOff);
+      formOf(container, 'req-7').setDaysOff(sundaysOff);
       return container;
     }
 
@@ -667,6 +666,27 @@ void main() {
       expect(stateOf(container).returnToWorkDate, sunday);
     });
 
+    test('a return date inside the range is not valid, even on a day off '
+        'at its end', () async {
+      final container = await closedOnSundays();
+      formOf(container)
+        ..setRange(friday, sunday)
+        ..setReturnToWorkDate(sunday);
+
+      expect(stateOf(container).earliestReturnToWorkDate, monday);
+      expect(stateOf(container).hasValidReturnToWorkDate, isFalse);
+    });
+
+    test('a range ending on a day off defaults its return to the next '
+        'working day', () async {
+      final container = await closedOnSundays();
+
+      formOf(container).setRange(friday, sunday);
+
+      expect(stateOf(container).returnToWorkDate, monday);
+      expect(stateOf(container).hasValidReturnToWorkDate, isTrue);
+    });
+
     test('a range is sent as its two ends, with no dates', () async {
       final container = await closedOnSundays();
       final form = formOf(container)
@@ -771,8 +791,7 @@ void main() {
       },
     );
 
-    test('the form asks for the days off once, and keeps them across a '
-        'reset', () async {
+    test('the days off the form was told are kept across a reset', () async {
       final container = await closedOnSundays();
       final form = formOf(container)
         ..setLeaveType('lt-annual')
@@ -781,7 +800,39 @@ void main() {
       await form.submit();
 
       expect(stateOf(container).daysOff, sundaysOff);
-      expect(repository.companyDaysOffCalls, 1);
+    });
+
+    test('the notifier does not hold the days-off list alive itself, so a '
+        'sign-out drops it', () async {
+      final container = containerWith();
+      container.listen(leaveRequestFormNotifierProvider(null), (_, _) {});
+      formOf(container).setRange(friday, monday);
+      await Future<void>.delayed(Duration.zero);
+
+      // Nothing on screen asked for the list, so nothing fetched it.
+      expect(repository.companyDaysOffCalls, 0);
+      expect(stateOf(container).daysOff, isNull);
+    });
+
+    test('a half day on a range of days off only picks no day, never the '
+        'day off', () async {
+      final container = await closedOnSundays();
+      formOf(container)
+        ..setRange(sunday, sunday)
+        ..setDurationType(LeaveDurationType.firstHalf);
+
+      expect(stateOf(container).dates, isEmpty);
+      expect(stateOf(container).hasValidShape, isFalse);
+    });
+
+    test('a half day on a range that starts on a day off takes its first '
+        'working day', () async {
+      final container = await closedOnSundays();
+      formOf(container)
+        ..setRange(sunday, monday)
+        ..setDurationType(LeaveDurationType.firstHalf);
+
+      expect(stateOf(container).dates, [monday]);
     });
   });
 }

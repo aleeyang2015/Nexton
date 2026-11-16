@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/company_days_off.dart';
 import '../../domain/entities/leave_duration_type.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_request_draft.dart';
 import '../../domain/entities/leave_type.dart';
 import '../../time_off_providers.dart';
-import 'company_days_off_notifier.dart';
 import 'leave_attachment_notifier.dart';
 import 'leave_balances_notifier.dart';
 import 'leave_history_notifier.dart';
@@ -19,17 +19,20 @@ import 'leave_types_notifier.dart';
 class LeaveRequestFormNotifier
     extends FamilyNotifier<LeaveRequestFormState, String?> {
   @override
-  LeaveRequestFormState build(String? arg) {
-    // The company's days off decide the day count and the return date, so the
-    // state carries them. Null while loading or after a failed load: the
-    // counts that need them are then unknown, never guessed.
-    ref.listen(companyDaysOffNotifierProvider, (_, next) {
-      state = state.copyWith(daysOff: next.valueOrNull);
-    });
+  LeaveRequestFormState build(String? arg) => const LeaveRequestFormState();
 
-    return LeaveRequestFormState(
-      daysOff: ref.read(companyDaysOffNotifierProvider).valueOrNull,
-    );
+  /// Tells the form the company's days off, or null while they are not known
+  /// (still loading, or the load failed): the counts that need them are then
+  /// unknown, never guessed.
+  ///
+  /// The form on screen hands them in; this notifier does not listen for
+  /// them itself. It outlives the screen (a draft is kept while the user
+  /// looks elsewhere), and a listener here would keep the list alive across
+  /// a sign-out, so the next login would be counted by the last one's
+  /// company.
+  void setDaysOff(CompanyDaysOff? daysOff) {
+    if (daysOff == state.daysOff) return;
+    state = state.copyWith(daysOff: daysOff);
   }
 
   /// Fills the form from an existing request (edit mode). Safe to call once,
@@ -152,7 +155,14 @@ class LeaveRequestFormNotifier
       return;
     }
 
-    final first = state.firstLeaveDate;
+    // The first day that would be charged. A range of days off only has
+    // none, and its first day is not offered in its place: sent as a
+    // separate day it would be charged. With the days off unknown the
+    // range's own first day is the best there is.
+    final charged = state.chargedDays;
+    final first = charged == null
+        ? state.firstLeaveDate
+        : (charged.isEmpty ? null : charged.first);
     state = state.copyWith(
       durationType: type,
       mode: LeaveDaysMode.separateDays,
