@@ -79,7 +79,7 @@ class AuthInterceptor extends Interceptor {
   ) async {
     final request = err.requestOptions;
 
-    if (_isCompanySwitchedOff(err)) {
+    if (await _isCompanySwitchedOff(err)) {
       await _expireSession();
       return handler.next(err);
     }
@@ -175,18 +175,22 @@ class AuthInterceptor extends Interceptor {
     if (!_sessionExpired.isClosed) _sessionExpired.add(null);
   }
 
-  /// A signed-in request refused because the company is switched off. A login
-  /// can get the same answer, but it carries no token and has no session to
-  /// end: the login screen shows the message itself.
-  bool _isCompanySwitchedOff(DioException err) {
+  /// A request of the *current* session refused because the company is
+  /// switched off.
+  ///
+  /// The token the request went out with must still be the stored one. A login
+  /// can get the same answer, but it has no session to end and the login screen
+  /// shows the message itself; and a slow answer to the previous user's request
+  /// must not sign out whoever signed in since.
+  Future<bool> _isCompanySwitchedOff(DioException err) async {
     if (err.response?.statusCode != 403) return false;
-    if (!err.requestOptions.headers.containsKey(
-      AppConstants.authorizationHeader,
-    )) {
-      return false;
-    }
+
     final code = ApiError.tryParse(err.response?.data)?.code;
-    return code == ApiErrorCodes.tenantInactive;
+    if (code != ApiErrorCodes.tenantInactive) return false;
+
+    final sent = err.requestOptions.headers[AppConstants.authorizationHeader];
+    final current = await _tokenStorage.readAccessToken();
+    return current != null && current.isNotEmpty && sent == 'Bearer $current';
   }
 
   bool _isRefreshCall(RequestOptions options) =>

@@ -394,6 +394,41 @@ void main() {
       expect(h.sessionExpiredEvents, hasLength(1));
     });
 
+    test('a late TENANT_INACTIVE for the previous user spares the new '
+        'session', () async {
+      final h = await _Harness.create();
+      h.adapter
+        ..slow = true
+        ..queue('/core_hr/employees', [companyOff]);
+
+      // The request leaves with access-1; before its answer lands, that user
+      // signs out and another signs in on the same phone.
+      final pending = h.client.get<dynamic>('/core_hr/employees');
+      while (h.adapter.requests.isEmpty) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(h.authHeaderOf(0), 'Bearer access-1');
+      await h.tokens.writeAccessToken('access-other-user');
+
+      await expectLater(pending, throwsA(isA<DioException>()));
+
+      expect(await h.tokens.readAccessToken(), 'access-other-user');
+      expect(h.sessionExpiredEvents, isEmpty);
+    });
+
+    test('TENANT_INACTIVE on a login that still carries a stale token ends '
+        'that stale session', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(ApiPaths.login, [companyOff]);
+
+      await expectLater(
+        h.client.post<dynamic>(ApiPaths.login, data: const {}),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(await h.tokens.readAccessToken(), isNull);
+    });
+
     test('TENANT_INACTIVE on a login has no session to end', () async {
       final h = await _Harness.create(accessToken: null, refreshToken: null);
       h.adapter.queue(ApiPaths.login, [companyOff]);
