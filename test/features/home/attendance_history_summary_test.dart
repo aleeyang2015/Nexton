@@ -18,7 +18,10 @@ void main() {
     repository = FakeAttendanceRepository();
   });
 
-  Future<void> pumpCard(WidgetTester tester) async {
+  Future<void> pumpCard(
+    WidgetTester tester, {
+    Locale locale = const Locale('en'),
+  }) async {
     final router = GoRouter(
       initialLocation: '/',
       routes: [
@@ -38,7 +41,7 @@ void main() {
         overrides: [attendanceRepositoryProvider.overrideWithValue(repository)],
         child: MaterialApp.router(
           routerConfig: router,
-          locale: const Locale('en'),
+          locale: locale,
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
         ),
@@ -55,12 +58,18 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('renders the real month summary once it loads', (tester) async {
+  testWidgets('renders all seven numbers and the base line once it loads', (
+    tester,
+  ) async {
     repository.monthSummary = const Result.success(
       AttendanceSummary(
+        totalWorkingDays: 23,
         presentDays: 15,
         lateDays: 2,
-        absentDays: 1,
+        halfDays: 1,
+        incompleteDays: 3,
+        absentDays: 4,
+        leaveDays: 5,
         totalWorkHours: 121.5,
       ),
     );
@@ -68,43 +77,118 @@ void main() {
     await pumpCard(tester);
     await tester.pump();
 
-    expect(find.text('15'), findsOneWidget);
-    expect(find.text('2'), findsOneWidget);
-    expect(find.text('1'), findsOneWidget);
-    expect(find.text('121.5'), findsOneWidget);
+    expect(find.text('Out of 23 working days'), findsOneWidget);
+    for (final (label, value) in const [
+      ('Days present', '15'),
+      ('Days late', '2'),
+      ('Half day', '1'),
+      ('Incomplete', '3'),
+      ('Days absent', '4'),
+      ('Leave Days', '5'),
+      ('Work Hours', '121.5'),
+    ]) {
+      expect(find.text(label), findsOneWidget, reason: label);
+      expect(find.text(value), findsOneWidget, reason: '$label = $value');
+    }
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets(
-    'a failed load falls back to zeros rather than showing a retry — this '
-    'small at-a-glance card degrades quietly, unlike the full history page',
-    (tester) async {
-      repository.monthSummary = const Result.failure(
-        Failure.network(message: 'offline'),
-      );
+  testWidgets('fits a small phone in Lao without overflowing', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    repository.monthSummary = const Result.success(
+      AttendanceSummary(
+        totalWorkingDays: 23,
+        presentDays: 15,
+        lateDays: 12,
+        halfDays: 10,
+        incompleteDays: 13,
+        absentDays: 14,
+        leaveDays: 15,
+        totalWorkHours: 1121.5,
+      ),
+    );
 
-      await pumpCard(tester);
-      await tester.pump();
+    await pumpCard(tester, locale: const Locale('lo'));
+    await tester.pump();
 
-      expect(find.text('Retry'), findsNothing);
-      expect(find.text('0'), findsNWidgets(3)); // present/late/absent days
-      expect(find.text('0.0'), findsOneWidget); // work hours
-    },
-  );
+    expect(find.text('ຈາກ 23 ມື້ເຮັດວຽກ'), findsOneWidget);
+    expect(find.text('ວັນລາພັກ'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
-  testWidgets(
-    'falls back to zeros rather than hanging when the backend never answers',
-    (tester) async {
-      repository.hangSummary = true;
+  testWidgets('a failed load says "could not load" with a Retry, never '
+      'zeros', (tester) async {
+    repository.monthSummary = const Result.failure(
+      Failure.network(message: 'offline'),
+    );
 
-      await pumpCard(tester);
-      await tester.pump(const Duration(seconds: 16));
+    await pumpCard(tester);
+    await tester.pump();
 
-      expect(find.text('Retry'), findsNothing);
-      expect(find.text('0'), findsNWidgets(3));
-      expect(find.text('0.0'), findsOneWidget);
-    },
-  );
+    expect(find.text('Could not load attendance.'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+    expect(find.text('0'), findsNothing);
+    expect(find.text('0.0'), findsNothing);
+    expect(find.text('Days present'), findsNothing);
+  });
+
+  testWidgets('Retry loads the numbers', (tester) async {
+    repository.monthSummary = const Result.failure(
+      Failure.network(message: 'offline'),
+    );
+    await pumpCard(tester);
+    await tester.pump();
+
+    repository.monthSummary = const Result.success(
+      AttendanceSummary(totalWorkingDays: 20, presentDays: 18),
+    );
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Out of 20 working days'), findsOneWidget);
+    expect(find.text('18'), findsOneWidget);
+    expect(find.text('Retry'), findsNothing);
+  });
+
+  testWidgets('a login with no employee record is told so, with no Retry', (
+    tester,
+  ) async {
+    repository.monthSummary = const Result.failure(
+      Failure.validation(
+        message: 'employee not found',
+        code: 'EMPLOYEE_NOT_FOUND',
+      ),
+    );
+
+    await pumpCard(tester);
+    await tester.pump();
+
+    expect(
+      find.text(
+        'Your account is not linked to an employee record. '
+        'Please contact HR.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Retry'), findsNothing);
+    expect(find.text('0'), findsNothing);
+  });
+
+  testWidgets('a backend that never answers ends in "could not load" with a '
+      'Retry, not zeros', (tester) async {
+    repository.hangSummary = true;
+
+    await pumpCard(tester);
+    await tester.pump(const Duration(seconds: 16));
+    await tester.pump();
+
+    expect(find.text('Could not load attendance.'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+    expect(find.text('0'), findsNothing);
+  });
 
   testWidgets('tapping view details navigates to the history page', (
     tester,

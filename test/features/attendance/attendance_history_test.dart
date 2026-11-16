@@ -16,6 +16,7 @@ import 'package:next_on/features/attendance/domain/entities/attendance_summary.d
 import 'package:next_on/features/attendance/domain/entities/date_range.dart';
 import 'package:next_on/features/attendance/presentation/pages/attendance_history_page.dart';
 import 'package:next_on/features/attendance/presentation/providers/attendance_history_notifier.dart';
+import 'package:next_on/features/attendance/presentation/providers/attendance_history_state.dart';
 import 'package:next_on/features/attendance/presentation/widgets/attendance_history_copy.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
@@ -266,16 +267,22 @@ void main() {
       expect(days.where((d) => d.date == null), hasLength(1));
     });
 
-    test('summary() reads the roll-up fields', () async {
+    test('summary() reads all eight numbers the server counts', () async {
       adapter
         ..status = 200
         ..body = {
           'success': true,
           'data': {
+            'total_working_days': 23,
             'present_days': 15,
             'late_days': 2,
-            'absent_days': 0,
+            'half_days': 1,
+            'incomplete_days': 3,
+            'absent_days': 4,
+            'leave_days': 5,
             'total_work_hours': 121.5,
+            'total_overtime_hours': 6.5,
+            'average_clock_in': '08:03',
           },
         };
 
@@ -286,9 +293,34 @@ void main() {
         contains('/attendance/records/summary/my'),
       );
       expect(adapter.lastRequest!.queryParameters, {'month': '2026-06'});
+      expect(
+        summary,
+        const AttendanceSummary(
+          totalWorkingDays: 23,
+          presentDays: 15,
+          lateDays: 2,
+          halfDays: 1,
+          incompleteDays: 3,
+          absentDays: 4,
+          leaveDays: 5,
+          totalWorkHours: 121.5,
+        ),
+      );
+    });
+
+    test('a count the server left out reads as 0', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': {'present_days': 15},
+        };
+
+      final summary = await source.summary(range);
+
       expect(summary.presentDays, 15);
-      expect(summary.lateDays, 2);
-      expect(summary.totalWorkHours, 121.5);
+      expect(summary.leaveDays, 0);
+      expect(summary.totalWorkingDays, 0);
     });
   });
 
@@ -612,6 +644,85 @@ void main() {
     });
   });
 
+  group('AttendanceHistoryState.showsSummary', () {
+    const notLinked = Failure.validation(
+      message: 'employee not found',
+      code: 'EMPLOYEE_NOT_FOUND',
+    );
+    const offline = Failure.network(message: 'offline');
+    final month = DateTime(2026, 6);
+
+    AsyncValue<T> failed<T>(Failure failure) =>
+        AsyncValue<T>.error(failure, StackTrace.empty);
+
+    AttendanceHistoryState state({
+      required AsyncValue<List<AttendanceDay>> records,
+      required AsyncValue<AttendanceSummary> summary,
+    }) => AttendanceHistoryState(
+      month: month,
+      records: records,
+      summary: summary,
+    );
+
+    test('shown in every ordinary state', () {
+      const loaded = AsyncValue<AttendanceSummary>.data(AttendanceSummary.empty);
+      const rows = AsyncValue<List<AttendanceDay>>.data([]);
+
+      expect(
+        AttendanceHistoryState(month: month).showsSummary,
+        isTrue,
+        reason: 'both loading',
+      );
+      expect(state(records: rows, summary: loaded).showsSummary, isTrue);
+      expect(
+        state(records: rows, summary: failed(offline)).showsSummary,
+        isTrue,
+      );
+      expect(
+        state(records: failed(offline), summary: failed(offline)).showsSummary,
+        isTrue,
+      );
+    });
+
+    test('hidden when both say "not linked": the list says it once', () {
+      expect(
+        state(
+          records: failed(notLinked),
+          summary: failed(notLinked),
+        ).showsSummary,
+        isFalse,
+      );
+    });
+
+    test('hidden while the summary is still on its way to the same answer', () {
+      expect(
+        state(
+          records: failed(notLinked),
+          summary: const AsyncValue.loading(),
+        ).showsSummary,
+        isFalse,
+      );
+    });
+
+    test('shown when only the summary is not linked, or when it failed '
+        'another way', () {
+      expect(
+        state(
+          records: const AsyncValue.data([]),
+          summary: failed(notLinked),
+        ).showsSummary,
+        isTrue,
+      );
+      expect(
+        state(
+          records: failed(notLinked),
+          summary: failed(offline),
+        ).showsSummary,
+        isTrue,
+      );
+    });
+  });
+
   group('AttendanceHistoryPage', () {
     final now = DateTime.now();
     final thisMonth = DateTime(now.year, now.month);
@@ -627,8 +738,13 @@ void main() {
       repository = FakeAttendanceRepository()
         ..monthSummary = const Result.success(
           AttendanceSummary(
+            totalWorkingDays: 23,
             presentDays: 15,
             lateDays: 2,
+            halfDays: 1,
+            incompleteDays: 3,
+            absentDays: 4,
+            leaveDays: 5,
             totalWorkHours: 121.5,
           ),
         )
@@ -702,9 +818,111 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('15'), findsOneWidget);
-      expect(find.text('121.5'), findsOneWidget);
+      expect(find.text('121.5 h'), findsOneWidget);
       expect(find.text('Late by 11 min'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('shows the six day counts, the base line and the hours', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+
+      expect(find.text('Out of 23 working days'), findsOneWidget);
+      for (final (label, value) in const [
+        ('Days present', '15'),
+        ('Days late', '2'),
+        ('Half day', '1'),
+        ('Incomplete', '3'),
+        ('Days absent', '4'),
+        ('Leave Days', '5'),
+      ]) {
+        expect(find.text(label), findsOneWidget, reason: label);
+        expect(find.text(value), findsOneWidget, reason: '$label = $value');
+      }
+      expect(find.text('Work Hours'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    group('a login with no employee record', () {
+      const notLinked = Failure.validation(
+        message: 'employee not found',
+        code: 'EMPLOYEE_NOT_FOUND',
+      );
+      const text =
+          'Your account is not linked to an employee record. '
+          'Please contact HR.';
+
+      testWidgets('says so once, with no Retry, when both loads fail', (
+        tester,
+      ) async {
+        repository
+          ..monthSummary = const Result.failure(notLinked)
+          ..monthRecords = const Result.failure(notLinked);
+
+        await pumpPage(tester);
+
+        expect(find.text(text), findsOneWidget);
+        expect(find.text('Retry'), findsNothing);
+        expect(find.text('Could not load attendance.'), findsNothing);
+      });
+
+      testWidgets('says so in the summary strip when only the summary fails', (
+        tester,
+      ) async {
+        repository.monthSummary = const Result.failure(notLinked);
+
+        await pumpPage(tester);
+
+        expect(find.text(text), findsOneWidget);
+        expect(find.text('Retry'), findsNothing);
+        // The list still loaded.
+        expect(find.text('Late by 11 min'), findsOneWidget);
+      });
+    });
+
+    testWidgets('a not-linked list with a summary that failed another way '
+        'keeps both messages: they are different facts', (tester) async {
+      repository
+        ..monthSummary = const Result.failure(
+          Failure.network(message: 'offline'),
+        )
+        ..monthRecords = const Result.failure(
+          Failure.validation(
+            message: 'employee not found',
+            code: 'EMPLOYEE_NOT_FOUND',
+          ),
+        );
+
+      await pumpPage(tester);
+
+      expect(find.text('Could not load attendance.'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+      expect(
+        find.text(
+          'Your account is not linked to an employee record. '
+          'Please contact HR.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('another failure says "could not load attendance" with a '
+        'Retry, on the strip and on the list', (tester) async {
+      repository
+        ..monthSummary = const Result.failure(
+          Failure.network(message: 'offline'),
+        )
+        ..monthRecords = const Result.failure(
+          Failure.server(message: 'boom', statusCode: 500),
+        );
+
+      await pumpPage(tester);
+
+      expect(find.text('Could not load attendance.'), findsNWidgets(2));
+      expect(find.text('Retry'), findsNWidgets(2));
+      // Never zeros standing in for numbers that did not load.
+      expect(find.text('Days present'), findsNothing);
     });
 
     testWidgets('expanding a row reveals its sessions', (tester) async {

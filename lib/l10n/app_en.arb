@@ -682,5 +682,11 @@
   },
   "attendanceAbsentStatus": "Absent",
   "attendanceIncompleteStatus": "Incomplete",
-  "attendanceHalfDayStatus": "Half day"
+  "attendanceHalfDayStatus": "Half day",
+  "leaveDays": "Leave Days",
+  "attWorkingDaysBase": "Out of {days} working days",
+  "@attWorkingDaysBase": {
+    "placeholders": {"days": {"type": "int"}}
+  },
+  "attSummaryLoadFailed": "Could not load attendance."
 }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/errors/failure.dart';
+import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/profile/domain/entities/shift_detail.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../domain/attendance_failure_x.dart';
 import '../../domain/entities/attendance_day.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../../domain/entities/punch_receipt.dart';
@@ -18,6 +21,21 @@ import '../../domain/entities/punch_receipt.dart';
 /// know, and such a code never becomes a [PunchBlocked] in the first place.
 class AttendanceCopy {
   AttendanceCopy._();
+
+  /// What to say when a month's attendance (the summary or the daily list)
+  /// could not be loaded, and whether trying again can help.
+  ///
+  /// A login with no employee record is told so, with no Retry: only HR can
+  /// link the account. Anything else is "could not load" with a Retry.
+  static ({String message, bool canRetry}) monthLoadFailure(
+    AppLocalizations l10n,
+    Object? error,
+  ) {
+    if (error is Failure && error.isEmployeeNotLinked) {
+      return (message: error.localize(l10n), canRetry: false);
+    }
+    return (message: l10n.attSummaryLoadFailed, canRetry: true);
+  }
 
   /// What to tell the user about a refused punch: the app's text for the
   /// rule, never the server's English.

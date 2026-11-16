@@ -62,8 +62,12 @@ class AttendanceHistoryPage extends ConsumerWidget {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(15, 15, 15, 40),
                   children: [
-                    _SummaryRow(summary: state.summary),
-                    heightBx(h: 20),
+                    // A login with no employee record fails both loads the
+                    // same way; the state decides to say it once, below.
+                    if (state.showsSummary) ...[
+                      _SummaryRow(summary: state.summary),
+                      heightBx(h: 20),
+                    ],
                     _RecordsList(records: state.records),
                   ],
                 ),
@@ -135,58 +139,155 @@ class _SummaryRow extends ConsumerWidget {
     final loading = summary.isLoading && !summary.hasValue;
 
     if (loading) {
-      return const Row(
+      return Column(
         children: [
-          Expanded(child: ShimmerBox(width: double.infinity, height: 96)),
-          SizedBox(width: 10),
-          Expanded(child: ShimmerBox(width: double.infinity, height: 96)),
-          SizedBox(width: 10),
-          Expanded(child: ShimmerBox(width: double.infinity, height: 96)),
+          for (var row = 0; row < 2; row++) ...[
+            if (row > 0) heightBx(h: 10),
+            const Row(
+              children: [
+                Expanded(child: ShimmerBox(width: double.infinity, height: 96)),
+                SizedBox(width: 10),
+                Expanded(child: ShimmerBox(width: double.infinity, height: 96)),
+                SizedBox(width: 10),
+                Expanded(child: ShimmerBox(width: double.infinity, height: 96)),
+              ],
+            ),
+          ],
         ],
       );
     }
 
     // A failed summary used to fall through to "0 / 0 / 0.0", which read as
     // real data. Surface the failure instead, with the same retry the records
-    // list offers (both reload together).
-    if (summary.hasError) {
+    // list offers (both reload together) — unless a retry cannot help.
+    final data = summary.valueOrNull;
+    if (summary.hasError || data == null) {
       return _SummaryError(
+        failure: AttendanceCopy.monthLoadFailure(l10n, summary.error),
         onRetry: () =>
             ref.read(attendanceHistoryNotifierProvider.notifier).retry(),
       );
     }
 
-    final data = summary.valueOrNull;
-
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _SummaryCard(
-            color: AppColors.attendancePresent,
-            icon: Icons.check,
-            value: '${data?.presentDays ?? 0}',
-            label: l10n.daysPresent,
-          ),
+        customText(
+          l10n.attWorkingDaysBase(data.totalWorkingDays),
+          color: AppColors.subTitle,
+          fontSize: 13,
         ),
-        widthBx(w: 10),
-        Expanded(
-          child: _SummaryCard(
-            color: AppColors.attendanceLate,
-            icon: Icons.access_time,
-            value: '${data?.lateDays ?? 0}',
-            label: l10n.daysLate,
-          ),
+        heightBx(h: 10),
+        _SummaryCardRow(
+          cards: [
+            _SummaryCard(
+              color: AppColors.attendancePresent,
+              icon: Icons.check,
+              value: '${data.presentDays}',
+              label: l10n.daysPresent,
+            ),
+            _SummaryCard(
+              color: AppColors.attendanceLate,
+              icon: Icons.access_time,
+              value: '${data.lateDays}',
+              label: l10n.daysLate,
+            ),
+            _SummaryCard(
+              color: AppColors.gray600,
+              icon: Icons.timelapse,
+              value: '${data.halfDays}',
+              label: l10n.attendanceHalfDayStatus,
+            ),
+          ],
         ),
-        widthBx(w: 10),
-        Expanded(
-          child: _SummaryCard(
-            color: AppColors.primary,
-            icon: Icons.trending_up,
-            value: (data?.totalWorkHours ?? 0).toStringAsFixed(1),
-            label: l10n.workHours,
-          ),
+        heightBx(h: 10),
+        _SummaryCardRow(
+          cards: [
+            _SummaryCard(
+              color: AppColors.attendanceLate,
+              icon: Icons.more_horiz,
+              value: '${data.incompleteDays}',
+              label: l10n.attendanceIncompleteStatus,
+            ),
+            _SummaryCard(
+              color: AppColors.attendanceAbsent,
+              icon: Icons.close,
+              value: '${data.absentDays}',
+              label: l10n.daysAbsent,
+            ),
+            _SummaryCard(
+              color: AppColors.secondary,
+              icon: Icons.event_available_outlined,
+              value: '${data.leaveDays}',
+              label: l10n.leaveDays,
+            ),
+          ],
         ),
+        heightBx(h: 10),
+        _WorkHoursRow(hours: data.totalWorkHours),
       ],
+    );
+  }
+}
+
+/// Three stat cards side by side, all the same height.
+class _SummaryCardRow extends StatelessWidget {
+  final List<Widget> cards;
+
+  const _SummaryCardRow({required this.cards});
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < cards.length; i++) ...[
+            if (i > 0) widthBx(w: 10),
+            Expanded(child: cards[i]),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The month's hours worked, on one row under the day counts.
+class _WorkHoursRow extends StatelessWidget {
+  final double hours;
+
+  const _WorkHoursRow({required this.hours});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.trending_up, color: AppColors.primary, size: 18),
+          widthBx(w: 10),
+          Expanded(
+            child: customText(
+              l10n.workHours,
+              fontSize: 13,
+              color: AppColors.subTitle,
+            ),
+          ),
+          customText(
+            '${hours.toStringAsFixed(1)} ${l10n.hoursUnit}',
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primary,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -263,7 +364,7 @@ class _RecordsList extends ConsumerWidget {
 
     if (records.hasError) {
       return _ErrorBlock(
-        message: l10n.attendanceLoadFailed,
+        failure: AttendanceCopy.monthLoadFailure(l10n, records.error),
         onRetry: () =>
             ref.read(attendanceHistoryNotifierProvider.notifier).retry(),
       );
@@ -291,11 +392,13 @@ class _RecordsList extends ConsumerWidget {
 }
 
 /// The compact failure state for the stat cards — a single bordered strip that
-/// keeps the daily records list below it visible and usable.
+/// keeps the daily records list below it visible and usable. Retry is offered
+/// only when it can help.
 class _SummaryError extends StatelessWidget {
+  final ({String message, bool canRetry}) failure;
   final VoidCallback onRetry;
 
-  const _SummaryError({required this.onRetry});
+  const _SummaryError({required this.failure, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -314,22 +417,24 @@ class _SummaryError extends StatelessWidget {
           widthBx(w: 10),
           Expanded(
             child: customText(
-              l10n.attendanceLoadFailed,
+              failure.message,
               color: AppColors.subTitle,
               fontSize: 13,
-              maxLine: 2,
+              maxLine: 3,
             ),
           ),
-          widthBx(w: 10),
-          InkWell(
-            onTap: onRetry,
-            child: customText(
-              l10n.retry,
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
+          if (failure.canRetry) ...[
+            widthBx(w: 10),
+            InkWell(
+              onTap: onRetry,
+              child: customText(
+                l10n.retry,
+                color: AppColors.primary,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -337,10 +442,10 @@ class _SummaryError extends StatelessWidget {
 }
 
 class _ErrorBlock extends StatelessWidget {
-  final String message;
+  final ({String message, bool canRetry}) failure;
   final VoidCallback onRetry;
 
-  const _ErrorBlock({required this.message, required this.onRetry});
+  const _ErrorBlock({required this.failure, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -353,16 +458,23 @@ class _ErrorBlock extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, color: AppColors.danger, size: 32),
             heightBx(h: 8),
-            customText(message, color: AppColors.subTitle, alight: TextAlign.center),
-            heightBx(h: 12),
-            InkWell(
-              onTap: onRetry,
-              child: customText(
-                l10n.retry,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-              ),
+            customText(
+              failure.message,
+              color: AppColors.subTitle,
+              alight: TextAlign.center,
+              maxLine: 3,
             ),
+            if (failure.canRetry) ...[
+              heightBx(h: 12),
+              InkWell(
+                onTap: onRetry,
+                child: customText(
+                  l10n.retry,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ],
         ),
       ),
