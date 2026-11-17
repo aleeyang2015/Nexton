@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#43 merged; next is #44). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#44 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 | | |
 |---|---|
 | Last finished work order | 42 of 60: #43, attendance: "forgot to scan" — rules and sending (no screen) |
-| Next work order | **43 of 60: #44**, attendance: "forgot to scan" form, from a history day or the menu. Not started, no branch, no plan yet |
+| Next work order | **43 of 60: #44**, attendance: "forgot to scan" form, from a history day or the menu. IMPLEMENTED on `44-correction-form-entries` (`fdc11a7`, `a2ba160`), pushed, reviewed; waits for "push issue 44 to main directly" |
 | `origin/main` | `da3fda8` "Merge branch '43-correction-rules' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
@@ -57,7 +57,8 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#43 merged** (`da3fda8`) on the owner's say, 2026-11-17.
+1. **#44: say "push issue 44 to main directly".** Built 2026-11-17 after the owner's go.
+   **#43 merged** (`da3fda8`) on the owner's say, 2026-11-17.
    **#42 merged** (`2385f00`) on the owner's say, 2026-11-17.
    **#41 merged** (`a205629`) on the owner's say, 2026-11-17.
    **#40 merged** (`01bf4be`) on the owner's say, 2026-11-17.
@@ -144,8 +145,19 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #44 (work order 43 of 60), "attendance: "forgot to scan" form, from a history day or the menu".** Read the issue and its comments, show a plan, wait for "go". The
-   "forgot to scan" form already exists; #43's rules check it. Uses #38's `CapturePolicy.photo`, folder `correction`.
+1. **#44 (work order 43 of 60), "attendance: "forgot to scan" form, from a history day or the menu": IMPLEMENTED, not
+   merged.** Owner said go on 2026-11-17. Branch `44-correction-form-entries`: `fdc11a7` (feature), `a2ba160` (review fixes).
+   Gates: analyze 1 warning already on `main`; `flutter test` 1,944 passed; debug APK builds. Waits for "push issue 44 to
+   main directly".
+   - Built on the existing form/route: `/attendance/time-correction?date=&part=` (+ the session's part as `extra`) fills
+     it; times follow the date's weekday; the window as a hint; DUPLICATE → dialog then back (home when nothing under);
+     "Choose file" → #38's sheet (`CapturePolicy.photo`). History: "ລືມລົງເວລາ" under each session (or a day with
+     none), only inside 30 days. Sessions read `shift_detail.id`.
+   Open after #44, none built there:
+   - phone check on `nexton-demo` (the "Done when" walk: last Friday's morning part → forgot to clock out 12:05 → web);
+   - "View" on the success toast waits for #45; the attachment buttons row overflows in English at 420 px (on main);
+   - a session with no part id opens on the first profile part; the form state is one provider (#53 pushing a second
+     form while one is open would share it).
 
    **#43 (work order 42 of 60), "attendance: "forgot to scan" — rules and sending (no screen)": MERGED (`da3fda8`),
    2026-11-17.** Owner said go on 2026-11-17. Branch `43-correction-rules`: `3bb78d8` (feature), `3bffdd0` (review fixes). Gates:
@@ -728,7 +740,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 40 | #41 | attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too | `41-waiting-offsite` | `f6a1a8d`, `c45b99f` | merged to main directly (`a205629`) | analyze: 1 warning already on `main`; `flutter test`: 1,871 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 41 | #42 | attendance: my off-site requests — list, detail, cancel | `42-my-offsite-requests` | `47cc6b0`, `8733133` | merged to main directly (`2385f00`) | analyze: 1 warning already on `main`; `flutter test`: 1,892 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 42 | #43 | attendance: "forgot to scan" — rules and sending (no screen) | `43-correction-rules` | `3bb78d8`, `3bffdd0` | merged to main directly (`da3fda8`) | analyze: 1 warning already on `main`; `flutter test`: 1,921 passed, 0 failed; debug APK builds | MERGED |
-| 43 | #44 | attendance: "forgot to scan" form, from a history day or the menu | | | | | NOT STARTED |
+| 43 | #44 | attendance: "forgot to scan" form, from a history day or the menu | `44-correction-form-entries` | `fdc11a7`, `a2ba160` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,944 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
 | 44 | #45 | attendance: my "forgot to scan" requests — list, detail, cancel | | | | | NOT STARTED |
 | 45 | #46 | approvals: off-site scans for heads and HR | | | | | NOT STARTED |
 | 46 | #47 | approvals: "forgot to scan" requests for heads and HR | | | | | NOT STARTED |
