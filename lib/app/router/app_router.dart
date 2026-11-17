@@ -397,24 +397,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const TimeCorrectionApprovalsPage(),
       ),
       // The off-site scans already filed — the "ລົງເວລານອກພື້ນທີ່" menu tile
-      // opens this, with the form one tap behind it.
+      // opens this (owner's choice on #40, until #42's "My requests"). The
+      // form is not behind it: only a refused punch opens the form.
       GoRoute(
         path: AppRoutes.offsiteHistory,
         name: 'offsiteHistory',
         builder: (context, state) => const OffsiteHistoryPage(),
       ),
-      // The off-site scan request form itself. `extra` carries the direction
-      // the form opens on when a refused punch sent the employee here; without
-      // one the page picks its own default.
+      // The off-site scan request form. Opened only from a refused clock-in
+      // or clock-out, whose direction comes as `extra`; without one (a link,
+      // a restored route) there is nothing to file: not found.
       GoRoute(
         path: AppRoutes.offsiteRequest,
         name: 'offsiteRequest',
-        builder: (context, state) {
-          final method = state.extra;
-          return method is OffsiteMethod
-              ? OffsiteRequestPage(method: method)
-              : const OffsiteRequestPage();
-        },
+        builder: (context, state) => offsiteRequestPageFor(state.extra),
       ),
       // Its "ຖ່າຍຮູບ" button — pops with the photo as a `LocalFile`.
       GoRoute(
@@ -501,3 +497,10 @@ class _ApprovalsGate extends ConsumerWidget {
       ? child
       : const NotFoundPage();
 }
+
+/// The off-site form for the refused punch's direction in [extra], or the
+/// not-found page when there is none: only a refused clock-in or clock-out
+/// opens the form (#40).
+Widget offsiteRequestPageFor(Object? extra) => extra is OffsiteMethod
+    ? OffsiteRequestPage(method: extra)
+    : const NotFoundPage();

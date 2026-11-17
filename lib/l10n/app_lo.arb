@@ -467,6 +467,7 @@
   "approvalsOffsiteTab": "ອະນຸມັດນອກພື້ນທີ່",
   "offsiteHistoryTitle": "ປະຫວັດລົງເວລານອກພື້ນທີ່",
   "offsiteHistoryEmpty": "ບໍ່ມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່",
+  "attCheckinPendingApproval": "ການລົງເວລາເຂົ້າຂອງທ່ານຍັງລໍຖ້າອະນຸມັດຢູ່",
   "offsiteHistoryLoadFailed": "ບໍ່ສາມາດໂຫຼດຄຳຮ້ອງລົງເວລານອກພື້ນທີ່ໄດ້.",
   "offsiteNewRequestTitle": "ລົງເວລານອກພື້ນທີ່ໃໝ່",
   "offsiteNewRequestSubtitle": "ຍື່ນຄຳຮ້ອງການລົງເວລານອກພື້ນທີ່ວຽກ",

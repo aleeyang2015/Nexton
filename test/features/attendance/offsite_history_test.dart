@@ -147,23 +147,15 @@ void main() {
       expect(find.text('Clock in'), findsNothing);
     });
 
-    testWidgets(
-      'the banner opens the request form and reloads on the way back',
-      (tester) async {
-        final repository = await pumpPage(tester, Result.success([scan()]));
-        expect(repository.mineCalls, 1);
+    testWidgets('no "new off-site clock-in" here: only a refused clock-in '
+        'or clock-out opens the form (owner\'s decision on #40)', (
+      tester,
+    ) async {
+      await pumpPage(tester, Result.success([scan()]));
 
-        await tester.tap(find.text('New off-site clock-in'));
-        await tester.pumpAndSettle();
-        expect(find.text('FORM'), findsOneWidget);
-
-        // Back out of the form: a scan just filed has to show up.
-        tester.state<NavigatorState>(find.byType(Navigator).first).pop();
-        await tester.pumpAndSettle();
-        expect(find.text('FORM'), findsNothing);
-        expect(repository.mineCalls, 2);
-      },
-    );
+      expect(find.text('New off-site clock-in'), findsNothing);
+      expect(find.text('FORM'), findsNothing);
+    });
 
     testWidgets('only a pending request offers to be withdrawn', (
       tester,

@@ -1481,6 +1481,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offsiteHistoryEmpty => 'No off-site clock-in requests';
 
   @override
+  String get attCheckinPendingApproval =>
+      'Your check-in is still waiting for approval';
+
+  @override
   String get offsiteHistoryLoadFailed =>
       'Could not load your off-site clock-in requests.';
 

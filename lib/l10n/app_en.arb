@@ -626,6 +626,7 @@
   "approvalsOffsiteTab": "Approve Off-site",
   "offsiteHistoryTitle": "Off-site Clock-in History",
   "offsiteHistoryEmpty": "No off-site clock-in requests",
+  "attCheckinPendingApproval": "Your check-in is still waiting for approval",
   "offsiteHistoryLoadFailed": "Could not load your off-site clock-in requests.",
   "offsiteNewRequestTitle": "New off-site clock-in",
   "offsiteNewRequestSubtitle": "File a clock-in taken outside the work area",

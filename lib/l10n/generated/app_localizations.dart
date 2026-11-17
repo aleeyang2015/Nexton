@@ -2762,6 +2762,12 @@ abstract class AppLocalizations {
   /// **'No off-site clock-in requests'**
   String get offsiteHistoryEmpty;
 
+  /// No description provided for @attCheckinPendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Your check-in is still waiting for approval'**
+  String get attCheckinPendingApproval;
+
   /// No description provided for @offsiteHistoryLoadFailed.
   ///
   /// In en, this message translates to:

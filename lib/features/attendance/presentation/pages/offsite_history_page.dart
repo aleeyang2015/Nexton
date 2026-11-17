@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/router/app_router.dart';
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_dialog.dart';
@@ -50,8 +49,6 @@ class OffsiteHistoryPage extends ConsumerWidget {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(15, 16, 15, 32),
                     children: [
-                      const _NewRequestBanner(),
-                      heightBx(h: 16),
                       TimeCorrectionFilterDropdown(
                         selected: state.filter,
                         countOf: state.countOf,
@@ -231,82 +228,3 @@ class _Message extends StatelessWidget {
   }
 }
 
-/// "ລົງເວລານອກພື້ນທີ່ໃໝ່" — opens the request form, and reloads the list when it
-/// closes so a scan just filed shows up with the status the backend gave it.
-class _NewRequestBanner extends ConsumerWidget {
-  const _NewRequestBanner();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryDark.withValues(alpha: 0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: AppColors.primaryDark,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          onTap: () async {
-            await context.push(AppRoutes.offsiteRequest);
-            ref.read(offsiteHistoryNotifierProvider.notifier).refresh();
-          },
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.add_location_alt_outlined,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
-                widthBx(w: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      customText(
-                        l10n.offsiteNewRequestTitle,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                      heightBx(h: 2),
-                      customText(
-                        l10n.offsiteNewRequestSubtitle,
-                        fontSize: 13,
-                        color: Colors.white.withValues(alpha: 0.75),
-                      ),
-                    ],
-                  ),
-                ),
-                widthBx(w: 8),
-                Icon(
-                  Icons.arrow_forward,
-                  color: Colors.white.withValues(alpha: 0.85),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

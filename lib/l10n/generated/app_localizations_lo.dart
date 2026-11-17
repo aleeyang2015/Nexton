@@ -1471,6 +1471,10 @@ class AppLocalizationsLo extends AppLocalizations {
   String get offsiteHistoryEmpty => 'ບໍ່ມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
 
   @override
+  String get attCheckinPendingApproval =>
+      'ການລົງເວລາເຂົ້າຂອງທ່ານຍັງລໍຖ້າອະນຸມັດຢູ່';
+
+  @override
   String get offsiteHistoryLoadFailed =>
       'ບໍ່ສາມາດໂຫຼດຄຳຮ້ອງລົງເວລານອກພື້ນທີ່ໄດ້.';
 

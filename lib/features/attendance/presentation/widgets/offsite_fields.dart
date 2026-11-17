@@ -15,76 +15,37 @@ BoxDecoration _tintBox() => BoxDecoration(
   borderRadius: BorderRadius.circular(12),
 );
 
-/// Which punch the scan stands in for: clock-in or clock-out, side by side.
-class OffsiteMethodSelector extends StatelessWidget {
-  final OffsiteMethod selected;
-  final ValueChanged<OffsiteMethod> onSelect;
-
-  const OffsiteMethodSelector({
-    super.key,
-    required this.selected,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        for (final method in OffsiteMethod.values) ...[
-          if (method != OffsiteMethod.values.first) widthBx(w: 8),
-          Expanded(
-            child: _MethodButton(
-              method: method,
-              selected: method == selected,
-              onTap: () => onSelect(method),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _MethodButton extends StatelessWidget {
+/// Which punch the scan stands in for: the one that was refused. Shown, not
+/// offered to change (owner's decision on #40).
+class OffsiteMethodLabel extends StatelessWidget {
   final OffsiteMethod method;
-  final bool selected;
-  final VoidCallback onTap;
 
-  const _MethodButton({
-    required this.method,
-    required this.selected,
-    required this.onTap,
-  });
+  const OffsiteMethodLabel({super.key, required this.method});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final color = selected ? Colors.white : AppColors.textPrimary;
 
-    return Material(
-      color: selected ? AppColors.primaryVariant : AppColors.primaryTint,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        onTap: onTap,
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: AppColors.primaryVariant,
         borderRadius: BorderRadius.circular(10),
-        child: SizedBox(
-          height: 48,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(OffsiteCopy.methodIcon(method), size: 18, color: color),
-              widthBx(w: 6),
-              Flexible(
-                child: customText(
-                  OffsiteCopy.methodLabel(l10n, method),
-                  fontSize: 14,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: color,
-                ),
-              ),
-            ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(OffsiteCopy.methodIcon(method), size: 18, color: Colors.white),
+          widthBx(w: 6),
+          Flexible(
+            child: customText(
+              OffsiteCopy.methodLabel(l10n, method),
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

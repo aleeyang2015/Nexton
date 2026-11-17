@@ -21,24 +21,23 @@ import '../widgets/offsite_fields.dart';
 import '../widgets/offsite_photo_field.dart';
 import '../widgets/offsite_copy.dart';
 import '../widgets/time_correction_section_card.dart';
+import '../providers/attendance_notifier.dart';
 
-/// "ລົງເວລານອກພື້ນທີ່" — the off-site scan request form behind its menu tile.
+/// "ລົງເວລານອກພື້ນທີ່" — the off-site scan request form.
 ///
-/// Reached when a punch lands outside every geofence: the employee files the
+/// Reached only when a clock-in or clock-out was refused for being outside
+/// every work area (owner's decision on #40): the employee files the
 /// scan with their position, a photo and a reason, and the backend either
 /// records the punch straight away (they hold `can_work_offsite`) or holds the
 /// request for HR. Fields and rules live in [offsiteFormNotifierProvider]; this
 /// page renders them, opens the camera, and reports how it went.
 ///
-/// [method] is the direction the form opens on — the punch that was refused,
-/// when [PunchFlow] sent the employee here, so they don't have to restate it.
+/// [method] is the punch that was refused: the scan stands in for it, and
+/// it is not offered to change.
 class OffsiteRequestPage extends ConsumerWidget {
-  /// Which punch the scan stands in for when the form opens. Defaults to
-  /// clocking out: that is the direction the history page's "new scan" button
-  /// implies no answer about, and the commonest reason to file one by hand.
   final OffsiteMethod method;
 
-  const OffsiteRequestPage({super.key, this.method = OffsiteMethod.checkOut});
+  const OffsiteRequestPage({super.key, required this.method});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -67,10 +66,7 @@ class OffsiteRequestPage extends ConsumerWidget {
                     TimeCorrectionSectionCard(
                       title: l10n.offsiteMethodLabel,
                       required: true,
-                      child: OffsiteMethodSelector(
-                        selected: state.method,
-                        onSelect: notifier.setMethod,
-                      ),
+                      child: OffsiteMethodLabel(method: state.method),
                     ),
                     heightBx(h: 14),
                     TimeCorrectionSectionCard(
@@ -119,20 +115,33 @@ class OffsiteRequestPage extends ConsumerWidget {
 
   /// Submits, then either leaves the page or says why the scan didn't count.
   ///
-  /// The three answers are kept apart on purpose: a filed request leaves with
-  /// a success toast, a session rule's refusal is a warning the user stays on
-  /// the page to act on (switch direction, come back later), and only a
-  /// request that never reached a verdict reads as an error.
+  /// - Filed ("Recorded", or "Sent for approval"): today is read again, so
+  ///   the card shows it, and the form closes.
+  /// - Refused because today is not what the card showed (a session started,
+  ///   finished, or never began; the clock-in still waits for approval): the
+  ///   same — today is read again and the form closes, with the reason.
+  /// - Any other refusal (too early, outside shift hours, already sent): the
+  ///   reason, and the form stays.
+  /// - No verdict at all: the error, and the form stays for a retry.
   Future<void> _submit(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
     final provider = offsiteFormNotifierProvider(method);
 
     final outcome = await ref.read(provider.notifier).submit();
+    // Read again even if the page closed meanwhile: the card must not keep
+    // offering the punch that was just filed.
+    if (outcome is OffsiteFiled ||
+        (outcome is OffsiteBlocked && outcome.rule.meansTodayChanged)) {
+      _reloadToday(ref);
+    }
     if (!context.mounted) return;
 
     switch (outcome) {
       case OffsiteFiled(:final submission):
         AppToast.success(OffsiteCopy.filed(l10n, submission));
+        context.pop();
+      case OffsiteBlocked() when outcome.rule.meansTodayChanged:
+        AppToast.warning(OffsiteCopy.blocked(l10n, outcome));
         context.pop();
       case OffsiteBlocked():
         AppToast.warning(OffsiteCopy.blocked(l10n, outcome));
@@ -142,6 +151,13 @@ class OffsiteRequestPage extends ConsumerWidget {
           error is Failure ? error.localize(l10n) : l10n.genericError,
         );
     }
+  }
+}
+
+/// Today's attendance, read again when it is on screen (the home card).
+void _reloadToday(WidgetRef ref) {
+  if (ref.exists(attendanceNotifierProvider)) {
+    ref.read(attendanceNotifierProvider.notifier).loadToday();
   }
 }
 
@@ -186,7 +202,6 @@ class _PhotoSection extends ConsumerWidget {
         photo: upload.valueOrNull,
         uploading: upload.isLoading,
         onTakePhoto: () => _takePhoto(context, ref, l10n),
-        onChooseImage: () => _chooseImage(ref, l10n),
         onRemove: ref.read(provider.notifier).clear,
       ),
     );
@@ -203,13 +218,6 @@ class _PhotoSection extends ConsumerWidget {
     _reportRejection(
       l10n,
       await ref.read(offsitePhotoNotifierProvider.notifier).upload(photo),
-    );
-  }
-
-  Future<void> _chooseImage(WidgetRef ref, AppLocalizations l10n) async {
-    _reportRejection(
-      l10n,
-      await ref.read(offsitePhotoNotifierProvider.notifier).pickAndUpload(),
     );
   }
 
