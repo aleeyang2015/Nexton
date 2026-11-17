@@ -86,4 +86,23 @@ void main() {
     await container.read(provider.notifier).upload(photo);
     expect(uploads.folders, ['correction']);
   });
+
+  test('a file gone before the off-site or "forgot to scan" check: no crash, '
+      'the upload says what is wrong', () async {
+    const gone = LocalFile(path: '/nope/x.jpg', name: 'x.jpg');
+    final offsite = container.listen(offsitePhotoNotifierProvider, (_, _) {});
+    addTearDown(offsite.close);
+    final correction = container.listen(
+      timeCorrectionAttachmentNotifierProvider,
+      (_, _) {},
+    );
+    addTearDown(correction.close);
+
+    await container.read(offsitePhotoNotifierProvider.notifier).upload(gone);
+    await container
+        .read(timeCorrectionAttachmentNotifierProvider.notifier)
+        .upload(gone);
+
+    expect(uploads.folders, ['offsite', 'correction']);
+  });
 }

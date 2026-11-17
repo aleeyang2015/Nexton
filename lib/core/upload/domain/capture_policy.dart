@@ -42,7 +42,14 @@ class CaptureCancelled extends CaptureResult {
   const CaptureCancelled();
 }
 
-/// The phone would not let the App use the camera or the photos.
+/// The phone would not let the App use the camera or the photos. Nothing
+/// reports it yet: `file_picker`'s gallery and file pickers need no
+/// permission, and the camera screen says its own refusal.
 class CaptureDenied extends CaptureResult {
   const CaptureDenied();
+}
+
+/// The picker failed for another reason: pick again.
+class CaptureFailed extends CaptureResult {
+  const CaptureFailed();
 }

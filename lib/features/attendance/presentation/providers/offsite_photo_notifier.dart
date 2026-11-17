@@ -64,7 +64,10 @@ class OffsitePhotoNotifier extends AutoDisposeAsyncNotifier<OffsitePhoto?> {
   Future<OffsitePhotoError?> upload(LocalFile picked) async {
     if (state.isLoading) return null;
 
-    if (await File(picked.path).length() > maxBytes) {
+    // A file that cannot be read here is left to the upload, which says
+    // "choose it again".
+    final size = await File(picked.path).length().catchError((_) => 0);
+    if (size > maxBytes) {
       return OffsitePhotoError.tooLarge;
     }
 

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/l10n/failure_localizer.dart';
-import 'package:next_on/core/upload/data/upload_error_code.dart';
+import 'package:next_on/core/upload/domain/upload_error_code.dart';
 import 'package:next_on/l10n/generated/app_localizations_en.dart';
 import 'package:next_on/l10n/generated/app_localizations_lo.dart';
 

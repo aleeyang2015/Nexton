@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../errors/failure.dart';
-import '../data/upload_error_code.dart';
+import '../domain/upload_error_code.dart';
 import '../domain/capture_policy.dart';
 import '../domain/local_file.dart';
 import '../domain/uploaded_attachment.dart';
@@ -53,6 +53,14 @@ class UploadNotifier extends AutoDisposeFamilyNotifier<UploadState, String> {
           file: state.file,
           failure: const Failure.validation(
             message: UploadErrorCode.tokenPermissionDenied,
+          ),
+        );
+      case CaptureFailed():
+        if (state.uploading) return;
+        state = UploadState(
+          file: state.file,
+          failure: const Failure.validation(
+            message: UploadErrorCode.tokenInvalidFile,
           ),
         );
       case CaptureCancelled():

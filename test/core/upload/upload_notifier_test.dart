@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
-import 'package:next_on/core/upload/data/upload_error_code.dart';
+import 'package:next_on/core/upload/domain/upload_error_code.dart';
 import 'package:next_on/core/upload/domain/capture_policy.dart';
 import 'package:next_on/core/upload/domain/local_file.dart';
 import 'package:next_on/core/upload/domain/upload_repository.dart';
@@ -110,6 +110,12 @@ void main() {
       UploadErrorCode.tokenPermissionDenied,
     );
     expect(uploads.calls, isEmpty);
+
+    await notifier().accept(const CaptureFailed());
+    expect(
+      UploadErrorCode.tokenOf(state().failure!),
+      UploadErrorCode.tokenInvalidFile,
+    );
 
     await notifier().accept(const Captured(photo));
     expect(state(), const UploadState(file: _kept));

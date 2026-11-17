@@ -99,24 +99,32 @@ void main() {
     expect(capture.asked, isEmpty);
   });
 
-  test('a refused permission from file_picker reads as "denied"', () {
+  test('file_picker errors: a picker already open is a back-out; any other '
+      'is "choose it again", never an uncaught error', () {
     expect(
-      FilePickerCapture.isPermissionRefusal(
-        PlatformException(code: 'read_external_storage_denied'),
-      ),
-      isTrue,
+      FilePickerCapture.resultOf(PlatformException(code: 'already_active')),
+      isA<CaptureCancelled>(),
     );
     expect(
-      FilePickerCapture.isPermissionRefusal(
-        PlatformException(code: 'photo_access_denied'),
-      ),
-      isTrue,
+      FilePickerCapture.resultOf(PlatformException(code: 'multiple_request')),
+      isA<CaptureCancelled>(),
     );
     expect(
-      FilePickerCapture.isPermissionRefusal(
-        PlatformException(code: 'unknown_path'),
-      ),
-      isFalse,
+      FilePickerCapture.resultOf(PlatformException(code: 'unknown_path')),
+      isA<CaptureFailed>(),
     );
+  });
+
+  testWidgets('a second tap while the sheet is open opens nothing more',
+      (tester) async {
+    await open(tester, CapturePolicy.document);
+    expect(find.text(lo.uploadPickFile), findsOneWidget);
+
+    // A second tap that lands before the sheet covers the button.
+    tester.widget<TextButton>(find.byType(TextButton)).onPressed!();
+    await tester.pumpAndSettle();
+
+    expect(find.text(lo.uploadPickFile), findsOneWidget);
+    expect(result, isA<CaptureCancelled>());
   });
 }

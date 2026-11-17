@@ -5,7 +5,8 @@ import '../../errors/failure.dart';
 import '../../network/api_response.dart';
 import '../domain/local_file.dart';
 import '../domain/uploaded_attachment.dart';
-import 'upload_error_code.dart';
+import '../domain/upload_error_code.dart';
+import 'upload_response_errors.dart';
 
 /// The generic file-upload call (`POST /uploads`), relative to the client's
 /// `/api/v1` base URL.
@@ -59,14 +60,21 @@ class UploadRemoteDataSourceImpl implements UploadRemoteDataSource {
     try {
       response = await _client.upload<dynamic>(_path, formData);
     } on DioException catch (error) {
-      final token = UploadErrorCode.tokenForResponse(error);
+      final token = uploadTokenForResponse(error);
       if (token != null) throw Failure.validation(message: token);
       rethrow;
     }
 
-    final attachment = _attachment(ApiEnvelope.unwrapObject(response.data));
+    // An answer the App cannot use (no JSON object, no url) is said as
+    // "choose it again", not as developer English.
+    UploadedAttachment? attachment;
+    try {
+      attachment = _attachment(ApiEnvelope.unwrapObject(response.data));
+    } on Object {
+      attachment = null;
+    }
     if (attachment == null) {
-      throw const FormatException('Upload response carried no file url');
+      throw const Failure.validation(message: UploadErrorCode.tokenInvalidFile);
     }
     return attachment;
   }

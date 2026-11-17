@@ -16,7 +16,25 @@ import '../upload_providers.dart';
 class FileSourceSheet {
   const FileSourceSheet._();
 
+  ///
+  /// One at a time: a second tap while the sheet or a picker is open asks
+  /// for nothing more.
   static Future<CaptureResult> pick(
+    BuildContext context,
+    WidgetRef ref,
+    CapturePolicy policy,
+  ) async {
+    final gate = ref.read(_pickGateProvider);
+    if (gate.open) return const CaptureCancelled();
+    gate.open = true;
+    try {
+      return await _pick(context, ref, policy);
+    } finally {
+      gate.open = false;
+    }
+  }
+
+  static Future<CaptureResult> _pick(
     BuildContext context,
     WidgetRef ref,
     CapturePolicy policy,
@@ -82,3 +100,10 @@ class _Sources extends StatelessWidget {
         CaptureSource.file => l10n.uploadPickFile,
       };
 }
+
+/// Whether a sheet or a picker is open: one at a time per App.
+class _PickGate {
+  bool open = false;
+}
+
+final _pickGateProvider = Provider<_PickGate>((ref) => _PickGate());

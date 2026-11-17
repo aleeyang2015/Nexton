@@ -221,7 +221,8 @@ class _AttachmentSection extends ConsumerWidget {
     TimeCorrectionAttachmentError? error,
   ) {
     if (error == TimeCorrectionAttachmentError.tooLarge) {
-      AppToast.error(l10n.timeCorrectionFileTooLarge);
+      // The same words as the upload's own check and the server's 413.
+      AppToast.error(l10n.uploadFileTooLarge);
     }
   }
 }

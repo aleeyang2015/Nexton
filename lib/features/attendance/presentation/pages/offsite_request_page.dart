@@ -215,7 +215,8 @@ class _PhotoSection extends ConsumerWidget {
 
   void _reportRejection(AppLocalizations l10n, OffsitePhotoError? error) {
     if (error == OffsitePhotoError.tooLarge) {
-      AppToast.error(l10n.timeCorrectionFileTooLarge);
+      // The same words as the upload's own check and the server's 413.
+      AppToast.error(l10n.uploadFileTooLarge);
     }
   }
 }

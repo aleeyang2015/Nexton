@@ -61,15 +61,17 @@ class FilePickerCapture implements FileCapture {
       if (file == null || path == null) return const CaptureCancelled();
       return Captured(LocalFile(path: path, name: file.name));
     } on PlatformException catch (error) {
-      if (isPermissionRefusal(error)) return const CaptureDenied();
-      rethrow;
+      return resultOf(error);
     }
   }
 
-  /// `file_picker` reports a refused permission as a [PlatformException]
-  /// whose code says so (`read_external_storage_denied`, `photo_access_denied`).
-  static bool isPermissionRefusal(PlatformException error) {
-    final code = error.code.toLowerCase();
-    return code.contains('denied') || code.contains('permission');
-  }
+  /// What a `file_picker` error means for the user. A picker already open
+  /// (`already_active` on Android, `multiple_request` on iOS: a second tap)
+  /// is a back-out; any other (`unknown_path`, `file_picker_error`, …) is
+  /// "pick again". Never thrown on to the screen.
+  static CaptureResult resultOf(PlatformException error) =>
+      switch (error.code) {
+        'already_active' || 'multiple_request' => const CaptureCancelled(),
+        _ => const CaptureFailed(),
+      };
 }

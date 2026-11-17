@@ -1,11 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/api_client.dart';
-import 'package:next_on/core/upload/data/upload_error_code.dart';
+import 'package:next_on/core/upload/domain/upload_error_code.dart';
 import 'package:next_on/core/upload/data/upload_remote_data_source.dart';
 import 'package:next_on/core/upload/data/upload_repository_impl.dart';
 import 'package:next_on/core/upload/domain/local_file.dart';
@@ -175,6 +176,20 @@ void main() {
     );
   });
 
+  test('a 201 with no url, or no JSON object: "choose it again", not '
+      'developer English', () async {
+    adapter
+      ..status = 201
+      ..body = {
+        'success': true,
+        'data': {'file_name': 'x'},
+      };
+    expect(await _tokenOfCall(source, photo), UploadErrorCode.tokenInvalidFile);
+
+    adapter.body = 'not json';
+    expect(await _tokenOfCall(source, photo), UploadErrorCode.tokenInvalidFile);
+  });
+
   test('a 500 is left to the shared network handling', () async {
     expect(await tokenFor(500, 'INTERNAL_ERROR'), isNull);
   });
@@ -203,6 +218,24 @@ void main() {
       expect(adapter.calls, 0);
     });
 
+    test('the file gone before it is sent: "choose it again", not the '
+        'raw error and its path', () async {
+      final gone = UploadRepositoryImpl(
+        remote: source,
+        sizeOf: (path) => File(path).length(),
+      );
+
+      final result = await gone.upload(
+        const LocalFile(path: '/nope/x.jpg', name: 'x.jpg'),
+      );
+
+      expect(
+        UploadErrorCode.tokenOf(result.failureOrNull!),
+        UploadErrorCode.tokenInvalidFile,
+      );
+      expect(adapter.calls, 0);
+    });
+
     test('exactly 5,000,000 bytes: sent', () async {
       size = UploadRules.maxBytes;
 
@@ -218,4 +251,16 @@ void main() {
       expect(UploadRules.maxBytes, lessThan(5 * 1024 * 1024));
     });
   });
+}
+
+Future<String?> _tokenOfCall(
+  UploadRemoteDataSourceImpl source,
+  LocalFile file,
+) async {
+  try {
+    await source.upload(file);
+  } on Failure catch (failure) {
+    return UploadErrorCode.tokenOf(failure);
+  }
+  return null;
 }
