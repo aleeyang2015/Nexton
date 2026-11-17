@@ -15,12 +15,19 @@ class CorrectionWindow {
   final int from;
   final int to;
 
-  /// The part runs past midnight: a time before its start is the next day.
+  /// The part runs past midnight (its end is on the next day).
   final bool overnight;
 
-  /// Where [time] (a time of day) falls on the corrected day's clock.
+  /// Where [time] (a time of day) falls on the corrected day's clock: the
+  /// same day, the next (a night part's 05:50), or the evening before (a
+  /// 00:10 part's 23:50 early clock-in), whichever puts it in the window.
+  /// Outside it on every day, it is left where an overnight part's times
+  /// go: after midnight when before the start, else the same day.
   int place(Duration time, {required int startMinutes}) {
     final t = time.inMinutes;
+    for (final candidate in [t, t + 1440, t - 1440]) {
+      if (candidate >= from && candidate <= to) return candidate;
+    }
     return overnight && t < startMinutes ? t + 1440 : t;
   }
 }
@@ -57,7 +64,9 @@ class CorrectionRules {
     final end = _minutesOf(times.end);
     if (start == null || end == null) return null;
     final minutes = part.minutesOn(date);
-    final overnight = part.endsNextDay || end <= start;
+    // Overnight as the server decides it: the end is not after the start
+    // (`ends_next_day` is not what it goes by).
+    final overnight = end <= start;
     final endOn = overnight ? end + 1440 : end;
     return CorrectionWindow(
       from: start - minutes.early,

@@ -137,4 +137,23 @@ void main() {
     expect(result.isFailure, isTrue);
     expect(repository.timeCorrectionRequests, isEmpty);
   });
+
+  test('the body: Latin digits, no session_order, no shift_detail_id when '
+      'there is none (#43)', () {
+    final body = TimeCorrectionRequestModel(
+      TimeCorrectionRequest(
+        date: DateTime(2026, 9, 5),
+        type: TimeCorrectionType.both,
+        shiftDetailId: null,
+        clockIn: const Duration(hours: 7, minutes: 5),
+        clockOut: const Duration(hours: 17),
+        reason: 'Forgot',
+      ),
+    ).toJson();
+
+    expect(body['request_date'], '2026-09-05');
+    expect(body['requested_clock_in'], '07:05');
+    expect(body.containsKey('session_order'), isFalse);
+    expect(body.containsKey('shift_detail_id'), isFalse);
+  });
 }

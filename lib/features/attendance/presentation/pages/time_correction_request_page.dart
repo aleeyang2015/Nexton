@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -121,14 +120,13 @@ class TimeCorrectionRequestPage extends ConsumerWidget {
     TimeCorrectionFormNotifier notifier,
     DateTime current,
   ) async {
-    final today = DateUtils.dateOnly(DateTime.now());
+    // The same calendar range the rule checks (30 days back, to today).
+    final range = CorrectionRules.lookBack(DateTime.now());
     final picked = await showDatePicker(
       context: context,
       initialDate: current,
-      firstDate: today.subtract(
-        const Duration(days: AppConstants.timeCorrectionMaxAgeDays),
-      ),
-      lastDate: today,
+      firstDate: range.earliest,
+      lastDate: range.latest,
     );
     if (picked != null) notifier.setDate(picked);
   }

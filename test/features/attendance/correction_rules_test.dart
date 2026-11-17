@@ -43,6 +43,14 @@ void main() {
   );
 
   group('look-back (decision 16: 30 days, no future)', () {
+    test('by the calendar, across a month: 30 days before 2026-03-30 is '
+        '2026-02-28', () {
+      expect(
+        CorrectionRules.lookBack(DateTime(2026, 3, 30)).earliest,
+        DateTime(2026, 2, 28),
+      );
+    });
+
     final today = DateTime(2026, 11, 17, 9);
     final range = CorrectionRules.lookBack(today);
 
@@ -92,6 +100,76 @@ void main() {
           TimeCorrectionType.forgotClockOut,
           clockOut: at(6, 1),
           part: night,
+        ),
+        ValidationCode.correctionOutsideWindow,
+      );
+    });
+
+    test('a night part\'s early clock-in (21:45 for 22:00, 30 early) is in: '
+        'placed on the evening, not the next day', () {
+      const nightEarly = ShiftDetail(
+        startTime: '22:00',
+        endTime: '06:00',
+        endsNextDay: true,
+        earlyCheckinMinutes: 30,
+      );
+      expect(
+        check(
+          TimeCorrectionType.forgotClockIn,
+          clockIn: at(21, 45),
+          part: nightEarly,
+        ),
+        isNull,
+      );
+      expect(
+        check(
+          TimeCorrectionType.both,
+          clockIn: at(21, 45),
+          clockOut: at(5, 30),
+          part: nightEarly,
+        ),
+        isNull,
+      );
+      expect(
+        check(
+          TimeCorrectionType.forgotClockIn,
+          clockIn: at(21, 29),
+          part: nightEarly,
+        ),
+        ValidationCode.correctionOutsideWindow,
+      );
+    });
+
+    test('a part starting 00:10 with 30 early: 23:50 (the evening before) is '
+        'in, as the window it names says', () {
+      const justAfterMidnight = ShiftDetail(
+        startTime: '00:10',
+        endTime: '08:00',
+        earlyCheckinMinutes: 30,
+      );
+      expect(
+        check(
+          TimeCorrectionType.forgotClockIn,
+          clockIn: at(23, 50),
+          part: justAfterMidnight,
+        ),
+        isNull,
+      );
+    });
+
+    test('ends_next_day with an end after the start is not overnight: the '
+        'times decide, as on the server', () {
+      const flagged = ShiftDetail(
+        startTime: '08:00',
+        endTime: '17:00',
+        endsNextDay: true,
+      );
+      expect(CorrectionRules.window(flagged, friday)!.overnight, isFalse);
+      expect(
+        check(
+          TimeCorrectionType.forgotClockOut,
+          clockOut: at(20),
+          part: flagged,
         ),
         ValidationCode.correctionOutsideWindow,
       );
@@ -188,8 +266,8 @@ void main() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    test('a time outside the chosen part: shown at once under the times, the '
-        'request is not sent, and the window is there for the text', () {
+    test('a time outside the chosen part: the request is not sent, and the '
+        'window is there for the text', () {
       final state = TimeCorrectionFormState(
         date: today,
         type: TimeCorrectionType.forgotClockIn,
@@ -198,13 +276,37 @@ void main() {
         reason: 'Forgot',
       );
 
-      expect(
-        state.errorFor(TimeCorrectionFields.times),
-        ValidationCode.correctionOutsideWindow,
-      );
       expect(state.toRequest().validate().isFailure, isTrue);
       expect(CorrectionRules.hhmm(state.window!.from), '07:30');
       expect(CorrectionRules.hhmm(state.window!.to), '18:00');
+    });
+
+    test('outside the part waits for Send; a clock-out before the clock-in '
+        'shows at once', () {
+      final untouched = TimeCorrectionFormState(
+        date: today,
+        type: TimeCorrectionType.forgotClockIn,
+        shiftDetail: office,
+        clockIn: const TimeOfDay(hour: 7, minute: 0),
+      );
+      expect(untouched.errorFor(TimeCorrectionFields.times), isNull);
+      expect(
+        untouched
+            .copyWith(showErrors: true)
+            .errorFor(TimeCorrectionFields.times),
+        ValidationCode.correctionOutsideWindow,
+      );
+
+      final reversed = TimeCorrectionFormState(
+        date: today,
+        shiftDetail: office,
+        clockIn: const TimeOfDay(hour: 16, minute: 0),
+        clockOut: const TimeOfDay(hour: 9, minute: 0),
+      );
+      expect(
+        reversed.errorFor(TimeCorrectionFields.times),
+        ValidationCode.correctionInvalidTimes,
+      );
     });
 
     test('the part goes with the request (not on the wire)', () {

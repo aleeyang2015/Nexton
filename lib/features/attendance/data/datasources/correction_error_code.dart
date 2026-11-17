@@ -46,17 +46,23 @@ class CorrectionErrorCode {
     switch (code) {
       case 'DUPLICATE':
         return Failure.validation(message: encode(tokenDuplicate), code: code);
+      // Without the time or the dates it names, the general text: never a
+      // sentence with a blank in it.
       case 'TOO_EARLY_CHECKIN':
+        final opens = _hhmm(details['clock_in_opens']);
         return Failure.validation(
-          message: encode(tokenTooEarly, [_hhmm(details['clock_in_opens'])]),
+          message: opens.isEmpty
+              ? encode(tokenInvalid)
+              : encode(tokenTooEarly, [opens]),
           code: code,
         );
       case 'CORRECTION_DATE_OUT_OF_RANGE':
+        final earliest = _text(details['earliest_date']);
+        final latest = _text(details['latest_date']);
         return Failure.validation(
-          message: encode(tokenOutOfRange, [
-            _text(details['earliest_date']),
-            _text(details['latest_date']),
-          ]),
+          message: earliest.isEmpty || latest.isEmpty
+              ? encode(tokenInvalid)
+              : encode(tokenOutOfRange, [earliest, latest]),
           code: code,
         );
     }
@@ -74,12 +80,15 @@ class CorrectionErrorCode {
     return details is Map ? details.cast<String, dynamic>() : const {};
   }
 
-  static String _text(dynamic value) => value is String ? value : '';
+  /// A value as text, with the separator taken out so it cannot shift the
+  /// values after it.
+  static String _text(dynamic value) =>
+      value is String ? value.replaceAll(_separator, '').trim() : '';
 
-  /// `07:45` from `07:45` or `07:45:00`.
+  /// `07:45` from `07:45`, `07:45:00` or a full `…T07:45:00` date-time; empty
+  /// when there is no time in it.
   static String _hhmm(dynamic value) {
-    final text = _text(value);
-    final match = RegExp(r'^(\d{1,2}:\d{2})').firstMatch(text);
-    return match?[1] ?? text;
+    final match = RegExp(r'(\d{1,2}:\d{2})').firstMatch(_text(value));
+    return match?[1] ?? '';
   }
 }

@@ -84,4 +84,46 @@ void main() {
       'Clock-in for that shift opens at 07:45',
     );
   });
+
+  test('no details sent: the general text, never one with blanks', () {
+    expect(
+      say(refused(409, 'TOO_EARLY_CHECKIN')),
+      'ກະລຸນາກວດວັນທີ, ເວລາ ແລະ ຊ່ວງກະອີກຄັ້ງ',
+    );
+    expect(
+      say(refused(422, 'CORRECTION_DATE_OUT_OF_RANGE')),
+      'ກະລຸນາກວດວັນທີ, ເວລາ ແລະ ຊ່ວງກະອີກຄັ້ງ',
+    );
+  });
+
+  test('an opening time sent as a full date-time still reads HH:MM', () {
+    expect(
+      say(
+        refused(409, 'TOO_EARLY_CHECKIN', {
+          'clock_in_opens': '2026-11-16T07:45:00',
+        }),
+        lao: false,
+      ),
+      'Clock-in for that shift opens at 07:45',
+    );
+  });
+
+  test('every token the code makes is one the localizer says (no drift)', () {
+    for (final failure in [
+      CorrectionErrorCode.fromResponse(refused(409, 'DUPLICATE'))!,
+      CorrectionErrorCode.fromResponse(
+        refused(409, 'TOO_EARLY_CHECKIN', {'clock_in_opens': '07:45'}),
+      )!,
+      CorrectionErrorCode.fromResponse(
+        refused(422, 'CORRECTION_DATE_OUT_OF_RANGE', {
+          'earliest_date': '2026-10-18',
+          'latest_date': '2026-11-17',
+        }),
+      )!,
+      CorrectionErrorCode.fromResponse(refused(422, 'VALIDATION_ERROR'))!,
+    ]) {
+      final message = (failure as ValidationFailure).message;
+      expect(failure.localize(en), isNot(message), reason: message);
+    }
+  });
 }
