@@ -65,6 +65,7 @@ class AttendanceStatusCard extends ConsumerWidget {
                 profile?.shiftNameLo,
               );
     final clockOutBy = AttendanceCopy.otClockOutBy(l10n, openOt);
+    final offsiteWaiting = AttendanceCopy.offsiteWaiting(l10n, state.next);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -92,6 +93,16 @@ class AttendanceStatusCard extends ConsumerWidget {
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.attendanceLate,
+            ),
+          ],
+          if (offsiteWaiting != null) ...[
+            heightBx(h: 4),
+            customText(
+              offsiteWaiting,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.attendanceLate,
+              maxLine: 2,
             ),
           ],
           // Both hidden when the profile has no shift to show.

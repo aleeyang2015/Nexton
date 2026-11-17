@@ -9,6 +9,7 @@ import '../../attendance_providers.dart';
 import '../../domain/attendance_failure_x.dart';
 import '../../domain/entities/attendance_day.dart';
 import '../../domain/entities/clock_method.dart';
+import '../../domain/entities/offsite_detail.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../../domain/entities/punch_request.dart';
 import 'attendance_state.dart';
@@ -101,18 +102,23 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
   Future<void> loadToday() async {
     if (_disposed) return;
     final loadedAs = ++_loads;
-    _loadedDate = _dateOnly(DateTime.now());
+    final now = DateTime.now();
+    _loadedDate = _dateOnly(now);
     state = state.copyWith(today: const AsyncValue.loading());
 
-    final otTimeout = ref.read(openOtSessionTimeoutProvider);
-    final (record, openOt) = await (
+    // The record, the open OT and the waiting off-site scans, asked for
+    // together. The two side reads get a time limit: a slow one counts as
+    // failed (nothing open, nothing waiting) rather than holding the slide.
+    final sideTimeout = ref.read(openOtSessionTimeoutProvider);
+    final (record, openOt, waiting) = await (
       ref.read(getTodayAttendanceUseCaseProvider)(),
       ref.read(getOpenOtSessionUseCaseProvider)().timeout(
-        otTimeout,
+        sideTimeout,
         onTimeout: () => const Result.failure(
           Failure.network(message: 'ot-sessions/open timed out'),
         ),
       ),
+      _waitingOffsite(now, sideTimeout),
     ).wait;
     if (_disposed || loadedAs != _loads) return;
 
@@ -123,7 +129,28 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
         (day) => AsyncValue<AttendanceDay>.data(day),
       ),
       openOt: openOt.dataOrNull,
+      waitingOffsite: waiting.dataOrNull ?? const [],
+      loadedOn: _dateOnly(now),
     );
+  }
+
+  /// The waiting off-site scans (#41). Whatever goes wrong here (a refusal,
+  /// no signal, a slow answer, anything thrown) means "none waiting": the
+  /// card then goes by the record, as before, and the next load asks again.
+  Future<Result<List<OffsiteRequestDetail>>> _waitingOffsite(
+    DateTime now,
+    Duration timeout,
+  ) async {
+    const none = Result<List<OffsiteRequestDetail>>.failure(
+      Failure.network(message: 'offsite-requests/my not read'),
+    );
+    try {
+      return await ref
+          .read(getWaitingOffsiteUseCaseProvider)(now)
+          .timeout(timeout, onTimeout: () => none);
+    } catch (_) {
+      return none;
+    }
   }
 
   /// Re-reads today's record if the calendar day has moved on since the last

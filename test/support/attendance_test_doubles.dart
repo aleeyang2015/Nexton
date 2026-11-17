@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:next_on/features/attendance/domain/entities/offsite_method.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/domain/datasources/punch_location_source.dart';
@@ -219,6 +220,25 @@ class FakeOffsiteRepository implements OffsiteRepository {
         );
   }
 
+  /// Answers `waiting(month:)`; the months asked for are kept.
+  Result<List<OffsiteRequestDetail>> waitingResult = const Result.success([]);
+  final List<String> waitingMonths = [];
+
+  /// When set, the next `waiting` waits for it.
+  Completer<void>? holdWaiting;
+
+  @override
+  FutureResult<List<OffsiteRequestDetail>> waiting({
+    required String month,
+  }) async {
+    waitingMonths.add(month);
+    final answer = waitingResult;
+    final hold = holdWaiting;
+    holdWaiting = null;
+    await hold?.future;
+    return answer;
+  }
+
   @override
   FutureResult<List<OffsiteRequestDetail>> mine() async {
     mineCalls++;
@@ -285,3 +305,30 @@ class FakePunchLocationSource implements PunchLocationSource {
     return reading;
   }
 }
+
+/// An off-site scan of the caller's, as `offsite-requests/my` lists it:
+/// waiting by default, session 1, scanned at [at].
+OffsiteRequestDetail waitingOffsite({
+  required OffsiteMethod method,
+  required DateTime at,
+  String id = 'off-1',
+  int sessionOrder = 1,
+  TimeCorrectionStatus status = TimeCorrectionStatus.pending,
+}) => OffsiteRequestDetail(
+  id: id,
+  employee: const TimeCorrectionEmployee(name: 'Somchai'),
+  method: method,
+  latitude: 17.9757,
+  longitude: 102.6331,
+  scanTimestamp: at,
+  scanDate: DateTime(at.year, at.month, at.day),
+  sessionOrder: sessionOrder,
+  shift: null,
+  attachmentUrl: 'https://files.nexton.work/uploads/shop.jpg',
+  reason: 'Client visit',
+  status: status,
+  currentStepNo: 1,
+  attendanceRecordId: null,
+  steps: const [],
+  submittedAt: at,
+);

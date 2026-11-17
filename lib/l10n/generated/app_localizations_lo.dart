@@ -2018,6 +2018,15 @@ class AppLocalizationsLo extends AppLocalizations {
   String get otPostsEmpty => 'ບໍ່ມີປະກາດໂອທີສຳລັບພະແນກຂອງທ່ານ';
 
   @override
+  String attOffsiteCheckinWaiting(String time) {
+    return 'ລົງເວລາເຂົ້ານອກພື້ນທີ່ເວລາ $time: ລໍຖ້າອະນຸມັດ';
+  }
+
+  @override
+  String get attOffsiteBothWaiting =>
+      'ລົງເວລາເຂົ້າ ແລະ ອອກ ນອກພື້ນທີ່: ລໍຖ້າອະນຸມັດ';
+
+  @override
   String attOtClockOutBy(String time) {
     return 'ສະແກນອອກພາຍໃນ $time';
   }

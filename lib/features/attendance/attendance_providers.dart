@@ -26,6 +26,7 @@ import 'domain/usecases/get_time_correction_approvals_usecase.dart';
 import 'domain/usecases/get_time_correction_detail_usecase.dart';
 import 'domain/usecases/get_time_correction_history_usecase.dart';
 import 'domain/usecases/get_today_attendance_usecase.dart';
+import 'domain/usecases/get_waiting_offsite_usecase.dart';
 import 'domain/usecases/prepare_punch_usecase.dart';
 import 'domain/usecases/read_offsite_location_usecase.dart';
 import 'domain/usecases/reject_offsite_request_usecase.dart';
@@ -191,6 +192,10 @@ final readOffsiteLocationUseCaseProvider = Provider<ReadOffsiteLocationUseCase>(
 
 /// The employee's own off-site requests, for the history page in front of the
 /// request form.
+final getWaitingOffsiteUseCaseProvider = Provider<GetWaitingOffsiteUseCase>(
+  (ref) => GetWaitingOffsiteUseCase(ref.watch(offsiteRepositoryProvider)),
+);
+
 final getOffsiteHistoryUseCaseProvider = Provider<GetOffsiteHistoryUseCase>(
   (ref) => GetOffsiteHistoryUseCase(ref.watch(offsiteRepositoryProvider)),
 );

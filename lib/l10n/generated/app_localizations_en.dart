@@ -2032,6 +2032,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get otPostsEmpty => 'No OT posts for your department';
 
   @override
+  String attOffsiteCheckinWaiting(String time) {
+    return 'Check-in outside the area at $time: waiting for approval';
+  }
+
+  @override
+  String get attOffsiteBothWaiting =>
+      'Check-in and check-out outside the area: waiting for approval';
+
+  @override
   String attOtClockOutBy(String time) {
     return 'Clock out by $time';
   }

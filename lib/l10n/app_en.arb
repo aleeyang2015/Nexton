@@ -816,6 +816,9 @@
   "otPostJoinSent": "Join asked, waiting for HR",
   "otPostGone": "This post is gone or is not for your department.",
   "otPostsEmpty": "No OT posts for your department",
+  "attOffsiteCheckinWaiting": "Check-in outside the area at {time}: waiting for approval",
+  "@attOffsiteCheckinWaiting": {"placeholders": {"time": {"type": "String"}}},
+  "attOffsiteBothWaiting": "Check-in and check-out outside the area: waiting for approval",
   "attOtClockOutBy": "Clock out by {time}",
   "@attOtClockOutBy": {"placeholders": {"time": {"type": "String"}}}
 }
