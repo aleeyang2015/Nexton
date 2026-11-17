@@ -21,7 +21,7 @@ class OtRepositoryImpl extends BaseRepository implements OtRepository {
     OtStatus? status,
     DateTime? month,
     int page = 1,
-    int perPage = 20,
+    int perPage = OtPage.defaultPerPage,
   }) => guard(
     () => _remote.myRequests(
       status: status,
@@ -42,7 +42,10 @@ class OtRepositoryImpl extends BaseRepository implements OtRepository {
   FutureResult<OtRequest> cancel(String id) => guard(() => _remote.cancel(id));
 
   @override
-  FutureResult<OtPage<OtPost>> openPosts({int page = 1, int perPage = 20}) =>
+  FutureResult<OtPage<OtPost>> openPosts({
+    int page = 1,
+    int perPage = OtPage.defaultPerPage,
+  }) =>
       guard(() => _remote.openPosts(page: page, perPage: perPage));
 
   @override

@@ -3,6 +3,9 @@ import 'package:equatable/equatable.dart';
 /// One page of an OT list. The OT lists are page-based (`meta {page,
 /// per_page, total, total_pages}`), not cursor-based like the leave lists.
 class OtPage<T> extends Equatable {
+  /// The server's default page size; it allows up to 100.
+  static const int defaultPerPage = 20;
+
   final List<T> items;
 
   /// This page's number, from 1.

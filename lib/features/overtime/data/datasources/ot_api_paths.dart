@@ -14,11 +14,18 @@ class OtPaths {
 
   // The id is one path segment, whatever it holds: an id that came in from
   // a link is not trusted to be a UUID, and `../my` must not become another
-  // endpoint.
+  // endpoint. An empty id, `.` or `..` would still step out of the path
+  // (Dart's Uri reads `%2E` as a dot too), so those are refused before any
+  // request goes out.
   static String request(String id) => '$requests/${_segment(id)}';
   static String cancel(String id) => '${request(id)}/cancel';
   static String join(String postId) =>
       '$_prefix/ot-announcements/${_segment(postId)}/join';
 
-  static String _segment(String id) => Uri.encodeComponent(id);
+  static String _segment(String id) {
+    if (id.isEmpty || id == '.' || id == '..') {
+      throw FormatException('Not an OT id: "$id"');
+    }
+    return Uri.encodeComponent(id);
+  }
 }

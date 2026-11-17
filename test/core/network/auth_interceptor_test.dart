@@ -677,6 +677,32 @@ void main() {
       'error': {'code': 'TENANT_INACTIVE', 'message': 'Tenant is not active'},
     });
 
+    test('NOT_APPROVER or FORBIDDEN (an OT refusal) does not end the session, '
+        'and asks for no refresh', () async {
+      final h = await _Harness.create();
+      h.adapter.queue('/core_hr/attendance/ot-requests/ot-1/cancel', [
+        const _Reply(403, {
+          'success': false,
+          'error': {'code': 'NOT_APPROVER', 'message': 'not your step'},
+        }),
+        const _Reply(403, {
+          'success': false,
+          'error': {'code': 'FORBIDDEN', 'message': 'reject it'},
+        }),
+      ]);
+
+      for (var i = 0; i < 2; i++) {
+        await expectLater(
+          h.client.put<dynamic>('/core_hr/attendance/ot-requests/ot-1/cancel'),
+          throwsA(isA<DioException>()),
+        );
+      }
+
+      expect(h.sessionExpiredEvents, isEmpty);
+      expect(h.requestsTo(ApiPaths.refresh), isEmpty);
+      expect(await h.tokens.readAccessToken(), isNotNull);
+    });
+
     test('TENANT_INACTIVE on a signed-in call ends the session, with no '
         'refresh', () async {
       final h = await _Harness.create();

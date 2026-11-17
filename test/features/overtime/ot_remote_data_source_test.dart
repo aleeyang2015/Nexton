@@ -209,6 +209,25 @@ void main() {
       expect(page.hasMore, isFalse);
     });
 
+    test('a page number that is missing or not whole is the page asked for, '
+        'so load-more never asks for a page twice', () async {
+      adapter.body = {
+        'success': true,
+        'data': [otRequestJson()],
+        'meta': {'page': '3', 'total_pages': 5},
+      };
+      final page = (await repository.myRequests(page: 3)).dataOrNull!;
+      expect(page.page, 3);
+      expect(page.hasMore, isTrue);
+
+      adapter.body = {
+        'success': true,
+        'data': [otRequestJson()],
+        'meta': {'total_pages': 3},
+      };
+      expect((await repository.myRequests(page: 3)).dataOrNull!.hasMore, isFalse);
+    });
+
     test('a bad month is a 422 that keeps its field', () async {
       refuse(422, 'VALIDATION_ERROR', 'invalid month', {
         'month': ['must be YYYY-MM'],
@@ -232,6 +251,19 @@ void main() {
         adapter.lastRequest!.path,
         '/core_hr/attendance/ot-requests/..%2Fmy',
       );
+    });
+
+    test('an empty id, "." or ".." is refused before any request goes out: '
+        'it would step out of the path', () async {
+      answer(200, otRequestJson());
+
+      for (final id in ['', '.', '..']) {
+        adapter.lastRequest = null;
+        expect((await repository.request(id)).isFailure, isTrue, reason: id);
+        expect((await repository.cancel(id)).isFailure, isTrue, reason: id);
+        expect((await repository.join(id)).isFailure, isTrue, reason: id);
+        expect(adapter.lastRequest, isNull, reason: id);
+      }
     });
 
     test('edit: PUT /ot-requests/:id with the same body as ask', () async {
@@ -336,8 +368,20 @@ void main() {
 
         expect(failure, isA<ValidationFailure>());
         expect(failure.message, token);
+        // The wire code is kept beside the token.
+        expect((failure as ValidationFailure).code, code);
       });
     }
+
+    test('a 500 that carries an OT code is a server failure, worth a Retry',
+        () async {
+      refuse(500, 'OT_FULL', 'boom');
+
+      final failure = (await repository.join('post-1')).failureOrNull!;
+
+      expect(failure, isA<ServerFailure>());
+      expect(failure.message, isNot(OtErrorCode.tokenFull));
+    });
 
     test('409 OT_OVERLAPS_SHIFT on edit and join too', () async {
       refuse(409, 'OT_OVERLAPS_SHIFT');

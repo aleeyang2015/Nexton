@@ -41,9 +41,6 @@ class OtRemoteDataSourceImpl implements OtRemoteDataSource {
 
   OtRemoteDataSourceImpl(this._client);
 
-  /// The server's default page size; it allows up to 100.
-  static const int defaultPerPage = 20;
-
   @override
   Future<OtRequest> ask(OtDraft draft) => _business(() async {
     final response = await _client.post<dynamic>(
@@ -61,7 +58,7 @@ class OtRemoteDataSourceImpl implements OtRemoteDataSource {
     OtStatus? status,
     DateTime? month,
     int page = 1,
-    int perPage = defaultPerPage,
+    int perPage = OtPage.defaultPerPage,
   }) => _business(() async {
     final wire = switch (status) {
       OtStatus.pending ||
@@ -79,7 +76,7 @@ class OtRemoteDataSourceImpl implements OtRemoteDataSource {
         'per_page': perPage,
       },
     );
-    return _page(response.data, OtRequestModel.tryFromJson);
+    return _page(response.data, page, OtRequestModel.tryFromJson);
   });
 
   @override
@@ -107,13 +104,13 @@ class OtRemoteDataSourceImpl implements OtRemoteDataSource {
   @override
   Future<OtPage<OtPost>> openPosts({
     int page = 1,
-    int perPage = defaultPerPage,
+    int perPage = OtPage.defaultPerPage,
   }) => _business(() async {
     final response = await _client.get<dynamic>(
       OtPaths.openPosts,
       queryParameters: {'page': page, 'per_page': perPage},
     );
-    return _page(response.data, OtPostModel.tryFromJson);
+    return _page(response.data, page, OtPostModel.tryFromJson);
   });
 
   @override
@@ -137,21 +134,28 @@ class OtRemoteDataSourceImpl implements OtRemoteDataSource {
       OtRequestModel.fromJson(ApiEnvelope.unwrapObject(body));
 
   /// A list and its `meta`. A row the App cannot read is skipped, not the
-  /// whole page lost. No `meta` is a single page.
+  /// whole page lost. A page number that is missing or not a whole number is
+  /// the page asked for ([asked]), so a list never asks for a page twice; no
+  /// `total_pages` is no page after this one.
   static OtPage<T> _page<T>(
     dynamic body,
+    int asked,
     T? Function(Map<String, dynamic>) read,
   ) {
     final items = ApiEnvelope.unwrapList(body).map(read).whereType<T>().toList();
     final meta = body is Map ? OtJson.object(body['meta']) : null;
-    final page = OtJson.intOf(meta?['page']) ?? 1;
+    final page = OtJson.intOf(meta?['page']) ?? asked;
     final totalPages = OtJson.intOf(meta?['total_pages']) ?? page;
     return OtPage<T>(items: items, page: page, totalPages: totalPages);
   }
 
-  /// Turns a known OT refusal into `Failure.validation(message: <token>)`;
-  /// everything else rethrows for `BaseRepository.guard` (a `404` keeps its
-  /// status, a `422` its field, an unknown code its message).
+  /// Turns a known OT refusal into a `Failure.validation` whose message is
+  /// its token and whose code is the wire code; everything else rethrows for
+  /// `BaseRepository.guard` (a `404` keeps its status, a `422` its field, an
+  /// unknown code its message).
+  ///
+  /// Only a refusal is mapped (`400`, `403`, `409`): a `500` that carries an
+  /// OT code is still a server failure, worth a Retry.
   ///
   /// `FORBIDDEN` means "reject it instead" only on cancel ([onCancel]).
   Future<T> _business<T>(
@@ -161,14 +165,18 @@ class OtRemoteDataSourceImpl implements OtRemoteDataSource {
     try {
       return await call();
     } on DioException catch (error) {
+      final status = error.response?.statusCode;
+      if (!_refusals.contains(status)) rethrow;
       final code = ApiError.tryParse(error.response?.data)?.code;
       final token = (onCancel && code == OtErrorCode.forbidden)
           ? OtErrorCode.tokenCancelForbidden
           : OtErrorCode.tokenByWire[code];
-      if (token != null) throw Failure.validation(message: token);
+      if (token != null) throw Failure.validation(message: token, code: code);
       rethrow;
     }
   }
+
+  static const _refusals = {400, 403, 409};
 
   static String _isoDate(DateTime date) =>
       '${_yearMonth(date)}-${date.day.toString().padLeft(2, '0')}';

@@ -16,7 +16,7 @@ class MyOtRequestsQuery {
     this.status,
     this.month,
     this.page = 1,
-    this.perPage = 20,
+    this.perPage = OtPage.defaultPerPage,
   });
 }
 
