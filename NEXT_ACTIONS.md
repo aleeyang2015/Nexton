@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#28 merged; #29 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#29 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 
 | | |
 |---|---|
-| Last finished work order | 27 of 60: #28, overtime: OT calls, error codes and Lao text |
-| Next work order | **28 of 60: #29**, overtime: my OT list, on its own tile. IMPLEMENTED on `29-ot-list` (`3728c18`, `4615de2`), pushed, reviewed; waits for "push issue 29 to main directly". After it: #30 |
-| `origin/main` | `c8ccd35` "Merge branch '28-overtime-calls' into main" (2026-11-17) |
+| Last finished work order | 28 of 60: #29, overtime: my OT list, on its own tile |
+| Next work order | **29 of 60: #30**, overtime: an OT request page that opens by id. Not started, no branch, no plan yet |
+| `origin/main` | `444929f` "Merge branch '29-ot-list' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -57,7 +57,7 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#29: say "push issue 29 to main directly".** Built 2026-11-17 after the owner's go. A Lao speaker to check
+1. **#29 merged** (`444929f`) on the owner's say, 2026-11-17. A Lao speaker to check
    `otPickMonth` "ເລືອກເດືອນ" (not from the issue).
    **#28 merged** (`c8ccd35`) on the owner's say, 2026-11-17. Still to confirm with the backend: cancel answers `403 FORBIDDEN` as "a waiting request: reject it instead" (the issue's table). If the
    server also sends `FORBIDDEN` when an employee cancels a request that is not theirs, that employee would read
@@ -128,10 +128,13 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#29 (work order 28 of 60), "overtime: my OT list, on its own tile": IMPLEMENTED, not merged.** Owner said go
+1. **Next: #30 (work order 29 of 60), "overtime: an OT request page that opens by id".** Read the issue and its
+   comments, show a plan, wait for "go". Rows in `OtRequestRow` become tappable; reuse `otPayLabel` (#24).
+
+   **#29 (work order 28 of 60), "overtime: my OT list, on its own tile": MERGED (`444929f`), 2026-11-17.** Owner said go
    on 2026-11-17. Branch `29-ot-list`: `3728c18` (feature), `4615de2` (review fixes). Gates: analyze 1 warning
-   already on `main`; `flutter test` 1,513 passed; debug APK builds. Waits for "push issue 29 to main directly".
-   Then #30 (an OT request page that opens by id; rows become tappable).
+   already on `main`; `flutter test` 1,513 passed; debug APK builds. Merged on the owner's "push issue 29 to main
+   directly"; gates green on the merge commit.
    - `PagedList` page-number mode (`firstNumbered`, `appendNumbered` with `keyOf` to drop repeated rows,
      `nextPage`, `retryable`); cursor mode unchanged. `OtListNotifier` (autoDispose; status/month filters, load
      more, retry, refresh that keeps rows on failure, stale answers dropped). `OtListPage` at `/overtime`, status
@@ -473,7 +476,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 25 | #26 | payslip: the summary card shows the latest payslip | `26-latest-payslip-card` | `5e51952`, `7036c8b` | merged to main directly (`8cc530a`) | analyze: 1 warning already on `main`; `flutter test`: 1,368 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 26 | #27 | overtime: OT types and JSON reading (no screen yet) | `27-overtime-models` | `ef5fe9c`, `5ff8a06` | merged to main directly (`9a871bb`) | analyze: 1 warning already on `main`; `flutter test`: 1,416 passed, 0 failed; debug APK builds | MERGED, a real `nexton-demo` request and post to be checked against the reader |
 | 27 | #28 | overtime: OT calls, error codes and Lao text | `28-overtime-calls` | `09944a4`, `7dbfb73` | merged to main directly (`c8ccd35`) | analyze: 1 warning already on `main`; `flutter test`: 1,459 passed, 0 failed; debug APK builds | MERGED |
-| 28 | #29 | overtime: my OT list, on its own tile | `29-ot-list` | `3728c18`, `4615de2` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,513 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
+| 28 | #29 | overtime: my OT list, on its own tile | `29-ot-list` | `3728c18`, `4615de2` | merged to main directly (`444929f`) | analyze: 1 warning already on `main`; `flutter test`: 1,513 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 29 | #30 | overtime: an OT request page that opens by id | | | | | NOT STARTED |
 | 30 | #31 | overtime: ask for OT | | | | | NOT STARTED |
 | 31 | #32 | overtime: edit or cancel my OT while it waits | | | | | NOT STARTED |
