@@ -79,7 +79,10 @@ class LeaveFormRules {
     if (state.isAllDaysOff) return LeaveFormBlock.allDaysOff;
 
     if (type == null) return null;
-    if (type.requiresAttachment) return LeaveFormBlock.attachmentRequired;
+    // The type needs a file, and none is attached yet.
+    if (type.requiresAttachment && state.files.isEmpty) {
+      return LeaveFormBlock.attachmentRequired;
+    }
 
     // The count of a range is not known while the company's days off are not.
     // The form then checks nothing that depends on it: the server counts the

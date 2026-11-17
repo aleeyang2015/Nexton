@@ -14,7 +14,7 @@ import '../providers/time_correction_approvals_state.dart';
 import 'time_correction_approval_card.dart';
 import 'time_correction_approval_filters.dart';
 import 'time_correction_history_summary.dart';
-import 'time_correction_image_viewer.dart';
+import '../../../../core/widgets/image_viewer.dart';
 
 /// "ຄຳຮ້ອງແກ້ໄຂເວລາ" — the time-correction requests the signed-in approver
 /// decides on. A search box and a status dropdown narrow the list; each
@@ -121,7 +121,7 @@ class _RequestsList extends ConsumerWidget {
               deciding: state.decidingIds.contains(request.id),
               onApprove: () => _approve(context, ref, request),
               onReject: () => _reject(context, ref, request),
-              onViewImage: (url) => showTimeCorrectionImage(context, url),
+              onViewImage: (url) => showImageViewer(context, url),
             ),
           ),
       ],

@@ -9,7 +9,7 @@ import 'package:next_on/core/upload/upload_providers.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/presentation/providers/offsite_photo_notifier.dart';
 import 'package:next_on/features/attendance/presentation/providers/time_correction_attachment_notifier.dart';
-import 'package:next_on/features/time_off/presentation/providers/leave_attachment_notifier.dart';
+import 'package:next_on/features/time_off/presentation/providers/leave_request_form_notifier.dart';
 import 'package:next_on/features/time_off/presentation/services/attachment_picker.dart';
 
 class _RecordingUploads implements UploadRepository {
@@ -67,8 +67,8 @@ void main() {
 
   test('a leave document: leave', () async {
     await container
-        .read(leaveAttachmentNotifierProvider(null).notifier)
-        .pickAndUpload();
+        .read(leaveRequestFormNotifierProvider(null).notifier)
+        .addFile(photo);
     expect(uploads.folders, ['leave']);
   });
 

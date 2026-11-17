@@ -33,8 +33,8 @@ mixin _$LeaveRequestFormState {
   String get reason => throw _privateConstructorUsedError;
 
   /// The company's days off, or null while they are not known (still
-  /// loading, or the load failed). Kept here by the notifier so the counts
-  /// below need nothing handed to them.
+  /// loading, or the load failed). Handed in by the form on screen
+  /// (`setDaysOff`) so the counts below need nothing passed to them.
   CompanyDaysOff? get daysOff => throw _privateConstructorUsedError;
 
   /// Edit mode only: the leave type the request had when it was opened. The
@@ -49,6 +49,20 @@ mixin _$LeaveRequestFormState {
   /// Edit mode only: the year the request's days were charged to when it
   /// was opened (the year of its first leave day).
   int? get originalBalanceYear => throw _privateConstructorUsedError;
+
+  /// The request's files: on an edit, those it had (as the server sent
+  /// them), then any uploaded here.
+  List<LeaveAttachment> get files => throw _privateConstructorUsedError;
+
+  /// True once a file was added or removed here: only then does an edit
+  /// send `attachments` (the whole list), which replaces the request's.
+  bool get filesChanged => throw _privateConstructorUsedError;
+
+  /// How many files are being uploaded now. Nothing is sent meanwhile.
+  int get uploadingFiles => throw _privateConstructorUsedError;
+
+  /// Why the last upload failed; cleared by the next pick.
+  Failure? get fileFailure => throw _privateConstructorUsedError;
   AsyncValue<LeaveRequest?> get submission =>
       throw _privateConstructorUsedError;
 
@@ -78,8 +92,14 @@ abstract class $LeaveRequestFormStateCopyWith<$Res> {
     String? originalLeaveTypeId,
     double? originalTotalDays,
     int? originalBalanceYear,
+    List<LeaveAttachment> files,
+    bool filesChanged,
+    int uploadingFiles,
+    Failure? fileFailure,
     AsyncValue<LeaveRequest?> submission,
   });
+
+  $FailureCopyWith<$Res>? get fileFailure;
 }
 
 /// @nodoc
@@ -111,6 +131,10 @@ class _$LeaveRequestFormStateCopyWithImpl<
     Object? originalLeaveTypeId = freezed,
     Object? originalTotalDays = freezed,
     Object? originalBalanceYear = freezed,
+    Object? files = null,
+    Object? filesChanged = null,
+    Object? uploadingFiles = null,
+    Object? fileFailure = freezed,
     Object? submission = null,
   }) {
     return _then(
@@ -167,6 +191,22 @@ class _$LeaveRequestFormStateCopyWithImpl<
                 ? _value.originalBalanceYear
                 : originalBalanceYear // ignore: cast_nullable_to_non_nullable
                       as int?,
+            files: null == files
+                ? _value.files
+                : files // ignore: cast_nullable_to_non_nullable
+                      as List<LeaveAttachment>,
+            filesChanged: null == filesChanged
+                ? _value.filesChanged
+                : filesChanged // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            uploadingFiles: null == uploadingFiles
+                ? _value.uploadingFiles
+                : uploadingFiles // ignore: cast_nullable_to_non_nullable
+                      as int,
+            fileFailure: freezed == fileFailure
+                ? _value.fileFailure
+                : fileFailure // ignore: cast_nullable_to_non_nullable
+                      as Failure?,
             submission: null == submission
                 ? _value.submission
                 : submission // ignore: cast_nullable_to_non_nullable
@@ -174,6 +214,18 @@ class _$LeaveRequestFormStateCopyWithImpl<
           )
           as $Val,
     );
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $FailureCopyWith<$Res>? get fileFailure {
+    if (_value.fileFailure == null) {
+      return null;
+    }
+
+    return $FailureCopyWith<$Res>(_value.fileFailure!, (value) {
+      return _then(_value.copyWith(fileFailure: value) as $Val);
+    });
   }
 }
 
@@ -200,8 +252,15 @@ abstract class _$$LeaveRequestFormStateImplCopyWith<$Res>
     String? originalLeaveTypeId,
     double? originalTotalDays,
     int? originalBalanceYear,
+    List<LeaveAttachment> files,
+    bool filesChanged,
+    int uploadingFiles,
+    Failure? fileFailure,
     AsyncValue<LeaveRequest?> submission,
   });
+
+  @override
+  $FailureCopyWith<$Res>? get fileFailure;
 }
 
 /// @nodoc
@@ -230,6 +289,10 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
     Object? originalLeaveTypeId = freezed,
     Object? originalTotalDays = freezed,
     Object? originalBalanceYear = freezed,
+    Object? files = null,
+    Object? filesChanged = null,
+    Object? uploadingFiles = null,
+    Object? fileFailure = freezed,
     Object? submission = null,
   }) {
     return _then(
@@ -286,6 +349,22 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
             ? _value.originalBalanceYear
             : originalBalanceYear // ignore: cast_nullable_to_non_nullable
                   as int?,
+        files: null == files
+            ? _value._files
+            : files // ignore: cast_nullable_to_non_nullable
+                  as List<LeaveAttachment>,
+        filesChanged: null == filesChanged
+            ? _value.filesChanged
+            : filesChanged // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        uploadingFiles: null == uploadingFiles
+            ? _value.uploadingFiles
+            : uploadingFiles // ignore: cast_nullable_to_non_nullable
+                  as int,
+        fileFailure: freezed == fileFailure
+            ? _value.fileFailure
+            : fileFailure // ignore: cast_nullable_to_non_nullable
+                  as Failure?,
         submission: null == submission
             ? _value.submission
             : submission // ignore: cast_nullable_to_non_nullable
@@ -312,8 +391,13 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     this.originalLeaveTypeId,
     this.originalTotalDays,
     this.originalBalanceYear,
+    final List<LeaveAttachment> files = const <LeaveAttachment>[],
+    this.filesChanged = false,
+    this.uploadingFiles = 0,
+    this.fileFailure,
     this.submission = const AsyncValue<LeaveRequest?>.data(null),
   }) : _dates = dates,
+       _files = files,
        super._();
 
   /// Non-null once [LeaveRequestFormNotifier.seed] has run — i.e. edit mode.
@@ -352,8 +436,8 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   final String reason;
 
   /// The company's days off, or null while they are not known (still
-  /// loading, or the load failed). Kept here by the notifier so the counts
-  /// below need nothing handed to them.
+  /// loading, or the load failed). Handed in by the form on screen
+  /// (`setDaysOff`) so the counts below need nothing passed to them.
   @override
   final CompanyDaysOff? daysOff;
 
@@ -372,13 +456,42 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   /// was opened (the year of its first leave day).
   @override
   final int? originalBalanceYear;
+
+  /// The request's files: on an edit, those it had (as the server sent
+  /// them), then any uploaded here.
+  final List<LeaveAttachment> _files;
+
+  /// The request's files: on an edit, those it had (as the server sent
+  /// them), then any uploaded here.
+  @override
+  @JsonKey()
+  List<LeaveAttachment> get files {
+    if (_files is EqualUnmodifiableListView) return _files;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_files);
+  }
+
+  /// True once a file was added or removed here: only then does an edit
+  /// send `attachments` (the whole list), which replaces the request's.
+  @override
+  @JsonKey()
+  final bool filesChanged;
+
+  /// How many files are being uploaded now. Nothing is sent meanwhile.
+  @override
+  @JsonKey()
+  final int uploadingFiles;
+
+  /// Why the last upload failed; cleared by the next pick.
+  @override
+  final Failure? fileFailure;
   @override
   @JsonKey()
   final AsyncValue<LeaveRequest?> submission;
 
   @override
   String toString() {
-    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, originalLeaveTypeId: $originalLeaveTypeId, originalTotalDays: $originalTotalDays, originalBalanceYear: $originalBalanceYear, submission: $submission)';
+    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, originalLeaveTypeId: $originalLeaveTypeId, originalTotalDays: $originalTotalDays, originalBalanceYear: $originalBalanceYear, files: $files, filesChanged: $filesChanged, uploadingFiles: $uploadingFiles, fileFailure: $fileFailure, submission: $submission)';
   }
 
   @override
@@ -408,6 +521,13 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
                 other.originalTotalDays == originalTotalDays) &&
             (identical(other.originalBalanceYear, originalBalanceYear) ||
                 other.originalBalanceYear == originalBalanceYear) &&
+            const DeepCollectionEquality().equals(other._files, _files) &&
+            (identical(other.filesChanged, filesChanged) ||
+                other.filesChanged == filesChanged) &&
+            (identical(other.uploadingFiles, uploadingFiles) ||
+                other.uploadingFiles == uploadingFiles) &&
+            (identical(other.fileFailure, fileFailure) ||
+                other.fileFailure == fileFailure) &&
             (identical(other.submission, submission) ||
                 other.submission == submission));
   }
@@ -428,6 +548,10 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     originalLeaveTypeId,
     originalTotalDays,
     originalBalanceYear,
+    const DeepCollectionEquality().hash(_files),
+    filesChanged,
+    uploadingFiles,
+    fileFailure,
     submission,
   );
 
@@ -457,6 +581,10 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
     final String? originalLeaveTypeId,
     final double? originalTotalDays,
     final int? originalBalanceYear,
+    final List<LeaveAttachment> files,
+    final bool filesChanged,
+    final int uploadingFiles,
+    final Failure? fileFailure,
     final AsyncValue<LeaveRequest?> submission,
   }) = _$LeaveRequestFormStateImpl;
   const _LeaveRequestFormState._() : super._();
@@ -484,8 +612,8 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   String get reason;
   @override
   /// The company's days off, or null while they are not known (still
-  /// loading, or the load failed). Kept here by the notifier so the counts
-  /// below need nothing handed to them.
+  /// loading, or the load failed). Handed in by the form on screen
+  /// (`setDaysOff`) so the counts below need nothing passed to them.
   CompanyDaysOff? get daysOff;
   @override
   /// Edit mode only: the leave type the request had when it was opened. The
@@ -500,6 +628,20 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   /// Edit mode only: the year the request's days were charged to when it
   /// was opened (the year of its first leave day).
   int? get originalBalanceYear;
+  @override
+  /// The request's files: on an edit, those it had (as the server sent
+  /// them), then any uploaded here.
+  List<LeaveAttachment> get files;
+  @override
+  /// True once a file was added or removed here: only then does an edit
+  /// send `attachments` (the whole list), which replaces the request's.
+  bool get filesChanged;
+  @override
+  /// How many files are being uploaded now. Nothing is sent meanwhile.
+  int get uploadingFiles;
+  @override
+  /// Why the last upload failed; cleared by the next pick.
+  Failure? get fileFailure;
   @override
   AsyncValue<LeaveRequest?> get submission;
   @override

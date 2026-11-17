@@ -287,6 +287,8 @@
   "leaveAttachUploading": "Uploading…",
   "leaveAttachUploaded": "File uploaded",
   "leaveAttachUploadFailed": "Couldn't upload the file. Please try again.",
+  "leaveFileRemove": "Remove file",
+  "leaveFileOpenFailed": "This file can't be opened",
   "timeOffApprovalsTab": "Team Approvals",
   "leaveApprovalsPendingHeader": "Needs your approval ({count})",
   "@leaveApprovalsPendingHeader": {
@@ -312,7 +314,7 @@
   "leaveDurationSecondHalf": "Afternoon",
   "leaveHalfDayLabel": "Half day (0.5)",
   "leaveRequiredBadge": "Required",
-  "leaveRequiresAttachmentBlocked": "This leave type needs a supporting document. Attaching files isn't available in the app yet — please submit this request on the web.",
+  "leaveRequiresAttachmentBlocked": "This type needs a file; attach one before sending",
   "leaveInsufficientBalanceHint": "Not enough leave balance for the days selected.",
   "leaveReturnDateHint": "The return-to-work date must be after your last leave day.",
   "leaveMaxDaysHint": "This leave type allows at most {days} days per request.",

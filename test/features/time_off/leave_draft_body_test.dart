@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/features/time_off/data/models/leave_draft_body.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_duration_type.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request_draft.dart';
-import 'package:next_on/core/upload/domain/uploaded_attachment.dart';
+import 'package:next_on/features/time_off/domain/entities/leave_attachment.dart';
 
 void main() {
   LeaveRequestDraft draft({
@@ -10,14 +10,14 @@ void main() {
     LeaveDurationType durationType = LeaveDurationType.fullDay,
     DateTime? returnDate,
     String reason = '',
-    UploadedAttachment? attachment,
+    List<LeaveAttachment>? attachments,
   }) => LeaveRequestDraft(
     leaveTypeId: 'lt-annual',
     dates: dates ?? [DateTime(2026, 11, 18)],
     durationType: durationType,
     returnDate: returnDate,
     reason: reason,
-    attachment: attachment,
+    attachments: attachments,
   );
 
   test('dates are sent sorted, whatever order they were picked in', () {
@@ -96,49 +96,69 @@ void main() {
     );
   });
 
-  group('attachments', () {
-    const uploaded = UploadedAttachment(
+  group('attachments (a list of upload objects)', () {
+    const medical = LeaveAttachment(
       url: 'https://files.nexton.work/a/medical.pdf',
       fileName: 'tenants/x/uploads/1_medical.pdf',
       originalName: 'medical.pdf',
       contentType: 'application/pdf',
       size: 20480,
     );
+    const photo = LeaveAttachment(
+      url: 'https://files.nexton.work/a/x.jpg',
+      fileName: 'x.jpg',
+      originalName: 'photo.jpg',
+    );
 
-    test('no file: the body has no attachments key, so an edit keeps the '
-        'files already on the request', () {
+    test('null: the body has no attachments key, so an edit keeps the files '
+        'already on the request', () {
       expect(LeaveDraftBody.from(draft()).containsKey('attachments'), isFalse);
     });
 
-    test('a file: attachments is sent, as the one uploaded object', () {
-      final body = LeaveDraftBody.from(draft(attachment: uploaded));
+    test('files: every one sent, as the server\'s upload object', () {
+      final body = LeaveDraftBody.from(
+        draft(attachments: [medical, photo]),
+      );
 
-      // Today this is a single object, not a list of them.
-      expect(body['attachments'], {
-        'url': 'https://files.nexton.work/a/medical.pdf',
-        'file_name': 'tenants/x/uploads/1_medical.pdf',
-        'original_name': 'medical.pdf',
-        'content_type': 'application/pdf',
-        'size': 20480,
-      });
+      expect(body['attachments'], [
+        {
+          'url': 'https://files.nexton.work/a/medical.pdf',
+          'file_name': 'tenants/x/uploads/1_medical.pdf',
+          'original_name': 'medical.pdf',
+          'content_type': 'application/pdf',
+          'size': 20480,
+        },
+        {
+          'url': 'https://files.nexton.work/a/x.jpg',
+          'file_name': 'x.jpg',
+          'original_name': 'photo.jpg',
+        },
+      ]);
     });
 
-    test('content_type and size are left out when the upload gave none', () {
+    test('an empty list is sent as []: on an edit it removes every file', () {
+      expect(LeaveDraftBody.from(draft(attachments: const []))['attachments'],
+          isEmpty);
+      expect(
+        LeaveDraftBody.from(
+          draft(attachments: const []),
+        ).containsKey('attachments'),
+        isTrue,
+      );
+    });
+
+    test('a file the server kept with no url goes back without one', () {
       final body = LeaveDraftBody.from(
         draft(
-          attachment: const UploadedAttachment(
-            url: 'https://files.nexton.work/a/x.jpg',
-            fileName: 'x.jpg',
-            originalName: 'photo.jpg',
-          ),
+          attachments: const [
+            LeaveAttachment(fileName: 'tenants/x/old.pdf', originalName: 'old.pdf'),
+          ],
         ),
       );
 
-      expect(body['attachments'], {
-        'url': 'https://files.nexton.work/a/x.jpg',
-        'file_name': 'x.jpg',
-        'original_name': 'photo.jpg',
-      });
+      expect(body['attachments'], [
+        {'file_name': 'tenants/x/old.pdf', 'original_name': 'old.pdf'},
+      ]);
     });
   });
 

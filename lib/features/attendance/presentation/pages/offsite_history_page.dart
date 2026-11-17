@@ -14,7 +14,7 @@ import '../../domain/entities/offsite_detail.dart';
 import '../providers/offsite_history_notifier.dart';
 import '../widgets/offsite_record_card.dart';
 import '../widgets/time_correction_history_summary.dart';
-import '../widgets/time_correction_image_viewer.dart';
+import '../../../../core/widgets/image_viewer.dart';
 
 /// "ປະຫວັດລົງເວລານອກພື້ນທີ່" — the off-site scan requests the employee has
 /// filed, and the way in to filing another.
@@ -150,7 +150,7 @@ class _RequestsList extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: 16),
             child: OffsiteRecordCard(
               request: request,
-              onViewImage: (url) => showTimeCorrectionImage(context, url),
+              onViewImage: (url) => showImageViewer(context, url),
               onCancel: () => _cancel(context, ref, request),
               cancelling: state.cancellingIds.contains(request.id),
             ),

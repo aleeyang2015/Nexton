@@ -727,6 +727,12 @@ class AppLocalizationsLo extends AppLocalizations {
   String get leaveAttachUploadFailed => 'ອັບໂຫລດໄຟລ໌ບໍ່ສຳເລັດ. ກະລຸນາລອງໃໝ່.';
 
   @override
+  String get leaveFileRemove => 'ລຶບໄຟລ໌';
+
+  @override
+  String get leaveFileOpenFailed => 'ເປີດໄຟລ໌ນີ້ບໍ່ໄດ້';
+
+  @override
   String get timeOffApprovalsTab => 'ອະນຸມັດຂໍລາພັກ';
 
   @override
@@ -796,7 +802,7 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get leaveRequiresAttachmentBlocked =>
-      'ການລາປະເພດນີ້ຕ້ອງມີເອກະສານປະກອບ ເຊິ່ງຍັງບໍ່ຮອງຮັບການແນບໄຟລ໌ໃນແອັບ — ກະລຸນາຍື່ນຄຳຮ້ອງນີ້ຜ່ານເວັບ.';
+      'ປະເພດນີ້ຕ້ອງແນບໄຟລ໌ ກະລຸນາແນບໄຟລ໌ກ່ອນສົ່ງ';
 
   @override
   String get leaveInsufficientBalanceHint =>

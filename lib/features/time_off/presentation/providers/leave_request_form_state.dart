@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/errors/failure.dart';
+
 import '../../domain/entities/company_days_off.dart';
+import '../../domain/entities/leave_attachment.dart';
 import '../../domain/entities/leave_duration_type.dart';
 import '../../domain/entities/leave_request.dart';
 
@@ -66,6 +69,20 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
     /// Edit mode only: the year the request's days were charged to when it
     /// was opened (the year of its first leave day).
     int? originalBalanceYear,
+
+    /// The request's files: on an edit, those it had (as the server sent
+    /// them), then any uploaded here.
+    @Default(<LeaveAttachment>[]) List<LeaveAttachment> files,
+
+    /// True once a file was added or removed here: only then does an edit
+    /// send `attachments` (the whole list), which replaces the request's.
+    @Default(false) bool filesChanged,
+
+    /// How many files are being uploaded now. Nothing is sent meanwhile.
+    @Default(0) int uploadingFiles,
+
+    /// Why the last upload failed; cleared by the next pick.
+    Failure? fileFailure,
     @Default(AsyncValue<LeaveRequest?>.data(null))
     AsyncValue<LeaveRequest?> submission,
   }) = _LeaveRequestFormState;
@@ -172,5 +189,6 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
       hasDays &&
       (!durationType.isHalfDay || (!isRange && dates.length == 1)) &&
       hasValidReturnToWorkDate &&
+      uploadingFiles == 0 &&
       !submission.isLoading;
 }

@@ -1,13 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/leave_error_code.dart';
+import '../../../../core/upload/domain/local_file.dart';
+import '../../../../core/upload/domain/upload_rules.dart';
+import '../../../../core/upload/domain/uploaded_attachment.dart';
+import '../../../../core/upload/upload_providers.dart';
 import '../../domain/entities/company_days_off.dart';
+import '../../domain/entities/leave_attachment.dart';
 import '../../domain/entities/leave_duration_type.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_request_draft.dart';
 import '../../domain/entities/leave_type.dart';
 import '../../time_off_providers.dart';
-import 'leave_attachment_notifier.dart';
 import 'leave_balances_notifier.dart';
 import 'leave_history_notifier.dart';
 import 'leave_pending_request_notifier.dart';
@@ -57,6 +61,7 @@ class LeaveRequestFormNotifier
     if (state.isEditing && !_stale && request == _seededFrom) return;
     _stale = false;
     _seededFrom = request;
+    _form++;
     final days = [...request.requestDays]..sort();
     state = LeaveRequestFormState(
       editingRequestId: request.id,
@@ -72,8 +77,69 @@ class LeaveRequestFormNotifier
       originalLeaveTypeId: request.leaveType.id,
       originalTotalDays: request.totalDays,
       originalBalanceYear: (days.isEmpty ? request.startDate : days.first).year,
+      files: request.attachments,
     );
   }
+
+  /// Uploads [file] (`POST /uploads`, folder `leave`) and adds it to the
+  /// request's files. Nothing is sent while it runs. A failure is kept in
+  /// `fileFailure`, and the files stay as they were.
+  ///
+  /// An upload that answers after the form was filled again (another
+  /// request, or emptied after a send) is dropped: it belongs to a form
+  /// that is gone.
+  ///
+  /// Not while the request is being sent: the save has gone out without
+  /// it, and the file would land on a form that no longer matches.
+  Future<void> addFile(LocalFile file) async {
+    if (state.submission.isLoading) return;
+    final form = _form;
+    state = state.copyWith(
+      uploadingFiles: state.uploadingFiles + 1,
+      fileFailure: null,
+    );
+    final result = await ref.read(uploadAttachmentUseCaseProvider)((
+      file: file,
+      folder: UploadFolder.leave,
+    ));
+    if (form != _form) return;
+    state = result.fold(
+      (failure) => state.copyWith(
+        uploadingFiles: _less(state.uploadingFiles),
+        fileFailure: failure,
+      ),
+      (uploaded) => state.copyWith(
+        uploadingFiles: _less(state.uploadingFiles),
+        files: [...state.files, _asLeaveFile(uploaded)],
+        filesChanged: true,
+      ),
+    );
+  }
+
+  /// Counts the times the form was filled anew (seeded, or emptied after a
+  /// send), so a late upload can tell its form is gone.
+  int _form = 0;
+
+  /// Takes the file at [index] off the request.
+  void removeFile(int index) {
+    if (state.submission.isLoading) return;
+    if (index < 0 || index >= state.files.length) return;
+    state = state.copyWith(
+      files: [...state.files]..removeAt(index),
+      filesChanged: true,
+    );
+  }
+
+  static int _less(int count) => count > 0 ? count - 1 : 0;
+
+  static LeaveAttachment _asLeaveFile(UploadedAttachment uploaded) =>
+      LeaveAttachment(
+        fileName: uploaded.fileName,
+        originalName: uploaded.originalName,
+        url: uploaded.url,
+        contentType: uploaded.contentType,
+        size: uploaded.size,
+      );
 
   /// Picks the leave type. A type that takes whole days only puts the form
   /// back on a full day in the same step, so a half day chosen under the
@@ -203,6 +269,8 @@ class LeaveRequestFormNotifier
   Future<bool> submit() async {
     final leaveTypeId = state.leaveTypeId;
     if (leaveTypeId == null ||
+        state.uploadingFiles > 0 ||
+        state.submission.isLoading ||
         !state.hasDays ||
         state.isAllDaysOff ||
         !state.hasValidReturnToWorkDate) {
@@ -220,7 +288,12 @@ class LeaveRequestFormNotifier
       durationType: state.durationType,
       returnDate: state.returnToWorkDate,
       reason: state.reason,
-      attachment: ref.read(leaveAttachmentNotifierProvider(arg)).valueOrNull,
+      // A new request sends what is attached; an edit sends the whole list
+      // only when it changed here, so the request's files are otherwise
+      // left as they are.
+      attachments: state.isEditing
+          ? (state.filesChanged ? state.files : null)
+          : (state.files.isEmpty ? null : state.files),
     );
 
     final editingId = state.editingRequestId;
@@ -256,8 +329,8 @@ class LeaveRequestFormNotifier
       },
       (request) {
         if (editingId == null) {
+          _form++;
           state = LeaveRequestFormState(daysOff: state.daysOff);
-          ref.read(leaveAttachmentNotifierProvider(arg).notifier).clear();
         } else {
           state = state.copyWith(submission: AsyncValue.data(request));
         }

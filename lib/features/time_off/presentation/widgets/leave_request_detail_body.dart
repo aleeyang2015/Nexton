@@ -7,6 +7,7 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_type.dart';
 import '../providers/leave_types_notifier.dart';
+import 'attachment_opener.dart';
 import 'leave_approval_timeline.dart';
 import 'leave_copy.dart';
 import 'leave_step_note.dart';
@@ -144,8 +145,8 @@ class LeaveRequestDetailBody extends ConsumerWidget {
                   fontSize: 15,
                 ),
                 heightBx(h: 6),
-                for (final a in request.attachments)
-                  LeaveInfoRow(icon: Icons.attach_file, text: a.fileName),
+                // Each opens: a photo full screen, a PDF in the viewer.
+                for (final a in request.attachments) LeaveFileTile(file: a),
               ],
             ),
           ),

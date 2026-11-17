@@ -1430,6 +1430,18 @@ abstract class AppLocalizations {
   /// **'Couldn\'t upload the file. Please try again.'**
   String get leaveAttachUploadFailed;
 
+  /// No description provided for @leaveFileRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove file'**
+  String get leaveFileRemove;
+
+  /// No description provided for @leaveFileOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'This file can\'t be opened'**
+  String get leaveFileOpenFailed;
+
   /// No description provided for @timeOffApprovalsTab.
   ///
   /// In en, this message translates to:
@@ -1565,7 +1577,7 @@ abstract class AppLocalizations {
   /// No description provided for @leaveRequiresAttachmentBlocked.
   ///
   /// In en, this message translates to:
-  /// **'This leave type needs a supporting document. Attaching files isn\'t available in the app yet — please submit this request on the web.'**
+  /// **'This type needs a file; attach one before sending'**
   String get leaveRequiresAttachmentBlocked;
 
   /// No description provided for @leaveInsufficientBalanceHint.
