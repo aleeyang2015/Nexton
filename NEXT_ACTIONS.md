@@ -5,23 +5,23 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#44 merged; next is #45). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: end of 2026-11-17 (day's checkpoint: #44 merged; next is #45, not started). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
-State checked against GitHub and `origin` at the end of 2026-11-16.
+State checked against GitHub and `origin` at the end of 2026-11-17.
 
 | | |
 |---|---|
 | Last finished work order | 43 of 60: #44, attendance: "forgot to scan" form, from a history day or the menu |
-| Next work order | **44 of 60: #45**, attendance: my "forgot to scan" requests — list, detail, cancel. Not started, no branch, no plan yet |
+| Next work order | **44 of 60: #45**, attendance: my "forgot to scan" requests — list, detail, cancel. Not started, no branch, no plan shown yet (see "Next" for the prepared steps) |
 | `origin/main` | `56b6c75` "Merge branch '44-correction-form-entries' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
-| Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
+| Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
-| Gates on `main` at `b55b1ed` | `flutter analyze lib test`: 1 warning, already on `main` before this work (`_ShiftHoursLine` unused, `attendance_status_card.dart:216`); `flutter test`: 1,261 passed, 0 failed; `flutter build apk --debug`: builds |
+| Gates on `main` at `56b6c75` | `flutter analyze lib test`: 1 warning, already on `main` before this work (`_ShiftHoursLine` unused, `attendance_status_card.dart`); `flutter test`: 1,944 passed, 0 failed; `flutter build apk --debug`: builds |
 | Pull requests | none for any work item. GitHub has two PRs, both docs and both merged before this work: #1 and #67 |
-| Issues on GitHub | all 72 are **open** (#2 to #74; #67 is a PR). Merge messages say `Refs #N`, not `Fixes #N`, so nothing closed by itself |
+| Issues on GitHub | all 73 are **open** (#2 to #75; #67 is a PR). Merge messages say `Refs #N`, not `Fixes #N`, so nothing closed by itself. Newest is #75 (docs), as at the start of the day |
 
 How "MERGED" is used here: the issue's branch is contained in `origin/main` (checked with
 `git merge-base --is-ancestor`) and the gates passed on the merge commit. It was pushed to `main` directly, as a
@@ -45,13 +45,30 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 | Lists and approvals | #18, #19 | load more on scroll (shared helper); "what I decided", own request without buttons |
 | Payslip | #20 to #23 | the server's payslip as sent; the real list; line names, groups and captions; the payslip page by id |
 
+### Finished on 2026-11-17
+
+Work orders 23 to 43 (#24 to #44, but #35: BLOCKED on the backend's OT hours, re-checked twice, no "now live").
+Each: plan, the owner's "go", its own branch from fresh `main`, tests first, gates, two fresh reviews (one
+adversarial, with probes), the real findings fixed and mutation-checked, then merged to `main` on the owner's "push
+issue N to main directly". Test count went from 1,261 to 1,944. Day log: `WORK_LOG.md` on this branch.
+
+| Area | Issues | What is on `main` now |
+|---|---|---|
+| Payslip | #24 to #26 | OT items sheet; the PDF in the App with Share (`pdfx`, `share_plus` 12, owner-approved); the latest-payslip card |
+| Overtime | #27 to #34 | OT models and calls; the OT list; the request page; ask, edit, cancel; HR's OT posts and join; the clock button knows an open OT |
+| Approvals | #36, #37 | the Approvals place only for department heads and HR (`approver_access.dart`); the leave request's own approver page with Approve-with-note / Reject |
+| Shared upload | #38 | `lib/core/upload/` (moved from time_off): 5,000,000-byte check, `folder`, refusals in Lao, `CapturePolicy`, `FileSourceSheet`, `UploadNotifier` |
+| Leave files | #39 | several files on the form; `attachments` as a list (edit sends it only when changed); files open in the App (photo, PDF, Share); `core/widgets/pdf_file_view.dart`, `image_viewer.dart`, `core/files/temp_share_files.dart` |
+| Off-site | #40 to #42 | the form only after a refused punch, camera only; the card sees a waiting off-site check-in (`domain/next_punch.dart`); "My requests" (`/attendance/requests`) with the off-site tab, paging, detail and cancel |
+| Forgot to scan | #43, #44 | 30-day look-back; `domain/correction_rules.dart` (window, overnight, weekday rows); refusals in Lao; the form filled from a history day (`?date=&part=`) |
+
 ### Not finished
 
 - **Phone checks on `nexton-demo`: none done, for any issue.** Every "Done when" box that needs a phone, two
   logins or the web portal is still open. This is the main thing between "MERGED" and closing an issue.
 - **By hand, by the lead:** #2 a release APK signs in on a phone; #3 the real upload key, a release bundle, a
   phone install, the iOS simulator build.
-- **Issues to close on GitHub** once checked: #2 to #23 (all still open). Also likely covered by merged work and
+- **Issues to close on GitHub** once checked: #2 to #44 but #35 (all still open). Also likely covered by merged work and
   only needing a check before closing: #68, #69, #70, #72, #74 (see "Outside the work order").
 - **Priority bug #73** (forgot to scan with a photo is refused): root cause known, not scheduled.
 
@@ -106,6 +123,15 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
    load the payslip." Lao matches the issues.
 8. **#72 and #73:** where they go in the order.
 9. **This file on `main`?** It is only on `docs/next-actions`.
+11. **From #36:** keep the Approvals title "ອະນຸມັດ", or the issue's "ການອະນຸມັດ"? And `/attendance/time-correction/approvals`
+    is still reachable by anyone with a direct link (nothing in the App links to it): a follow-up issue?
+12. **From #38/#39 (not new, worth issues):** a 401 mid-upload replays a finalized `FormData` and fails; the
+    new-request leave draft and its files outlive a sign-out (`leaveRequestFormNotifierProvider` is not autoDispose).
+13. **From #40, for the lead:** a refusal shows the server's message when it sends one (#8's rule), so a Lao user may
+    read English (e.g. `OFFSITE_REQUEST_EXISTS`, `CHECKIN_PENDING_APPROVAL`). Should the App's Lao text win?
+14. **From #41, for the lead:** a day-shift off-site check-in from yesterday never closed now leaves today on a normal
+    clock-in (only a night shift's yesterday check-in holds the slide). Confirm that is wanted.
+15. **A login that heads a department on `nexton-demo`**, for the phone checks of #36, #37 (ask the lead).
 
 ## Confirmed decisions
 
@@ -145,8 +171,50 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #45 (work order 44 of 60), "attendance: my "forgot to scan" requests — list, detail, cancel".** Read the issue and its comments, show a plan, wait for "go". Adds the
-   "forgot to scan" tab to #42's "My requests"; "View" on #44's success toast can open its detail.
+1. **Next: #45 (work order 44 of 60), "attendance: my "forgot to scan" requests — list, detail, cancel".** Not
+   started: no branch, no plan shown yet. Read the issue and its one comment again (13 Nov; checked 2026-11-17, no
+   change), show the plan below, wait for "go", then branch `45-my-correction-requests` from fresh `origin/main`.
+
+   What `main` has (so the plan builds on it, not anew):
+   - List: `attendance/presentation/pages/time_correction_history_page.dart` (`/attendance/time-correction/history`)
+     with `time_correction_history_notifier.dart`; one fetch of page 1 / 100, filtered on the phone.
+   - Detail: `time_correction_history_detail_page.dart` (`/attendance/time-correction/history/detail`, the id as
+     `extra`), with the steps timeline and Cancel while pending; `CANNOT_CANCEL` shows a generic toast, no reload.
+   - Calls in `attendance_remote_data_source.dart` (`myTimeCorrections`, `timeCorrectionDetail`,
+     `cancelTimeCorrection`); entity `domain/entities/time_correction_detail.dart` has no `attendance_record`.
+   - "My requests" from #42: `pages/my_requests_page.dart`, one tab (`widgets/offsite_requests_tab.dart`); its
+     paging/filter/detail/cancel pattern is the one to copy (`offsite_history_notifier.dart`, `offsite_detail_notifier.dart`,
+     `pages/offsite_request_detail_page.dart`).
+   - #44's success toast has no "View" yet (`time_correction_request_page.dart` `_submit`); the submit answer's
+     `id` is not kept (`submitTimeCorrection` returns `void`).
+
+   Steps (the comment's "Still to do"):
+   1. **Paging:** `GET correction-requests/my?status=&limit=20&cursor=` as a `CursorPage` (the off-site
+      `myRequests` shape); the history notifier on `PagedList` with the status as a server filter, scroll-based
+      load more (as #42's fix), pull to refresh keeping rows.
+   2. **"My requests" tab:** a second tab "ລືມລົງເວລາ" (`attCorrectionTab`) on `MyRequestsPage`, the history
+      list's body as a tab widget; the old `/attendance/time-correction/history` opens "My requests" (as #42 did for
+      off-site). Decide with the owner whether the separate menu tile "ປະຫວັດລືມລົງເວລາ" goes (as off-site's did).
+   3. **Detail by id:** `/attendance/requests/correction/:id` (row as `extra`), loading `GET correction-requests/:id`;
+      404 → "not available" (`apprRequestNotFound`), `EMPLOYEE_NOT_FOUND` → #11's text, no Retry.
+   4. **`attendance_record`:** read it into the detail (times as wall clock, `OffsiteSubmissionModel.wallClock`
+      style); a "ຜົນຫຼັງແກ້ໄຂ" card (`attCorrectionResult`) with clock-in, clock-out and the day's status pill (#10's copy)
+      only when set.
+   5. **Cancel:** `CANNOT_CANCEL` by code → "already decided" text, reload the detail; one at a time (as #42's fix);
+      the list and today's card read again.
+   6. **"View":** keep the 201's `id` from `submitTimeCorrection`; #44's success toast gets "ເບິ່ງ" (`attView`)
+      opening the detail (router taken before the pop, as #42 did).
+   7. **Strings:** `attCorrectionTab`, `attCorrectionResult`, `attCorrectionRequested`; reuse the rest.
+
+   Acceptance (the issue's "Done when"): the #44 request is listed waiting under "ຄຳຮ້ອງຂອງຂ້ອຍ" → "ລືມລົງເວລາ"; its
+   detail shows part, type, time, reason, timeline; Cancel → cancelled pill and the timeline's cancelled end; after
+   HR approves, the result card and the history show the corrected time. Tests: `correction_request_model_test`
+   (`attendance_record` present / null, wall-clock times, null approver step); `correction_request_detail_page_test`
+   (cancel only on own pending, reload after `CANNOT_CANCEL`, result card only when approved); paging (next page
+   once on scroll, server filter); "View" opens the detail. Gates as always. Phone check on `nexton-demo` pending.
+
+   Watch for: #73 (a request with a photo is always refused, `attachment_url` sent the wrong way) is a separate
+   priority bug, not part of #45.
 
    **#44 (work order 43 of 60), "attendance: "forgot to scan" form, from a history day or the menu": MERGED (`56b6c75`),
    2026-11-17.** Owner said go on 2026-11-17. Branch `44-correction-form-entries`: `fdc11a7` (feature), `a2ba160` (review fixes).
