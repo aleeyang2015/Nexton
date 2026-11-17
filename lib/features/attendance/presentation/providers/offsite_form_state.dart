@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../../core/constants/app_constants.dart';
-import '../../../time_off/domain/entities/uploaded_attachment.dart';
+import '../../../../core/upload/domain/uploaded_attachment.dart';
 import '../../domain/datasources/punch_location_source.dart';
 import '../../domain/entities/offsite_method.dart';
 import '../../domain/entities/offsite_request.dart';

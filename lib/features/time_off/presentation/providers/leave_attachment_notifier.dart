@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/entities/uploaded_attachment.dart';
-import '../../time_off_providers.dart';
+import '../../../../core/upload/domain/uploaded_attachment.dart';
+import '../../../../core/upload/domain/upload_rules.dart';
+import '../../../../core/upload/upload_providers.dart';
 import '../services/attachment_picker.dart';
 
 /// Holds the file uploaded from the leave form's "attach file" slot for one
@@ -32,7 +33,10 @@ class LeaveAttachmentNotifier
       state,
     );
 
-    final result = await ref.read(uploadAttachmentUseCaseProvider)(picked);
+    final result = await ref.read(uploadAttachmentUseCaseProvider)((
+      file: picked,
+      folder: UploadFolder.leave,
+    ));
 
     state = result.fold(
       (failure) => AsyncValue<UploadedAttachment?>.error(

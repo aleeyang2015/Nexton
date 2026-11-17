@@ -1,4 +1,4 @@
-import '../../../time_off/data/models/uploaded_attachment_model.dart';
+import '../../../../core/upload/data/uploaded_attachment_model.dart';
 import '../../domain/entities/offsite_request.dart';
 
 /// Serialises an [OffsiteRequest] into the

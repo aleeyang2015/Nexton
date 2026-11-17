@@ -2516,6 +2516,54 @@ abstract class AppLocalizations {
   /// **'Employee'**
   String get apprEmployeeLabel;
 
+  /// No description provided for @uploadTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get uploadTakePhoto;
+
+  /// No description provided for @uploadPickPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from photos'**
+  String get uploadPickPhoto;
+
+  /// No description provided for @uploadPickFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file'**
+  String get uploadPickFile;
+
+  /// No description provided for @uploadInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading…'**
+  String get uploadInProgress;
+
+  /// No description provided for @uploadFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is over 5 MB'**
+  String get uploadFileTooLarge;
+
+  /// No description provided for @uploadInvalidFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the file; choose it again'**
+  String get uploadInvalidFile;
+
+  /// No description provided for @uploadStorageUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'File upload is not available; contact HR'**
+  String get uploadStorageUnavailable;
+
+  /// No description provided for @uploadPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow the App to use the camera or photos in the phone\'s settings'**
+  String get uploadPermissionDenied;
+
   /// No description provided for @approvalsLeaveTab.
   ///
   /// In en, this message translates to:

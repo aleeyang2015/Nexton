@@ -1336,6 +1336,32 @@ class AppLocalizationsLo extends AppLocalizations {
   String get apprEmployeeLabel => 'ພະນັກງານ';
 
   @override
+  String get uploadTakePhoto => 'ຖ່າຍຮູບ';
+
+  @override
+  String get uploadPickPhoto => 'ເລືອກຈາກຮູບພາບ';
+
+  @override
+  String get uploadPickFile => 'ເລືອກໄຟລ໌';
+
+  @override
+  String get uploadInProgress => 'ກຳລັງອັບໂຫຼດ…';
+
+  @override
+  String get uploadFileTooLarge => 'ໄຟລ໌ໃຫຍ່ເກີນ 5 MB';
+
+  @override
+  String get uploadInvalidFile => 'ອ່ານໄຟລ໌ບໍ່ໄດ້, ກະລຸນາເລືອກໃໝ່';
+
+  @override
+  String get uploadStorageUnavailable =>
+      'ຕອນນີ້ອັບໂຫຼດໄຟລ໌ບໍ່ໄດ້, ກະລຸນາຕິດຕໍ່ຝ່າຍບຸກຄະລາກອນ';
+
+  @override
+  String get uploadPermissionDenied =>
+      'ກະລຸນາອະນຸຍາດໃຫ້ແອັບໃຊ້ກ້ອງ ຫຼື ຮູບພາບ ໃນການຕັ້ງຄ່າໂທລະສັບ';
+
+  @override
   String get approvalsLeaveTab => 'ອະນຸມັດລາພັກ';
 
   @override

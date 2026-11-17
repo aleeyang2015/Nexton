@@ -4,10 +4,11 @@ import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../time_off/domain/entities/local_file.dart';
-import '../../../time_off/domain/entities/uploaded_attachment.dart';
+import '../../../../core/upload/domain/local_file.dart';
+import '../../../../core/upload/domain/uploaded_attachment.dart';
 import '../../../time_off/presentation/services/attachment_picker.dart';
-import '../../../time_off/time_off_providers.dart';
+import '../../../../core/upload/domain/upload_rules.dart';
+import '../../../../core/upload/upload_providers.dart';
 
 /// Why a picked attachment was turned away before upload.
 enum TimeCorrectionAttachmentError { tooLarge }
@@ -37,8 +38,8 @@ class TimeCorrectionAttachmentNotifier
   /// File types the correction form accepts, per the design: images and PDF.
   static const extensions = ['jpg', 'jpeg', 'png', 'pdf'];
 
-  /// Largest file the form accepts, in bytes (5 MB).
-  static const int maxBytes = 5 * 1024 * 1024;
+  /// Largest file the form accepts, in bytes: the shared limit.
+  static const int maxBytes = UploadRules.maxBytes;
 
   @override
   FutureOr<TimeCorrectionEvidence?> build() => null;
@@ -63,7 +64,10 @@ class TimeCorrectionAttachmentNotifier
   Future<TimeCorrectionAttachmentError?> upload(LocalFile picked) async {
     if (state.isLoading) return null;
 
-    if (await File(picked.path).length() > maxBytes) {
+    // A file that cannot be read here is left to the upload, which says
+    // "choose it again".
+    final size = await File(picked.path).length().catchError((_) => 0);
+    if (size > maxBytes) {
       return TimeCorrectionAttachmentError.tooLarge;
     }
 
@@ -71,7 +75,10 @@ class TimeCorrectionAttachmentNotifier
     state = const AsyncValue<TimeCorrectionEvidence?>.loading()
         .copyWithPrevious(state);
 
-    final result = await ref.read(uploadAttachmentUseCaseProvider)(picked);
+    final result = await ref.read(uploadAttachmentUseCaseProvider)((
+      file: picked,
+      folder: UploadFolder.correction,
+    ));
 
     state = result.fold(
       (failure) => AsyncValue<TimeCorrectionEvidence?>.error(

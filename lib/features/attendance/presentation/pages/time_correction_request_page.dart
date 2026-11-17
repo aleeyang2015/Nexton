@@ -12,7 +12,7 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../profile/presentation/providers/profile_notifier.dart';
-import '../../../time_off/domain/entities/local_file.dart';
+import '../../../../core/upload/domain/local_file.dart';
 import '../../domain/entities/time_correction_request.dart';
 import '../providers/time_correction_attachment_notifier.dart';
 import '../providers/time_correction_form_notifier.dart';
@@ -221,7 +221,8 @@ class _AttachmentSection extends ConsumerWidget {
     TimeCorrectionAttachmentError? error,
   ) {
     if (error == TimeCorrectionAttachmentError.tooLarge) {
-      AppToast.error(l10n.timeCorrectionFileTooLarge);
+      // The same words as the upload's own check and the server's 413.
+      AppToast.error(l10n.uploadFileTooLarge);
     }
   }
 }

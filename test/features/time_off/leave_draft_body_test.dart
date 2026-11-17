@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/features/time_off/data/models/leave_draft_body.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_duration_type.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request_draft.dart';
-import 'package:next_on/features/time_off/domain/entities/uploaded_attachment.dart';
+import 'package:next_on/core/upload/domain/uploaded_attachment.dart';
 
 void main() {
   LeaveRequestDraft draft({

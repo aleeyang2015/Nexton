@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../time_off/domain/entities/local_file.dart';
+import '../../../../core/upload/domain/local_file.dart';
 import '../providers/offsite_photo_notifier.dart';
 
 /// The scan's photo: an empty prompt until one is taken, then the shot itself

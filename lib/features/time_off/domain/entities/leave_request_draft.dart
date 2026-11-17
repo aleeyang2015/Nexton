@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'leave_duration_type.dart';
-import 'uploaded_attachment.dart';
+import '../../../../core/upload/domain/uploaded_attachment.dart';
 
 /// What the request-leave form submits (`POST`/`PUT /leave/requests`,
 /// leave-request-flutter.md §3.3/§3.4).

@@ -10,7 +10,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../time_off/domain/entities/local_file.dart';
+import '../../../../core/upload/domain/local_file.dart';
 import '../../domain/entities/offsite_method.dart';
 import '../../domain/entities/offsite_outcome.dart';
 import '../../domain/entities/offsite_request.dart';
@@ -215,7 +215,8 @@ class _PhotoSection extends ConsumerWidget {
 
   void _reportRejection(AppLocalizations l10n, OffsitePhotoError? error) {
     if (error == OffsitePhotoError.tooLarge) {
-      AppToast.error(l10n.timeCorrectionFileTooLarge);
+      // The same words as the upload's own check and the server's 413.
+      AppToast.error(l10n.uploadFileTooLarge);
     }
   }
 }

@@ -4,7 +4,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/errors/validation_codes.dart';
 import '../../../../core/utils/result.dart';
-import '../../../time_off/domain/entities/uploaded_attachment.dart';
+import '../../../../core/upload/domain/uploaded_attachment.dart';
 import 'time_correction_type.dart';
 
 /// Field names a [TimeCorrectionRequest] validation failure points at, so the

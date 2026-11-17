@@ -9,7 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../time_off/domain/entities/local_file.dart';
+import '../../../../core/upload/domain/local_file.dart';
 import '../providers/camera_capture_notifier.dart';
 
 /// Full-screen camera for the time-correction form's "ຖ່າຍຮູບ" button: a live
