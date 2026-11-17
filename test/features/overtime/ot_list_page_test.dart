@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/api_error_mapper.dart';
 import 'package:next_on/core/utils/result.dart';
@@ -12,6 +14,7 @@ import 'package:next_on/features/overtime/domain/entities/ot_page.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_request.dart';
 import 'package:next_on/features/overtime/overtime_providers.dart';
 import 'package:next_on/features/overtime/presentation/pages/ot_list_page.dart';
+import 'package:next_on/features/overtime/presentation/pages/ot_request_detail_page.dart';
 import 'package:next_on/features/overtime/presentation/widgets/ot_request_row.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 import 'package:next_on/l10n/generated/app_localizations_en.dart';
@@ -45,12 +48,15 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [otRepositoryProvider.overrideWithValue(repository)],
-        child: MaterialApp(
+        child: MaterialApp.router(
+          routerConfig: GoRouter(
+            initialLocation: AppRoutes.overtime,
+            routes: overtimeRoutes,
+          ),
           scaffoldMessengerKey: rootScaffoldMessengerKey,
           locale: Locale(locale),
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
-          home: const OtListPage(),
         ),
       ),
     );
@@ -113,24 +119,42 @@ void main() {
       expect(find.text(en.otDidNotCome), findsNothing);
     });
 
-    testWidgets('a row is not tappable yet', (tester) async {
+    testWidgets('a tap opens the request\'s page; coming back refreshes '
+        'the list', (tester) async {
       serve([sampleOt('ot-1')]);
+      await pumpPage(tester);
+      final before = repository.listCalls.length;
 
+      await tester.tap(find.text('14/11/2026'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OtRequestDetailPage), findsOneWidget);
+      expect(repository.requestIds, ['ot-1']);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(OtRequestDetailPage),
+          matching: find.byIcon(Icons.arrow_back_ios),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OtListPage), findsOneWidget);
+      expect(repository.listCalls.length, before + 1);
+      expect(repository.listCalls.last.page, 1);
+    });
+
+    testWidgets('a double tap opens one page', (tester) async {
+      serve([sampleOt('ot-1')]);
       await pumpPage(tester);
 
+      await tester.tap(find.text('14/11/2026'));
+      await tester.tap(find.text('14/11/2026'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
       expect(
-        find.descendant(
-          of: find.byType(OtRequestRow),
-          matching: find.byType(InkWell),
-        ),
-        findsNothing,
-      );
-      expect(
-        find.descendant(
-          of: find.byType(OtRequestRow),
-          matching: find.byType(GestureDetector),
-        ),
-        findsNothing,
+        find.byType(OtRequestDetailPage, skipOffstage: false),
+        findsOneWidget,
       );
     });
   });

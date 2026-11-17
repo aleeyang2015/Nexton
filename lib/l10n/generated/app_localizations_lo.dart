@@ -1823,4 +1823,35 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get otPickMonth => 'ເລືອກເດືອນ';
+
+  @override
+  String otWaitingFor(String role) {
+    return 'ລໍຖ້າ: $role';
+  }
+
+  @override
+  String get otPiecesSetOnApproval =>
+      'ຝ່າຍບຸກຄະລາກອນຈະກຳນົດເວລາ ແລະ ຄ່າຈ້າງ ຕອນອະນຸມັດ';
+
+  @override
+  String get otAgreementNoteLabel => 'ໝາຍເຫດຈາກຝ່າຍບຸກຄະລາກອນ';
+
+  @override
+  String get otNoteDidNotCome => 'ບໍ່ໄດ້ມາ: ບໍ່ມີເວລາສະແກນໃນຊ່ວງໂອທີ';
+
+  @override
+  String get otNotePaidByHand =>
+      'ຝ່າຍບຸກຄະລາກອນຈ່າຍເປັນເງິນສົດແລ້ວ — ບໍ່ຢູ່ໃນໃບເງິນເດືອນ';
+
+  @override
+  String get otNoteHrOnly => 'ວັນນີ້ເປັນວັນລາ: ຝ່າຍບຸກຄະລາກອນເປັນຜູ້ອະນຸມັດ';
+
+  @override
+  String get otNoteFromPost => 'ຈາກປະກາດຂອງຝ່າຍບຸກຄະລາກອນ';
+
+  @override
+  String get otPaidOnPayslip => 'ຊົ່ວໂມງ ແລະ ເງິນທີ່ຈ່າຍຈິງ ຢູ່ໃນໃບເງິນເດືອນ';
+
+  @override
+  String get otRequestGone => 'ຄຳຂໍໂອທີນີ້ບໍ່ມີແລ້ວ';
 }

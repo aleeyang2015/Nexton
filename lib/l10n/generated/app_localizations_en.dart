@@ -1839,4 +1839,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get otPickMonth => 'Choose a month';
+
+  @override
+  String otWaitingFor(String role) {
+    return 'Waiting for: $role';
+  }
+
+  @override
+  String get otPiecesSetOnApproval => 'HR sets the time and pay when approving';
+
+  @override
+  String get otAgreementNoteLabel => 'Note from HR';
+
+  @override
+  String get otNoteDidNotCome => 'Did not come: no time clocked in the OT';
+
+  @override
+  String get otNotePaidByHand =>
+      'HR paid this in cash — it is not on a payslip';
+
+  @override
+  String get otNoteHrOnly => 'This is a leave day: HR decides';
+
+  @override
+  String get otNoteFromPost => 'From an HR post';
+
+  @override
+  String get otPaidOnPayslip => 'Paid hours and money are on your payslip';
+
+  @override
+  String get otRequestGone => 'This OT request is not available';
 }

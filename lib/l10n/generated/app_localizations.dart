@@ -3367,6 +3367,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a month'**
   String get otPickMonth;
+
+  /// No description provided for @otWaitingFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for: {role}'**
+  String otWaitingFor(String role);
+
+  /// No description provided for @otPiecesSetOnApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'HR sets the time and pay when approving'**
+  String get otPiecesSetOnApproval;
+
+  /// No description provided for @otAgreementNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note from HR'**
+  String get otAgreementNoteLabel;
+
+  /// No description provided for @otNoteDidNotCome.
+  ///
+  /// In en, this message translates to:
+  /// **'Did not come: no time clocked in the OT'**
+  String get otNoteDidNotCome;
+
+  /// No description provided for @otNotePaidByHand.
+  ///
+  /// In en, this message translates to:
+  /// **'HR paid this in cash — it is not on a payslip'**
+  String get otNotePaidByHand;
+
+  /// No description provided for @otNoteHrOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a leave day: HR decides'**
+  String get otNoteHrOnly;
+
+  /// No description provided for @otNoteFromPost.
+  ///
+  /// In en, this message translates to:
+  /// **'From an HR post'**
+  String get otNoteFromPost;
+
+  /// No description provided for @otPaidOnPayslip.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid hours and money are on your payslip'**
+  String get otPaidOnPayslip;
+
+  /// No description provided for @otRequestGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This OT request is not available'**
+  String get otRequestGone;
 }
 
 class _AppLocalizationsDelegate
