@@ -76,14 +76,6 @@ class SalaryHistoryCopy {
   static bool isPaymentFailed(PayslipRecord payslip) =>
       payslip.paymentStatus == PayslipPaymentStatus.failed;
 
-  /// "Sandy Vang • EMP-002 • IT Developer": who the payslip is for, with the
-  /// parts the server did not send left out.
-  static String identityLine(PayslipRecord payslip) => [
-    payslip.employeeName.trim(),
-    payslip.employeeNumber.trim(),
-    payslip.positionTitle?.trim() ?? '',
-  ].where((part) => part.isNotEmpty).join(' • ');
-
   /// What the payslip page's header shows, taken from the list's row so the
   /// two screens say the same thing: the title with the pay month, the line
   /// under it (paid on, or the status) and the status pill.
@@ -136,6 +128,18 @@ class SalaryHistoryCopy {
       PayslipRunStatus.unknown => null,
     };
   }
+
+  /// The top card's title: "ເງິນເດືອນສຸດທິ • ທັນວາ 2026", from the
+  /// payslip's month and year (never the server's English `period_label`).
+  static String latestTitle(AppLocalizations l10n, PayslipLatest latest) =>
+      '${l10n.salaryNetSalaryLabel} • '
+      '${monthYear(l10n, latest.month, latest.year)}';
+
+  /// The top card's small line: "ລາຍຮັບລວມ ₭ 12,800,000 · ຫັກລວມ ₭ 5,373,326".
+  /// The server's figures, nothing worked out.
+  static String latestTotals(AppLocalizations l10n, PayslipLatest latest) =>
+      '${l10n.salaryGrossLabel} ${currency(latest.grossPay)} · '
+      '${l10n.salaryTotalDeductionsLabel} ${currency(latest.totalDeductions)}';
 
   /// What the PDF page says when the PDF could not be had, and whether
   /// Retry is offered:

@@ -100,6 +100,130 @@ void main() {
     });
   });
 
+  group('the newest payslip (the top card)', () {
+    test('is asked for once, beside the year\'s list', () async {
+      repository.latestResult = const Result.success(sampleLatestPayslip);
+
+      await settle();
+
+      expect(repository.latestCalls, 1);
+      expect(state().latest.valueOrNull, sampleLatestPayslip);
+    });
+
+    test('is loading until it answers', () async {
+      repository.holdLatest = Completer<void>();
+
+      await settle();
+
+      expect(state().latest.isLoading, isTrue);
+      repository.holdLatest!.complete();
+      await settle();
+      expect(state().latest.isLoading, isFalse);
+    });
+
+    test('none (no payslip yet, or no employee) is null, not an error',
+        () async {
+      await settle();
+
+      expect(state().latest.hasError, isFalse);
+      expect(state().latest.valueOrNull, isNull);
+    });
+
+    test('switching year, or a chip, does not ask again, and the card stays',
+        () async {
+      repository.latestResult = const Result.success(sampleLatestPayslip);
+      await settle();
+
+      notifier().previousYear();
+      // While the earlier year loads, the card is still there.
+      expect(state().latest.valueOrNull, sampleLatestPayslip);
+      await settle();
+      notifier().nextYear();
+      await settle();
+      notifier().setFilter(SalaryHistoryFilter.paid);
+      await settle();
+
+      expect(repository.latestCalls, 1);
+      expect(state().latest.valueOrNull, sampleLatestPayslip);
+    });
+
+    test('a failure is kept, and leaves the list alone', () async {
+      const refusal = Failure.validation(
+        message: 'payroll is not active',
+        code: 'MODULE_NOT_ACTIVE',
+      );
+      repository.latestResult = const Result.failure(refusal);
+
+      await settle();
+
+      expect(state().latest.error, refusal);
+      expect(state().all, hasLength(3));
+    });
+
+    test('retry asks for both again', () async {
+      repository.latestResult = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+      await settle();
+
+      repository.latestResult = const Result.success(sampleLatestPayslip);
+      notifier().retry();
+      await settle();
+
+      expect(repository.latestCalls, 2);
+      expect(repository.myPayslipsYears, [thisYear, thisYear]);
+      expect(state().latest.valueOrNull, sampleLatestPayslip);
+    });
+
+    test('a Retry that fails (still offline) keeps the card that is showing',
+        () async {
+      repository.latestResult = const Result.success(sampleLatestPayslip);
+      await settle();
+
+      repository.latestResult = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+      notifier().retry();
+      await settle();
+
+      expect(repository.latestCalls, 2);
+      expect(state().latest.valueOrNull, sampleLatestPayslip);
+      expect(state().latest.hasError, isFalse);
+    });
+
+    test('a page closed before its first load asks for nothing', () async {
+      final sub = container.listen(salaryHistoryNotifierProvider, (_, _) {});
+      sub.close();
+      container.dispose();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.latestCalls, 0);
+      expect(repository.myPayslipsYears, isEmpty);
+    });
+
+    test('an older answer that comes late does not replace a newer one',
+        () async {
+      final slow = Completer<void>();
+      repository
+        ..holdLatest = slow
+        ..latestResult = const Result.failure(
+          Failure.network(message: 'offline'),
+        );
+      await settle();
+
+      // Retry while the first answer is still on its way.
+      repository
+        ..holdLatest = null
+        ..latestResult = const Result.success(sampleLatestPayslip);
+      notifier().retry();
+      await settle();
+      slow.complete();
+      await settle();
+
+      expect(state().latest.valueOrNull, sampleLatestPayslip);
+    });
+  });
+
   group('the year', () {
     test('stepping back asks for that year and clears the list', () async {
       await settle();
@@ -202,7 +326,7 @@ void main() {
       notifier().setFilter(SalaryHistoryFilter.paid);
 
       expect(state().filtered.map((p) => p.id), ['p-paid', 'p-failed']);
-      // The summary card's source is untouched by the chip.
+      // The chip narrows the list on the phone; the year's payslips stay.
       expect(state().all, hasLength(3));
       expect(repository.myPayslipsYears, [thisYear]);
     });

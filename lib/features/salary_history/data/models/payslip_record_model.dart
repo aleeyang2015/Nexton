@@ -129,6 +129,31 @@ class PayslipRecordModel {
     _ => PayslipPaymentStatus.unknown,
   };
 
+  /// The newest payslip (`GET /payroll/payslips/my/latest`). As strict as
+  /// a payslip: whole kip, a real month and year, and an id to open it by;
+  /// anything else is a [FormatException], never a card with wrong figures.
+  static PayslipLatest latestFromJson(Map<String, dynamic> json) {
+    final id = _text(json['id']);
+    if (id.isEmpty) {
+      throw const FormatException('A latest payslip without an id');
+    }
+    final month = _month(json['month']);
+    final year = _year(json['year']);
+    if (month == null || year == null) {
+      throw FormatException(
+        'A latest payslip without its month: ${json['month']} ${json['year']}',
+      );
+    }
+    return PayslipLatest(
+      id: id,
+      month: month,
+      year: year,
+      grossPay: _kip(json, 'gross_pay'),
+      totalDeductions: _kip(json, 'total_deductions'),
+      netPay: _kip(json, 'net_pay'),
+    );
+  }
+
   static String _text(dynamic value) => value is String ? value : '';
 
   static String? _textOrNull(dynamic value) =>

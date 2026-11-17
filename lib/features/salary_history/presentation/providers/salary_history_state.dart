@@ -10,8 +10,8 @@ part 'salary_history_state.freezed.dart';
 enum SalaryHistoryFilter { all, paid }
 
 /// Everything the salary-history page renders from: the year being viewed,
-/// its payslips as the server sent them, the active status filter, and which
-/// rows are expanded.
+/// its payslips as the server sent them, the active status filter, which
+/// rows are expanded, and the newest payslip for the top card.
 @freezed
 class SalaryHistoryState with _$SalaryHistoryState {
   const SalaryHistoryState._();
@@ -22,14 +22,18 @@ class SalaryHistoryState with _$SalaryHistoryState {
     @Default(AsyncValue<List<PayslipRecord>>.loading())
     AsyncValue<List<PayslipRecord>> payslips,
     @Default(<int>{}) Set<int> expandedIndexes,
+
+    /// The newest payslip, whatever year is showing (`/my/latest`): the top
+    /// card. Null when there is none.
+    @Default(AsyncValue<PayslipLatest?>.loading())
+    AsyncValue<PayslipLatest?> latest,
   }) = _SalaryHistoryState;
 
   /// A year later than this one is in the future — nothing to show yet.
   bool get canGoNext => year < DateTime.now().year;
 
   /// The full year's payslips in the server's order (newest pay month
-  /// first), unaffected by [filter] — the first one backs the page's
-  /// highlighted summary card regardless of which chip is active.
+  /// first), unaffected by [filter].
   List<PayslipRecord> get all => payslips.valueOrNull ?? const [];
 
   /// [all], narrowed to the active filter — what the list below the summary
