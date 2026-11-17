@@ -4,7 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../time_off/presentation/widgets/leave_approval_timeline.dart';
-import '../../../time_off/presentation/widgets/leave_copy.dart';
+import '../../../time_off/presentation/widgets/leave_step_note.dart';
 import '../../domain/entities/ot_request.dart';
 import 'ot_copy.dart';
 import 'ot_step_adapter.dart';
@@ -28,10 +28,7 @@ class OtRequestSections extends StatelessWidget {
     final pill = OtCopy.statusPill(l10n, request.status);
     final waiting = OtCopy.waitingFor(l10n, request);
     final window = OtCopy.window(l10n, request);
-    final notedSteps = [
-      for (final step in request.steps)
-        if (step.note != null) step,
-    ]..sort((a, b) => a.stepNo.compareTo(b.stepNo));
+    final steps = OtStepAdapter.toLeaveSteps(request.steps);
     final notes = OtCopy.notes(l10n, request);
     final agreement = request.agreementNote;
 
@@ -82,35 +79,18 @@ class OtRequestSections extends StatelessWidget {
         _Card(
           children: [
             LeaveApprovalTimeline(
-              steps: [
-                for (final step in request.steps)
-                  OtStepAdapter.toLeaveStep(step),
-              ],
+              steps: steps,
               requestStatus: OtStepAdapter.toLeaveStatus(request.status),
             ),
-            for (final step in notedSteps) ...[
-              heightBx(h: 10),
-              customText(
-                '${l10n.leaveApproverNoteLabel} · '
-                '${LeaveCopy.stepRoleLabel(l10n, OtStepAdapter.toLeaveStep(step).role)}',
-                fontSize: 12,
-                color: AppColors.subTitle,
-              ),
-              heightBx(h: 2),
-              customText(
-                step.note!,
-                color: AppColors.textPrimary,
-                maxLine: 10,
-              ),
-            ],
+            // Who each step is, and the note they left: the timeline shows
+            // only the role.
+            for (final step in steps) LeaveStepNote(step: step),
           ],
         ),
         if (request.pieces.isNotEmpty)
           _Card(
             children: [
-              for (final piece
-                  in [...request.pieces]
-                    ..sort((a, b) => a.pieceNo.compareTo(b.pieceNo)))
+              for (final piece in OtCopy.orderedPieces(request))
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: customText(

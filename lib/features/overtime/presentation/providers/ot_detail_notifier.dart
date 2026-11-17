@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/failure.dart';
 import '../../domain/entities/ot_request.dart';
 import '../../overtime_providers.dart';
+import 'ot_list_notifier.dart';
 
 /// One OT request, loaded by its id (`GET /ot-requests/:id`).
 ///
@@ -22,8 +23,33 @@ class OtDetailNotifier extends AutoDisposeFamilyAsyncNotifier<OtRequest, String>
   Future<OtRequest> build(String arg) async {
     _disposed = false;
     ref.onDispose(() => _disposed = true);
+    final turn = _turn;
     final result = await ref.read(getOtRequestUseCaseProvider)(arg);
-    return result.fold((failure) => throw failure, (request) => request);
+    // A replace() or refresh() that ran while this first load was on its way
+    // has already put something newer on screen: keep it.
+    final shown = state.valueOrNull;
+    if (turn != _turn && shown != null) return shown;
+    return result.fold(
+      (failure) {
+        _syncList(gone: isGone(failure));
+        throw failure;
+      },
+      (request) {
+        _syncList(request: request);
+        return request;
+      },
+    );
+  }
+
+  /// Keeps the OT list's row as this page last saw the request, when the
+  /// list is open underneath: changed in place, or taken out when gone. The
+  /// list then needs no reload when the user goes back, and keeps the pages
+  /// already loaded.
+  void _syncList({OtRequest? request, bool gone = false}) {
+    if (_disposed || !ref.exists(otListNotifierProvider)) return;
+    final list = ref.read(otListNotifierProvider.notifier);
+    if (request != null) list.showRow(request);
+    if (gone) list.dropRow(arg);
   }
 
   /// Loads the request again: a pull to refresh or a retry. Returns the
@@ -42,10 +68,12 @@ class OtDetailNotifier extends AutoDisposeFamilyAsyncNotifier<OtRequest, String>
         if (!state.hasValue || isGone(failure)) {
           state = AsyncValue.error(failure, StackTrace.current);
         }
+        _syncList(gone: isGone(failure));
         return failure;
       },
       (request) {
         state = AsyncValue.data(request);
+        _syncList(request: request);
         return null;
       },
     );
@@ -57,6 +85,7 @@ class OtDetailNotifier extends AutoDisposeFamilyAsyncNotifier<OtRequest, String>
     if (request.id != arg) return;
     _turn++;
     state = AsyncValue.data(request);
+    _syncList(request: request);
   }
 
   /// The request is gone, or no longer the caller's to see: the server

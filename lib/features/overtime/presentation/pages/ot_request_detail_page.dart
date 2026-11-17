@@ -31,7 +31,9 @@ class OtRequestDetailPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final provider = otDetailNotifierProvider(requestId);
     final loaded = ref.watch(provider);
-    final error = loaded.hasError ? loaded.error : null;
+    // A Retry keeps the old error while it loads: show the spinner, not the
+    // error, until it answers.
+    final error = loaded.hasError && !loaded.isLoading ? loaded.error : null;
     final gone = OtDetailNotifier.isGone(error);
     final request = gone ? null : (loaded.valueOrNull ?? initial);
 

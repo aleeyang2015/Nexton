@@ -12,7 +12,6 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../data/datasources/leave_error_code.dart';
-import '../../domain/entities/leave_approval_step.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_status.dart';
 import '../../domain/entities/leave_type.dart';
@@ -20,6 +19,7 @@ import '../providers/leave_request_detail_notifier.dart';
 import '../providers/leave_types_notifier.dart';
 import '../widgets/leave_approval_timeline.dart';
 import '../widgets/leave_copy.dart';
+import '../widgets/leave_step_note.dart';
 import '../widgets/leave_request_unavailable.dart';
 
 /// The full view of one of the employee's own leave requests, opened by its
@@ -291,7 +291,7 @@ class _RequestBodyState extends ConsumerState<_RequestBody> {
               ),
               heightBx(h: 10),
               for (final step in request.steps)
-                _StepNote(step: step, l10n: l10n),
+                LeaveStepNote(step: step),
             ],
           ),
         ),
@@ -474,48 +474,6 @@ class _InfoRow extends StatelessWidget {
               maxLine: 2,
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StepNote extends StatelessWidget {
-  final LeaveApprovalStep step;
-  final AppLocalizations l10n;
-
-  const _StepNote({required this.step, required this.l10n});
-
-  @override
-  Widget build(BuildContext context) {
-    final approver = step.approverName;
-    final note = step.note;
-    if ((approver == null || approver.isEmpty) &&
-        (note == null || note.isEmpty)) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          customText(
-            '${LeaveCopy.stepRoleLabel(l10n, step.role)}'
-            '${approver != null && approver.isNotEmpty ? ' • $approver' : ''}',
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: AppColors.primary,
-          ),
-          if (note != null && note.isNotEmpty) ...[
-            heightBx(h: 2),
-            customText(
-              '${l10n.leaveApproverNoteLabel}: $note',
-              fontSize: 12,
-              color: AppColors.subTitle,
-              maxLine: 4,
-            ),
-          ],
         ],
       ),
     );

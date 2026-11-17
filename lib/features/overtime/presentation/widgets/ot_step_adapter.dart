@@ -30,6 +30,12 @@ class OtStepAdapter {
     decidedAt: step.actedAt,
   );
 
+  /// All the steps, for the timeline and the lines under it, in their
+  /// order (`step_no`).
+  static List<LeaveApprovalStep> toLeaveSteps(List<OtStep> steps) =>
+      [for (final step in steps) toLeaveStep(step)]
+        ..sort((a, b) => a.stepNo.compareTo(b.stepNo));
+
   /// The request's status, for the timeline's cancelled end; null for one
   /// the App does not know (the steps are drawn as they are).
   static LeaveStatus? toLeaveStatus(OtStatus status) => switch (status) {

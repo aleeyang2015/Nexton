@@ -111,8 +111,16 @@ class OtCopy {
     ].join('–');
     final value = piece.payValue;
     final pay = value == null ? null : otPayLabel(l10n, piece.payType, value);
-    return [window, if (pay != null) pay].where((p) => p.isNotEmpty).join(' · ');
+    final text = [
+      window,
+      if (pay != null) pay,
+    ].where((p) => p.isNotEmpty).join(' · ');
+    return text.isEmpty ? '—' : text;
   }
+
+  /// The pieces in their order (`piece_no`).
+  static List<OtPiece> orderedPieces(OtRequest request) =>
+      [...request.pieces]..sort((a, b) => a.pieceNo.compareTo(b.pieceNo));
 
   /// The notes the request carries, each only when its field says so: did
   /// not come, paid in cash, a leave day (HR decides), from an HR post.

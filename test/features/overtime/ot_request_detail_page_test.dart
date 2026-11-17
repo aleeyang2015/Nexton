@@ -205,11 +205,31 @@ void main() {
 
       await openPage(tester);
 
-      expect(
-        find.text('${en.leaveApproverNoteLabel} · ${en.leaveStepDeptHead}'),
-        findsOneWidget,
+      expect(find.text('${en.leaveApproverNoteLabel}: Fine by me'), findsOneWidget);
+    });
+
+    testWidgets('who approved shows under the timeline: role • name', (
+      tester,
+    ) async {
+      serve(
+        ot(
+          status: OtStatus.approved,
+          steps: [
+            step(
+              1,
+              OtStepRole.deptHead,
+              OtStepStatus.approved,
+              approver: 'Somchai K.',
+            ),
+            step(2, OtStepRole.hr, OtStepStatus.approved, approver: 'Noy HR'),
+          ],
+        ),
       );
-      expect(find.text('Fine by me'), findsOneWidget);
+
+      await openPage(tester);
+
+      expect(find.text('${en.leaveStepDeptHead} • Somchai K.'), findsOneWidget);
+      expect(find.text('${en.leaveStepHr} • Noy HR'), findsOneWidget);
     });
 
     testWidgets('a cancelled request ends the timeline in Cancelled', (
@@ -390,6 +410,58 @@ void main() {
       expect(find.text(lo.ruleEmployeeNotFound), findsOneWidget);
       expect(find.text(lo.retry), findsNothing);
     });
+  });
+
+  testWidgets('a 404 with nothing underneath (opened as a push would) goes to '
+      'the OT list', (tester) async {
+    repository.requestAnswer = (_) => const Result.failure(
+      Failure.network(message: 'not found', statusCode: 404),
+    );
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [otRepositoryProvider.overrideWithValue(repository)],
+        child: MaterialApp.router(
+          routerConfig: GoRouter(
+            initialLocation: AppRoutes.otRequest('ot-x'),
+            routes: overtimeRoutes,
+          ),
+          scaffoldMessengerKey: rootScaffoldMessengerKey,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(OtListPage), findsOneWidget);
+    expect(find.byType(OtRequestDetailPage), findsNothing);
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+  });
+
+  testWidgets('Retry after a failed load shows the spinner while it loads', (
+    tester,
+  ) async {
+    repository.requestAnswer = (_) =>
+        const Result.failure(Failure.network(message: 'offline'));
+    await openPage(tester);
+
+    final hold = Completer<void>();
+    repository
+      ..holdRequest = hold
+      ..requestAnswer = (_) => Result.success(ot());
+    await tester.tap(find.text(en.retry));
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text(en.retry), findsNothing);
+
+    hold.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('07/11/2026'), findsOneWidget);
   });
 
   testWidgets('opened from the list, its row shows at once while the page '

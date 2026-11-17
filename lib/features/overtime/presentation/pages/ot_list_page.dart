@@ -50,8 +50,9 @@ class _OtListPageState extends ConsumerState<OtListPage> {
   /// fast, opens nothing.
   bool _opening = false;
 
-  /// Opens [request]'s page; on return the list asks again, so a request
-  /// changed or gone meanwhile shows as it now is.
+  /// Opens [request]'s page. The page keeps this list's row up to date
+  /// itself (changed in place, or taken out when gone), so going back asks
+  /// for nothing and the pages already loaded stay.
   Future<void> _open(OtRequest request) async {
     if (_opening) return;
     _opening = true;
@@ -63,7 +64,6 @@ class _OtListPageState extends ConsumerState<OtListPage> {
     } finally {
       _opening = false;
     }
-    if (mounted) await ref.read(otListNotifierProvider.notifier).refresh();
   }
 
   void _loadMoreIfNearEnd() {

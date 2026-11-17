@@ -119,18 +119,10 @@ void main() {
       expect(find.text(en.otDidNotCome), findsNothing);
     });
 
-    testWidgets('a tap opens the request\'s page; coming back refreshes '
-        'the list', (tester) async {
-      serve([sampleOt('ot-1')]);
-      await pumpPage(tester);
-      final before = repository.listCalls.length;
-
-      await tester.tap(find.text('14/11/2026'));
+    Future<void> openAndComeBack(WidgetTester tester, String date) async {
+      await tester.tap(find.text(date).first);
       await tester.pumpAndSettle();
-
       expect(find.byType(OtRequestDetailPage), findsOneWidget);
-      expect(repository.requestIds, ['ot-1']);
-
       await tester.tap(
         find.descendant(
           of: find.byType(OtRequestDetailPage),
@@ -138,10 +130,55 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      expect(find.byType(OtListPage), findsOneWidget);
+    }
+
+    testWidgets('a tap opens the request\'s page; coming back asks for '
+        'nothing', (tester) async {
+      serve([sampleOt('ot-1')]);
+      await pumpPage(tester);
+      final before = repository.listCalls.length;
+
+      await openAndComeBack(tester, '14/11/2026');
+
+      expect(repository.requestIds, ['ot-1']);
+      expect(repository.listCalls, hasLength(before));
+    });
+
+    testWidgets('a request that changed meanwhile shows changed in the list '
+        'when coming back, and the pages loaded stay', (tester) async {
+      repository.myRequestsAnswer = (call) => pagedOt(call, total: 45);
+      repository.requestAnswer = (id) =>
+          Result.success(sampleOt(id, status: OtStatus.cancelled));
+      await pumpPage(tester);
+      await tester.drag(find.byType(ListView).last, const Offset(0, -5000));
+      await tester.pumpAndSettle();
+      final pages = repository.listCalls.length;
+      await tester.drag(find.byType(ListView).last, const Offset(0, 5000));
+      await tester.pumpAndSettle();
+
+      await openAndComeBack(tester, '14/11/2026');
+
+      expect(repository.listCalls, hasLength(pages));
+      expect(find.byType(OtRequestRow, skipOffstage: false), findsNWidgets(45));
+      // The chip, and the row that changed.
+      expect(find.text(en.leaveStatusCancelled), findsNWidgets(2));
+    });
+
+    testWidgets('a request that is gone (404) leaves the list', (tester) async {
+      serve([sampleOt('ot-1'), sampleOt('ot-2', workDate: DateTime(2026, 11, 2))]);
+      repository.requestAnswer = (_) => const Result.failure(
+        Failure.network(message: 'not found', statusCode: 404),
+      );
+      await pumpPage(tester);
+
+      await tester.tap(find.text('14/11/2026'));
+      await tester.pumpAndSettle();
 
       expect(find.byType(OtListPage), findsOneWidget);
-      expect(repository.listCalls.length, before + 1);
-      expect(repository.listCalls.last.page, 1);
+      expect(find.text('14/11/2026'), findsNothing);
+      expect(find.text('02/11/2026'), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
     testWidgets('a double tap opens one page', (tester) async {

@@ -130,4 +130,24 @@ void main() {
 
     expect(container.read(provider).valueOrNull?.status, OtStatus.cancelled);
   });
+
+  test('an action\'s answer shown during the first load is not undone by '
+      'that load\'s older answer', () async {
+    final slow = Completer<void>();
+    repository
+      ..holdRequest = slow
+      ..requestAnswer = (id) => Result.success(sampleOt(id));
+    container.listen(provider, (_, _) {});
+    await Future<void>.delayed(Duration.zero);
+
+    container
+        .read(provider.notifier)
+        .replace(sampleOt('ot-1', status: OtStatus.cancelled));
+    slow.complete();
+    for (var i = 0; i < 5; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    expect(container.read(provider).valueOrNull?.status, OtStatus.cancelled);
+  });
 }
