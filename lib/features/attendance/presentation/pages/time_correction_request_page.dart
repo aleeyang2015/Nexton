@@ -22,6 +22,8 @@ import '../widgets/time_correction_attachment.dart';
 import '../widgets/time_correction_fields.dart';
 import '../widgets/time_correction_section_card.dart';
 import '../widgets/time_correction_shift_sheet.dart';
+import '../../../../core/errors/validation_codes.dart';
+import '../../domain/correction_rules.dart';
 
 /// "ແກ້ໄຂເວລາເຂົ້າ ອອກວຽກ" — the time-correction request form behind the
 /// "ລືມລົງເວລາ" menu tile. Fields and rules live in
@@ -232,7 +234,18 @@ String? _error(
   AppLocalizations l10n,
   TimeCorrectionFormState state,
   String field,
-) => localizeFieldError(l10n, state.errorFor(field));
+) {
+  final code = state.errorFor(field);
+  // A time outside the part names the part's window (#43).
+  final window = state.window;
+  if (code == ValidationCode.correctionOutsideWindow && window != null) {
+    return l10n.attCorrectionOutsideWindow(
+      CorrectionRules.hhmm(window.from),
+      CorrectionRules.hhmm(window.to),
+    );
+  }
+  return localizeFieldError(l10n, code);
+}
 
 /// The employee's assigned shift and the segment picked for the correction.
 /// Nothing shows while the profile is loading; an employee with no shift

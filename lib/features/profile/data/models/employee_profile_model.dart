@@ -63,6 +63,8 @@ class EmployeeProfileModel {
             endTime: _nonEmpty(_string(raw['end_time'])),
             endsNextDay: raw['ends_next_day'] == true,
             weeklys: _weeklys(raw['weeklys']),
+            earlyCheckinMinutes: _minutes(raw['early_checkin_minutes']) ?? 0,
+            lateCheckoutMinutes: _minutes(raw['late_checkout_minutes']) ?? 0,
           ),
         )
         .toList(growable: false);
@@ -82,9 +84,15 @@ class EmployeeProfileModel {
             weeklyDay: day,
             startTime: _nonEmpty(_string(row['start_time'])),
             endTime: _nonEmpty(_string(row['end_time'])),
+            earlyCheckinMinutes: _minutes(row['early_checkin_minutes']),
+            lateCheckoutMinutes: _minutes(row['late_checkout_minutes']),
           ),
     ];
   }
+
+  /// A count of minutes; null when it is not a whole, non-negative number.
+  static int? _minutes(dynamic raw) =>
+      raw is num && raw >= 0 ? raw.toInt() : null;
 
   static String _fullName(Map<String, dynamic> json) {
     final full = _nonEmpty(_string(json['full_name']));

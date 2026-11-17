@@ -32,6 +32,9 @@ class ValidationCode {
   static const String correctionShiftRequired = 'correctionShiftRequired';
   static const String correctionTimeRequired = 'correctionTimeRequired';
   static const String correctionInvalidTimes = 'correctionInvalidTimes';
+
+  /// A corrected time outside the chosen shift part's window (#43).
+  static const String correctionOutsideWindow = 'correctionOutsideWindow';
   static const String correctionReasonRequired = 'correctionReasonRequired';
   static const String correctionReasonTooLong = 'correctionReasonTooLong';
 

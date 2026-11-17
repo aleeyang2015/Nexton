@@ -60,6 +60,51 @@ void main() {
       expect(afternoon.nameLo, 'ກະແລງ');
     });
 
+    test('reads each part\'s early and late minutes, and a weekly row\'s own '
+        '(#43); missing or odd values read as none', () {
+      final profile = EmployeeProfileModel.fromJson({
+        'id': '1',
+        'full_name': 'Somphone Vilaysone',
+        'shift': {
+          'id': 'shift-1',
+          'shift_details': [
+            {
+              'id': 'p1',
+              'start_time': '08:00:00',
+              'end_time': '17:00:00',
+              'early_checkin_minutes': 30,
+              'late_checkout_minutes': 60,
+              'weeklys': [
+                {
+                  'weekly_day': 'SAT',
+                  'end_time': '12:00:00',
+                  'late_checkout_minutes': 15,
+                },
+              ],
+            },
+            {
+              'id': 'p2',
+              'start_time': '13:00:00',
+              'end_time': '17:00:00',
+              'early_checkin_minutes': 'soon',
+            },
+          ],
+        },
+      });
+
+      final office = profile.shiftDetails[0];
+      expect(office.earlyCheckinMinutes, 30);
+      expect(office.lateCheckoutMinutes, 60);
+      final saturday = office.weeklys.single;
+      expect(saturday.lateCheckoutMinutes, 15);
+      expect(saturday.earlyCheckinMinutes, isNull);
+      // 2026-11-14 is a Saturday: its own late minutes, the part's early.
+      expect(office.minutesOn(DateTime(2026, 11, 14)), (early: 30, late: 15));
+
+      expect(profile.shiftDetails[1].earlyCheckinMinutes, 0);
+      expect(profile.shiftDetails[1].lateCheckoutMinutes, 0);
+    });
+
     test('is empty when the employee has no shift assigned', () {
       final profile = EmployeeProfileModel.fromJson({
         'id': '1',

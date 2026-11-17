@@ -5,6 +5,8 @@ import '../../../../core/errors/failure.dart';
 import '../../../../core/errors/validation_codes.dart';
 import '../../../../core/utils/result.dart';
 import '../../../../core/upload/domain/uploaded_attachment.dart';
+import '../../../profile/domain/entities/shift_detail.dart';
+import '../correction_rules.dart';
 import 'time_correction_type.dart';
 
 /// Field names a [TimeCorrectionRequest] validation failure points at, so the
@@ -38,6 +40,10 @@ class TimeCorrectionRequest extends Equatable {
   /// The evidence file, as `POST /uploads` accepted it.
   final UploadedAttachment? attachment;
 
+  /// The chosen shift part itself, for its window (#43). Not sent: only its
+  /// id goes on the wire. Null when not known (the server then decides).
+  final ShiftDetail? part;
+
   const TimeCorrectionRequest({
     required this.date,
     required this.type,
@@ -46,6 +52,7 @@ class TimeCorrectionRequest extends Equatable {
     required this.clockOut,
     required this.reason,
     this.attachment,
+    this.part,
   });
 
   TimeCorrectionRequest withAttachment(UploadedAttachment? file) =>
@@ -57,6 +64,7 @@ class TimeCorrectionRequest extends Equatable {
         clockOut: clockOut,
         reason: reason,
         attachment: file,
+        part: part,
       );
 
   /// Every rule the request breaks, keyed by [TimeCorrectionFields] and
@@ -65,12 +73,11 @@ class TimeCorrectionRequest extends Equatable {
   Map<String, String> violations({DateTime? now}) {
     final errors = <String, String>{};
 
-    final today = _dateOnly(now ?? DateTime.now());
+    final range = CorrectionRules.lookBack(now ?? DateTime.now());
     final day = _dateOnly(date);
-    if (day.isAfter(today)) {
+    if (day.isAfter(range.latest)) {
       errors[TimeCorrectionFields.date] = ValidationCode.correctionDateInFuture;
-    } else if (today.difference(day).inDays >
-        AppConstants.timeCorrectionMaxAgeDays) {
+    } else if (day.isBefore(range.earliest)) {
       errors[TimeCorrectionFields.date] = ValidationCode.correctionDateTooOld;
     }
 
@@ -80,7 +87,13 @@ class TimeCorrectionRequest extends Equatable {
           ValidationCode.correctionShiftRequired;
     }
 
-    final timesError = _timesError();
+    final timesError = CorrectionRules.check(
+      type: type,
+      clockIn: clockIn,
+      clockOut: clockOut,
+      part: part,
+      date: day,
+    );
     if (timesError != null) errors[TimeCorrectionFields.times] = timesError;
 
     final trimmed = reason.trim();
@@ -106,24 +119,6 @@ class TimeCorrectionRequest extends Equatable {
     );
   }
 
-  String? _timesError() {
-    final start = clockIn;
-    final end = clockOut;
-    if ((type.needsClockIn && start == null) ||
-        (type.needsClockOut && end == null)) {
-      return ValidationCode.correctionTimeRequired;
-    }
-    // Only comparable when the request carries both ends.
-    if (start != null &&
-        end != null &&
-        type.needsClockIn &&
-        type.needsClockOut &&
-        end <= start) {
-      return ValidationCode.correctionInvalidTimes;
-    }
-    return null;
-  }
-
   static DateTime _dateOnly(DateTime value) =>
       DateTime(value.year, value.month, value.day);
 
@@ -136,5 +131,6 @@ class TimeCorrectionRequest extends Equatable {
     clockOut,
     reason,
     attachment,
+    part,
   ];
 }

@@ -39,13 +39,14 @@ void main() {
       expect(request(date: DateTime(2026, 9, 25)).violations(now: now), {
         TimeCorrectionFields.date: ValidationCode.correctionDateInFuture,
       });
-      expect(request(date: DateTime(2026, 6, 25)).violations(now: now), {
+      // 31 days back: past the owner's 30 (decision 16, #43).
+      expect(request(date: DateTime(2026, 8, 24)).violations(now: now), {
         TimeCorrectionFields.date: ValidationCode.correctionDateTooOld,
       });
-      // Today and exactly 90 days back are both allowed.
+      // Today and exactly 30 days back are both allowed.
       expect(request(date: now).violations(now: now), isEmpty);
       expect(
-        request(date: DateTime(2026, 6, 26)).violations(now: now),
+        request(date: DateTime(2026, 8, 25)).violations(now: now),
         isEmpty,
       );
     });
