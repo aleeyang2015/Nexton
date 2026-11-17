@@ -364,9 +364,10 @@ void main() {
       'EMPLOYEE_NOT_FOUND': 'leaveEmployeeNotFound',
       'LEAVE_CHANGED': 'leaveChanged',
       'LEAVE_ALREADY_STARTED': 'leaveStartedContactHr',
+      'LEAVE_ATTACHMENT_REQUIRED': 'leaveRequiresAttachmentBlocked',
     };
 
-    test('the table the data source reads has exactly these nine codes', () {
+    test('the table the data source reads has exactly these ten codes', () {
       expect(LeaveErrorCode.tokenByWire, tokens);
     });
 

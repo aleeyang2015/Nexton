@@ -101,9 +101,7 @@ void main() {
             LeaveFileDownloader(dio: Dio()..httpClientAdapter = adapter),
           ),
           leaveFilesProvider.overrideWithValue(files),
-          pdfFileViewProvider.overrideWithValue(
-            (path, _) => Text('PDF $path'),
-          ),
+          pdfFileViewProvider.overrideWithValue((path, _) => Text('PDF $path')),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -115,8 +113,7 @@ void main() {
     );
   }
 
-  test('the download sends no Bearer header (a plain storage link)',
-      () async {
+  test('the download sends no Bearer header (a plain storage link)', () async {
     final downloader = LeaveFileDownloader(
       dio: Dio()..httpClientAdapter = adapter,
     );
@@ -129,8 +126,9 @@ void main() {
     expect(adapter.last!.headers.containsKey('authorization'), isFalse);
   });
 
-  testWidgets('a photo opens full screen, pinch to zoom; nothing downloaded',
-      (tester) async {
+  testWidgets('a photo opens full screen, pinch to zoom; nothing downloaded', (
+    tester,
+  ) async {
     await pumpTile(tester, photo);
 
     await tester.tap(find.text('cert.jpg'));
@@ -154,8 +152,9 @@ void main() {
     expect(files.shared.single.mimeType, 'application/pdf');
   });
 
-  testWidgets('a Word file opens on a page with Share, not the PDF viewer',
-      (tester) async {
+  testWidgets('a Word file opens on a page with Share, not the PDF viewer', (
+    tester,
+  ) async {
     await pumpTile(tester, word);
 
     await tester.tap(find.text('note.docx'));
@@ -178,8 +177,9 @@ void main() {
     expect(files.deleted, ['/tmp/leave-files/0/medical.pdf']);
   });
 
-  testWidgets('a file with no url is plain text: nothing to tap',
-      (tester) async {
+  testWidgets('a file with no url is plain text: nothing to tap', (
+    tester,
+  ) async {
     await pumpTile(tester, noUrl);
 
     expect(find.byType(InkWell), findsNothing);

@@ -88,7 +88,11 @@ class LeaveRequestFormNotifier
   /// An upload that answers after the form was filled again (another
   /// request, or emptied after a send) is dropped: it belongs to a form
   /// that is gone.
+  ///
+  /// Not while the request is being sent: the save has gone out without
+  /// it, and the file would land on a form that no longer matches.
   Future<void> addFile(LocalFile file) async {
+    if (state.submission.isLoading) return;
     final form = _form;
     state = state.copyWith(
       uploadingFiles: state.uploadingFiles + 1,
@@ -118,6 +122,7 @@ class LeaveRequestFormNotifier
 
   /// Takes the file at [index] off the request.
   void removeFile(int index) {
+    if (state.submission.isLoading) return;
     if (index < 0 || index >= state.files.length) return;
     state = state.copyWith(
       files: [...state.files]..removeAt(index),
@@ -264,6 +269,8 @@ class LeaveRequestFormNotifier
   Future<bool> submit() async {
     final leaveTypeId = state.leaveTypeId;
     if (leaveTypeId == null ||
+        state.uploadingFiles > 0 ||
+        state.submission.isLoading ||
         !state.hasDays ||
         state.isAllDaysOff ||
         !state.hasValidReturnToWorkDate) {

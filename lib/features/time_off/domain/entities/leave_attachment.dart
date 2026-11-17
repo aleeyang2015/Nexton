@@ -5,8 +5,9 @@ import 'package:equatable/equatable.dart';
 class LeaveAttachment extends Equatable {
   final String? id;
 
-  /// The server's storage key (`file_name`).
-  final String fileName;
+  /// The server's storage key (`file_name`). Null when the server sent
+  /// none: nothing is made up for it when the file goes back.
+  final String? fileName;
 
   /// The name the file had on the phone or computer it came from.
   final String? originalName;
@@ -20,32 +21,45 @@ class LeaveAttachment extends Equatable {
 
   const LeaveAttachment({
     this.id,
-    required this.fileName,
+    this.fileName,
     this.originalName,
     this.url,
     this.contentType,
     this.size,
   });
 
-  /// The name to show: the original one when known.
-  String get displayName => originalName ?? fileName;
+  /// The name to show: the original one, the storage key, or the end of
+  /// the url.
+  String get displayName =>
+      originalName ?? fileName ?? url?.split('/').last ?? '';
 
-  /// A photo, by its type or, failing that, its name.
+  /// A photo. The content type decides when it says what the file is; the
+  /// name only when it does not (none, or `application/octet-stream`).
   bool get isImage {
-    final type = contentType?.toLowerCase();
-    if (type != null && type.startsWith('image/')) return true;
+    final type = _type;
+    if (type != null) return type.startsWith('image/');
     return _hasExtension(const ['jpg', 'jpeg', 'png', 'heic', 'webp', 'gif']);
   }
 
-  /// A PDF, by its type or, failing that, its name.
+  /// A PDF, by the same rule.
   bool get isPdf {
-    final type = contentType?.toLowerCase();
-    if (type == 'application/pdf') return true;
+    final type = _type;
+    if (type != null) return type == 'application/pdf';
     return _hasExtension(const ['pdf']);
   }
 
+  /// The content type without its parameters (`; charset=…`), or null when
+  /// it says nothing about the file.
+  String? get _type {
+    final raw = contentType?.split(';').first.trim().toLowerCase();
+    if (raw == null || raw.isEmpty || raw == 'application/octet-stream') {
+      return null;
+    }
+    return raw;
+  }
+
   bool _hasExtension(List<String> extensions) {
-    final name = (originalName ?? fileName).toLowerCase();
+    final name = displayName.toLowerCase();
     final dot = name.lastIndexOf('.');
     return dot >= 0 && extensions.contains(name.substring(dot + 1));
   }

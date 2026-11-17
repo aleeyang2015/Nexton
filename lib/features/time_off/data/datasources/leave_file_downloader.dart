@@ -11,7 +11,17 @@ import '../../../../core/utils/result.dart';
 /// link (no token needed), and the App's Bearer header could make the
 /// storage refuse it.
 class LeaveFileDownloader extends BaseRepository {
-  LeaveFileDownloader({Dio? dio}) : _dio = dio ?? Dio();
+  LeaveFileDownloader({Dio? dio})
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
+              // A weak signal ends in "can't be opened" with a Retry, not a
+              // spinner for ever.
+              connectTimeout: const Duration(seconds: 20),
+              receiveTimeout: const Duration(seconds: 60),
+            ),
+          );
 
   final Dio _dio;
 

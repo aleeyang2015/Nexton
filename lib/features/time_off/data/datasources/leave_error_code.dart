@@ -28,6 +28,10 @@ class LeaveErrorCode {
   /// only HR can cancel it now.
   static const String leaveAlreadyStarted = 'LEAVE_ALREADY_STARTED';
 
+  /// The type needs a file and none was sent (after Nexton-Backend#192; the
+  /// phone blocks first, so seen only on a race).
+  static const String attachmentRequired = 'LEAVE_ATTACHMENT_REQUIRED';
+
   /// `404` on a call about one request (edit, cancel, approve, reject): the
   /// request is gone, or is not the caller's to see. It is a general code,
   /// so it is not in [tokenByWire]: creating a request can answer it about
@@ -46,8 +50,10 @@ class LeaveErrorCode {
   static const String tokenLeaveChanged = 'leaveChanged';
   static const String tokenRequestGone = 'leaveRequestGone';
   static const String tokenLeaveStarted = 'leaveStartedContactHr';
+  static const String tokenAttachmentRequired = 'leaveRequiresAttachmentBlocked';
 
   static const Map<String, String> tokenByWire = {
+    attachmentRequired: tokenAttachmentRequired,
     pendingRequestExists: tokenPendingRequestExists,
     overlappingLeave: tokenOverlappingLeave,
     insufficientBalance: tokenInsufficientBalance,
@@ -77,6 +83,7 @@ class LeaveErrorCode {
     tokenLeaveChanged,
     tokenRequestGone,
     tokenLeaveStarted,
+    tokenAttachmentRequired,
   };
 
   /// Refusals of an approve or a reject that mean the approver was looking

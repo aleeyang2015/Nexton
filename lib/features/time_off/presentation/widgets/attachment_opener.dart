@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/image_viewer.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/leave_attachment.dart';
 import '../pages/leave_file_page.dart';
 
@@ -14,7 +15,11 @@ void openLeaveFile(BuildContext context, LeaveAttachment file) {
   final url = file.url;
   if (url == null) return;
   if (file.isImage) {
-    showImageViewer(context, url);
+    showImageViewer(
+      context,
+      url,
+      errorText: AppLocalizations.of(context)!.leaveFileOpenFailed,
+    );
     return;
   }
   Navigator.of(

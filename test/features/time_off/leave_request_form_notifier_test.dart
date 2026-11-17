@@ -19,7 +19,6 @@ import 'package:next_on/features/time_off/time_off_providers.dart';
 import '../../support/leave_test_doubles.dart';
 import '../../support/upload_test_doubles.dart';
 
-
 void main() {
   late FakeLeaveRepository repository;
   late FakeUploads uploads;
@@ -1001,6 +1000,41 @@ void main() {
       await adding;
 
       expect(stateOf(container, 'req-7').files, isEmpty);
+    });
+
+    test('while the request is being sent: no file is added or removed, so '
+        'nothing lands after the save went out without it', () async {
+      final container = containerWith();
+      final form = formOf(container, 'req-7')
+        ..seed(sampleLeaveRequest(id: 'req-7', attachments: const [_cert]));
+      final slow = Completer<void>();
+      repository.holdUpdate = slow;
+
+      final saving = form.submit();
+      await form.addFile(_photo);
+      form.removeFile(0);
+      slow.complete();
+      await saving;
+
+      expect(uploads.calls, isEmpty);
+      expect(repository.updateCalls.single.draft.attachments, isNull);
+      expect(stateOf(container, 'req-7').files, [_cert]);
+    });
+
+    test('an upload on its way: submit sends nothing', () async {
+      final container = containerWith();
+      final form = formOf(container)
+        ..setLeaveType('lt-annual')
+        ..setDates([DateTime(2026, 11, 18)]);
+      final slow = Completer<void>();
+      uploads.hold = slow;
+
+      final adding = form.addFile(_photo);
+      expect(await form.submit(), isFalse);
+      slow.complete();
+      await adding;
+
+      expect(repository.submitCalls, isEmpty);
     });
 
     test('the block: a type that needs a file, until one is attached',

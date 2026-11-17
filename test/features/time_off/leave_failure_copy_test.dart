@@ -26,9 +26,12 @@ void main() {
     'leaveRequestGone': 'ຄຳຮ້ອງນີ້ບໍ່ມີແລ້ວ ຫຼື ທ່ານບໍ່ມີສິດເບິ່ງ.',
     'leaveStartedContactHr':
         'ການລານີ້ເລີ່ມແລ້ວ ຈຶ່ງຍົກເລີກໃນແອັບບໍ່ໄດ້. ຖ້າຕ້ອງການປ່ຽນ, ກະລຸນາຕິດຕໍ່ HR.',
+    // LEAVE_ATTACHMENT_REQUIRED (#39, after Nexton-Backend#192).
+    'leaveRequiresAttachmentBlocked':
+        'ປະເພດນີ້ຕ້ອງແນບໄຟລ໌ ກະລຸນາແນບໄຟລ໌ກ່ອນສົ່ງ',
   };
 
-  test('the ten tokens here are the ten the data source produces', () {
+  test('the eleven tokens here are the eleven the data source produces', () {
     expect(
       {
         ...LeaveErrorCode.tokenByWire.values,

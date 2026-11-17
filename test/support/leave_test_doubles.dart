@@ -1,3 +1,4 @@
+import 'dart:async';
 
 import 'package:next_on/core/network/paged_list.dart';
 import 'package:next_on/core/utils/result.dart';
@@ -152,8 +153,15 @@ class FakeLeaveRepository implements LeaveRepository {
   @override
   FutureResult<LeaveRequest> update(String id, LeaveRequestDraft draft) async {
     updateCalls.add((id: id, draft: draft));
-    return updateResult;
+    final answer = updateResult;
+    final hold = holdUpdate;
+    holdUpdate = null;
+    await hold?.future;
+    return answer;
   }
+
+  /// When set, the next [update] waits for it (the save still on its way).
+  Completer<void>? holdUpdate;
 
   @override
   FutureResult<LeaveRequest> cancel(String id) async {

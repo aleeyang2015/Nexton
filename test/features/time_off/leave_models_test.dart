@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/features/time_off/domain/entities/leave_attachment.dart';
 import 'package:next_on/features/time_off/data/models/leave_attachment_model.dart';
 import 'package:next_on/features/time_off/data/models/leave_request_model.dart';
 import 'package:next_on/features/time_off/data/models/leave_type_model.dart';
@@ -409,7 +410,8 @@ void main() {
   });
 
   group('LeaveAttachmentModel.fromJson', () {
-    test('the shown name is file_name, else original_name, else the url', () {
+    test('the shown name is original_name, else file_name, else the end '
+        'of the url (#39: the user\'s own name first)', () {
       const url = 'https://files.nexton.work/a/x.pdf';
 
       expect(
@@ -417,17 +419,17 @@ void main() {
           'url': url,
           'file_name': 'stored.pdf',
           'original_name': 'mine.pdf',
-        })!.fileName,
-        'stored.pdf',
+        })!.displayName,
+        'mine.pdf',
       );
       expect(
         LeaveAttachmentModel.fromJson({
           'url': url,
-          'original_name': 'mine.pdf',
-        })!.fileName,
-        'mine.pdf',
+          'file_name': 'stored.pdf',
+        })!.displayName,
+        'stored.pdf',
       );
-      expect(LeaveAttachmentModel.fromJson({'url': url})!.fileName, url);
+      expect(LeaveAttachmentModel.fromJson({'url': url})!.displayName, 'x.pdf');
     });
 
     test('no url: kept by its name, with no url', () {
@@ -449,6 +451,61 @@ void main() {
       expect(file.displayName, 'cert.jpg');
       expect(file.isImage, isTrue);
       expect(file.isPdf, isFalse);
+    });
+
+    test('a row with only a url: no file_name is made up when it goes back',
+        () {
+      final file = LeaveAttachmentModel.fromJson({
+        'url': 'https://files.nexton.work/a/x.jpg',
+      })!;
+      expect(file.displayName, 'x.jpg');
+      expect(LeaveAttachmentModel.toJson(file), {
+        'url': 'https://files.nexton.work/a/x.jpg',
+      });
+    });
+
+    test('size sent as text is read, not a failed request', () {
+      final file = LeaveAttachmentModel.fromJson({
+        'file_name': 'x.pdf',
+        'size': '3',
+      })!;
+      expect(file.size, 3);
+      expect(
+        LeaveAttachmentModel.fromJson({'file_name': 'x.pdf', 'size': 'big'})!
+            .size,
+        isNull,
+      );
+    });
+
+    test('the content type decides, the name only when it says nothing', () {
+      const pdfNamedJpg = LeaveAttachment(
+        fileName: 'scan.jpg',
+        contentType: 'application/pdf',
+      );
+      expect(pdfNamedJpg.isPdf, isTrue);
+      expect(pdfNamedJpg.isImage, isFalse);
+
+      const pdfWithParams = LeaveAttachment(
+        fileName: 'scan',
+        contentType: 'application/pdf; charset=binary',
+      );
+      expect(pdfWithParams.isPdf, isTrue);
+
+      const generic = LeaveAttachment(
+        fileName: 'SCAN.PDF',
+        contentType: 'application/octet-stream',
+      );
+      expect(generic.isPdf, isTrue);
+
+      const photo = LeaveAttachment(fileName: 'x', contentType: 'image/jpeg');
+      expect(photo.isImage, isTrue);
+
+      const photoNamedPdf = LeaveAttachment(
+        fileName: 'scan.pdf',
+        contentType: 'image/png',
+      );
+      expect(photoNamedPdf.isPdf, isFalse);
+      expect(photoNamedPdf.isImage, isTrue);
     });
 
     test('nothing to name it by: dropped', () {

@@ -352,14 +352,20 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
             titleBadge: (selectedType?.requiresAttachment ?? false)
                 ? l10n.leaveRequiredBadge
                 : l10n.leaveOptionalBadge,
-            titleTrailing: _AttachFileButton(onTap: _attach),
+            // Off while the request is being sent: a file picked then would
+            // not go with it.
+            titleTrailing: _AttachFileButton(
+              onTap: state.submission.isLoading ? null : _attach,
+            ),
             child: Padding(
               padding: const EdgeInsets.only(left: 12, right: 12),
               child: _FileList(
                 files: state.files,
                 uploading: state.uploadingFiles,
                 failure: state.fileFailure,
-                onRemove: _notifier.removeFile,
+                onRemove: state.submission.isLoading
+                    ? null
+                    : _notifier.removeFile,
               ),
             ),
           ),
@@ -1104,7 +1110,7 @@ class _ReturnToWorkRow extends StatelessWidget {
 }
 
 class _AttachFileButton extends StatelessWidget {
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _AttachFileButton({required this.onTap});
 
@@ -1139,7 +1145,7 @@ class _FileList extends StatelessWidget {
   final List<LeaveAttachment> files;
   final int uploading;
   final Failure? failure;
-  final void Function(int index) onRemove;
+  final void Function(int index)? onRemove;
 
   const _FileList({
     required this.files,
@@ -1162,7 +1168,7 @@ class _FileList extends StatelessWidget {
           _FileRow(
             file: files[i],
             removeLabel: l10n.leaveFileRemove,
-            onRemove: () => onRemove(i),
+            onRemove: onRemove == null ? null : () => onRemove!(i),
           ),
         for (var i = 0; i < uploading; i++)
           _hint(const _UploadSpinner(), l10n.leaveAttachUploading),
@@ -1196,7 +1202,7 @@ class _FileList extends StatelessWidget {
 class _FileRow extends StatelessWidget {
   final LeaveAttachment file;
   final String removeLabel;
-  final VoidCallback onRemove;
+  final VoidCallback? onRemove;
 
   const _FileRow({
     required this.file,
@@ -1220,6 +1226,9 @@ class _FileRow extends StatelessWidget {
                     child: Image.network(
                       url,
                       fit: BoxFit.cover,
+                      // Decoded at the thumbnail's size, not the photo's.
+                      cacheWidth:
+                          (36 * MediaQuery.devicePixelRatioOf(context)).round(),
                       errorBuilder: (_, _, _) => _icon(Icons.image_outlined),
                     ),
                   )
