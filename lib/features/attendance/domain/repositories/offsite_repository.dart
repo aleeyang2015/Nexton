@@ -1,3 +1,4 @@
+import '../../../../core/network/paged_list.dart';
 import '../../../../core/utils/result.dart';
 import '../entities/offsite_detail.dart';
 import '../entities/offsite_outcome.dart';
@@ -20,12 +21,14 @@ abstract class OffsiteRepository {
   /// transport, auth and server errors come back as `Result.failure`.
   FutureResult<OffsiteOutcome> submit(OffsiteRequest request);
 
-  /// `GET /attendance/offsite-requests/my` — every off-site request the
-  /// signed-in employee has filed, newest first, for the history page (§4).
-  ///
-  /// Unfiltered: the status filter on that page is the employee's own view of
-  /// one list, not a second query.
-  FutureResult<List<OffsiteRequestDetail>> mine();
+  /// One page of the caller's requests, newest first (#42).
+  FutureResult<CursorPage<OffsiteRequestDetail>> myRequests({
+    TimeCorrectionStatus? status,
+    String? cursor,
+  });
+
+  /// One request by its id (#42).
+  FutureResult<OffsiteRequestDetail> detail(String id);
 
   /// The caller's scans waiting for a decision, scanned in [month]
   /// (`YYYY-MM`).

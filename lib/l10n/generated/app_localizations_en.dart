@@ -1383,9 +1383,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get approvalsTimeCorrectionTab => 'Approve Corrections';
 
   @override
-  String get offsiteMenu => 'Off-site Clock-in';
-
-  @override
   String get offsiteTitle => 'Off-site Clock-in';
 
   @override
@@ -1472,10 +1469,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get approvalsOffsiteTab => 'Approve Off-site';
 
   @override
-  String get offsiteHistoryTitle => 'Off-site Clock-in History';
+  String get offsiteHistoryEmpty => 'No off-site clock-in requests';
 
   @override
-  String get offsiteHistoryEmpty => 'No off-site clock-in requests';
+  String get attMyRequestsMenu => 'My requests';
+
+  @override
+  String get attMyRequestsTitle => 'My requests';
+
+  @override
+  String get attOffsiteTab => 'Off-site scans';
+
+  @override
+  String get attView => 'View';
+
+  @override
+  String get attOffsiteDetailTitle => 'Off-site scan request';
 
   @override
   String get attCheckinPendingApproval =>

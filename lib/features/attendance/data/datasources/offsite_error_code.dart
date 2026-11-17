@@ -44,6 +44,10 @@ class OffsiteErrorCode {
   /// gets a token of its own.
   static const String tokenCannotCancel = 'offsiteCannotCancel';
 
+  /// `GET /offsite-requests/:id` answered 404: gone, or not the caller's
+  /// to see (#42). Said with #37's "this request is not available".
+  static const String tokenRequestGone = 'offsiteRequestGone';
+
   /// Wire code → client token, for the approve/reject calls.
   static const Map<String, String> decisionTokenByWire = {
     ...TimeCorrectionErrorCode.tokenByWire,

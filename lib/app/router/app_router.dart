@@ -7,7 +7,9 @@ import '../../features/approvals/presentation/providers/approver_access_provider
 import '../../features/attendance/presentation/pages/attendance_history_page.dart';
 import '../../features/attendance/presentation/pages/camera_capture_page.dart';
 import '../../features/attendance/domain/entities/offsite_method.dart';
-import '../../features/attendance/presentation/pages/offsite_history_page.dart';
+import '../../features/attendance/domain/entities/offsite_detail.dart';
+import '../../features/attendance/presentation/pages/my_requests_page.dart';
+import '../../features/attendance/presentation/pages/offsite_request_detail_page.dart';
 import '../../features/attendance/presentation/pages/offsite_request_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_approvals_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_history_detail_page.dart';
@@ -55,6 +57,18 @@ class AppRoutes {
   static const String timeCorrectionApprovals =
       '/attendance/time-correction/approvals';
   static const String offsiteHistory = '/attendance/offsite/history';
+
+  /// "My requests" (#42): the employee's own requests, one tab per kind.
+  static const String myRequests = '/attendance/requests';
+
+  /// One of the employee's off-site requests, by id. A route pattern; build
+  /// a location with [myOffsiteRequest].
+  static const String myOffsiteRequestDetail =
+      '/attendance/requests/offsite/:id';
+
+  /// The location of the employee's off-site request [id].
+  static String myOffsiteRequest(String id) =>
+      '/attendance/requests/offsite/${Uri.encodeComponent(id)}';
   static const String offsiteRequest = '/attendance/offsite';
   static const String cameraCapture = '/attendance/camera';
   static const String timeOff = '/time-off';
@@ -396,13 +410,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'timeCorrectionApprovals',
         builder: (context, state) => const TimeCorrectionApprovalsPage(),
       ),
-      // The off-site scans already filed — the "ລົງເວລານອກພື້ນທີ່" menu tile
-      // opens this (owner's choice on #40, until #42's "My requests"). The
-      // form is not behind it: only a refused punch opens the form.
+      // The old off-site history address opens "My requests" (#42), so a
+      // link to it still lands. The form is not behind it: only a refused
+      // punch opens the form.
       GoRoute(
         path: AppRoutes.offsiteHistory,
         name: 'offsiteHistory',
-        builder: (context, state) => const OffsiteHistoryPage(),
+        builder: (context, state) => const MyRequestsPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.myRequests,
+        name: 'myRequests',
+        builder: (context, state) => const MyRequestsPage(),
+      ),
+      // One off-site request, by id; `extra` may carry the list row.
+      GoRoute(
+        path: AppRoutes.myOffsiteRequestDetail,
+        name: 'myOffsiteRequest',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          final extra = state.extra;
+          return OffsiteRequestDetailPage(
+            requestId: id,
+            initial: extra is OffsiteRequestDetail && extra.id == id
+                ? extra
+                : null,
+          );
+        },
       ),
       // The off-site scan request form. Opened only from a refused clock-in
       // or clock-out, whose direction comes as `extra`; without one (a link,

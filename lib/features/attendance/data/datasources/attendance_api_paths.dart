@@ -53,6 +53,9 @@ class AttendancePaths {
   static String rejectOffsiteRequest(String id) =>
       '$offsiteRequests/$id/reject';
 
+  /// One off-site request: the owner's, or one the caller approves (#42).
+  static String offsiteRequest(String id) => '$offsiteRequests/$id';
+
   /// The owner withdrawing their own still-pending request (§9).
   static String cancelOffsiteRequest(String id) =>
       '$offsiteRequests/$id/cancel';

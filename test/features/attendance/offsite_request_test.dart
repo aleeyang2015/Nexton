@@ -442,6 +442,127 @@ void main() {
     });
   });
 
+  group('OffsiteRemoteDataSourceImpl "My requests" (#42)', () {
+    late _StubAdapter adapter;
+    late OffsiteRemoteDataSourceImpl source;
+
+    setUp(() {
+      adapter = _StubAdapter();
+      source = OffsiteRemoteDataSourceImpl(
+        ApiClient(dio: Dio()..httpClientAdapter = adapter),
+      );
+    });
+
+    Map<String, dynamic> row(String id) => {
+      'id': id,
+      'method': 'check_in',
+      'scan_timestamp': '2026-10-02 08:15:00',
+      'scan_date': '2026-10-02',
+      'session_order': 1,
+      'reason': 'With a customer',
+      'status': 'pending',
+      'created_at': '2026-10-02 08:15:00',
+      'steps': [
+        {
+          'id': 'step-1',
+          'step_no': 1,
+          'step_role': 'specific',
+          'approver': null,
+          'status': 'approved',
+          'note': 'ok',
+          'acted_at': '2026-10-02 09:00:00',
+          'created_at': '2026-10-02 08:15:00',
+        },
+      ],
+    };
+
+    test('one page: status, limit 20 and the cursor sent; the next cursor '
+        'read', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [row('a'), row('b')],
+          'meta': {'per_page': 20, 'has_more': true, 'next_cursor': 'c2'},
+        };
+
+      final page = await source.myRequests(
+        status: TimeCorrectionStatus.pending,
+        cursor: 'c1',
+      );
+
+      final q = adapter.lastRequest!.queryParameters;
+      expect(adapter.lastRequest!.path, endsWith('/offsite-requests/my'));
+      expect(q['status'], 'pending');
+      expect(q['limit'], 20);
+      expect(q['cursor'], 'c1');
+      expect(q.containsKey('month'), isFalse);
+      expect(page.items.map((r) => r.id), ['a', 'b']);
+      expect(page.hasMore, isTrue);
+      expect(page.nextCursor, 'c2');
+    });
+
+    test('"all": no status sent; the first page no cursor', () async {
+      adapter
+        ..status = 200
+        ..body = {'success': true, 'data': []};
+
+      await source.myRequests();
+
+      final q = adapter.lastRequest!.queryParameters;
+      expect(q.containsKey('status'), isFalse);
+      expect(q.containsKey('cursor'), isFalse);
+    });
+
+    test('a step with no approver, a specific role and acted_at is read',
+        () async {
+      adapter
+        ..status = 200
+        ..body = {'success': true, 'data': row('a')};
+
+      final request = await source.detail('a');
+
+      expect(adapter.lastRequest!.path, endsWith('/offsite-requests/a'));
+      final step = request.steps.single;
+      expect(step.approverName, isNull);
+      expect(step.note, 'ok');
+      expect(step.actedAt, DateTime(2026, 10, 2, 9));
+    });
+
+    test('404 on a request: "not available"', () async {
+      adapter
+        ..status = 404
+        ..body = {
+          'success': false,
+          'error': {'code': 'NOT_FOUND', 'message': 'not found'},
+        };
+
+      await expectLater(
+        source.detail('gone'),
+        throwsA(
+          isA<ValidationFailure>().having(
+            (f) => f.message,
+            'message',
+            OffsiteErrorCode.tokenRequestGone,
+          ),
+        ),
+      );
+    });
+
+    test('the send answer keeps the new request\'s id, for "View"', () async {
+      adapter
+        ..status = 201
+        ..body = {
+          'success': true,
+          'data': {'id': 'new-1', 'status': 'pending'},
+        };
+
+      final outcome = await source.submit(request());
+
+      expect((outcome as OffsiteFiled).submission.requestId, 'new-1');
+    });
+  });
+
   group('OffsiteRemoteDataSourceImpl approvals', () {
     late _StubAdapter adapter;
     late OffsiteRemoteDataSourceImpl source;

@@ -80,15 +80,23 @@ class TimeCorrectionCopy {
   static String filterLabel(
     AppLocalizations l10n,
     TimeCorrectionStatus? status,
-    int count,
-  ) => switch (status) {
+    int? count,
+  ) => count == null
+      ? switch (status) {
+          null => l10n.leaveFilterAll,
+          TimeCorrectionStatus.pending => l10n.timeCorrectionStatusPending,
+          TimeCorrectionStatus.approved => l10n.timeCorrectionStatusApproved,
+          TimeCorrectionStatus.rejected => l10n.timeCorrectionStatusRejected,
+          TimeCorrectionStatus.cancelled => l10n.timeCorrectionStatusCancelled,
+        }
+      : switch (status) {
     null => l10n.timeCorrectionFilterAll(count),
     TimeCorrectionStatus.pending => l10n.timeCorrectionFilterPending(count),
     TimeCorrectionStatus.approved => l10n.timeCorrectionFilterApproved(count),
     TimeCorrectionStatus.rejected => l10n.timeCorrectionFilterRejected(count),
-    TimeCorrectionStatus.cancelled =>
-      '${l10n.timeCorrectionStatusCancelled} ($count)',
-  };
+          TimeCorrectionStatus.cancelled =>
+            '${l10n.timeCorrectionStatusCancelled} ($count)',
+        };
 
   /// "#d290" — a long id (a UUID) cut to its first four characters, as the
   /// design shows it; a short id is shown whole.

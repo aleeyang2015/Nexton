@@ -12,7 +12,7 @@ import 'package:next_on/features/attendance/domain/entities/offsite_detail.dart'
 import 'package:next_on/features/attendance/domain/entities/offsite_method.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_detail.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_status.dart';
-import 'package:next_on/features/attendance/presentation/pages/offsite_history_page.dart';
+import 'package:next_on/features/attendance/presentation/pages/my_requests_page.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
 import '../../support/attendance_test_doubles.dart';
@@ -70,7 +70,8 @@ void main() {
             routes: [
               GoRoute(
                 path: AppRoutes.offsiteHistory,
-                builder: (_, __) => const OffsiteHistoryPage(),
+                // The old address opens "My requests" (#42).
+                builder: (_, __) => const MyRequestsPage(),
               ),
               GoRoute(
                 path: AppRoutes.offsiteRequest,
@@ -88,7 +89,7 @@ void main() {
     return repository;
   }
 
-  group('OffsiteHistoryPage', () {
+  group('My requests: the off-site tab', () {
     testWidgets('shows the scans already filed, with their status', (
       tester,
     ) async {
@@ -105,7 +106,7 @@ void main() {
       expect(find.text('Reject'), findsNothing);
     });
 
-    testWidgets('counts the statuses off the one list it fetched', (
+    testWidgets('one page from the server, no status asked for (#42)', (
       tester,
     ) async {
       final repository = await pumpPage(
@@ -113,36 +114,33 @@ void main() {
         Result.success([
           scan(),
           scan(id: 'offsite-2', status: TimeCorrectionStatus.approved),
-          scan(id: 'offsite-3', status: TimeCorrectionStatus.approved),
         ]),
       );
 
-      // One fetch, not one per status: `…/my` answers with each request's own
-      // status, so the buckets are read locally.
-      expect(repository.mineCalls, 1);
-      expect(find.text('All (3)'), findsOneWidget);
+      expect(repository.myRequestsCalls, [(status: null, cursor: null)]);
+      expect(find.text('All'), findsOneWidget);
     });
 
-    testWidgets('the status filter narrows the list to the picked status', (
-      tester,
-    ) async {
-      await pumpPage(
-        tester,
-        Result.success([
-          scan(),
-          scan(
-            id: 'offsite-2',
-            method: OffsiteMethod.checkOut,
-            status: TimeCorrectionStatus.approved,
-          ),
-        ]),
+    testWidgets('the status filter is the server\'s: picking "Approved" '
+        'asks for the approved list', (tester) async {
+      final repository = await pumpPage(tester, Result.success([scan()]));
+      repository.mineResult = Result.success([
+        scan(
+          id: 'offsite-2',
+          method: OffsiteMethod.checkOut,
+          status: TimeCorrectionStatus.approved,
+        ),
+      ]);
+
+      await tester.tap(find.text('All'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Approved').last);
+      await tester.pumpAndSettle();
+
+      expect(
+        repository.myRequestsCalls.last,
+        (status: TimeCorrectionStatus.approved, cursor: null),
       );
-
-      await tester.tap(find.text('All (2)'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Approved (1)').last);
-      await tester.pumpAndSettle();
-
       expect(find.text('Clock out'), findsOneWidget);
       expect(find.text('Clock in'), findsNothing);
     });
@@ -184,7 +182,7 @@ void main() {
       await tester.tap(find.text('Cancel').last);
       await tester.pumpAndSettle();
       expect(repository.cancelled, isEmpty);
-      expect(repository.mineCalls, 1);
+      expect(repository.myRequestsCalls, hasLength(1));
 
       await tester.tap(find.text('Cancel request'));
       await tester.pumpAndSettle();
@@ -193,7 +191,7 @@ void main() {
 
       expect(repository.cancelled, ['offsite-1']);
       // Refetched, so the card shows the request as withdrawn.
-      expect(repository.mineCalls, 2);
+      expect(repository.myRequestsCalls, hasLength(2));
       expect(find.text('Request withdrawn'), findsOneWidget);
     });
 
@@ -223,7 +221,7 @@ void main() {
       );
       // The list was refetched, so the card now reads as decided and offers
       // no withdrawal.
-      expect(repository.mineCalls, 2);
+      expect(repository.myRequestsCalls, hasLength(2));
       expect(find.text('Cancel request'), findsNothing);
     });
 

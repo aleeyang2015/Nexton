@@ -23,8 +23,18 @@ class AppToast {
   AppToast._();
 
   /// Reports that something completed.
-  static void success(String message) =>
-      _show(message, AppToastVariant.success);
+  /// [actionLabel] and [onAction] add a button, as on [error] ("View" after
+  /// a request is sent).
+  static void success(
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) => _show(
+    message,
+    AppToastVariant.success,
+    actionLabel: actionLabel,
+    onAction: onAction,
+  );
 
   /// Reports something the user should deal with, short of an outright failure.
   static void warning(String message) =>
@@ -44,7 +54,16 @@ class AppToast {
   );
 
   /// Reports a neutral fact the user should notice.
-  static void info(String message) => _show(message, AppToastVariant.info);
+  static void info(
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) => _show(
+    message,
+    AppToastVariant.info,
+    actionLabel: actionLabel,
+    onAction: onAction,
+  );
 
   static void _show(
     String message,

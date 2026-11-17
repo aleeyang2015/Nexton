@@ -1374,9 +1374,6 @@ class AppLocalizationsLo extends AppLocalizations {
   String get approvalsTimeCorrectionTab => 'ອະນຸມັດແກ້ໄຂເວລາ';
 
   @override
-  String get offsiteMenu => 'ລົງເວລານອກພື້ນທີ່';
-
-  @override
   String get offsiteTitle => 'ລົງເວລານອກພື້ນທີ່';
 
   @override
@@ -1462,10 +1459,22 @@ class AppLocalizationsLo extends AppLocalizations {
   String get approvalsOffsiteTab => 'ອະນຸມັດນອກພື້ນທີ່';
 
   @override
-  String get offsiteHistoryTitle => 'ປະຫວັດລົງເວລານອກພື້ນທີ່';
+  String get offsiteHistoryEmpty => 'ບໍ່ມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
 
   @override
-  String get offsiteHistoryEmpty => 'ບໍ່ມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
+  String get attMyRequestsMenu => 'ຄຳຮ້ອງຂອງຂ້ອຍ';
+
+  @override
+  String get attMyRequestsTitle => 'ຄຳຮ້ອງຂອງຂ້ອຍ';
+
+  @override
+  String get attOffsiteTab => 'ລົງເວລານອກພື້ນທີ່';
+
+  @override
+  String get attView => 'ເບິ່ງ';
+
+  @override
+  String get attOffsiteDetailTitle => 'ຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
 
   @override
   String get attCheckinPendingApproval =>

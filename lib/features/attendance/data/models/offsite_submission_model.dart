@@ -13,6 +13,7 @@ class OffsiteSubmissionModel {
 
     return OffsiteSubmission(
       autoApproved: status.toLowerCase() == 'approved',
+      requestId: _text(json['id']),
       scanTimestamp: wallClock(json['scan_timestamp']),
       sessionOrder: (json['session_order'] as num?)?.toInt(),
       attendanceRecordId: _text(json['attendance_record_id']),

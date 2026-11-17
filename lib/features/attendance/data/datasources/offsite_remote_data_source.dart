@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_response.dart';
+import '../../../../core/network/paged_list.dart';
 import '../../domain/entities/offsite_detail.dart';
 import '../../domain/entities/offsite_outcome.dart';
 import '../../domain/entities/offsite_request.dart';
@@ -38,13 +39,16 @@ abstract class OffsiteRemoteDataSource {
   /// the query.
   Future<List<OffsiteRequestDetail>> approvals({TimeCorrectionStatus? status});
 
-  /// Every off-site request the signed-in employee has filed, newest first —
-  /// the history page's list (§4).
-  ///
-  /// Unfiltered on purpose, unlike [approvals]: the status here is the
-  /// request's own, so the page can bucket and count the one list locally
-  /// without asking the endpoint once per status.
-  Future<List<OffsiteRequestDetail>> mine();
+  /// One page of the caller's requests, newest first (#42): only those with
+  /// [status] when given; [cursor] is the last page's `next_cursor`.
+  Future<CursorPage<OffsiteRequestDetail>> myRequests({
+    TimeCorrectionStatus? status,
+    String? cursor,
+  });
+
+  /// One request by its id (#42). A 404 (gone, or not the caller's) is
+  /// `OffsiteErrorCode.tokenRequestGone`.
+  Future<OffsiteRequestDetail> detail(String id);
 
   /// The caller's scans still waiting for a decision, scanned in [month]
   /// (`YYYY-MM`): `GET offsite-requests/my?status=pending&month=` (#41).
@@ -112,9 +116,52 @@ class OffsiteRemoteDataSourceImpl implements OffsiteRemoteDataSource {
     TimeCorrectionStatus? status,
   }) => _list(AttendancePaths.myOffsiteApprovals, status: status);
 
+  /// Rows per page of "My requests".
+  static const int myRequestsPageSize = 20;
+
   @override
-  Future<List<OffsiteRequestDetail>> mine() =>
-      _list(AttendancePaths.myOffsiteRequests);
+  Future<CursorPage<OffsiteRequestDetail>> myRequests({
+    TimeCorrectionStatus? status,
+    String? cursor,
+  }) async {
+    final response = await _client.get<dynamic>(
+      AttendancePaths.myOffsiteRequests,
+      queryParameters: {
+        if (status != null) 'status': status.wireValue,
+        'limit': myRequestsPageSize,
+        if (cursor != null) 'cursor': cursor,
+      },
+    );
+    _debugLog('GET my requests response', response.data);
+    final page = CursorPage.fromBody<OffsiteRequestDetail?>(
+      response.data,
+      _detailOrNull,
+    );
+    return CursorPage(
+      items: page.items.whereType<OffsiteRequestDetail>().toList(),
+      nextCursor: page.nextCursor,
+      hasMore: page.hasMore,
+    );
+  }
+
+  @override
+  Future<OffsiteRequestDetail> detail(String id) async {
+    try {
+      final response = await _client.get<dynamic>(
+        AttendancePaths.offsiteRequest(id),
+      );
+      return OffsiteDetailModel.fromJson(
+        ApiEnvelope.unwrapObject(response.data),
+      );
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 404) {
+        throw const Failure.validation(
+          message: OffsiteErrorCode.tokenRequestGone,
+        );
+      }
+      rethrow;
+    }
+  }
 
   @override
   Future<List<OffsiteRequestDetail>> waiting({required String month}) => _list(

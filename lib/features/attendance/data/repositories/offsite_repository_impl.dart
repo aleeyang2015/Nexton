@@ -1,3 +1,4 @@
+import '../../../../core/network/paged_list.dart';
 import '../../../../core/utils/base_repository.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/offsite_detail.dart';
@@ -25,7 +26,14 @@ class OffsiteRepositoryImpl extends BaseRepository
       guard(() => _remote.submit(request));
 
   @override
-  FutureResult<List<OffsiteRequestDetail>> mine() => guard(_remote.mine);
+  FutureResult<CursorPage<OffsiteRequestDetail>> myRequests({
+    TimeCorrectionStatus? status,
+    String? cursor,
+  }) => guard(() => _remote.myRequests(status: status, cursor: cursor));
+
+  @override
+  FutureResult<OffsiteRequestDetail> detail(String id) =>
+      guard(() => _remote.detail(id));
 
   @override
   FutureResult<List<OffsiteRequestDetail>> waiting({required String month}) =>

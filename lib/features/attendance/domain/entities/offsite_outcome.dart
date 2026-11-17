@@ -27,8 +27,12 @@ class OffsiteSubmission extends Equatable {
   /// The `status` as sent, so a value added server-side still reaches a log.
   final String rawStatus;
 
+  /// The new request's id: what "View" on the send toast opens (#42).
+  final String? requestId;
+
   const OffsiteSubmission({
     required this.autoApproved,
+    this.requestId,
     this.scanTimestamp,
     this.sessionOrder,
     this.attendanceRecordId,
@@ -38,6 +42,7 @@ class OffsiteSubmission extends Equatable {
   @override
   List<Object?> get props => [
     autoApproved,
+    requestId,
     scanTimestamp,
     sessionOrder,
     attendanceRecordId,

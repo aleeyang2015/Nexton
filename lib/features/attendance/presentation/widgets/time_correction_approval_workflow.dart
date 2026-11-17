@@ -15,10 +15,14 @@ class TimeCorrectionApprovalWorkflow extends StatelessWidget {
   final List<TimeCorrectionApprovalStep> steps;
   final int currentStepNo;
 
+  /// The request was withdrawn: the steps end with "cancelled".
+  final bool cancelled;
+
   const TimeCorrectionApprovalWorkflow({
     super.key,
     required this.steps,
     required this.currentStepNo,
+    this.cancelled = false,
   });
 
   @override
@@ -43,7 +47,24 @@ class TimeCorrectionApprovalWorkflow extends StatelessWidget {
           ),
           heightBx(h: 18),
           for (var i = 0; i < steps.length; i++)
-            _StepRow(step: steps[i], last: i == steps.length - 1),
+            _StepRow(step: steps[i], last: i == steps.length - 1 && !cancelled),
+          if (cancelled)
+            Row(
+              children: [
+                const Icon(
+                  Icons.cancel_outlined,
+                  size: 20,
+                  color: AppColors.gray600,
+                ),
+                widthBx(w: 10),
+                customText(
+                  l10n.timeCorrectionStatusCancelled,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.gray600,
+                ),
+              ],
+            ),
         ],
       ),
     );
