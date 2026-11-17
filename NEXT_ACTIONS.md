@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#37 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#37 merged; next is #38). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 
 | | |
 |---|---|
-| Last finished work order | 35 of 60: #36, approvals: one Approvals place, only for department heads and HR (#35 skipped: BLOCKED) |
-| Next work order | **36 of 60: #37**, approvals: open a leave request to see days, files, steps and notes before deciding. IMPLEMENTED on `37-leave-approval-detail` (`5fa7fba`, `55b7eeb`, `c67dced`), pushed, reviewed; waits for "push issue 37 to main directly" |
-| `origin/main` | `4ad1873` "Merge branch '36-approvals-heads-hr' into main" (2026-11-17) |
+| Last finished work order | 36 of 60: #37, approvals: open a leave request to see days, files, steps and notes before deciding |
+| Next work order | **37 of 60: #38**, photos: take a photo with the camera and upload it (shared). Not started, no branch, no plan yet |
+| `origin/main` | `abfde43` "Merge branch '37-leave-approval-detail' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -57,7 +57,7 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#37: say "push issue 37 to main directly".** Built 2026-11-17 after the owner's go.
+1. **#37 merged** (`abfde43`) on the owner's say, 2026-11-17.
    **#36 merged** (`4ad1873`) on the owner's say, 2026-11-17.
    **#34 merged** (`55c41e7`) on the owner's say, 2026-11-17.
    **#33 merged** (`77db2c0`) on the owner's say, 2026-11-17.
@@ -138,11 +138,14 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#37 (work order 36 of 60), "approvals: open a leave request to see days, files, steps and notes before deciding":
-   IMPLEMENTED, not merged.** Owner said go on 2026-11-17. Branch `37-leave-approval-detail`: `5fa7fba` (pure move of
+1. **Next: #38 (work order 37 of 60), "photos: take a photo with the camera and upload it (shared)".** Read the issue
+   and its comment, show a plan, wait for "go".
+
+   **#37 (work order 36 of 60), "approvals: open a leave request to see days, files, steps and notes before deciding":
+   MERGED (`abfde43`), 2026-11-17.** Owner said go on 2026-11-17. Branch `37-leave-approval-detail`: `5fa7fba` (pure move of
    the read-only cards into `time_off/presentation/widgets/leave_request_detail_body.dart`), `55b7eeb` (feature),
    `c67dced` (review fixes). Gates: analyze 1 warning already on `main`; `flutter test` 1,773 passed; debug APK builds.
-   Waits for "push issue 37 to main directly".
+   Merged on the owner's "push issue 37 to main directly"; gates green on the merge commit.
    - `/approvals/leave/:id` (behind the Approvals gate): by-id load, list row first, pull to refresh; employee card
      (name, number, department), every day (one too). Buttons only from the page's own copy and only when
      `ApproverAccess.canDecideLeave` (HR step: leave permission or admin role; dept-head step: `approver.id` ==
@@ -611,7 +614,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 33 | #34 | overtime: the clock button knows about an open OT session | `34-clock-open-ot` | `1c44232`, `5f53ffa` | merged to main directly (`55c41e7`) | analyze: 1 warning already on `main`; `flutter test`: 1,696 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 34 | #35 | attendance: show OT hours on the summary and history | | | | | BLOCKED: backend, OT hours (re-checked 2026-11-17, skipped) |
 | 35 | #36 | approvals: one Approvals place, only for department heads and HR (leave moves in) | `36-approvals-heads-hr` | `d62a2bf`, `04b85ee` | merged to main directly (`4ad1873`) | analyze: 1 warning already on `main`; `flutter test`: 1,738 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 36 | #37 | approvals: open a leave request to see days, files, steps and notes before deciding | `37-leave-approval-detail` | `5fa7fba`, `55b7eeb`, `c67dced` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,773 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
+| 36 | #37 | approvals: open a leave request to see days, files, steps and notes before deciding | `37-leave-approval-detail` | `5fa7fba`, `55b7eeb`, `c67dced` | merged to main directly (`abfde43`) | analyze: 1 warning already on `main`; `flutter test`: 1,773 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 37 | #38 | photos: take a photo with the camera and upload it (shared) | | | | | NOT STARTED |
 | 38 | #39 | leave: attach a photo when the type needs a file, and open attached files | | | | | NOT STARTED |
 | 39 | #40 | attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason | | | | | NOT STARTED |
