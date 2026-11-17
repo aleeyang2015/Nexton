@@ -69,6 +69,11 @@ enum AttendanceRule {
   /// request are both refused this way.
   tooEarlyCheckin,
 
+  /// 409 — the off-site request for this session's clock-in still waits for
+  /// its approvers, so its clock-out cannot be filed yet
+  /// (`CHECKIN_PENDING_APPROVAL`, off-site endpoint).
+  checkinPendingApproval,
+
   /// 409 — clock-out only; the clock-out time is before the session's own
   /// clock-in. `details.clock_in` says when that was
   /// (`CLOCK_OUT_BEFORE_CLOCK_IN`). No reason can clear it.
@@ -88,6 +93,18 @@ enum AttendanceRule {
   /// in the wrong place, which no retry from here can change — but the scan
   /// request is exactly the form for recording work done elsewhere.
   bool get isResolvableOffsite => this == outsideWorkArea;
+
+  /// True when the refusal says today's sessions are not what the screen
+  /// showed (the session started, finished, or never began): the off-site
+  /// form closes and today is read again.
+  bool get meansTodayChanged => switch (this) {
+    sessionAlreadyStarted ||
+    sessionAlreadyCompleted ||
+    sessionAlreadyCheckedOut ||
+    sessionNotStarted ||
+    checkinPendingApproval => true,
+    _ => false,
+  };
 }
 
 /// The `error.details` a refusal carries (§5.2).

@@ -36,9 +36,6 @@ class OffsiteFormNotifier
     return OffsiteFormState(method: initialMethod);
   }
 
-  void setMethod(OffsiteMethod method) =>
-      state = state.copyWith(method: method);
-
   void setReason(String reason) => state = state.copyWith(reason: reason);
 
   /// Reads the device's position into [OffsiteFormState.location]. Called once

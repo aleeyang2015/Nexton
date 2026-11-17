@@ -72,5 +72,6 @@ class OffsiteErrorCode {
     'SESSION_ALREADY_COMPLETED': AttendanceRule.sessionAlreadyCompleted,
     'SESSION_NOT_STARTED': AttendanceRule.sessionNotStarted,
     'AFTER_CHECKOUT_WINDOW': AttendanceRule.afterCheckoutWindow,
+    'CHECKIN_PENDING_APPROVAL': AttendanceRule.checkinPendingApproval,
   };
 }

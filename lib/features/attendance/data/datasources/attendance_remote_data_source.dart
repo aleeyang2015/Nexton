@@ -480,6 +480,8 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     'TOO_EARLY_CHECKIN': AttendanceRule.tooEarlyCheckin,
     'CLOCK_OUT_BEFORE_CLOCK_IN': AttendanceRule.clockOutBeforeClockIn,
     'OT_CHANGED': AttendanceRule.otChanged,
+    // A clock-out whose off-site check-in still waits for its approvers.
+    'CHECKIN_PENDING_APPROVAL': AttendanceRule.checkinPendingApproval,
   };
 
   /// Lifts `error.details` out of the envelope — shared with the off-site

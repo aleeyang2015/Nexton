@@ -1431,9 +1431,6 @@ class AppLocalizationsLo extends AppLocalizations {
       'ຕ້ອງແນບຮູບຖ່າຍ: JPG, PNG, HEIC ຫຼື WEBP\n(ສູງສຸດ 5MB)';
 
   @override
-  String get offsiteChooseImage => 'ເລືອກຮູບ';
-
-  @override
   String get offsitePhotoRequired => 'ກະລຸນາແນບຮູບຖ່າຍ';
 
   @override
@@ -1471,14 +1468,12 @@ class AppLocalizationsLo extends AppLocalizations {
   String get offsiteHistoryEmpty => 'ບໍ່ມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
 
   @override
+  String get attCheckinPendingApproval =>
+      'ການລົງເວລາເຂົ້າຂອງທ່ານຍັງລໍຖ້າອະນຸມັດຢູ່';
+
+  @override
   String get offsiteHistoryLoadFailed =>
       'ບໍ່ສາມາດໂຫຼດຄຳຮ້ອງລົງເວລານອກພື້ນທີ່ໄດ້.';
-
-  @override
-  String get offsiteNewRequestTitle => 'ລົງເວລານອກພື້ນທີ່ໃໝ່';
-
-  @override
-  String get offsiteNewRequestSubtitle => 'ຍື່ນຄຳຮ້ອງການລົງເວລານອກພື້ນທີ່ວຽກ';
 
   @override
   String get offsiteOfferTitle => 'ຢູ່ນອກພື້ນທີ່ວຽກ';

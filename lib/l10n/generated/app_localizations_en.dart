@@ -1441,9 +1441,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'A photo is required: JPG, PNG, HEIC or WEBP\n(max 5MB)';
 
   @override
-  String get offsiteChooseImage => 'Choose image';
-
-  @override
   String get offsitePhotoRequired => 'Please attach a photo.';
 
   @override
@@ -1481,15 +1478,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offsiteHistoryEmpty => 'No off-site clock-in requests';
 
   @override
+  String get attCheckinPendingApproval =>
+      'Your check-in is still waiting for approval';
+
+  @override
   String get offsiteHistoryLoadFailed =>
       'Could not load your off-site clock-in requests.';
-
-  @override
-  String get offsiteNewRequestTitle => 'New off-site clock-in';
-
-  @override
-  String get offsiteNewRequestSubtitle =>
-      'File a clock-in taken outside the work area';
 
   @override
   String get offsiteOfferTitle => 'Outside the work area';

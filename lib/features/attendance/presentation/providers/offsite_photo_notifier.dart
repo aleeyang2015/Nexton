@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/upload/domain/local_file.dart';
 import '../../../../core/upload/domain/uploaded_attachment.dart';
-import '../../../time_off/presentation/services/attachment_picker.dart';
 import '../../../../core/upload/domain/upload_rules.dart';
 import '../../../../core/upload/upload_providers.dart';
 
@@ -35,30 +34,14 @@ class OffsitePhoto extends Equatable {
 /// one. A failed upload surfaces as [AsyncError] while the previous value is
 /// kept.
 class OffsitePhotoNotifier extends AutoDisposeAsyncNotifier<OffsitePhoto?> {
-  /// Images only. A scan outside the geofence is evidenced by a photograph of
-  /// where the employee is standing — a PDF would prove nothing.
-  static const extensions = ['jpg', 'jpeg', 'png', 'heic', 'webp'];
-
   /// Largest file the form accepts, in bytes: the shared limit.
   static const int maxBytes = UploadRules.maxBytes;
 
   @override
   FutureOr<OffsitePhoto?> build() => null;
 
-  /// Opens the gallery/file chooser, then [upload]s the pick. A back-out
-  /// changes nothing and returns null.
-  Future<OffsitePhotoError?> pickAndUpload() async {
-    if (state.isLoading) return null;
-
-    final picked = await ref
-        .read(attachmentPickerProvider)
-        .pickAttachment(extensions: extensions);
-    if (picked == null) return null;
-
-    return upload(picked);
-  }
-
-  /// Uploads [picked] — from the camera or the chooser — and keeps it,
+  /// Uploads [picked] — from the camera only (owner's decision 23: off-site
+  /// proof is taken there and then) — and keeps it,
   /// replacing any previous one. Returns [OffsitePhotoError.tooLarge] for a
   /// file over [maxBytes], which is never uploaded; null otherwise.
   Future<OffsitePhotoError?> upload(LocalFile picked) async {

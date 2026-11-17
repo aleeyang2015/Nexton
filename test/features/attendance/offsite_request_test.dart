@@ -273,6 +273,36 @@ void main() {
       );
     });
 
+    test('which refusals mean today changed: the four SESSION_* and the '
+        'pending check-in close the form; the rest keep it', () {
+      const closes = {
+        AttendanceRule.sessionAlreadyStarted,
+        AttendanceRule.sessionAlreadyCompleted,
+        AttendanceRule.sessionAlreadyCheckedOut,
+        AttendanceRule.sessionNotStarted,
+        AttendanceRule.checkinPendingApproval,
+      };
+      for (final rule in AttendanceRule.values) {
+        expect(rule.meansTodayChanged, closes.contains(rule), reason: '$rule');
+      }
+    });
+
+    test('409 CHECKIN_PENDING_APPROVAL is its own rule (#40)', () async {
+      adapter
+        ..status = 409
+        ..body = {
+          'success': false,
+          'error': {
+            'code': 'CHECKIN_PENDING_APPROVAL',
+            'message': 'Check-in pending approval.',
+          },
+        };
+
+      final blocked = (await source.submit(request())) as OffsiteBlocked;
+      expect(blocked.rule, AttendanceRule.checkinPendingApproval);
+      expect(blocked.rule.meansTodayChanged, isTrue);
+    });
+
     test('an unknown 409 code stays an error rather than a made-up rule', () {
       adapter
         ..status = 409

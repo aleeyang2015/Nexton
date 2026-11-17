@@ -360,6 +360,26 @@ void main() {
       },
     );
 
+    test('CHECKIN_PENDING_APPROVAL on a clock-out (an off-site check-in still '
+        'waits): its own rule, not an unknown error (#40)', () async {
+      adapter
+        ..status = 409
+        ..body = {
+          'success': false,
+          'error': {
+            'code': 'CHECKIN_PENDING_APPROVAL',
+            'message': 'Check-in pending approval',
+          },
+        };
+
+      final outcome = await source.clockOut(gpsRequest);
+
+      expect(
+        (outcome as PunchBlocked).rule,
+        AttendanceRule.checkinPendingApproval,
+      );
+    });
+
     test(
       'an unknown 409 code stays an error rather than a made-up rule',
       () async {

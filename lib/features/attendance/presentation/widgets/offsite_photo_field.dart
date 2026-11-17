@@ -20,7 +20,6 @@ class OffsitePhotoField extends StatelessWidget {
   final OffsitePhoto? photo;
   final bool uploading;
   final VoidCallback onTakePhoto;
-  final VoidCallback onChooseImage;
   final VoidCallback onRemove;
 
   const OffsitePhotoField({
@@ -28,7 +27,6 @@ class OffsitePhotoField extends StatelessWidget {
     required this.photo,
     required this.uploading,
     required this.onTakePhoto,
-    required this.onChooseImage,
     required this.onRemove,
   });
 
@@ -39,13 +37,12 @@ class OffsitePhotoField extends StatelessWidget {
     return Column(
       children: [
         if (current == null)
-          _EmptyBox(onTakePhoto: onTakePhoto, onChooseImage: onChooseImage)
+          _EmptyBox(onTakePhoto: onTakePhoto)
         else
           _Preview(
             file: current.local,
             height: _previewHeight,
             onTakePhoto: onTakePhoto,
-            onChooseImage: onChooseImage,
           ),
         if (uploading) ...[
           heightBx(h: 12),
@@ -61,9 +58,8 @@ class OffsitePhotoField extends StatelessWidget {
 
 class _EmptyBox extends StatelessWidget {
   final VoidCallback onTakePhoto;
-  final VoidCallback onChooseImage;
 
-  const _EmptyBox({required this.onTakePhoto, required this.onChooseImage});
+  const _EmptyBox({required this.onTakePhoto});
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +110,7 @@ class _EmptyBox extends StatelessWidget {
                 alight: TextAlign.center,
               ),
               heightBx(h: 12),
-              _Buttons(onTakePhoto: onTakePhoto, onChooseImage: onChooseImage),
+              _Buttons(onTakePhoto: onTakePhoto),
             ],
           ),
         ),
@@ -129,13 +125,11 @@ class _Preview extends StatelessWidget {
   final LocalFile file;
   final double height;
   final VoidCallback onTakePhoto;
-  final VoidCallback onChooseImage;
 
   const _Preview({
     required this.file,
     required this.height,
     required this.onTakePhoto,
-    required this.onChooseImage,
   });
 
   @override
@@ -181,7 +175,6 @@ class _Preview extends StatelessWidget {
               bottom: 12,
               child: _Buttons(
                 onTakePhoto: onTakePhoto,
-                onChooseImage: onChooseImage,
                 background: Colors.white,
               ),
             ),
@@ -194,14 +187,12 @@ class _Preview extends StatelessWidget {
 
 class _Buttons extends StatelessWidget {
   final VoidCallback onTakePhoto;
-  final VoidCallback onChooseImage;
 
   /// Defaults to a light primary tint; the preview passes white.
   final Color? background;
 
   const _Buttons({
     required this.onTakePhoto,
-    required this.onChooseImage,
     this.background,
   });
 
@@ -216,13 +207,6 @@ class _Buttons extends StatelessWidget {
           icon: Icons.photo_camera_outlined,
           label: l10n.timeCorrectionTakePhoto,
           onTap: onTakePhoto,
-          background: background,
-        ),
-        widthBx(w: 8),
-        _SmallButton(
-          icon: Icons.photo_library_outlined,
-          label: l10n.offsiteChooseImage,
-          onTap: onChooseImage,
           background: background,
         ),
       ],
