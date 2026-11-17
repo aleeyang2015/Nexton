@@ -536,5 +536,9 @@
   "payslipSectionStatutory": "ລາຍການຫັກ — ຕາມກົດໝາຍ",
   "payslipSectionOther": "ລາຍການຫັກອື່ນໆ",
   "payslipNotAvailable": "ໃບເງິນເດືອນນີ້ບໍ່ມີແລ້ວ",
-  "back": "ກັບຄືນ"
+  "back": "ກັບຄືນ",
+  "payslipOtDetailsTitle": "ລາຍລະອຽດໂອທີ",
+  "payslipOtNotPaidNote": "ບໍ່ໄດ້ຈ່າຍເປັນໂອທີ: ເວລານີ້ຢູ່ໃນກະວຽກ ຫຼື ບໍ່ໄດ້ສະແກນ",
+  "payslipOtKipPerHour": "{amount} ກີບ/ຊມ",
+  "payslipOtTotal": "ລວມ"
 }

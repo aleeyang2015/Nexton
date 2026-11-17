@@ -106,11 +106,7 @@ class PayslipRecordModel {
       workDate: _day(json['work_date']),
       startsAt: _instant(json['starts_at']),
       endsAt: _instant(json['ends_at']),
-      payType: switch (json['pay_type']) {
-        'percent' => PayslipOvertimePayType.percent,
-        'fixed_per_hour' => PayslipOvertimePayType.fixedPerHour,
-        _ => PayslipOvertimePayType.unknown,
-      },
+      payType: PayslipOvertimePayType.fromWire(json['pay_type']),
       payValue: _kipOrZero(json, 'pay_value'),
       paidMinutes: _wholeOrNull(json['paid_minutes']) ?? 0,
       baseSalary: _kipOrZero(json, 'base_salary'),

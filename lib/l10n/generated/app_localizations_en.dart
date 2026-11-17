@@ -1736,4 +1736,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get back => 'Back';
+
+  @override
+  String get payslipOtDetailsTitle => 'OT details';
+
+  @override
+  String get payslipOtNotPaidNote =>
+      'Not paid as OT: the time was inside your shift, or not clocked';
+
+  @override
+  String payslipOtKipPerHour(String amount) {
+    return '$amount kip/h';
+  }
+
+  @override
+  String get payslipOtTotal => 'Total';
 }

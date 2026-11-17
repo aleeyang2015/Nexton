@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/utils/ot_pay_type.dart';
+
 /// Where HR's payroll run for this payslip stands (`status`). Staff only
 /// ever see a payslip once its run is `approved` or `paid`.
 enum PayslipRunStatus {
@@ -24,8 +26,9 @@ enum PayslipPaymentStatus {
 /// Whether a payslip line adds to the pay or takes from it (`type`).
 enum PayslipLineType { earning, deduction, unknown }
 
-/// How an overtime piece is paid (`pay_type`).
-enum PayslipOvertimePayType { percent, fixedPerHour, unknown }
+/// How an overtime piece is paid (`pay_type`). The type itself is core's
+/// [OtPayType], shared with the overtime requests.
+typedef PayslipOvertimePayType = OtPayType;
 
 /// One payslip, exactly as the server sends it
 /// (`GET /payroll/payslips/my` and `/my/:id`, `PayslipResponse`).
