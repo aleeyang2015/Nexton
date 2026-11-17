@@ -152,8 +152,6 @@ Decided by the owner on 2026-11-16, during the work:
      reruns: watch for a flaky test.
 
    **#29 (work order 28 of 60), "overtime: my OT list, on its own tile": MERGED (`444929f`), 2026-11-17.** Owner said go
-
-   **#29 (work order 28 of 60), "overtime: my OT list, on its own tile": MERGED (`444929f`), 2026-11-17.** Owner said go
    on 2026-11-17. Branch `29-ot-list`: `3728c18` (feature), `4615de2` (review fixes). Gates: analyze 1 warning
    already on `main`; `flutter test` 1,513 passed; debug APK builds. Merged on the owner's "push issue 29 to main
    directly"; gates green on the merge commit.
@@ -210,7 +208,6 @@ Decided by the owner on 2026-11-16, during the work:
      decides);
    - `pendingStep` takes the first pending step in list order, not checked against `currentStepNo` (0 when missing);
    - an `instant` with no offset is read as phone-local, not +07; a `work_date` sent as a UTC stamp keeps its UTC date.
-
 
    **#26 (work order 25 of 60), "payslip: the summary card shows the latest payslip": MERGED (`8cc530a`), 2026-11-17.**
    Owner said go on 2026-11-17. Branch `26-latest-payslip-card`: `5e51952` (feature), `7036c8b` (review fixes).
