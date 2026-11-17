@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#27 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#27 merged; #28 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 | | |
 |---|---|
 | Last finished work order | 26 of 60: #27, overtime: OT types and JSON reading |
-| Next work order | **27 of 60: #28**, overtime: OT calls, error codes and Lao text. Not started, no branch, no plan yet |
+| Next work order | **27 of 60: #28**, overtime: OT calls, error codes and Lao text. IMPLEMENTED on `28-overtime-calls` (`09944a4`, `7dbfb73`), pushed, reviewed; waits for "push issue 28 to main directly". After it: #29 |
 | `origin/main` | `9a871bb` "Merge branch '27-overtime-models' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
@@ -57,7 +57,11 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#27 merged** (`9a871bb`) on the owner's say, 2026-11-17. Still open for the lead: on a
+1. **#28: say "push issue 28 to main directly".** Built 2026-11-17 after the owner's go. One thing to confirm with
+   the backend: cancel answers `403 FORBIDDEN` as "a waiting request: reject it instead" (the issue's table). If the
+   server also sends `FORBIDDEN` when an employee cancels a request that is not theirs, that employee would read
+   "reject it" (`ot_request_handler.go:80-83`, not readable here).
+   **#27 merged** (`9a871bb`) on the owner's say, 2026-11-17. Still open for the lead: on a
    phone outside Laos, OT wall-clock times (`created_at`, `acted_at`, …, read as phone-local as the issue says) and
    moments (`starts_at`, …) are on different clocks, up to 12 h apart. Documented "never compare them"; reading both
    as Lao time (+07, or the company's zone) is a decision.
@@ -123,8 +127,28 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #28 (work order 27 of 60), "overtime: OT calls, error codes and Lao text".** Read the issue and its
-   comments, show a plan, wait for "go". Use `OtRequestModel.tryFromJson` / `OtPostModel.tryFromJson` for lists.
+1. **#28 (work order 27 of 60), "overtime: OT calls, error codes and Lao text": IMPLEMENTED, not merged.**
+   Owner said go on 2026-11-17. Branch `28-overtime-calls`: `09944a4` (feature), `7dbfb73` (review fixes). Gates:
+   analyze 1 warning already on `main`; `flutter test` 1,459 passed; debug APK builds. Waits for "push issue 28 to
+   main directly". Then #29 (my OT list, on its own tile).
+   - `OtPaths`, `OtRemoteDataSource` (7 calls), `OtErrorCode` (14 OT codes + `STEP_CHANGED` + `NOT_APPROVER` →
+     tokens; `FORBIDDEN` on cancel only), `OtRepository` (`Result`), 7 use cases, `overtime_providers.dart`,
+     localizer cases and 15 new strings (`NOT_APPROVER` reuses `leaveNotApprover`).
+   - Body: `work_date` YYYY-MM-DD, times as given, `reason` trimmed / left out when empty. `status` only the four
+     values; `month` YYYY-MM. Lists: `OtPage {items, page, totalPages}` from `meta` (page-based), a page number that
+     is missing falls back to the page asked for, bad rows skipped.
+   - Codes mapped only on 400/403/409 and keep the wire code; 404 keeps status, 422 its field, `EMPLOYEE_NOT_FOUND`
+     #4's text, an unknown code the server's message. 403 `NOT_APPROVER`/`FORBIDDEN` never signs out (tested through
+     the real `AuthInterceptor`). Empty, `.` and `..` ids refused before any request.
+   Open after #28, none built there:
+   - the `FORBIDDEN`-on-cancel question above;
+   - an unknown 409 reaches screens as `Failure.network(statusCode: 409)` (the existing mapper): OT screens must
+     check the status, not read every network failure as "no signal";
+   - the English for `NOT_APPROVER` is leave's "You can't approve this step." (issue: "You cannot …"); Lao identical;
+   - `_isoDate` sends a `DateTime`'s own calendar day (a UTC `DateTime` would send its UTC day); pickers give local
+     days.
+
+   **#27 (work order 26 of 60), "overtime: OT types and JSON reading (no screen yet)": MERGED (`9a871bb`), 2026-11-17.**
 
    **#27 (work order 26 of 60), "overtime: OT types and JSON reading (no screen yet)": MERGED (`9a871bb`), 2026-11-17.**
    Owner said go on 2026-11-17. Branch `27-overtime-models`: `ef5fe9c` (feature), `5ff8a06` (review fixes). Gates:
@@ -430,7 +454,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 24 | #25 | payslip: open the PDF in the App and share it | `25-payslip-pdf-viewer` | `de4324b`, `1a59b20` | merged to main directly (`9515eee`) | analyze: 1 warning already on `main`; `flutter test`: 1,340 passed, 0 failed; debug APK builds | MERGED, phone check (Android and iOS) on `nexton-demo` pending |
 | 25 | #26 | payslip: the summary card shows the latest payslip | `26-latest-payslip-card` | `5e51952`, `7036c8b` | merged to main directly (`8cc530a`) | analyze: 1 warning already on `main`; `flutter test`: 1,368 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 26 | #27 | overtime: OT types and JSON reading (no screen yet) | `27-overtime-models` | `ef5fe9c`, `5ff8a06` | merged to main directly (`9a871bb`) | analyze: 1 warning already on `main`; `flutter test`: 1,416 passed, 0 failed; debug APK builds | MERGED, a real `nexton-demo` request and post to be checked against the reader |
-| 27 | #28 | overtime: OT calls, error codes and Lao text | | | | | NOT STARTED |
+| 27 | #28 | overtime: OT calls, error codes and Lao text | `28-overtime-calls` | `09944a4`, `7dbfb73` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,459 passed, 0 failed; debug APK builds | IMPLEMENTED |
 | 28 | #29 | overtime: my OT list, on its own tile | | | | | NOT STARTED |
 | 29 | #30 | overtime: an OT request page that opens by id | | | | | NOT STARTED |
 | 30 | #31 | overtime: ask for OT | | | | | NOT STARTED |
