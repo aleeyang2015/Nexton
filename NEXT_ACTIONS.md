@@ -149,8 +149,6 @@ Decided by the owner on 2026-11-16, during the work:
      days.
 
    **#27 (work order 26 of 60), "overtime: OT types and JSON reading (no screen yet)": MERGED (`9a871bb`), 2026-11-17.**
-
-   **#27 (work order 26 of 60), "overtime: OT types and JSON reading (no screen yet)": MERGED (`9a871bb`), 2026-11-17.**
    Owner said go on 2026-11-17. Branch `27-overtime-models`: `ef5fe9c` (feature), `5ff8a06` (review fixes). Gates:
    analyze 1 warning already on `main`; `flutter test` 1,416 passed; debug APK builds. Merged on the owner's "push
    issue 27 to main directly"; gates green on the merge commit.
