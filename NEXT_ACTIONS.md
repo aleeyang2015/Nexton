@@ -145,7 +145,7 @@ Decided by the owner on 2026-11-16, during the work:
 
 1. **#42 (work order 41 of 60), "attendance: my off-site requests — list, detail, cancel": IMPLEMENTED, not merged.**
    Owner said go on 2026-11-17. Branch `42-my-offsite-requests`: `47cc6b0` (feature), `8733133` (review fixes). Gates:
-   analyze 1 warning already on `main`; `flutter test` 1,891 passed; debug APK builds. Waits for "push issue 42 to main
+   analyze 1 warning already on `main`; `flutter test` 1,892 passed; debug APK builds. Waits for "push issue 42 to main
    directly".
    - "ຄຳຮ້ອງຂອງຂ້ອຍ" (`/attendance/requests`, TabBar, off-site tab; #45 adds "forgot to scan"). The off-site menu tile is
      now "My requests"; `/attendance/offsite/history` opens the same page.
@@ -709,7 +709,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 38 | #39 | leave: attach a photo when the type needs a file, and open attached files | `39-leave-files` | `d940f37`, `70da51a`, `6724eac` | merged to main directly (`35df673`) | analyze: 1 warning already on `main`; `flutter test`: 1,829 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 39 | #40 | attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason | `40-offsite-after-refusal` | `90823eb`, `7b616b4` | merged to main directly (`01bf4be`) | analyze: 1 warning already on `main`; `flutter test`: 1,843 passed, 0 failed; debug APK builds | MERGED, phone check pending |
 | 40 | #41 | attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too | `41-waiting-offsite` | `f6a1a8d`, `c45b99f` | merged to main directly (`a205629`) | analyze: 1 warning already on `main`; `flutter test`: 1,871 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 41 | #42 | attendance: my off-site requests — list, detail, cancel | `42-my-offsite-requests` | `47cc6b0`, `8733133` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,891 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
+| 41 | #42 | attendance: my off-site requests — list, detail, cancel | `42-my-offsite-requests` | `47cc6b0`, `8733133` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,892 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
 | 42 | #43 | attendance: "forgot to scan" — rules and sending (no screen) | | | | | NOT STARTED |
 | 43 | #44 | attendance: "forgot to scan" form, from a history day or the menu | | | | | NOT STARTED |
 | 44 | #45 | attendance: my "forgot to scan" requests — list, detail, cancel | | | | | NOT STARTED |
