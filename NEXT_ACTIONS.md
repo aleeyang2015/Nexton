@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#25 merged; #26 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#26 merged; the payslip group #20 to #26 is on `main`). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 
 | | |
 |---|---|
-| Last finished work order | 24 of 60: #25, the payslip PDF opens in the App, with Share |
-| Next work order | **25 of 60: #26**, payslip: the summary card shows the latest payslip. IMPLEMENTED on `26-latest-payslip-card` (`5e51952`, `7036c8b`), pushed, reviewed; waits for "push issue 26 to main directly". After it: #27 (overtime) |
-| `origin/main` | `9515eee` "Merge branch '25-payslip-pdf-viewer' into main" (2026-11-17) |
+| Last finished work order | 25 of 60: #26, the summary card shows the latest payslip (last of the payslip group) |
+| Next work order | **26 of 60: #27**, overtime: OT types and JSON reading (no screen yet). Not started, no branch, no plan yet |
+| `origin/main` | `8cc530a` "Merge branch '26-latest-payslip-card' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -57,7 +57,7 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#26: say "push issue 26 to main directly".** Built 2026-11-17 after the owner's go. Also a product question: if
+1. **#26 merged** (`8cc530a`) on the owner's say, 2026-11-17. Still open, a product question: if
    only `/my/latest` fails (one dropped request) while the year's list loads, the card is gone with no Retry until the
    page is reopened (the issue's table: "hide the card; the list has its own Retry"). Add a way back (re-ask on a
    year switch when it failed, or a small Retry on the card)?
@@ -119,10 +119,13 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#26 (work order 25 of 60), "payslip: the summary card shows the latest payslip": IMPLEMENTED, not merged.**
+1. **Next: #27 (work order 26 of 60), "overtime: OT types and JSON reading (no screen yet)".** Read the issue and its
+   comments, show a plan, wait for "go". Reuse `core/utils/ot_pay_type.dart` (`OtPayType`) from #24.
+
+   **#26 (work order 25 of 60), "payslip: the summary card shows the latest payslip": MERGED (`8cc530a`), 2026-11-17.**
    Owner said go on 2026-11-17. Branch `26-latest-payslip-card`: `5e51952` (feature), `7036c8b` (review fixes).
-   Gates: analyze 1 warning already on `main`; `flutter test` 1,368 passed; debug APK builds. Waits for "push issue 26
-   to main directly". Then #27 (overtime starts).
+   Gates: analyze 1 warning already on `main`; `flutter test` 1,368 passed; debug APK builds. Merged on the owner's
+   "push issue 26 to main directly"; gates green on the merge commit.
    - `GET /payroll/payslips/my/latest` → `PayslipLatest` (strict: whole kip, month 1-12, an id); `data: null` or no
      `data` → null, checked before `unwrapObject`. Asked for once when the page opens; a year or chip switch keeps the
      card and sends nothing; Retry asks for both; a failed Retry keeps a card that is showing.
@@ -402,7 +405,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 22 | #23 | payslip: the payslip page opens by id and shows the real lines | `23-payslip-page-by-id` | `61e9f13`, `5c3f1b5` | merged to main directly (`b55b1ed`) | analyze clean, 1,261 tests, debug APK | MERGED, phone check on `nexton-demo` pending — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
 | 23 | #24 | payslip: tap the OT line to see what each OT paid | `24-payslip-ot-items` | `0e0962b`, `1d51810` | merged to main directly (`2d744c4`) | analyze: 1 warning already on `main`; `flutter test`: 1,284 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 24 | #25 | payslip: open the PDF in the App and share it | `25-payslip-pdf-viewer` | `de4324b`, `1a59b20` | merged to main directly (`9515eee`) | analyze: 1 warning already on `main`; `flutter test`: 1,340 passed, 0 failed; debug APK builds | MERGED, phone check (Android and iOS) on `nexton-demo` pending |
-| 25 | #26 | payslip: the summary card shows the latest payslip | `26-latest-payslip-card` | `5e51952`, `7036c8b` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,368 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
+| 25 | #26 | payslip: the summary card shows the latest payslip | `26-latest-payslip-card` | `5e51952`, `7036c8b` | merged to main directly (`8cc530a`) | analyze: 1 warning already on `main`; `flutter test`: 1,368 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 26 | #27 | overtime: OT types and JSON reading (no screen yet) | | | | | NOT STARTED |
 | 27 | #28 | overtime: OT calls, error codes and Lao text | | | | | NOT STARTED |
 | 28 | #29 | overtime: my OT list, on its own tile | | | | | NOT STARTED |
