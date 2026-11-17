@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/approvals/approvals_page.dart';
+import '../../features/approvals/presentation/pages/leave_approval_detail_page.dart';
 import '../../features/approvals/presentation/providers/approver_access_provider.dart';
 import '../../features/attendance/presentation/pages/attendance_history_page.dart';
 import '../../features/attendance/presentation/pages/camera_capture_page.dart';
@@ -91,6 +92,14 @@ class AppRoutes {
   static String payslipPdf(String id) => '${payslip(id)}/pdf';
   static const String approvals = '/approvals';
 
+  /// The approver's page of one leave request, by its id. A route pattern;
+  /// build a location with [approvalLeave].
+  static const String approvalLeaveDetail = '/approvals/leave/:id';
+
+  /// The location of the approver's page of the leave request [id].
+  static String approvalLeave(String id) =>
+      '/approvals/leave/${Uri.encodeComponent(id)}';
+
   /// The employee's OT requests.
   static const String overtime = '/overtime';
 
@@ -124,7 +133,22 @@ final List<GoRoute> approvalsRoutes = [
   GoRoute(
     path: AppRoutes.approvals,
     name: 'approvals',
-    builder: (context, state) => const _ApprovalsGate(),
+    builder: (context, state) => const _ApprovalsGate(child: ApprovalsPage()),
+  ),
+  // One leave request as its approver sees it. `extra` may carry the list
+  // row, shown while the page loads its own copy.
+  GoRoute(
+    path: AppRoutes.approvalLeaveDetail,
+    name: 'approvalLeaveDetail',
+    builder: (context, state) {
+      final id = state.pathParameters['id'] ?? '';
+      return _ApprovalsGate(
+        child: LeaveApprovalDetailPage(
+          requestId: id,
+          initial: _leaveRequestExtra(state.extra, id),
+        ),
+      );
+    },
   ),
 ];
 
@@ -464,14 +488,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// `/approvals`: the place for those who may see it, the not-found page for
-/// anyone else.
+/// A page of the Approvals place for those who may see it, the not-found
+/// page for anyone else.
 class _ApprovalsGate extends ConsumerWidget {
-  const _ApprovalsGate();
+  const _ApprovalsGate({required this.child});
+
+  final Widget child;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) =>
       ref.watch(approverAccessProvider.select((a) => a.canSeeApprovals))
-      ? const ApprovalsPage()
+      ? child
       : const NotFoundPage();
 }

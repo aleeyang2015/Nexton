@@ -419,6 +419,13 @@
   "timeCorrectionApprovalsEmpty": "ບໍ່ມີຄຳຮ້ອງແກ້ໄຂເວລາ",
 
   "approvalsMenu": "ອະນຸມັດ",
+  "apprApproveConfirmTitle": "ອະນຸມັດຄຳຮ້ອງນີ້ບໍ?",
+  "apprApproveNoteHint": "ໝາຍເຫດ (ບໍ່ບັງຄັບ)",
+  "apprApproveLastStepHint": "ນີ້ແມ່ນຂັ້ນສຸດທ້າຍ: ວັນລາຈະຖືກຫັກອອກຈາກຍອດຄົງເຫຼືອທັນທີ.",
+  "apprApprovedToast": "ອະນຸມັດແລ້ວ",
+  "apprRejectedToast": "ປະຕິເສດແລ້ວ",
+  "apprRequestNotFound": "ບໍ່ພົບຄຳຮ້ອງນີ້",
+  "apprEmployeeLabel": "ພະນັກງານ",
   "approvalsLeaveTab": "ອະນຸມັດລາພັກ",
   "approvalsTimeCorrectionTab": "ອະນຸມັດແກ້ໄຂເວລາ",
   "offsiteMenu": "ລົງເວລານອກພື້ນທີ່",

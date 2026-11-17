@@ -18,7 +18,11 @@ import '../support/leave_test_doubles.dart';
 /// `/approvals` is for department heads and HR only (decision 8): opened
 /// by hand by anyone else, it finds nothing.
 void main() {
-  Future<void> open(WidgetTester tester, User user) async {
+  Future<void> open(
+    WidgetTester tester,
+    User user, {
+    String location = AppRoutes.approvals,
+  }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -51,7 +55,7 @@ void main() {
         ),
       ),
     );
-    router.push(AppRoutes.approvals);
+    router.push(location);
     await tester.pumpAndSettle();
   }
 
@@ -65,6 +69,17 @@ void main() {
   testWidgets('a head with no staff record: the not-found page (the web)',
       (tester) async {
     await open(tester, approverTestUser(employeeId: null));
+
+    expect(find.byType(NotFoundPage), findsOneWidget);
+  });
+
+  testWidgets('a leave request\'s page, opened by hand by plain staff: the '
+      'not-found page', (tester) async {
+    await open(
+      tester,
+      approverTestUser(head: false),
+      location: AppRoutes.approvalLeave('req-1'),
+    );
 
     expect(find.byType(NotFoundPage), findsOneWidget);
   });

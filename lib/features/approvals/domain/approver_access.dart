@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 import '../../auth/domain/entities/user.dart';
+import '../../time_off/domain/entities/leave_approval_step.dart';
+import '../../time_off/domain/entities/leave_request.dart';
 
 /// Who may see the Approvals place, and which of its sections: department
 /// heads and HR only (owner's decision 8). Plain Dart, no Flutter.
@@ -72,6 +74,30 @@ class ApproverAccess extends Equatable {
   bool get canSeeApprovals =>
       hasStaffRecord &&
       (canApproveLeave || canApproveAttendance || canApproveOt || canSeeTeam);
+
+  /// Whether [user] gets Approve and Reject on [request]: it is pending
+  /// with a step waiting, it is not their own, and the waiting step is
+  /// theirs. An HR step is HR's (the leave permission, or an admin role; a
+  /// plain head is refused there with `NOT_APPROVER`); a dept-head step is
+  /// the approver named on it.
+  ///
+  /// Only hides buttons that would fail: the server still decides, and its
+  /// refusal is shown.
+  static bool canDecideLeave(LeaveRequest request, User? user) {
+    final employeeId = user?.employeeId;
+    if (user == null || employeeId == null || employeeId.isEmpty) {
+      return false;
+    }
+    final step = request.currentStep;
+    if (!request.isPending || step == null) return false;
+    if (request.employeeId == employeeId) return false;
+    final access = ApproverAccess.of(user);
+    return switch (step.role) {
+      LeaveStepRole.hr => access.isAdmin || access.canManageLeave,
+      LeaveStepRole.deptHead => step.approverId == employeeId,
+      LeaveStepRole.unknown => false,
+    };
+  }
 
   @override
   List<Object?> get props => [

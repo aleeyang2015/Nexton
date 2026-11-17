@@ -2474,6 +2474,48 @@ abstract class AppLocalizations {
   /// **'Approvals'**
   String get approvalsMenu;
 
+  /// No description provided for @apprApproveConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve this request?'**
+  String get apprApproveConfirmTitle;
+
+  /// No description provided for @apprApproveNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get apprApproveNoteHint;
+
+  /// No description provided for @apprApproveLastStepHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the last step: the days come off the balance now.'**
+  String get apprApproveLastStepHint;
+
+  /// No description provided for @apprApprovedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get apprApprovedToast;
+
+  /// No description provided for @apprRejectedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get apprRejectedToast;
+
+  /// No description provided for @apprRequestNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This request is not available'**
+  String get apprRequestNotFound;
+
+  /// No description provided for @apprEmployeeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get apprEmployeeLabel;
+
   /// No description provided for @approvalsLeaveTab.
   ///
   /// In en, this message translates to:

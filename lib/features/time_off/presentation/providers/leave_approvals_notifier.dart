@@ -160,13 +160,16 @@ class LeaveApprovalsNotifier extends AutoDisposeNotifier<LeaveApprovalsState> {
     return _loadMore(list);
   }
 
-  Future<LeaveDecisionOutcome> approve(LeaveRequest request) {
+  /// Approves the waiting step of [request], with [note] when one was
+  /// typed (`approver_note`).
+  Future<LeaveDecisionOutcome> approve(LeaveRequest request, {String? note}) {
+    final trimmed = note?.trim();
     return _decide(
       request.id,
       () => ref.read(approveLeaveStepUseCaseProvider)((
         id: request.id,
         stepId: request.currentStep?.id,
-        note: null,
+        note: trimmed == null || trimmed.isEmpty ? null : trimmed,
       )),
     );
   }

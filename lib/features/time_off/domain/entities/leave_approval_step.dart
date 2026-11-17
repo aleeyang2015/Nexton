@@ -17,6 +17,10 @@ class LeaveApprovalStep extends Equatable {
   final int stepNo;
   final LeaveStepRole role;
   final String? approverName;
+
+  /// The approver's employee id (`approver.id`): filled for a dept-head step
+  /// from the start, for an HR step once decided. Null when not sent.
+  final String? approverId;
   final LeaveStepStatus status;
   final String? note;
 
@@ -29,6 +33,7 @@ class LeaveApprovalStep extends Equatable {
     required this.stepNo,
     required this.role,
     this.approverName,
+    this.approverId,
     required this.status,
     this.note,
     this.decidedAt,
@@ -57,6 +62,7 @@ class LeaveApprovalStep extends Equatable {
     stepNo,
     role,
     approverName,
+    approverId,
     status,
     note,
     decidedAt,

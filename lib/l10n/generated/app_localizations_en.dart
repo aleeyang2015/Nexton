@@ -1323,6 +1323,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get approvalsMenu => 'Approvals';
 
   @override
+  String get apprApproveConfirmTitle => 'Approve this request?';
+
+  @override
+  String get apprApproveNoteHint => 'Note (optional)';
+
+  @override
+  String get apprApproveLastStepHint =>
+      'This is the last step: the days come off the balance now.';
+
+  @override
+  String get apprApprovedToast => 'Approved';
+
+  @override
+  String get apprRejectedToast => 'Rejected';
+
+  @override
+  String get apprRequestNotFound => 'This request is not available';
+
+  @override
+  String get apprEmployeeLabel => 'Employee';
+
+  @override
   String get approvalsLeaveTab => 'Approve Leave';
 
   @override

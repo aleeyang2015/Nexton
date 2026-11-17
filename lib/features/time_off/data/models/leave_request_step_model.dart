@@ -22,6 +22,7 @@ class LeaveRequestStepModel {
       approverName: approver is Map
           ? LeaveJson.nonEmpty(approver['name'])
           : null,
+      approverId: approver is Map ? LeaveJson.nonEmpty(approver['id']) : null,
       status: status,
       note: LeaveJson.nonEmpty(json['note']),
       // `updated_at` is set to the decision time when a step is approved or
