@@ -754,5 +754,15 @@
   "otNextDay": "(next day)",
   "otFromPost": "From an HR post",
   "otDidNotCome": "Did not come",
-  "otPickMonth": "Choose a month"
+  "otPickMonth": "Choose a month",
+  "otWaitingFor": "Waiting for: {role}",
+  "@otWaitingFor": {"placeholders": {"role": {"type": "String"}}},
+  "otPiecesSetOnApproval": "HR sets the time and pay when approving",
+  "otAgreementNoteLabel": "Note from HR",
+  "otNoteDidNotCome": "Did not come: no time clocked in the OT",
+  "otNotePaidByHand": "HR paid this in cash — it is not on a payslip",
+  "otNoteHrOnly": "This is a leave day: HR decides",
+  "otNoteFromPost": "From an HR post",
+  "otPaidOnPayslip": "Paid hours and money are on your payslip",
+  "otRequestGone": "This OT request is not available"
 }

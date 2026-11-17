@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../core/network/paged_list.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
@@ -43,6 +44,26 @@ class _OtListPageState extends ConsumerState<OtListPage> {
   void dispose() {
     _scroll.dispose();
     super.dispose();
+  }
+
+  /// True while a request's page is open, or opening: a second tap, however
+  /// fast, opens nothing.
+  bool _opening = false;
+
+  /// Opens [request]'s page. The page keeps this list's row up to date
+  /// itself (changed in place, or taken out when gone), so going back asks
+  /// for nothing and the pages already loaded stay.
+  Future<void> _open(OtRequest request) async {
+    if (_opening) return;
+    _opening = true;
+    try {
+      await context.push<void>(
+        AppRoutes.otRequest(request.id),
+        extra: request,
+      );
+    } finally {
+      _opening = false;
+    }
   }
 
   void _loadMoreIfNearEnd() {
@@ -119,6 +140,7 @@ class _OtListPageState extends ConsumerState<OtListPage> {
                       _Body(
                         requests: state.requests,
                         onRetry: notifier.retry,
+                        onOpen: _open,
                       ),
                       if (list != null && !state.requests.isLoading)
                         LoadMoreFooter(
@@ -212,8 +234,13 @@ class _MonthButton extends StatelessWidget {
 class _Body extends StatelessWidget {
   final AsyncValue<PagedList<OtRequest>> requests;
   final VoidCallback onRetry;
+  final void Function(OtRequest) onOpen;
 
-  const _Body({required this.requests, required this.onRetry});
+  const _Body({
+    required this.requests,
+    required this.onRetry,
+    required this.onOpen,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -250,7 +277,10 @@ class _Body extends StatelessWidget {
     }
 
     return Column(
-      children: [for (final r in list.items) OtRequestRow(request: r)],
+      children: [
+        for (final r in list.items)
+          OtRequestRow(request: r, onTap: () => onOpen(r)),
+      ],
     );
   }
 }

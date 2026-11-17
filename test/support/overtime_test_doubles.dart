@@ -26,6 +26,16 @@ class FakeOtRepository implements OtRepository {
   /// When set, a list call waits for it (taken by the call that sees it).
   Completer<void>? holdMyRequests;
 
+  /// The ids the detail call was asked for, in order.
+  final List<String> requestIds = [];
+
+  /// The answer to a detail call; by default a pending request with that id.
+  Result<OtRequest> Function(String id) requestAnswer = (id) =>
+      Result.success(sampleOt(id));
+
+  /// When set, a detail call waits for it (taken by the call that sees it).
+  Completer<void>? holdRequest;
+
   @override
   FutureResult<OtPage<OtRequest>> myRequests({
     OtStatus? status,
@@ -46,7 +56,14 @@ class FakeOtRepository implements OtRepository {
   FutureResult<OtRequest> ask(OtDraft draft) => _unused();
 
   @override
-  FutureResult<OtRequest> request(String id) => _unused();
+  FutureResult<OtRequest> request(String id) async {
+    requestIds.add(id);
+    final answer = requestAnswer(id);
+    final hold = holdRequest;
+    holdRequest = null;
+    await hold?.future;
+    return answer;
+  }
 
   @override
   FutureResult<OtRequest> edit(String id, OtDraft draft) => _unused();

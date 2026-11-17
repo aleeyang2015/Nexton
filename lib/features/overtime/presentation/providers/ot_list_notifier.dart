@@ -46,6 +46,44 @@ class OtListNotifier extends AutoDisposeNotifier<OtListState> {
     _loadFirst();
   }
 
+  /// Puts [request] in place of its row, as the request's page last loaded
+  /// it: no request, and the pages already loaded stay. A row that no
+  /// longer fits the filters (its status or month changed) leaves the list.
+  /// Nothing happens when the request is not in the list.
+  void showRow(OtRequest request) {
+    final list = state.requests.valueOrNull;
+    if (list == null) return;
+    final index = list.items.indexWhere((r) => r.id == request.id);
+    if (index < 0) return;
+    if (!_fits(request)) return dropRow(request.id);
+    if (list.items[index] == request) return;
+    final items = [...list.items]..[index] = request;
+    state = state.withRequests(AsyncValue.data(list.withItems(items)));
+  }
+
+  /// Takes the row of [id] out: the request is gone (`404`).
+  void dropRow(String id) {
+    final list = state.requests.valueOrNull;
+    if (list == null || !list.items.any((r) => r.id == id)) return;
+    final items = [
+      for (final r in list.items)
+        if (r.id != id) r,
+    ];
+    state = state.withRequests(AsyncValue.data(list.withItems(items)));
+  }
+
+  bool _fits(OtRequest request) {
+    final status = state.status;
+    final month = state.month;
+    final day = request.workDate;
+    if (status != null && request.status != status) return false;
+    if (month != null &&
+        (day == null || day.year != month.year || day.month != month.month)) {
+      return false;
+    }
+    return true;
+  }
+
   /// Asks for the first page again after it failed. Does nothing while it
   /// is already being asked for.
   void retry() {

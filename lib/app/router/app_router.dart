@@ -15,7 +15,9 @@ import '../../features/auth/domain/entities/auth_session.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/change_password/presentation/pages/change_password_page.dart';
+import '../../features/overtime/domain/entities/ot_request.dart';
 import '../../features/overtime/presentation/pages/ot_list_page.dart';
+import '../../features/overtime/presentation/pages/ot_request_detail_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/salary_history/domain/entities/payslip_record.dart';
 import '../../features/salary_history/presentation/pages/payslip_detail_page.dart';
@@ -87,6 +89,15 @@ class AppRoutes {
 
   /// The employee's OT requests.
   static const String overtime = '/overtime';
+
+  /// One OT request, by its id. A route pattern; build a location with
+  /// [otRequest].
+  static const String otRequestDetail = '/overtime/request/:id';
+
+  /// The location of the OT request [id], for a list row, another screen or
+  /// a push.
+  static String otRequest(String id) =>
+      '/overtime/request/${Uri.encodeComponent(id)}';
   static const String notFound = '/404';
 }
 
@@ -116,6 +127,34 @@ final List<GoRoute> payslipRoutes = [
     name: 'payslipPdf',
     builder: (context, state) =>
         PayslipPdfPage(payslipId: state.pathParameters['id'] ?? ''),
+  ),
+];
+
+/// The OT list and an OT request's page, opened by the request's id, so a
+/// list row, another screen and a push can all open it.
+///
+/// `extra` may carry the list's row for that request, for a first paint
+/// while the page loads its own copy; it is only used when it is that
+/// request.
+///
+/// A list of its own so the paths can be tested without the whole App.
+final List<GoRoute> overtimeRoutes = [
+  GoRoute(
+    path: AppRoutes.overtime,
+    name: 'overtime',
+    builder: (context, state) => const OtListPage(),
+  ),
+  GoRoute(
+    path: AppRoutes.otRequestDetail,
+    name: 'otRequestDetail',
+    builder: (context, state) {
+      final id = state.pathParameters['id'] ?? '';
+      final extra = state.extra;
+      return OtRequestDetailPage(
+        requestId: id,
+        initial: extra is OtRequest && extra.id == id ? extra : null,
+      );
+    },
   ),
 ];
 
@@ -362,12 +401,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       ...payslipRoutes,
 
-      // Overtime
-      GoRoute(
-        path: AppRoutes.overtime,
-        name: 'overtime',
-        builder: (context, state) => const OtListPage(),
-      ),
+      ...overtimeRoutes,
 
       // 404 Route
       GoRoute(

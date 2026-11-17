@@ -567,5 +567,14 @@
   "otNextDay": "(ມື້ຖັດໄປ)",
   "otFromPost": "ຈາກປະກາດ",
   "otDidNotCome": "ບໍ່ໄດ້ມາ",
-  "otPickMonth": "ເລືອກເດືອນ"
+  "otPickMonth": "ເລືອກເດືອນ",
+  "otWaitingFor": "ລໍຖ້າ: {role}",
+  "otPiecesSetOnApproval": "ຝ່າຍບຸກຄະລາກອນຈະກຳນົດເວລາ ແລະ ຄ່າຈ້າງ ຕອນອະນຸມັດ",
+  "otAgreementNoteLabel": "ໝາຍເຫດຈາກຝ່າຍບຸກຄະລາກອນ",
+  "otNoteDidNotCome": "ບໍ່ໄດ້ມາ: ບໍ່ມີເວລາສະແກນໃນຊ່ວງໂອທີ",
+  "otNotePaidByHand": "ຝ່າຍບຸກຄະລາກອນຈ່າຍເປັນເງິນສົດແລ້ວ — ບໍ່ຢູ່ໃນໃບເງິນເດືອນ",
+  "otNoteHrOnly": "ວັນນີ້ເປັນວັນລາ: ຝ່າຍບຸກຄະລາກອນເປັນຜູ້ອະນຸມັດ",
+  "otNoteFromPost": "ຈາກປະກາດຂອງຝ່າຍບຸກຄະລາກອນ",
+  "otPaidOnPayslip": "ຊົ່ວໂມງ ແລະ ເງິນທີ່ຈ່າຍຈິງ ຢູ່ໃນໃບເງິນເດືອນ",
+  "otRequestGone": "ຄຳຂໍໂອທີນີ້ບໍ່ມີແລ້ວ"
 }

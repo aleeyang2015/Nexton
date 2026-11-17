@@ -185,6 +185,17 @@ class PagedList<T> {
     loadMoreError: error,
   );
 
+  /// The same list with [items] in place of its rows (one changed or taken
+  /// out); where to go on from stays.
+  PagedList<T> withItems(List<T> items) => PagedList(
+    items: items,
+    nextCursor: nextCursor,
+    nextPage: nextPage,
+    hasMore: hasMore,
+    loadingMore: loadingMore,
+    loadMoreError: loadMoreError,
+  );
+
   /// The list with its load-more error cleared, for a Retry to ask for the
   /// same page again.
   PagedList<T> get retryable => PagedList(

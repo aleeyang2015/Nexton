@@ -7,12 +7,13 @@ import '../../domain/entities/ot_request.dart';
 import 'ot_copy.dart';
 
 /// One OT request in the list: its day, the window as typed, the status
-/// pill, and the "from an HR post" and "did not come" badges. Not tappable
-/// yet (#30).
+/// pill, and the "from an HR post" and "did not come" badges. A tap opens
+/// the request's page ([onTap]).
 class OtRequestRow extends StatelessWidget {
   final OtRequest request;
+  final VoidCallback? onTap;
 
-  const OtRequestRow({super.key, required this.request});
+  const OtRequestRow({super.key, required this.request, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +22,7 @@ class OtRequestRow extends StatelessWidget {
     final pill = OtCopy.statusPill(l10n, request.status);
     final window = OtCopy.window(l10n, request);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+    final card = Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -64,6 +64,21 @@ class OtRequestRow extends StatelessWidget {
           ],
         ],
       ),
+    );
+
+    final onTap = this.onTap;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: onTap == null
+          ? card
+          : Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: onTap,
+                child: card,
+              ),
+            ),
     );
   }
 }
