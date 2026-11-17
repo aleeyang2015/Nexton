@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/network_providers.dart';
+import '../auth/presentation/providers/auth_session_notifier.dart';
 import 'data/datasources/ot_remote_data_source.dart';
 import 'data/repositories/ot_repository_impl.dart';
 import 'domain/repositories/ot_repository.dart';
@@ -50,4 +51,15 @@ final getOpenOtPostsUseCaseProvider = Provider<GetOpenOtPostsUseCase>(
 
 final joinOtPostUseCaseProvider = Provider<JoinOtPostUseCase>(
   (ref) => JoinOtPostUseCase(ref.watch(otRepositoryProvider)),
+);
+
+/// The signed-in user's own employee id, or null when it is not known (no
+/// session yet, or a login with no staff record). The OT request page shows
+/// Edit and Cancel only on the user's own request.
+final otOwnEmployeeIdProvider = Provider<String?>(
+  (ref) => ref.watch(
+    authSessionProvider.select(
+      (session) => session.valueOrNull?.user?.employeeId,
+    ),
+  ),
 );

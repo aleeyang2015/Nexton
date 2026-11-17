@@ -777,5 +777,13 @@
   "otClockHintAfterShift": "OT right after your shift: do not clock out when the shift ends. Clock out once, when the OT ends.",
   "otClockHintWindow": "OT with a gap, on a day off or on leave: clock in from 30 minutes before the start; clock out by 60 minutes after the end.",
   "otClockHintTwoOts": "Two OTs less than 60 minutes apart: clock in once; the last clock-out closes both.",
-  "otClockHintThisApp": "Clock OT with this App, not the door scanner. A forgotten OT clock-out pays nothing."
+  "otClockHintThisApp": "Clock OT with this App, not the door scanner. A forgotten OT clock-out pays nothing.",
+  "otEditAction": "Edit",
+  "otCancelAction": "Cancel",
+  "otAskApproverToChange": "Need a change or to cancel? Ask your approver or HR.",
+  "otEditRestartsApproval": "When you save, the approval starts again from the first step.",
+  "otSaved": "Saved",
+  "otSaveAction": "Save",
+  "otCancelConfirm": "Cancel this OT request?",
+  "otCancelledToast": "OT request cancelled"
 }

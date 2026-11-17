@@ -12,6 +12,7 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/ot_request.dart';
 import '../providers/ot_detail_notifier.dart';
 import '../widgets/ot_copy.dart';
+import '../widgets/ot_request_action_bar.dart';
 import '../widgets/ot_request_sections.dart';
 
 /// One OT request, opened by its id from the OT list, another screen or a
@@ -107,6 +108,7 @@ class OtRequestDetailPage extends ConsumerWidget {
                 ),
               ),
               Expanded(child: body),
+              if (request != null) OtRequestActionBar(request: request),
             ],
           ),
         ),

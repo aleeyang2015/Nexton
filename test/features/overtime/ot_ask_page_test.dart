@@ -65,7 +65,7 @@ void main() {
 
   OtAskNotifier form(WidgetTester tester) => ProviderScope.containerOf(
     tester.element(find.byType(OtAskPage)),
-  ).read(otAskNotifierProvider.notifier);
+  ).read(otAskNotifierProvider(null).notifier);
 
   Future<void> times(
     WidgetTester tester,

@@ -9,25 +9,52 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../domain/entities/ot_request.dart';
 import '../providers/ot_ask_notifier.dart';
 import '../widgets/ot_copy.dart';
 
 /// "ຂໍໂອທີ": the day, the start and end, and a reason. Send asks the
 /// server; when it saves, this page is replaced by the new request's page.
+///
+/// With [editing], the same form changes that waiting request: its fields
+/// filled in, a note that the approval starts again, and Save; when it
+/// saves, back to the request's page, which shows the answer.
+///
 /// Everything comes from [otAskNotifierProvider].
-class OtAskPage extends ConsumerWidget {
-  const OtAskPage({super.key});
+class OtAskPage extends ConsumerStatefulWidget {
+  /// The request being changed, or null when asking.
+  final OtRequest? editing;
+
+  const OtAskPage({super.key, this.editing});
 
   /// How a reason may be; the server's own limit.
   static const int reasonMaxLength = 2000;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OtAskPage> createState() => _OtAskPageState();
+}
+
+class _OtAskPageState extends ConsumerState<OtAskPage> {
+  /// The reason box, filled in from the request being changed.
+  late final TextEditingController _reason = TextEditingController(
+    text: ref.read(otAskNotifierProvider(widget.editing)).reason,
+  );
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final provider = otAskNotifierProvider(widget.editing);
+    final editing = widget.editing != null;
     // Everything the page shows but the reason, which the text field holds
     // itself: typing does not rebuild the form.
     final state = ref.watch(
-      otAskNotifierProvider.select(
+      provider.select(
         (s) => (
           workDate: s.workDate,
           today: s.today,
@@ -42,7 +69,7 @@ class OtAskPage extends ConsumerWidget {
         ),
       ),
     );
-    final form = ref.read(otAskNotifierProvider.notifier);
+    final form = ref.read(provider.notifier);
     final refusal = state.refusal;
 
     // While a request is on its way the page stays: leaving would lose the
@@ -73,7 +100,7 @@ class OtAskPage extends ConsumerWidget {
                       widthBx(w: 4),
                       Expanded(
                         child: customText(
-                          l10n.otAsk,
+                          editing ? l10n.otEditAction : l10n.otAsk,
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
@@ -86,6 +113,10 @@ class OtAskPage extends ConsumerWidget {
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(15, 12, 15, 40),
                     children: [
+                      if (editing) ...[
+                        _Note(text: l10n.otEditRestartsApproval),
+                        heightBx(h: 12),
+                      ],
                       _Field(
                         label: l10n.otDateLabel,
                         value: OtCopy.date(state.workDate),
@@ -116,7 +147,7 @@ class OtAskPage extends ConsumerWidget {
                                   ? null
                                   : () => _pickTime(
                                       context,
-                                      ref.read(otAskNotifierProvider).start,
+                                      ref.read(provider).start,
                                       form.setStart,
                                     ),
                             ),
@@ -134,9 +165,7 @@ class OtAskPage extends ConsumerWidget {
                               onTap: state.sending
                                   ? null
                                   : () {
-                                      final now = ref.read(
-                                        otAskNotifierProvider,
-                                      );
+                                      final now = ref.read(provider);
                                       // End opens on itself, else on Start.
                                       _pickTime(
                                         context,
@@ -150,12 +179,13 @@ class OtAskPage extends ConsumerWidget {
                       ),
                       heightBx(h: 12),
                       TextField(
+                        controller: _reason,
                         enabled: !state.sending,
-                        maxLength: reasonMaxLength,
+                        maxLength: OtAskPage.reasonMaxLength,
                         // maxLength counts what is seen; a Lao letter with its
                         // marks is several code points. This keeps the text
                         // within the server's 2000 however it counts them.
-                        inputFormatters: const [_RuneLimit(reasonMaxLength)],
+                        inputFormatters: const [_RuneLimit(OtAskPage.reasonMaxLength)],
                         maxLines: 4,
                         minLines: 2,
                         onChanged: form.setReason,
@@ -181,7 +211,7 @@ class OtAskPage extends ConsumerWidget {
                         height: 50,
                         child: FilledButton(
                           onPressed: state.canSend
-                              ? () => _send(context, ref)
+                              ? () => _send(context)
                               : null,
                           style: FilledButton.styleFrom(
                             backgroundColor: AppColors.primary,
@@ -199,7 +229,9 @@ class OtAskPage extends ConsumerWidget {
                                   ),
                                 )
                               : customText(
-                                  l10n.leaveRequestSubmit,
+                                  editing
+                                      ? l10n.otSaveAction
+                                      : l10n.leaveRequestSubmit,
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -251,15 +283,82 @@ class OtAskPage extends ConsumerWidget {
     if (picked != null) onPicked(picked.hour, picked.minute);
   }
 
-  /// Sends; on success says so and replaces this page with the new
+  /// Sends.
+  ///
+  /// Asking: on success says so and replaces this page with the new
   /// request's page.
-  Future<void> _send(BuildContext context, WidgetRef ref) async {
+  ///
+  /// Changing: on success says "Saved" and goes back to the request's page,
+  /// which already shows the answer. When the request may no longer change
+  /// (decided meanwhile, or a join), says why and goes back to it, now
+  /// reloaded without its buttons; when it is gone, says so and goes to
+  /// the list. Any other refusal stays on the form, above Save.
+  Future<void> _send(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
-    final sent = await ref.read(otAskNotifierProvider.notifier).submit();
-    if (sent == null || !context.mounted) return;
-    AppToast.success(l10n.otAskSent);
-    context.pushReplacement(AppRoutes.otRequest(sent.id), extra: sent);
+    final provider = otAskNotifierProvider(widget.editing);
+    final sent = await ref.read(provider.notifier).submit();
+    if (!context.mounted) return;
+
+    if (widget.editing == null) {
+      if (sent == null) return;
+      AppToast.success(l10n.otAskSent);
+      context.pushReplacement(AppRoutes.otRequest(sent.id), extra: sent);
+      return;
+    }
+
+    if (sent != null) {
+      AppToast.success(l10n.otSaved);
+      _leave(context);
+      return;
+    }
+    final refusal = ref.read(provider).refusal;
+    if (OtAskNotifier.isGone(refusal)) {
+      AppToast.error(l10n.otRequestGone);
+      context.go(AppRoutes.overtime);
+    } else if (OtAskNotifier.isTooLate(refusal)) {
+      AppToast.error(refusal!.localize(l10n));
+      _leave(context);
+    }
   }
+
+  /// Back to the request's page; from a link, to it by its id.
+  void _leave(BuildContext context) {
+    final editing = widget.editing!;
+    context.canPop()
+        ? context.pop()
+        : context.go(AppRoutes.otRequest(editing.id));
+  }
+}
+
+/// The note above the form when changing a request.
+class _Note extends StatelessWidget {
+  final String text;
+
+  const _Note({required this.text});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: AppColors.primary.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(Icons.info_outline, size: 18, color: AppColors.primary),
+        widthBx(w: 8),
+        Expanded(
+          child: customText(
+            text,
+            fontSize: 13,
+            color: AppColors.textPrimary,
+            maxLine: 4,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 /// Keeps a text within [max] code points (runes), whatever it looks like.

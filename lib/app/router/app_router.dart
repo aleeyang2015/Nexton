@@ -17,6 +17,7 @@ import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/change_password/presentation/pages/change_password_page.dart';
 import '../../features/overtime/domain/entities/ot_request.dart';
 import '../../features/overtime/presentation/pages/ot_ask_page.dart';
+import '../../features/overtime/presentation/pages/ot_edit_page.dart';
 import '../../features/overtime/presentation/pages/ot_list_page.dart';
 import '../../features/overtime/presentation/pages/ot_request_detail_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
@@ -102,6 +103,13 @@ class AppRoutes {
   /// a push.
   static String otRequest(String id) =>
       '/overtime/request/${Uri.encodeComponent(id)}';
+
+  /// Changing a waiting OT request. A route pattern; build a location with
+  /// [otRequestEditOf].
+  static const String otRequestEdit = '/overtime/request/:id/edit';
+
+  /// The location of the edit form of the OT request [id].
+  static String otRequestEditOf(String id) => '${otRequest(id)}/edit';
   static const String notFound = '/404';
 }
 
@@ -160,6 +168,18 @@ final List<GoRoute> overtimeRoutes = [
       final id = state.pathParameters['id'] ?? '';
       final extra = state.extra;
       return OtRequestDetailPage(
+        requestId: id,
+        initial: extra is OtRequest && extra.id == id ? extra : null,
+      );
+    },
+  ),
+  GoRoute(
+    path: AppRoutes.otRequestEdit,
+    name: 'otRequestEdit',
+    builder: (context, state) {
+      final id = state.pathParameters['id'] ?? '';
+      final extra = state.extra;
+      return OtEditPage(
         requestId: id,
         initial: extra is OtRequest && extra.id == id ? extra : null,
       );

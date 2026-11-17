@@ -4,27 +4,43 @@ import '../../../../core/errors/failure.dart';
 import '../../../../core/utils/clock_provider.dart';
 import '../../domain/entities/ot_draft.dart';
 import '../../domain/entities/ot_request.dart';
+import '../../data/datasources/ot_error_code.dart';
+import '../../domain/usecases/edit_ot_usecase.dart';
 import '../../overtime_providers.dart';
 import 'ot_ask_state.dart';
+import 'ot_detail_notifier.dart';
 import 'ot_list_notifier.dart';
 
-/// The Ask OT form (`POST /ot-requests`). The page renders the state and
-/// forwards picks and taps here.
+/// The OT form: asking (`POST /ot-requests`, the family's argument null)
+/// or changing a waiting request (`PUT /ot-requests/:id`, the argument is
+/// that request, its day, times and reason filled in). The page renders the
+/// state and forwards picks and taps here.
 ///
-/// No backend rule is checked here (days back, the shift, the OT switch):
-/// the server decides, and its refusal is kept for the page to say.
+/// No backend rule is checked here (days back, the shift, the OT switch,
+/// whether it may still be changed): the server decides, and its refusal is
+/// kept for the page to say.
 ///
 /// AutoDispose, so leaving the page drops what was typed.
-class OtAskNotifier extends AutoDisposeNotifier<OtAskState> {
+class OtAskNotifier extends AutoDisposeFamilyNotifier<OtAskState, OtRequest?> {
   bool _disposed = false;
 
+  /// The request being changed, or null when asking.
+  OtRequest? get editing => arg;
+
   @override
-  OtAskState build() {
+  OtAskState build(OtRequest? arg) {
     _disposed = false;
     ref.onDispose(() => _disposed = true);
     final now = ref.read(clockProvider)();
     final today = DateTime(now.year, now.month, now.day);
-    return OtAskState(workDate: today, today: today);
+    if (arg == null) return OtAskState(workDate: today, today: today);
+    return OtAskState(
+      workDate: arg.workDate ?? today,
+      today: today,
+      startTime: _asSent(arg.startTime),
+      endTime: _asSent(arg.endTime),
+      reason: arg.reason ?? '',
+    );
   }
 
   void setDate(DateTime date) =>
@@ -43,10 +59,15 @@ class OtAskNotifier extends AutoDisposeNotifier<OtAskState> {
     keepRefusal: true,
   );
 
-  /// Sends the form. Returns the new request when the server saved it,
-  /// for the page to open; null when nothing was sent (both times not yet
-  /// picked, or already sending) or the server refused it. A refusal keeps
-  /// everything typed.
+  /// Sends the form. Returns the request as the server saved it (new, or
+  /// changed), for the page to show; null when nothing was sent (both times
+  /// not yet picked, or already sending) or the server refused it. A
+  /// refusal keeps everything typed.
+  ///
+  /// Changing: the request page underneath shows the answer at once (and
+  /// keeps the list's row with it). A refusal that says the request may no
+  /// longer change ([isTooLate]) or is gone ([isGone]) reloads that page,
+  /// so its buttons go or it learns it is gone.
   Future<OtRequest?> submit() async {
     final start = state.startTime;
     final end = state.endTime;
@@ -54,14 +75,18 @@ class OtAskNotifier extends AutoDisposeNotifier<OtAskState> {
 
     state = state.copyWith(sending: true, endError: false, clearRefusal: true);
     final reason = state.reason.trim();
-    final result = await ref.read(askOtUseCaseProvider)(
-      OtDraft(
-        workDate: state.workDate,
-        startTime: start,
-        endTime: end,
-        reason: reason.isEmpty ? null : reason,
-      ),
+    final draft = OtDraft(
+      workDate: state.workDate,
+      startTime: start,
+      endTime: end,
+      reason: reason.isEmpty ? null : reason,
     );
+    final editing = this.editing;
+    final result = editing == null
+        ? await ref.read(askOtUseCaseProvider)(draft)
+        : await ref.read(editOtUseCaseProvider)(
+            EditOtParams(id: editing.id, draft: draft),
+          );
     if (_disposed) return result.dataOrNull;
 
     return result.fold(
@@ -69,18 +94,46 @@ class OtAskNotifier extends AutoDisposeNotifier<OtAskState> {
         state = _isEndError(failure)
             ? state.copyWith(sending: false, endError: true)
             : state.copyWith(sending: false, refusal: failure);
+        if (editing != null && (isTooLate(failure) || isGone(failure))) {
+          _detail(editing.id)?.refresh();
+        }
         return null;
       },
       (request) {
         state = state.copyWith(sending: false);
-        // The list underneath shows the new request when the user comes
-        // back to it.
-        if (ref.exists(otListNotifierProvider)) {
+        if (editing != null) {
+          _detail(editing.id)?.replace(request);
+        } else if (ref.exists(otListNotifierProvider)) {
+          // The list underneath shows the new request when the user comes
+          // back to it.
           ref.read(otListNotifierProvider.notifier).refresh();
         }
         return request;
       },
     );
+  }
+
+  /// The request page of [id], when it is open underneath.
+  OtDetailNotifier? _detail(String id) {
+    final provider = otDetailNotifierProvider(id);
+    return ref.exists(provider) ? ref.read(provider.notifier) : null;
+  }
+
+  /// The request may no longer be changed: a step was decided meanwhile
+  /// (`OT_ALREADY_DECIDED`), or it is a join of an HR post (`OT_ANNOUNCED`).
+  static bool isTooLate(Failure? failure) =>
+      failure is ValidationFailure &&
+      (failure.message == OtErrorCode.tokenAlreadyDecided ||
+          failure.message == OtErrorCode.tokenAnnounced);
+
+  /// The request is gone, or not the caller's (`404`).
+  static bool isGone(Failure? failure) => OtDetailNotifier.isGone(failure);
+
+  /// `18:00` from `18:00` or `18:00:00`; null for anything that is not a
+  /// time, so the user picks it again.
+  static String? _asSent(String time) {
+    final match = RegExp(r'^(\d{2}):(\d{2})').firstMatch(time);
+    return match == null ? null : '${match[1]}:${match[2]}';
   }
 
   /// A change to the form: the last refusal and End error no longer apply
@@ -108,7 +161,7 @@ class OtAskNotifier extends AutoDisposeNotifier<OtAskState> {
       '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
 }
 
-final otAskNotifierProvider =
-    NotifierProvider.autoDispose<OtAskNotifier, OtAskState>(
-      OtAskNotifier.new,
-    );
+/// The OT form: `otAskNotifierProvider(null)` to ask,
+/// `otAskNotifierProvider(request)` to change that request.
+final otAskNotifierProvider = NotifierProvider.autoDispose
+    .family<OtAskNotifier, OtAskState, OtRequest?>(OtAskNotifier.new);
