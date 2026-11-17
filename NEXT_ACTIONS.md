@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#38 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#38 merged; next is #39). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 
 | | |
 |---|---|
-| Last finished work order | 36 of 60: #37, approvals: open a leave request to see days, files, steps and notes before deciding |
-| Next work order | **37 of 60: #38**, photos: take a photo with the camera and upload it (shared). IMPLEMENTED on `38-shared-upload` (`e2612f9`, `a498e41`, `a0c7ecd`), pushed, reviewed; waits for "push issue 38 to main directly" |
-| `origin/main` | `abfde43` "Merge branch '37-leave-approval-detail' into main" (2026-11-17) |
+| Last finished work order | 37 of 60: #38, photos: take a photo with the camera and upload it (shared) |
+| Next work order | **38 of 60: #39**, leave: attach a photo when the type needs a file, and open attached files. Not started, no branch, no plan yet |
+| `origin/main` | `f3cdef7` "Merge branch '38-shared-upload' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -57,7 +57,7 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#38: say "push issue 38 to main directly".** Built 2026-11-17 after the owner's go.
+1. **#38 merged** (`f3cdef7`) on the owner's say, 2026-11-17.
    **#37 merged** (`abfde43`) on the owner's say, 2026-11-17.
    **#36 merged** (`4ad1873`) on the owner's say, 2026-11-17.
    **#34 merged** (`55c41e7`) on the owner's say, 2026-11-17.
@@ -139,11 +139,16 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#38 (work order 37 of 60), "photos: take a photo with the camera and upload it (shared)": IMPLEMENTED, not merged.**
+1. **Next: #39 (work order 38 of 60), "leave: attach a photo when the type needs a file, and open attached files".** Read
+   the issue and its comments, show a plan, wait for "go". Uses #38's `FileSourceSheet` (`CapturePolicy.document`),
+   `UploadNotifier` / folder `leave`.
+
+   **#38 (work order 37 of 60), "photos: take a photo with the camera and upload it (shared)": MERGED (`f3cdef7`),
+   2026-11-17.**
    Owner said go on 2026-11-17 (and OK'd moving the upload code to `lib/core/upload/`; packages stay `camera` +
    `file_picker`, no `image_picker`). Branch `38-shared-upload`: `e2612f9` (pure move from `time_off`), `a498e41`
    (feature), `a0c7ecd` (review fixes). Gates: analyze 1 warning already on `main`; `flutter test` 1,804 passed; debug
-   APK builds. Waits for "push issue 38 to main directly".
+   APK builds. Merged on the owner's "push issue 38 to main directly"; gates green on the merge commit.
    - One check before every upload (leave too): over 5,000,000 bytes is `uploadFileTooLarge`, never sent. `folder`
      sent: `leave`, `offsite`, `correction` (`UploadFolder`). 413 (by status) / `FILE_TOO_LARGE` → over 5 MB;
      `INVALID_REQUEST`, a missing file, an unusable 201, a picker error → choose again; `STORAGE_UNAVAILABLE` / 404 →
@@ -633,7 +638,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 34 | #35 | attendance: show OT hours on the summary and history | | | | | BLOCKED: backend, OT hours (re-checked 2026-11-17, skipped) |
 | 35 | #36 | approvals: one Approvals place, only for department heads and HR (leave moves in) | `36-approvals-heads-hr` | `d62a2bf`, `04b85ee` | merged to main directly (`4ad1873`) | analyze: 1 warning already on `main`; `flutter test`: 1,738 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 36 | #37 | approvals: open a leave request to see days, files, steps and notes before deciding | `37-leave-approval-detail` | `5fa7fba`, `55b7eeb`, `c67dced` | merged to main directly (`abfde43`) | analyze: 1 warning already on `main`; `flutter test`: 1,773 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 37 | #38 | photos: take a photo with the camera and upload it (shared) | `38-shared-upload` | `e2612f9`, `a498e41`, `a0c7ecd` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,804 passed, 0 failed; debug APK builds; phone check pending | IMPLEMENTED |
+| 37 | #38 | photos: take a photo with the camera and upload it (shared) | `38-shared-upload` | `e2612f9`, `a498e41`, `a0c7ecd` | merged to main directly (`f3cdef7`) | analyze: 1 warning already on `main`; `flutter test`: 1,804 passed, 0 failed; debug APK builds | MERGED, phone check pending |
 | 38 | #39 | leave: attach a photo when the type needs a file, and open attached files | | | | | NOT STARTED |
 | 39 | #40 | attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason | | | | | NOT STARTED |
 | 40 | #41 | attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too | | | | | NOT STARTED |
