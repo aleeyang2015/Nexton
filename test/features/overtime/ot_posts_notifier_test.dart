@@ -101,6 +101,26 @@ void main() {
       expect(ids(), hasLength(3));
     });
 
+    test('a reload that fails while a next page was on its way leaves the '
+        'list ready to load more, not spinning', () async {
+      serveMany(40);
+      await settle();
+      final hold = Completer<void>();
+      repository.holdPosts = hold;
+      final more = posts().loadMore();
+      await Future<void>.delayed(Duration.zero);
+
+      repository.postsAnswer = (_) =>
+          const Result.failure(Failure.network(message: 'offline'));
+      expect(await posts().refresh(), isFalse);
+      hold.complete();
+      await more;
+
+      final list = container.read(otPostsNotifierProvider).posts.valueOrNull!;
+      expect(list.loadingMore, isFalse);
+      expect(list.canLoadMore, isTrue);
+    });
+
     test('a failed first page is the error; retry loads it', () async {
       repository.postsAnswer = (_) =>
           const Result.failure(Failure.network(message: 'offline'));
@@ -172,17 +192,61 @@ void main() {
       });
     }
 
-    test('an ask refusal (overlap, OT off): the refusal, no reload', () async {
+    test('an ask refusal (overlap, OT off), or a lost answer: the refusal, '
+        'and the posts reload (the card may have changed, or the join been '
+        'made)', () async {
       serveMany(1);
       await settle();
-      repository.joinAnswer = (_) => const Result.failure(
+      for (final failure in const [
         Failure.validation(message: OtErrorCode.tokenOverlap),
+        Failure.validation(message: OtErrorCode.tokenDisabled),
+        Failure.network(message: 'timeout'),
+      ]) {
+        repository.joinAnswer = (_) => Result.failure(failure);
+        final before = repository.postPages.length;
+
+        final result = await posts().join('post-0');
+
+        expect(result?.failureOrNull, failure);
+        expect(repository.postPages.length, before + 1);
+      }
+    });
+
+    test('a post the card no longer offers Join for sends nothing', () async {
+      repository.postsAnswer = (page) => Result.success(
+        OtPage(
+          items: [samplePost('post-0', full: true)],
+          page: page,
+          totalPages: 1,
+        ),
       );
+      await settle();
 
-      final result = await posts().join('post-0');
+      expect(await posts().join('post-0'), isNull);
+      expect(repository.joins, isEmpty);
+    });
 
-      expect(result?.failureOrNull?.message, OtErrorCode.tokenOverlap);
-      expect(repository.postPages, [1]);
+    test('the page closed while a join was on its way: the OT list still '
+        'learns of it', () async {
+      final list = container.listen(otListNotifierProvider, (_, _) {});
+      addTearDown(list.close);
+      serveMany(1);
+      final page = container.listen(otPostsNotifierProvider, (_, _) {});
+      for (var i = 0; i < 5; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      final before = repository.listCalls.length;
+      final hold = Completer<void>();
+      repository.holdJoin = hold;
+
+      final pending = container.read(otPostsNotifierProvider.notifier).join('post-0');
+      page.close();
+      await Future<void>.delayed(Duration.zero);
+      hold.complete();
+      await pending;
+
+      expect(repository.joins, ['post-0']);
+      expect(repository.listCalls.length, before + 1);
     });
 
     test('one join at a time, across cards: a second tap sends nothing',

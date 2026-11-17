@@ -52,12 +52,13 @@ class OtPostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          customText(
-            workDate == null ? '' : OtCopy.date(workDate),
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
+          if (workDate != null)
+            customText(
+              OtCopy.date(workDate),
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
           if (window.isNotEmpty) ...[
             heightBx(h: 2),
             customText(window, fontSize: 14, color: AppColors.subTitle),

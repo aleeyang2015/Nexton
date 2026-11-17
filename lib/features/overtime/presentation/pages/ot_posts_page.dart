@@ -49,15 +49,25 @@ class _OtPostsPageState extends ConsumerState<OtPostsPage> {
     ref.read(otPostsNotifierProvider.notifier).loadMore();
   }
 
+  /// True while Join's question is open: a second tap opens no second one.
+  bool _asking = false;
+
   /// Asks first; then joins and says what happened.
   Future<void> _join(OtPost post) async {
+    if (_asking) return;
     final l10n = AppLocalizations.of(context)!;
-    final sure = await AppDialog.ask(
-      context,
-      message: l10n.otPostJoinConfirm,
-      confirmLabel: l10n.otPostJoin,
-      cancelLabel: l10n.back,
-    );
+    _asking = true;
+    final bool sure;
+    try {
+      sure = await AppDialog.ask(
+        context,
+        message: l10n.otPostJoinConfirm,
+        confirmLabel: l10n.otPostJoin,
+        cancelLabel: l10n.back,
+      );
+    } finally {
+      _asking = false;
+    }
     if (!sure || !mounted) return;
 
     final result = await ref
@@ -72,6 +82,15 @@ class _OtPostsPageState extends ConsumerState<OtPostsPage> {
       ),
       (_) => AppToast.success(l10n.otPostJoinSent),
     );
+  }
+
+  /// Opens the user's join; on return the posts reload, as it may have been
+  /// cancelled there (the card then offers Join again).
+  Future<void> _openJoin(OtPost post) async {
+    final join = post.myJoin;
+    if (join == null) return;
+    await context.push<void>(AppRoutes.otRequest(join.id), extra: join);
+    if (mounted) await ref.read(otPostsNotifierProvider.notifier).refresh();
   }
 
   @override
@@ -135,10 +154,7 @@ class _OtPostsPageState extends ConsumerState<OtPostsPage> {
                         joiningId: state.joiningId,
                         onRetry: notifier.retry,
                         onJoin: _join,
-                        onOpenJoin: (post) => context.push(
-                          AppRoutes.otRequest(post.myJoin!.id),
-                          extra: post.myJoin,
-                        ),
+                        onOpenJoin: _openJoin,
                       ),
                       if (list != null && !state.posts.isLoading)
                         LoadMoreFooter(

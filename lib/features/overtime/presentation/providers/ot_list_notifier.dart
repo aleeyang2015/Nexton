@@ -156,8 +156,10 @@ class OtListNotifier extends AutoDisposeNotifier<OtListState> {
     if (_disposed || loadedAs != _loads) return false;
 
     // A refresh that failed keeps the rows that were on screen.
+    // A reload that failed puts back the rows that were shown, ready to
+    // load more again: a next page that was on its way was dropped.
     if (keepRows && shown != null && result.isFailure) {
-      state = state.withRequests(AsyncValue.data(shown));
+      state = state.withRequests(AsyncValue.data(shown.retryable));
       return false;
     }
 

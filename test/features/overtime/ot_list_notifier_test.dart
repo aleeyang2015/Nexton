@@ -281,6 +281,26 @@ void main() {
       expect(ids(), hasLength(40));
     });
 
+    test('a refresh that fails while a next page was on its way leaves the '
+        'list ready to load more, not spinning', () async {
+      repository.myRequestsAnswer = (call) => pagedOt(call, total: 45);
+      await settle();
+      final hold = Completer<void>();
+      repository.holdMyRequests = hold;
+      final more = notifier().loadMore();
+      await Future<void>.delayed(Duration.zero);
+
+      repository.myRequestsAnswer = (_) =>
+          const Result.failure(Failure.network(message: 'offline'));
+      expect(await notifier().refresh(), isFalse);
+      hold.complete();
+      await more;
+
+      final list = state().requests.valueOrNull!;
+      expect(list.loadingMore, isFalse);
+      expect(list.canLoadMore, isTrue);
+    });
+
     test('a refresh that works says so', () async {
       await settle();
 

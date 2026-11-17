@@ -214,6 +214,43 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
+    testWidgets('a double tap on Join opens one question', (tester) async {
+      serve([samplePost('post-1')]);
+      await openPosts(tester);
+
+      await tester.tap(button(en.otPostJoin));
+      await tester.tap(button(en.otPostJoin), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.otPostJoinConfirm), findsOneWidget);
+    });
+
+    testWidgets('coming back from my join\'s page reloads the posts: a join '
+        'cancelled there offers Join again', (tester) async {
+      serve([
+        samplePost('post-1', myJoin: sampleOt('ot-j', status: OtStatus.pending)),
+      ]);
+      await openPosts(tester);
+      await tester.tap(button(en.otPostWaitingHr));
+      await tester.pumpAndSettle();
+
+      serve([
+        samplePost(
+          'post-1',
+          myJoin: sampleOt('ot-j', status: OtStatus.cancelled),
+        ),
+      ]);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(OtRequestDetailPage),
+          matching: find.byIcon(Icons.arrow_back_ios),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(button(en.otPostJoin), findsOneWidget);
+    });
+
     testWidgets('"Waiting for HR" opens my join\'s request', (tester) async {
       serve([
         samplePost('post-1', myJoin: sampleOt('ot-j', status: OtStatus.pending)),

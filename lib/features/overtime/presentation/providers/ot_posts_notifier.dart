@@ -1,14 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/errors/failure.dart';
 import '../../../../core/network/paged_list.dart';
 import '../../../../core/utils/result.dart';
-import '../../data/datasources/ot_error_code.dart';
 import '../../domain/entities/ot_page.dart';
 import '../../domain/entities/ot_post.dart';
 import '../../domain/entities/ot_request.dart';
 import '../../overtime_providers.dart';
-import 'ot_detail_notifier.dart';
+import '../widgets/ot_post_button.dart';
 import 'ot_list_notifier.dart';
 import 'ot_posts_state.dart';
 
@@ -87,34 +85,37 @@ class OtPostsNotifier extends AutoDisposeNotifier<OtPostsState> {
   }
 
   /// Asks to join [postId]. Returns the server's answer, for the page to
-  /// say what happened; null when a join (for any post) is already on its
-  /// way: one at a time.
+  /// say what happened; null when nothing was sent: a join (for any post)
+  /// is already on its way (one at a time), or the post as now shown no
+  /// longer offers Join (the posts were reloaded while the question was
+  /// open).
   ///
-  /// The posts reload after a join, so the card shows it, and after a
-  /// refusal that means the card is out of date (full, closed, or gone).
-  /// The OT list, when open, reloads after a join, so the join is there.
+  /// The posts reload after any answer: a join shows on its card; full,
+  /// closed, gone, OT switched off or a join from elsewhere change the
+  /// card; and an answer lost on the way may hide a join that was made.
+  /// The OT list, when open, reloads after a join, so the join is there,
+  /// also when the user left this page while it was on its way.
   Future<Result<OtRequest>?> join(String postId) async {
     if (state.joiningId != null) return null;
+    final post = state.posts.valueOrNull?.items
+        .where((p) => p.id == postId)
+        .firstOrNull;
+    if (post != null && OtPostButton.of(post) != OtPostButton.join) {
+      return null;
+    }
+    // Read now: after the page is closed this notifier can reach nothing.
+    final list = ref.exists(otListNotifierProvider)
+        ? ref.read(otListNotifierProvider.notifier)
+        : null;
     state = state.withJoining(postId);
 
     final result = await ref.read(joinOtPostUseCaseProvider)(postId);
+    if (result.isSuccess) list?.refresh();
     if (_disposed) return result;
     state = state.withJoining(null);
-
-    final outOfDate = result.fold(_isOutOfDate, (_) => true);
-    if (result.isSuccess && ref.exists(otListNotifierProvider)) {
-      ref.read(otListNotifierProvider.notifier).refresh();
-    }
-    if (outOfDate) await _loadFirst(keepRows: true);
+    await _loadFirst(keepRows: true);
     return result;
   }
-
-  /// The post is full, closed to joining, or gone (`404`).
-  static bool _isOutOfDate(Failure failure) =>
-      OtDetailNotifier.isGone(failure) ||
-      (failure is ValidationFailure &&
-          (failure.message == OtErrorCode.tokenFull ||
-              failure.message == OtErrorCode.tokenJoinClosed));
 
   Future<bool> _loadFirst({bool keepRows = false}) async {
     final loadedAs = ++_loads;
@@ -130,8 +131,10 @@ class OtPostsNotifier extends AutoDisposeNotifier<OtPostsState> {
     final result = await _fetch(1);
     if (_disposed || loadedAs != _loads) return false;
 
+    // A reload that failed puts back the posts that were shown, ready to
+    // load more again: a next page that was on its way was dropped.
     if (keepRows && shown != null && result.isFailure) {
-      state = state.withPosts(AsyncValue.data(shown));
+      state = state.withPosts(AsyncValue.data(shown.retryable));
       return false;
     }
     state = state.withPosts(
