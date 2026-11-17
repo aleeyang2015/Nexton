@@ -764,5 +764,18 @@
   "otNoteHrOnly": "This is a leave day: HR decides",
   "otNoteFromPost": "From an HR post",
   "otPaidOnPayslip": "Paid hours and money are on your payslip",
-  "otRequestGone": "This OT request is not available"
+  "otRequestGone": "This OT request is not available",
+  "otAsk": "Ask for OT",
+  "otDateLabel": "Date",
+  "otStartLabel": "Start",
+  "otEndLabel": "End",
+  "otReasonOptional": "Reason (optional)",
+  "otPastDateWarning": "This date has passed. Time worked before the OT was approved may pay little or nothing, because it could not be clocked as OT.",
+  "otEndEqualsStart": "End must not equal the start",
+  "otAskSent": "OT request sent",
+  "otClockHintsTitle": "How to clock OT",
+  "otClockHintAfterShift": "OT right after your shift: do not clock out when the shift ends. Clock out once, when the OT ends.",
+  "otClockHintWindow": "OT with a gap, on a day off or on leave: clock in from 30 minutes before the start; clock out by 60 minutes after the end.",
+  "otClockHintTwoOts": "Two OTs less than 60 minutes apart: clock in once; the last clock-out closes both.",
+  "otClockHintThisApp": "Clock OT with this App, not the door scanner. A forgotten OT clock-out pays nothing."
 }

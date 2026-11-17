@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/profile/domain/entities/employee_profile.dart';
 import 'package:next_on/features/profile/domain/repositories/profile_repository.dart';
@@ -16,9 +18,13 @@ class FakeProfileRepository implements ProfileRepository {
 
   int calls = 0;
 
+  /// When set, the profile waits for it: still loading.
+  Completer<void>? hold;
+
   @override
   FutureResult<EmployeeProfile> myProfile() async {
     calls++;
+    await hold?.future;
     return profile;
   }
 }

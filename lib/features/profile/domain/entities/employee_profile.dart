@@ -30,6 +30,12 @@ class EmployeeProfile extends Equatable {
   /// sends them. Empty when the employee has no shift assigned yet.
   final List<ShiftDetail> shiftDetails;
 
+  /// Whether this employee may ask for OT (`can_ask_ot`): the company's OT
+  /// is on, their own OT switch is on, and the login is linked to them.
+  /// Null when the server did not say (an older server): the App then
+  /// offers Ask, and the server's refusal explains.
+  final bool? canAskOt;
+
   const EmployeeProfile({
     required this.id,
     required this.fullName,
@@ -40,6 +46,7 @@ class EmployeeProfile extends Equatable {
     this.shiftName,
     this.shiftNameLo,
     this.shiftDetails = const [],
+    this.canAskOt,
   });
 
   @override
@@ -53,5 +60,6 @@ class EmployeeProfile extends Equatable {
     shiftName,
     shiftNameLo,
     shiftDetails,
+    canAskOt,
   ];
 }

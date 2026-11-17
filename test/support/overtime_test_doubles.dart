@@ -26,6 +26,23 @@ class FakeOtRepository implements OtRepository {
   /// When set, a list call waits for it (taken by the call that sees it).
   Completer<void>? holdMyRequests;
 
+  /// Every draft the ask call was sent, in order.
+  final List<OtDraft> asked = [];
+
+  /// The answer to an ask; by default the new request, pending, as `ot-new`.
+  Result<OtRequest> Function(OtDraft draft) askAnswer = (draft) =>
+      Result.success(
+        sampleOt(
+          'ot-new',
+          workDate: draft.workDate,
+          start: draft.startTime,
+          end: draft.endTime,
+        ),
+      );
+
+  /// When set, an ask waits for it (taken by the call that sees it).
+  Completer<void>? holdAsk;
+
   /// The ids the detail call was asked for, in order.
   final List<String> requestIds = [];
 
@@ -53,7 +70,14 @@ class FakeOtRepository implements OtRepository {
   }
 
   @override
-  FutureResult<OtRequest> ask(OtDraft draft) => _unused();
+  FutureResult<OtRequest> ask(OtDraft draft) async {
+    asked.add(draft);
+    final answer = askAnswer(draft);
+    final hold = holdAsk;
+    holdAsk = null;
+    await hold?.future;
+    return answer;
+  }
 
   @override
   FutureResult<OtRequest> request(String id) async {

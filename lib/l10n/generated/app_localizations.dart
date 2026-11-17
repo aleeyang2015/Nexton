@@ -3421,6 +3421,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This OT request is not available'**
   String get otRequestGone;
+
+  /// No description provided for @otAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for OT'**
+  String get otAsk;
+
+  /// No description provided for @otDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get otDateLabel;
+
+  /// No description provided for @otStartLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get otStartLabel;
+
+  /// No description provided for @otEndLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get otEndLabel;
+
+  /// No description provided for @otReasonOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get otReasonOptional;
+
+  /// No description provided for @otPastDateWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This date has passed. Time worked before the OT was approved may pay little or nothing, because it could not be clocked as OT.'**
+  String get otPastDateWarning;
+
+  /// No description provided for @otEndEqualsStart.
+  ///
+  /// In en, this message translates to:
+  /// **'End must not equal the start'**
+  String get otEndEqualsStart;
+
+  /// No description provided for @otAskSent.
+  ///
+  /// In en, this message translates to:
+  /// **'OT request sent'**
+  String get otAskSent;
+
+  /// No description provided for @otClockHintsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to clock OT'**
+  String get otClockHintsTitle;
+
+  /// No description provided for @otClockHintAfterShift.
+  ///
+  /// In en, this message translates to:
+  /// **'OT right after your shift: do not clock out when the shift ends. Clock out once, when the OT ends.'**
+  String get otClockHintAfterShift;
+
+  /// No description provided for @otClockHintWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'OT with a gap, on a day off or on leave: clock in from 30 minutes before the start; clock out by 60 minutes after the end.'**
+  String get otClockHintWindow;
+
+  /// No description provided for @otClockHintTwoOts.
+  ///
+  /// In en, this message translates to:
+  /// **'Two OTs less than 60 minutes apart: clock in once; the last clock-out closes both.'**
+  String get otClockHintTwoOts;
+
+  /// No description provided for @otClockHintThisApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock OT with this App, not the door scanner. A forgotten OT clock-out pays nothing.'**
+  String get otClockHintThisApp;
 }
 
 class _AppLocalizationsDelegate
