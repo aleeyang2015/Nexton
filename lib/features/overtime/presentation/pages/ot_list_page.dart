@@ -150,6 +150,10 @@ class _OtListPageState extends ConsumerState<OtListPage> {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
+                    // A profile that failed hid Ask: ask for it again too.
+                    if (ref.read(profileNotifierProvider).hasError) {
+                      ref.invalidate(profileNotifierProvider);
+                    }
                     final loaded = await notifier.refresh();
                     if (!loaded && context.mounted) {
                       AppToast.error(l10n.otListLoadFailed);

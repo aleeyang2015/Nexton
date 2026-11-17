@@ -36,7 +36,12 @@ class OtAskNotifier extends AutoDisposeNotifier<OtAskState> {
   void setEnd(int hour, int minute) =>
       _edit(state.copyWith(endTime: _hhmm(hour, minute)));
 
-  void setReason(String reason) => _edit(state.copyWith(reason: reason));
+  /// The reason: the last refusal stays (a reason does not change why the
+  /// server said no).
+  void setReason(String reason) => _edit(
+    state.copyWith(reason: reason),
+    keepRefusal: true,
+  );
 
   /// Sends the form. Returns the new request when the server saved it,
   /// for the page to open; null when nothing was sent (both times not yet
@@ -78,15 +83,20 @@ class OtAskNotifier extends AutoDisposeNotifier<OtAskState> {
     );
   }
 
-  /// A change to the form: the last refusal and End error no longer apply.
-  void _edit(OtAskState next) {
+  /// A change to the form: the last refusal and End error no longer apply
+  /// (but for a change to the reason alone). Today is read again, so a form
+  /// left open past midnight warns about a date that has since passed.
+  void _edit(OtAskState next, {bool keepRefusal = false}) {
     if (state.sending) return;
+    final now = ref.read(clockProvider)();
     state = OtAskState(
       workDate: next.workDate,
-      today: next.today,
+      today: DateTime(now.year, now.month, now.day),
       startTime: next.startTime,
       endTime: next.endTime,
       reason: next.reason,
+      endError: keepRefusal ? next.endError : false,
+      refusal: keepRefusal ? next.refusal : null,
     );
   }
 

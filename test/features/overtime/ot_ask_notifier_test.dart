@@ -98,6 +98,25 @@ void main() {
       expect(state().workDate, DateTime(2026, 11, 14));
     });
 
+    test('typing a reason keeps the refusal: it does not change why', () async {
+      fill();
+      repository.askAnswer = (_) => const Result.failure(
+        Failure.validation(message: OtErrorCode.tokenOverlapsShift),
+      );
+      await form().submit();
+
+      form().setReason('more detail');
+
+      expect(state().refusal?.message, OtErrorCode.tokenOverlapsShift);
+    });
+
+    test('the picker opens on the times picked', () {
+      fill(start: (22, 30), end: (2, 15));
+
+      expect(state().start, (hour: 22, minute: 30));
+      expect(state().end, (hour: 2, minute: 15));
+    });
+
     test('changing a field clears the last refusal and the End error', () async {
       fill();
       repository.askAnswer = (_) => const Result.failure(
@@ -251,5 +270,24 @@ void main() {
         expect(state().endError, isFalse);
       }
     });
+  });
+
+  test('a form left open past midnight warns about the date it now shows '
+      'as past, at the next change', () {
+    var clock = DateTime(2026, 11, 11, 23, 58);
+    final moving = ProviderContainer(
+      overrides: [
+        otRepositoryProvider.overrideWithValue(repository),
+        clockProvider.overrideWithValue(() => clock),
+      ],
+    );
+    addTearDown(moving.dispose);
+    moving.listen(otAskNotifierProvider, (_, _) {});
+    expect(moving.read(otAskNotifierProvider).isPastDate, isFalse);
+
+    clock = DateTime(2026, 11, 12, 0, 5);
+    moving.read(otAskNotifierProvider.notifier).setStart(18, 0);
+
+    expect(moving.read(otAskNotifierProvider).isPastDate, isTrue);
   });
 }

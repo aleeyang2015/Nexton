@@ -37,6 +37,19 @@ class OtAskState {
     this.refusal,
   });
 
+  /// The hour and minute of [startTime] and [endTime], for a picker to
+  /// open on; null until picked.
+  ({int hour, int minute})? get start => _split(startTime);
+  ({int hour, int minute})? get end => _split(endTime);
+
+  static ({int hour, int minute})? _split(String? hhmm) {
+    final parts = hhmm?.split(':');
+    if (parts == null || parts.length != 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    return hour == null || minute == null ? null : (hour: hour, minute: minute);
+  }
+
   /// Both times picked, and not already sending.
   bool get canSend => startTime != null && endTime != null && !sending;
 

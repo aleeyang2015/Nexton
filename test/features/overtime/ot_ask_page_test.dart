@@ -244,6 +244,66 @@ void main() {
     expect(send(tester).onPressed, isNotNull);
   });
 
+  testWidgets('while sending, back does nothing: the page stays until the '
+      'answer', (tester) async {
+    await openAsk(tester);
+    await times(tester, (18, 0), (20, 0));
+    final hold = Completer<void>();
+    repository.holdAsk = hold;
+
+    PopScope guard() => tester.widget<PopScope>(
+      find.descendant(
+        of: find.byType(OtAskPage),
+        matching: find.byWidgetPredicate((w) => w is PopScope),
+      ),
+    );
+    expect(guard().canPop, isTrue);
+
+    await tester.tap(find.byType(FilledButton));
+    await tester.pump();
+
+    // The system back is refused, and the header's back arrow does nothing.
+    expect(guard().canPop, isFalse);
+    await tester.tap(find.byIcon(Icons.arrow_back_ios));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(OtAskPage), findsOneWidget);
+
+    hold.complete();
+    await tester.pumpAndSettle();
+    expect(find.byType(OtRequestDetailPage), findsOneWidget);
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+  });
+
+  testWidgets('the reason stops at 2000 code points, however a Lao letter '
+      'is made', (tester) async {
+    await openAsk(tester);
+
+    await tester.enterText(find.byType(TextField), 'ກໍ່' * 1000);
+    await tester.pump();
+
+    final text = tester.widget<TextField>(find.byType(TextField)).controller;
+    final typed = text?.text ??
+        tester
+            .widget<EditableText>(find.byType(EditableText))
+            .controller
+            .text;
+    expect(typed.runes.length, lessThanOrEqualTo(2000));
+  });
+
+  testWidgets('End opens on Start when End is not picked yet', (tester) async {
+    await openAsk(tester);
+    form(tester).setStart(22, 30);
+    await tester.pump();
+
+    await tester.tap(find.text('--:--'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<TimePickerDialog>(find.byType(TimePickerDialog)).initialTime,
+      const TimeOfDay(hour: 22, minute: 30),
+    );
+  });
+
   testWidgets('the time picker opens in 24-hour time', (tester) async {
     await openAsk(tester);
 

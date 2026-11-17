@@ -263,6 +263,29 @@ void main() {
       expect(find.text(en.otAsk), findsNothing);
     });
 
+    testWidgets('a profile that failed comes back with a pull to refresh, and '
+        'Ask with it', (tester) async {
+      profiles.profile = const Result.failure(
+        Failure.server(message: 'boom', statusCode: 500),
+      );
+      await pumpPage(tester);
+      expect(find.text(en.otAsk), findsNothing);
+
+      profiles.profile = const Result.success(
+        EmployeeProfile(id: 'e', fullName: 'Noy', canAskOt: true),
+      );
+      await tester.timedDrag(
+        find.byType(RefreshIndicator),
+        const Offset(0, 600),
+        const Duration(milliseconds: 500),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.otAsk), findsOneWidget);
+    });
+
     testWidgets('the hints card is closed, opens and closes', (tester) async {
       await pumpPage(tester, locale: 'lo');
 

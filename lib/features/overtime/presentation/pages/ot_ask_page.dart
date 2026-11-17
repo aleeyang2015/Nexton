@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,7 +10,6 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/ot_ask_notifier.dart';
-import '../providers/ot_ask_state.dart';
 import '../widgets/ot_copy.dart';
 
 /// "ຂໍໂອທີ": the day, the start and end, and a reason. Send asks the
@@ -24,151 +24,192 @@ class OtAskPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final state = ref.watch(otAskNotifierProvider);
+    // Everything the page shows but the reason, which the text field holds
+    // itself: typing does not rebuild the form.
+    final state = ref.watch(
+      otAskNotifierProvider.select(
+        (s) => (
+          workDate: s.workDate,
+          today: s.today,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          sending: s.sending,
+          endError: s.endError,
+          refusal: s.refusal,
+          endsNextDay: s.endsNextDay,
+          isPastDate: s.isPastDate,
+          canSend: s.canSend,
+        ),
+      ),
+    );
     final form = ref.read(otAskNotifierProvider.notifier);
     final refusal = state.refusal;
 
-    return Container(
-      color: AppColors.homeBackground,
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor: AppColors.homeBackground,
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              heightBx(h: 4),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => context.canPop()
-                          ? context.pop()
-                          : context.go(AppRoutes.overtime),
-                      child: popBack(),
-                    ),
-                    widthBx(w: 4),
-                    Expanded(
-                      child: customText(
-                        l10n.otAsk,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+    // While a request is on its way the page stays: leaving would lose the
+    // answer, and the OT list would not learn of a request that was saved.
+    return PopScope(
+      canPop: !state.sending,
+      child: Container(
+        color: AppColors.homeBackground,
+        child: SafeArea(
+          child: Scaffold(
+            backgroundColor: AppColors.homeBackground,
+            body: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                heightBx(h: 4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: state.sending
+                            ? null
+                            : () => context.canPop()
+                                  ? context.pop()
+                                  : context.go(AppRoutes.overtime),
+                        child: popBack(),
                       ),
-                    ),
-                  ],
+                      widthBx(w: 4),
+                      Expanded(
+                        child: customText(
+                          l10n.otAsk,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(15, 12, 15, 40),
-                  children: [
-                    _Field(
-                      label: l10n.otDateLabel,
-                      value: OtCopy.date(state.workDate),
-                      icon: Icons.calendar_today_outlined,
-                      onTap: state.sending
-                          ? null
-                          : () => _pickDate(context, form, state),
-                    ),
-                    if (state.isPastDate) ...[
-                      heightBx(h: 8),
-                      _Warning(text: l10n.otPastDateWarning),
-                    ],
-                    heightBx(h: 12),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _Field(
-                            label: l10n.otStartLabel,
-                            value: state.startTime ?? '--:--',
-                            icon: Icons.schedule,
-                            onTap: state.sending
-                                ? null
-                                : () => _pickTime(
-                                    context,
-                                    state.startTime,
-                                    form.setStart,
-                                  ),
-                          ),
-                        ),
-                        widthBx(w: 12),
-                        Expanded(
-                          child: _Field(
-                            label: l10n.otEndLabel,
-                            value: state.endTime ?? '--:--',
-                            suffix: state.endsNextDay ? l10n.otNextDay : null,
-                            icon: Icons.schedule,
-                            error: state.endError ? l10n.otEndEqualsStart : null,
-                            onTap: state.sending
-                                ? null
-                                : () => _pickTime(
-                                    context,
-                                    state.endTime,
-                                    form.setEnd,
-                                  ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    heightBx(h: 12),
-                    TextField(
-                      enabled: !state.sending,
-                      maxLength: reasonMaxLength,
-                      maxLines: 4,
-                      minLines: 2,
-                      onChanged: form.setReason,
-                      decoration: InputDecoration(
-                        labelText: l10n.otReasonOptional,
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    if (refusal != null) ...[
-                      heightBx(h: 12),
-                      customText(
-                        refusal.localize(l10n),
-                        color: AppColors.danger,
-                        maxLine: 6,
-                      ),
-                    ],
-                    heightBx(h: 16),
-                    SizedBox(
-                      height: 50,
-                      child: FilledButton(
-                        onPressed: state.canSend
-                            ? () => _send(context, ref)
-                            : null,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        child: state.sending
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : customText(
-                                l10n.leaveRequestSubmit,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(15, 12, 15, 40),
+                    children: [
+                      _Field(
+                        label: l10n.otDateLabel,
+                        value: OtCopy.date(state.workDate),
+                        icon: Icons.calendar_today_outlined,
+                        onTap: state.sending
+                            ? null
+                            : () => _pickDate(
+                                context,
+                                form,
+                                workDate: state.workDate,
+                                today: state.today,
                               ),
                       ),
-                    ),
-                  ],
+                      if (state.isPastDate) ...[
+                        heightBx(h: 8),
+                        _Warning(text: l10n.otPastDateWarning),
+                      ],
+                      heightBx(h: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _Field(
+                              label: l10n.otStartLabel,
+                              value: state.startTime ?? '--:--',
+                              icon: Icons.schedule,
+                              onTap: state.sending
+                                  ? null
+                                  : () => _pickTime(
+                                      context,
+                                      ref.read(otAskNotifierProvider).start,
+                                      form.setStart,
+                                    ),
+                            ),
+                          ),
+                          widthBx(w: 12),
+                          Expanded(
+                            child: _Field(
+                              label: l10n.otEndLabel,
+                              value: state.endTime ?? '--:--',
+                              suffix: state.endsNextDay ? l10n.otNextDay : null,
+                              icon: Icons.schedule,
+                              error: state.endError
+                                  ? l10n.otEndEqualsStart
+                                  : null,
+                              onTap: state.sending
+                                  ? null
+                                  : () {
+                                      final now = ref.read(
+                                        otAskNotifierProvider,
+                                      );
+                                      // End opens on itself, else on Start.
+                                      _pickTime(
+                                        context,
+                                        now.end ?? now.start,
+                                        form.setEnd,
+                                      );
+                                    },
+                            ),
+                          ),
+                        ],
+                      ),
+                      heightBx(h: 12),
+                      TextField(
+                        enabled: !state.sending,
+                        maxLength: reasonMaxLength,
+                        // maxLength counts what is seen; a Lao letter with its
+                        // marks is several code points. This keeps the text
+                        // within the server's 2000 however it counts them.
+                        inputFormatters: const [_RuneLimit(reasonMaxLength)],
+                        maxLines: 4,
+                        minLines: 2,
+                        onChanged: form.setReason,
+                        decoration: InputDecoration(
+                          labelText: l10n.otReasonOptional,
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      if (refusal != null) ...[
+                        heightBx(h: 12),
+                        customText(
+                          refusal.localize(l10n),
+                          color: AppColors.danger,
+                          maxLine: 6,
+                        ),
+                      ],
+                      heightBx(h: 16),
+                      SizedBox(
+                        height: 50,
+                        child: FilledButton(
+                          onPressed: state.canSend
+                              ? () => _send(context, ref)
+                              : null,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: state.sending
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : customText(
+                                  l10n.leaveRequestSubmit,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -179,13 +220,13 @@ class OtAskPage extends ConsumerWidget {
   /// what it takes.
   Future<void> _pickDate(
     BuildContext context,
-    OtAskNotifier form,
-    OtAskState state,
-  ) async {
-    final today = state.today;
+    OtAskNotifier form, {
+    required DateTime workDate,
+    required DateTime today,
+  }) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: state.workDate,
+      initialDate: workDate,
       firstDate: DateTime(today.year - 1, today.month, today.day),
       lastDate: DateTime(today.year + 1, today.month, today.day),
     );
@@ -194,15 +235,14 @@ class OtAskPage extends ConsumerWidget {
 
   Future<void> _pickTime(
     BuildContext context,
-    String? current,
+    ({int hour, int minute})? current,
     void Function(int hour, int minute) onPicked,
   ) async {
-    final parts = current?.split(':');
     final picked = await showTimePicker(
       context: context,
-      initialTime: parts == null
+      initialTime: current == null
           ? const TimeOfDay(hour: 18, minute: 0)
-          : TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
+          : TimeOfDay(hour: current.hour, minute: current.minute),
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
         child: child!,
@@ -219,6 +259,26 @@ class OtAskPage extends ConsumerWidget {
     if (sent == null || !context.mounted) return;
     AppToast.success(l10n.otAskSent);
     context.pushReplacement(AppRoutes.otRequest(sent.id), extra: sent);
+  }
+}
+
+/// Keeps a text within [max] code points (runes), whatever it looks like.
+class _RuneLimit extends TextInputFormatter {
+  final int max;
+
+  const _RuneLimit(this.max);
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.runes.length <= max) return newValue;
+    final text = String.fromCharCodes(newValue.text.runes.take(max));
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
   }
 }
 
