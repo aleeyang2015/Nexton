@@ -7,6 +7,7 @@ import '../../../../features/profile/domain/entities/shift_detail.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/attendance_failure_x.dart';
 import '../../domain/entities/attendance_day.dart';
+import '../../domain/entities/open_ot_session.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../../domain/entities/punch_receipt.dart';
 
@@ -21,6 +22,17 @@ import '../../domain/entities/punch_receipt.dart';
 /// know, and such a code never becomes a [PunchBlocked] in the first place.
 class AttendanceCopy {
   AttendanceCopy._();
+
+  /// "ສະແກນອອກພາຍໃນ 23:00" under the clock while an OT clock-in is open,
+  /// from its `clock_out_until` on the phone's clock; null when there is
+  /// none to show.
+  static String? otClockOutBy(AppLocalizations l10n, OpenOtSession? openOt) {
+    final until = openOt?.clockOutUntil?.toLocal();
+    if (until == null) return null;
+    final hh = until.hour.toString().padLeft(2, '0');
+    final mm = until.minute.toString().padLeft(2, '0');
+    return l10n.attOtClockOutBy('$hh:$mm');
+  }
 
   /// What to say when a month's attendance (the summary or the daily list)
   /// could not be loaded, and whether trying again can help.

@@ -3625,6 +3625,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No OT posts for your department'**
   String get otPostsEmpty;
+
+  /// No description provided for @attOtClockOutBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock out by {time}'**
+  String attOtClockOutBy(String time);
 }
 
 class _AppLocalizationsDelegate

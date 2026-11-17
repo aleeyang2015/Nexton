@@ -5,6 +5,7 @@ import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/domain/datasources/punch_location_source.dart';
 import 'package:next_on/features/attendance/domain/entities/attendance_day.dart';
+import 'package:next_on/features/attendance/domain/entities/open_ot_session.dart';
 import 'package:next_on/features/attendance/domain/entities/attendance_summary.dart';
 import 'package:next_on/features/attendance/domain/entities/clock_method.dart';
 import 'package:next_on/features/attendance/domain/entities/date_range.dart';
@@ -44,6 +45,18 @@ class FakeAttendanceRepository implements AttendanceRepository {
   Result<PunchOutcome>? clockOutResult;
 
   int todayCalls = 0;
+
+  /// The open OT clock-in (`ot-sessions/open`); none by default.
+  Result<OpenOtSession?> openOt = const Result.success(null);
+
+  /// How many times the open OT session was asked for.
+  int openOtCalls = 0;
+
+  /// When set, the next `todayRecord()` / `openOtSession()` waits for it
+  /// (taken by the call that sees it). Its answer is the one set when the
+  /// call was made.
+  Completer<void>? holdToday;
+  Completer<void>? holdOpenOt;
   final List<PunchRequest> clockInRequests = [];
   final List<PunchRequest> clockOutRequests = [];
   final List<DateRange> recordsRanges = [];
@@ -52,7 +65,21 @@ class FakeAttendanceRepository implements AttendanceRepository {
   @override
   FutureResult<AttendanceDay> todayRecord() async {
     todayCalls++;
-    return today;
+    final answer = today;
+    final hold = holdToday;
+    holdToday = null;
+    await hold?.future;
+    return answer;
+  }
+
+  @override
+  FutureResult<OpenOtSession?> openOtSession() async {
+    openOtCalls++;
+    final answer = openOt;
+    final hold = holdOpenOt;
+    holdOpenOt = null;
+    await hold?.future;
+    return answer;
   }
 
   @override

@@ -392,6 +392,104 @@ void main() {
     });
   });
 
+  group('open OT session', () {
+    test('GET /core_hr/attendance/ot-sessions/open', () async {
+      adapter.body = {'success': true, 'data': null};
+
+      await source.openOtSession();
+
+      expect(adapter.lastRequest!.method, 'GET');
+      expect(
+        adapter.lastRequest!.path,
+        '/core_hr/attendance/ot-sessions/open',
+      );
+    });
+
+    test('"data": null is no open session, not the envelope', () async {
+      adapter.body = {'success': true, 'data': null};
+
+      expect(await source.openOtSession(), isNull);
+    });
+
+    test('no data at all is no open session too', () async {
+      adapter.body = {'success': true};
+
+      expect(await source.openOtSession(), isNull);
+    });
+
+    test('reads the request id, the label and both times, on the phone\'s '
+        'clock', () async {
+      adapter.body = {
+        'success': true,
+        'data': {
+          'overtime_request_id': 'ot-1',
+          'session_label': 'OT 19:00–22:00',
+          'clock_in': '2026-11-14T18:45:00+07:00',
+          'clock_out_until': '2026-11-14T23:00:00+07:00',
+        },
+      };
+
+      final session = (await source.openOtSession())!;
+
+      expect(session.overtimeRequestId, 'ot-1');
+      expect(session.sessionLabel, 'OT 19:00–22:00');
+      expect(session.clockIn!.isUtc, isFalse);
+      expect(session.clockIn!.toUtc(), DateTime.utc(2026, 11, 14, 11, 45));
+      expect(session.clockOutUntil!.toUtc(), DateTime.utc(2026, 11, 14, 16));
+    });
+
+    test('a body with no request id is no session', () async {
+      adapter.body = {
+        'success': true,
+        'data': {'session_label': 'OT 19:00–22:00'},
+      };
+
+      expect(await source.openOtSession(), isNull);
+    });
+  });
+
+  group('clock answer on an OT', () {
+    test('overtime_request_id and the session label are read', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': {
+            'checkin_id': 'uuid-ot',
+            'status': 'verified',
+            'message': 'Clock-in successful',
+            'timestamp': '2026-11-14T11:45:00Z',
+            'overtime_request_id': 'ot-1',
+            'session_label': 'OT 19:00–22:00',
+          },
+        };
+
+      final outcome = await source.clockIn(gpsRequest);
+
+      final receipt = (outcome as PunchRecorded).receipt;
+      expect(receipt.overtimeRequestId, 'ot-1');
+      expect(receipt.sessionLabel, 'OT 19:00–22:00');
+    });
+
+    test('a shift punch has no OT request id', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': {
+            'checkin_id': 'uuid-1',
+            'status': 'verified',
+            'message': 'ok',
+            'timestamp': '2026-08-24T01:15:00Z',
+          },
+        };
+
+      final outcome = await source.clockIn(gpsRequest);
+
+      expect((outcome as PunchRecorded).receipt.overtimeRequestId, isNull);
+    });
+  });
+
   group('today record', () {
     /// A Monday in the middle of a month, mid-morning.
     final monday = DateTime(2026, 11, 16, 10);

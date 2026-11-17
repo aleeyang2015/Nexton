@@ -85,25 +85,44 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
     }
   }
 
-  /// Fetches today's record so the card knows which punch is owed (§6.2).
+  /// Fetches today's record and the user's open OT clock-in, together, so
+  /// the card knows which punch is owed (§6.2, guide 1.6).
   ///
-  /// A failure here is not fatal — the card falls back to its resting state
-  /// and the backend's session guard still catches a wrong guess — so the
-  /// error is surfaced without blocking the control.
+  /// A failure of the record is not fatal — the card falls back to its
+  /// resting state and the backend's session guard still catches a wrong
+  /// guess — so the error is surfaced without blocking the control. A
+  /// failure of the OT read is not shown at all: the card goes by the
+  /// record alone.
+  ///
+  /// Only the latest load counts: an older one answering late (a resume
+  /// during a punch) must not put back the state from before the punch. The
+  /// OT read gets [openOtSessionTimeoutProvider]: a slow one is treated as
+  /// failed rather than holding the slide locked.
   Future<void> loadToday() async {
     if (_disposed) return;
+    final loadedAs = ++_loads;
     _loadedDate = _dateOnly(DateTime.now());
     state = state.copyWith(today: const AsyncValue.loading());
 
-    final result = await ref.read(getTodayAttendanceUseCaseProvider)();
-    if (_disposed) return;
+    final otTimeout = ref.read(openOtSessionTimeoutProvider);
+    final (record, openOt) = await (
+      ref.read(getTodayAttendanceUseCaseProvider)(),
+      ref.read(getOpenOtSessionUseCaseProvider)().timeout(
+        otTimeout,
+        onTimeout: () => const Result.failure(
+          Failure.network(message: 'ot-sessions/open timed out'),
+        ),
+      ),
+    ).wait;
+    if (_disposed || loadedAs != _loads) return;
 
     state = state.copyWith(
-      today: result.fold(
+      today: record.fold(
         (failure) =>
             AsyncValue<AttendanceDay>.error(failure, StackTrace.current),
         (day) => AsyncValue<AttendanceDay>.data(day),
       ),
+      openOt: openOt.dataOrNull,
     );
   }
 
@@ -111,13 +130,32 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
   /// load — the card's live clock calls this every second, so a day left
   /// open on screen (the app foregrounded the whole time, never backgrounded)
   /// still rolls over without needing a standing `Timer` of its own.
+  ///
+  /// Also once when an open OT's "clock out by" time has passed, so a card
+  /// left open does not keep offering a clock-out the server will no longer
+  /// take for that OT: the server says again what is open.
   void refreshIfNewDay() {
     if (_disposed || state.isLoadingToday) return;
+    final now = DateTime.now();
     final loaded = _loadedDate;
-    if (loaded != null && loaded != _dateOnly(DateTime.now())) {
+    if (loaded != null && loaded != _dateOnly(now)) {
+      unawaited(loadToday());
+      return;
+    }
+    final until = state.openOt?.clockOutUntil;
+    if (until != null && now.isAfter(until) && until != _reloadedPastUntil) {
+      _reloadedPastUntil = until;
       unawaited(loadToday());
     }
   }
+
+  /// The "clock out by" time already reloaded for once it passed: the
+  /// server may still send that session, and the card must not ask every
+  /// second.
+  DateTime? _reloadedPastUntil;
+
+  /// How many loads have started; an answer to an older one is dropped.
+  int _loads = 0;
 
   static DateTime _dateOnly(DateTime value) =>
       DateTime(value.year, value.month, value.day);

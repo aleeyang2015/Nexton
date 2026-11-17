@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/clock_provider.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/attendance/domain/entities/attendance_day.dart';
+import 'package:next_on/features/attendance/domain/entities/open_ot_session.dart';
 import 'package:next_on/features/attendance/presentation/widgets/attendance_status_card.dart';
 import 'package:next_on/features/attendance/presentation/widgets/shift_session_slot.dart';
 import 'package:next_on/features/profile/domain/entities/employee_profile.dart';
@@ -325,6 +327,60 @@ void main() {
       expect(find.textContaining(lo.methodWifi), findsNothing);
       expect(find.textContaining(lo.methodBiometric), findsNothing);
       expect(find.textContaining(lo.methodField), findsNothing);
+    });
+
+    group('an open OT clock-in', () {
+      setUp(() {
+        repository
+          ..today = const Result.success(AttendanceDay.empty)
+          ..openOt = Result.success(
+            OpenOtSession(
+              overtimeRequestId: 'ot-1',
+              sessionLabel: 'OT 19:00–22:00',
+              clockIn: _todayAt(18, 45),
+              clockOutUntil: _todayAt(23, 0),
+            ),
+          );
+      });
+
+      testWidgets('the card offers Clock out, names the OT and says until '
+          'when', (tester) async {
+        final lo = lookupAppLocalizations(const Locale('lo'));
+
+        await pumpCard(tester);
+
+        expect(tester.takeException(), isNull);
+        expect(find.text(lo.slideToClockOut), findsOneWidget);
+        expect(find.text('OT 19:00–22:00'), findsOneWidget);
+        expect(find.text('ສະແກນອອກພາຍໃນ 23:00'), findsOneWidget);
+      });
+
+      testWidgets('no OT open: the shift badge, no "clock out by", and '
+          'Clock in', (tester) async {
+        final lo = lookupAppLocalizations(const Locale('lo'));
+        repository.openOt = const Result.success(null);
+
+        await pumpCard(tester);
+
+        expect(find.text('OT 19:00–22:00'), findsNothing);
+        expect(find.textContaining('ສະແກນອອກພາຍໃນ'), findsNothing);
+        expect(find.text(lo.slideToClockIn), findsOneWidget);
+      });
+
+      testWidgets('the OT read failing shows no error on the card', (
+        tester,
+      ) async {
+        final lo = lookupAppLocalizations(const Locale('lo'));
+        repository.openOt = const Result.failure(
+          Failure.server(message: 'boom', statusCode: 500),
+        );
+
+        await pumpCard(tester);
+
+        expect(tester.takeException(), isNull);
+        expect(find.text(lo.slideToClockIn), findsOneWidget);
+        expect(find.textContaining('ສະແກນອອກພາຍໃນ'), findsNothing);
+      });
     });
 
     group('a weekday with its own times', () {

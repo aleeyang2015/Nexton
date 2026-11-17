@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +10,7 @@ import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/attendance/domain/attendance_failure_x.dart';
 import 'package:next_on/features/attendance/domain/datasources/punch_location_source.dart';
 import 'package:next_on/features/attendance/domain/entities/attendance_day.dart';
+import 'package:next_on/features/attendance/domain/entities/open_ot_session.dart';
 import 'package:next_on/features/attendance/domain/entities/clock_method.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_outcome.dart';
 import 'package:next_on/features/attendance/domain/entities/punch_receipt.dart';
@@ -135,6 +138,265 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       return notifier;
     }
+
+    group('an open OT session (ot-sessions/open)', () {
+      final now = DateTime.now();
+      final ot = OpenOtSession(
+        overtimeRequestId: 'ot-1',
+        sessionLabel: 'OT 19:00–22:00',
+        clockIn: DateTime(now.year, now.month, now.day, 18, 45),
+        clockOutUntil: DateTime(now.year, now.month, now.day, 23),
+      );
+
+      ClockAction next() => container.read(attendanceNotifierProvider).nextAction;
+
+      test('both read together when the card loads: each starts before '
+          'either answers', () async {
+        final today = Completer<void>();
+        final openOt = Completer<void>();
+        repository
+          ..holdToday = today
+          ..holdOpenOt = openOt;
+
+        await ready();
+
+        // Neither has answered, and both have been asked.
+        expect(repository.todayCalls, 1);
+        expect(repository.openOtCalls, 1);
+        today.complete();
+        openOt.complete();
+      });
+
+      test('neither open: Clock in', () async {
+        await ready();
+
+        expect(next(), ClockAction.clockIn);
+        expect(container.read(attendanceNotifierProvider).openOt, isNull);
+      });
+
+      test('the record open, no OT clock-in (OT right after a shift): Clock '
+          'out', () async {
+        repository.today = Result.success(_openDay());
+
+        await ready();
+
+        expect(next(), ClockAction.clockOut);
+      });
+
+      test('an OT clock-in open, the record not: Clock out, with the session',
+          () async {
+        repository.openOt = Result.success(ot);
+
+        await ready();
+
+        expect(next(), ClockAction.clockOut);
+        expect(container.read(attendanceNotifierProvider).openOt, ot);
+      });
+
+      test('both open: Clock out', () async {
+        repository
+          ..today = Result.success(_openDay())
+          ..openOt = Result.success(ot);
+
+        await ready();
+
+        expect(next(), ClockAction.clockOut);
+      });
+
+      test('an OT clocked in at 23:30 still offers Clock out after midnight, '
+          'when yesterday\'s open row no longer counts', () async {
+        final yesterday = now.subtract(const Duration(days: 1));
+        // Yesterday's day-shift row, left open: #7's rule no longer counts
+        // it today.
+        repository.today = Result.success(
+          AttendanceDay.pickCurrent([_openDayFromYesterday()], now),
+        );
+        expect(
+          AttendanceDay.pickCurrent([_openDayFromYesterday()], now).isClockedIn,
+          isFalse,
+        );
+        repository.openOt = Result.success(
+          OpenOtSession(
+            overtimeRequestId: 'ot-2',
+            sessionLabel: 'OT 23:30–01:30',
+            clockIn: DateTime(yesterday.year, yesterday.month, yesterday.day, 23, 30),
+            clockOutUntil: DateTime(now.year, now.month, now.day, 2, 30),
+          ),
+        );
+
+        await ready();
+
+        expect(next(), ClockAction.clockOut);
+      });
+
+      test('an older load answering late does not put back the state from '
+          'before a newer one', () async {
+        repository.openOt = Result.success(ot);
+        await ready();
+        final notifier = container.read(attendanceNotifierProvider.notifier);
+
+        // Load A: still sees the OT open, and answers last.
+        final slowOt = Completer<void>();
+        repository.holdOpenOt = slowOt;
+        final a = notifier.loadToday();
+        // Load B: the OT is closed now.
+        repository.openOt = const Result.success(null);
+        await notifier.loadToday();
+        expect(next(), ClockAction.clockIn);
+
+        slowOt.complete();
+        await a;
+
+        expect(next(), ClockAction.clockIn);
+        expect(container.read(attendanceNotifierProvider).openOt, isNull);
+      });
+
+      test('a slow OT read does not hold the slide: after the timeout the '
+          'card goes by the record alone', () async {
+        final quick = ProviderContainer(
+          overrides: [
+            attendanceRepositoryProvider.overrideWithValue(repository),
+            punchLocationSourceProvider.overrideWithValue(location),
+            openOtSessionTimeoutProvider.overrideWithValue(
+              const Duration(milliseconds: 20),
+            ),
+          ],
+        );
+        addTearDown(quick.dispose);
+        final never = Completer<void>();
+        repository
+          ..today = Result.success(_openDay())
+          ..holdOpenOt = never;
+
+        quick.listen(attendanceNotifierProvider, (_, _) {});
+        await Future<void>.delayed(const Duration(milliseconds: 60));
+
+        final state = quick.read(attendanceNotifierProvider);
+        expect(state.isLoadingToday, isFalse);
+        expect(state.today.hasError, isFalse);
+        expect(state.openOt, isNull);
+        expect(state.nextAction, ClockAction.clockOut);
+      });
+
+      test('once the OT\'s "clock out by" time has passed, the card asks '
+          'again, once', () async {
+        repository.openOt = Result.success(
+          OpenOtSession(
+            overtimeRequestId: 'ot-1',
+            sessionLabel: 'OT 17:00–18:00',
+            clockOutUntil: DateTime.now().subtract(const Duration(minutes: 1)),
+          ),
+        );
+        final notifier = await ready();
+
+        notifier.refreshIfNewDay();
+        await Future<void>.delayed(Duration.zero);
+        notifier.refreshIfNewDay();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(repository.openOtCalls, 2);
+      });
+
+      test('an OT whose time has not passed: no extra reload', () async {
+        repository.openOt = Result.success(ot.copyWithUntil(
+          DateTime.now().add(const Duration(hours: 1)),
+        ));
+        final notifier = await ready();
+
+        notifier.refreshIfNewDay();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(repository.openOtCalls, 1);
+      });
+
+      test('a failed OT read: the card goes by the record alone, no error',
+          () async {
+        repository
+          ..today = Result.success(_openDay())
+          ..openOt = const Result.failure(
+            Failure.server(message: 'boom', statusCode: 500),
+          );
+
+        await ready();
+
+        final state = container.read(attendanceNotifierProvider);
+        expect(state.today.hasError, isFalse);
+        expect(state.openOt, isNull);
+        expect(next(), ClockAction.clockOut);
+      });
+
+      test('a failed OT read with nothing open: Clock in, no error', () async {
+        repository.openOt = const Result.failure(
+          Failure.network(message: 'offline'),
+        );
+
+        await ready();
+
+        expect(next(), ClockAction.clockIn);
+        expect(container.read(attendanceNotifierProvider).today.hasError, isFalse);
+      });
+
+      test('the punch on an open OT is a clock-out', () async {
+        repository
+          ..openOt = Result.success(ot)
+          ..clockOutResult = Result.success(PunchRecorded(_receipt()));
+
+        final notifier = await ready();
+        await notifier.punch();
+
+        expect(repository.clockOutRequests, hasLength(1));
+        expect(repository.clockInRequests, isEmpty);
+      });
+
+      test('after a punch both are read again; a closed OT turns the card '
+          'back to Clock in', () async {
+        repository
+          ..openOt = Result.success(ot)
+          ..clockOutResult = Result.success(PunchRecorded(_receipt()));
+        final notifier = await ready();
+
+        repository.openOt = const Result.success(null);
+        await notifier.punch();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(repository.todayCalls, 2);
+        expect(repository.openOtCalls, 2);
+        expect(next(), ClockAction.clockIn);
+      });
+
+      test('a stale screen slides Clock in, the server says the session is '
+          'already started: both are read again, and the card offers Clock '
+          'out', () async {
+        repository.clockInResult = const Result.success(
+          PunchBlocked(
+            rule: AttendanceRule.sessionAlreadyStarted,
+            message: 'Session already started',
+          ),
+        );
+        final notifier = await ready();
+        expect(next(), ClockAction.clockIn);
+
+        repository.openOt = Result.success(ot);
+        await notifier.punch();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(repository.openOtCalls, 2);
+        expect(next(), ClockAction.clockOut);
+      });
+
+      test('OT_CHANGED: both are read again', () async {
+        repository.clockInResult = const Result.success(
+          PunchBlocked(rule: AttendanceRule.otChanged, message: 'try again'),
+        );
+        final notifier = await ready();
+
+        await notifier.punch();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(repository.todayCalls, 2);
+        expect(repository.openOtCalls, 2);
+      });
+    });
 
     test('loads today on creation', () async {
       repository.today = Result.success(_openDay());
@@ -400,4 +662,13 @@ void main() {
       },
     );
   });
+}
+
+extension on OpenOtSession {
+  OpenOtSession copyWithUntil(DateTime until) => OpenOtSession(
+    overtimeRequestId: overtimeRequestId,
+    sessionLabel: sessionLabel,
+    clockIn: clockIn,
+    clockOutUntil: until,
+  );
 }

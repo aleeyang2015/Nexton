@@ -82,6 +82,9 @@ class PunchReceipt extends Equatable {
   final int? sessionOrder;
   final String? sessionLabel;
 
+  /// Set on an OT punch: the OT request it belongs to.
+  final String? overtimeRequestId;
+
   const PunchReceipt({
     required this.checkinId,
     required this.verification,
@@ -96,6 +99,7 @@ class PunchReceipt extends Equatable {
     this.attendanceStatus,
     this.sessionOrder,
     this.sessionLabel,
+    this.overtimeRequestId,
   });
 
   /// The punch counted. Anything else needs a warning, not a success message.
@@ -132,5 +136,6 @@ class PunchReceipt extends Equatable {
     attendanceStatus,
     sessionOrder,
     sessionLabel,
+    overtimeRequestId,
   ];
 }

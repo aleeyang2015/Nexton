@@ -30,6 +30,7 @@ class PunchReceiptModel {
       attendanceStatus: _nonEmpty(_string(json['attendance_status'])),
       sessionOrder: _int(json['session_order']),
       sessionLabel: _nonEmpty(_string(json['session_label'])),
+      overtimeRequestId: _nonEmpty(_string(json['overtime_request_id'])),
     );
   }
 

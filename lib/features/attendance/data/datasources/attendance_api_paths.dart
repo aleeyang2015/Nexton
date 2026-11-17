@@ -13,6 +13,9 @@ class AttendancePaths {
   static const String myRecords = '$_prefix/records/my';
   static const String myCheckins = '$_prefix/checkins/my';
   static const String mySummary = '$_prefix/records/summary/my';
+
+  /// The user's own OT clock-in a clock-out would close now, or none.
+  static const String openOtSession = '$_prefix/ot-sessions/open';
   static const String correctionRequests = '$_prefix/correction-requests';
 
   static const String myCorrectionRequests = '$correctionRequests/my';

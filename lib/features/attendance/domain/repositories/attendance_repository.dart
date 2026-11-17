@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../../../../core/utils/result.dart';
 import '../entities/attendance_day.dart';
+import '../entities/open_ot_session.dart';
 import '../entities/attendance_summary.dart';
 import '../entities/date_range.dart';
 import '../entities/punch_outcome.dart';
@@ -31,6 +32,11 @@ abstract class AttendanceRepository {
   ///
   /// A day with no punches yet is [AttendanceDay.empty], not a failure.
   FutureResult<AttendanceDay> todayRecord();
+
+  /// The user's own OT clock-in a clock-out would close now
+  /// (`GET /ot-sessions/open`), or null: an OT on a day off or with a gap
+  /// from the shift, which `records/my` does not list.
+  FutureResult<OpenOtSession?> openOtSession();
 
   /// `GET /attendance/records/my` over [range], newest first — the history
   /// page's daily list (§6.2).
