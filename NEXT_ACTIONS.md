@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#41 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#41 merged; next is #42). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 
 | | |
 |---|---|
-| Last finished work order | 39 of 60: #40, attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason |
-| Next work order | **40 of 60: #41**, attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too. IMPLEMENTED on `41-waiting-offsite` (`f6a1a8d`, `c45b99f`), pushed, reviewed; waits for "push issue 41 to main directly" |
-| `origin/main` | `01bf4be` "Merge branch '40-offsite-after-refusal' into main" (2026-11-17) |
+| Last finished work order | 40 of 60: #41, attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too |
+| Next work order | **41 of 60: #42**, attendance: my off-site requests — list, detail, cancel. Not started, no branch, no plan yet |
+| `origin/main` | `a205629` "Merge branch '41-waiting-offsite' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -57,7 +57,7 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#41: say "push issue 41 to main directly".** Built 2026-11-17 after the owner's go.
+1. **#41 merged** (`a205629`) on the owner's say, 2026-11-17.
    **#40 merged** (`01bf4be`) on the owner's say, 2026-11-17.
    **#39 merged** (`35df673`) on the owner's say, 2026-11-17.
    **#38 merged** (`f3cdef7`) on the owner's say, 2026-11-17.
@@ -142,10 +142,13 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#41 (work order 40 of 60), "attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site
-   too": IMPLEMENTED, not merged.** Owner said go on 2026-11-17. Branch `41-waiting-offsite`: `f6a1a8d` (feature),
+1. **Next: #42 (work order 41 of 60), "attendance: my off-site requests — list, detail, cancel".** Read the issue and its comments, show a plan, wait for "go". The off-site
+   menu tile (kept on the owner's choice in #40) is meant to give way to #42's "My requests".
+
+   **#41 (work order 40 of 60), "attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site
+   too": MERGED (`a205629`), 2026-11-17.** Owner said go on 2026-11-17. Branch `41-waiting-offsite`: `f6a1a8d` (feature),
    `c45b99f` (review fixes). Gates: analyze 1 warning already on `main`; `flutter test` 1,871 passed; debug APK builds.
-   Waits for "push issue 41 to main directly".
+   Merged on the owner's "push issue 41 to main directly"; gates green on the merge commit.
    - `loadToday` reads records/my, the open OT and `offsite-requests/my?status=pending&month=` (this month; the 1st also
      last month) together; the waiting read times out like the OT read and any failure means "none waiting".
    - `domain/next_punch.dart`: open session today / open OT → clock-out; a waiting check-in from today (or yesterday when
@@ -693,7 +696,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 37 | #38 | photos: take a photo with the camera and upload it (shared) | `38-shared-upload` | `e2612f9`, `a498e41`, `a0c7ecd` | merged to main directly (`f3cdef7`) | analyze: 1 warning already on `main`; `flutter test`: 1,804 passed, 0 failed; debug APK builds | MERGED, phone check pending |
 | 38 | #39 | leave: attach a photo when the type needs a file, and open attached files | `39-leave-files` | `d940f37`, `70da51a`, `6724eac` | merged to main directly (`35df673`) | analyze: 1 warning already on `main`; `flutter test`: 1,829 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 39 | #40 | attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason | `40-offsite-after-refusal` | `90823eb`, `7b616b4` | merged to main directly (`01bf4be`) | analyze: 1 warning already on `main`; `flutter test`: 1,843 passed, 0 failed; debug APK builds | MERGED, phone check pending |
-| 40 | #41 | attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too | `41-waiting-offsite` | `f6a1a8d`, `c45b99f` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,871 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
+| 40 | #41 | attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too | `41-waiting-offsite` | `f6a1a8d`, `c45b99f` | merged to main directly (`a205629`) | analyze: 1 warning already on `main`; `flutter test`: 1,871 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 41 | #42 | attendance: my off-site requests — list, detail, cancel | | | | | NOT STARTED |
 | 42 | #43 | attendance: "forgot to scan" — rules and sending (no screen) | | | | | NOT STARTED |
 | 43 | #44 | attendance: "forgot to scan" form, from a history day or the menu | | | | | NOT STARTED |
