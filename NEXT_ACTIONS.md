@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#39 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#39 merged; next is #40). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 
 | | |
 |---|---|
-| Last finished work order | 37 of 60: #38, photos: take a photo with the camera and upload it (shared) |
-| Next work order | **38 of 60: #39**, leave: attach a photo when the type needs a file, and open attached files. IMPLEMENTED on `39-leave-files` (`d940f37`, `70da51a`, `6724eac`), pushed, reviewed; waits for "push issue 39 to main directly" |
-| `origin/main` | `f3cdef7` "Merge branch '38-shared-upload' into main" (2026-11-17) |
+| Last finished work order | 38 of 60: #39, leave: attach a photo when the type needs a file, and open attached files |
+| Next work order | **39 of 60: #40**, attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason. Not started, no branch, no plan yet |
+| `origin/main` | `35df673` "Merge branch '39-leave-files' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -57,7 +57,7 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#39: say "push issue 39 to main directly".** Built 2026-11-17 after the owner's go.
+1. **#39 merged** (`35df673`) on the owner's say, 2026-11-17.
    **#38 merged** (`f3cdef7`) on the owner's say, 2026-11-17.
    **#37 merged** (`abfde43`) on the owner's say, 2026-11-17.
    **#36 merged** (`4ad1873`) on the owner's say, 2026-11-17.
@@ -140,11 +140,15 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#39 (work order 38 of 60), "leave: attach a photo when the type needs a file, and open attached files": IMPLEMENTED,
-   not merged.** Owner said go on 2026-11-17 (and OK'd moving #25's viewer into core). Branch `39-leave-files`:
+1. **Next: #40 (work order 39 of 60), "attendance: after a clock-in or clock-out refused for the area, scan outside the
+   area with a photo and reason".** Read the issue and its comment, show a plan, wait for "go". Uses #38's
+   `CapturePolicy.cameraOnly` (folder `offsite`); off-site still offers the gallery today.
+
+   **#39 (work order 38 of 60), "leave: attach a photo when the type needs a file, and open attached files": MERGED
+   (`35df673`), 2026-11-17.** Owner said go on 2026-11-17 (and OK'd moving #25's viewer into core). Branch `39-leave-files`:
    `d940f37` (move: `core/widgets/pdf_file_view.dart`, `core/widgets/image_viewer.dart`, `core/files/temp_share_files.dart`;
    `PayslipPdfFiles` is its payslip setup, tests unchanged), `70da51a` (feature), `6724eac` (review fixes). Gates: analyze 1
-   warning already on `main`; `flutter test` 1,829 passed; debug APK builds. Waits for "push issue 39 to main directly".
+   warning already on `main`; `flutter test` 1,829 passed; debug APK builds. Merged on the owner's "push issue 39 to main directly"; gates green on the merge commit.
    - Block only when the type needs a file and none is attached. Files in the form state (several; #38's sheet,
      `CapturePolicy.document`, folder `leave`); attach/remove off while sending; send off while uploading.
    - `attachments` is a list: create sends what is attached; edit sends the full list only when changed (absent keeps,
@@ -656,7 +660,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 35 | #36 | approvals: one Approvals place, only for department heads and HR (leave moves in) | `36-approvals-heads-hr` | `d62a2bf`, `04b85ee` | merged to main directly (`4ad1873`) | analyze: 1 warning already on `main`; `flutter test`: 1,738 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 36 | #37 | approvals: open a leave request to see days, files, steps and notes before deciding | `37-leave-approval-detail` | `5fa7fba`, `55b7eeb`, `c67dced` | merged to main directly (`abfde43`) | analyze: 1 warning already on `main`; `flutter test`: 1,773 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 37 | #38 | photos: take a photo with the camera and upload it (shared) | `38-shared-upload` | `e2612f9`, `a498e41`, `a0c7ecd` | merged to main directly (`f3cdef7`) | analyze: 1 warning already on `main`; `flutter test`: 1,804 passed, 0 failed; debug APK builds | MERGED, phone check pending |
-| 38 | #39 | leave: attach a photo when the type needs a file, and open attached files | `39-leave-files` | `d940f37`, `70da51a`, `6724eac` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,829 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
+| 38 | #39 | leave: attach a photo when the type needs a file, and open attached files | `39-leave-files` | `d940f37`, `70da51a`, `6724eac` | merged to main directly (`35df673`) | analyze: 1 warning already on `main`; `flutter test`: 1,829 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 39 | #40 | attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason | | | | | NOT STARTED |
 | 40 | #41 | attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too | | | | | NOT STARTED |
 | 41 | #42 | attendance: my off-site requests — list, detail, cancel | | | | | NOT STARTED |
