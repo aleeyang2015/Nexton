@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#36 merged; next is #37). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#37 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 | | |
 |---|---|
 | Last finished work order | 35 of 60: #36, approvals: one Approvals place, only for department heads and HR (#35 skipped: BLOCKED) |
-| Next work order | **36 of 60: #37**, approvals: open a leave request to see days, files, steps and notes before deciding. Not started, no branch, no plan yet |
+| Next work order | **36 of 60: #37**, approvals: open a leave request to see days, files, steps and notes before deciding. IMPLEMENTED on `37-leave-approval-detail` (`5fa7fba`, `55b7eeb`, `c67dced`), pushed, reviewed; waits for "push issue 37 to main directly" |
 | `origin/main` | `4ad1873` "Merge branch '36-approvals-heads-hr' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
@@ -57,7 +57,8 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#36 merged** (`4ad1873`) on the owner's say, 2026-11-17.
+1. **#37: say "push issue 37 to main directly".** Built 2026-11-17 after the owner's go.
+   **#36 merged** (`4ad1873`) on the owner's say, 2026-11-17.
    **#34 merged** (`55c41e7`) on the owner's say, 2026-11-17.
    **#33 merged** (`77db2c0`) on the owner's say, 2026-11-17.
    **#32 merged** (`c8880d6`) on the owner's say, 2026-11-17. A login whose `employee_id`
@@ -137,8 +138,23 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #37 (work order 36 of 60), "approvals: open a leave request to see days, files, steps and notes before
-   deciding".** Read the issue and its comments, show a plan, wait for "go".
+1. **#37 (work order 36 of 60), "approvals: open a leave request to see days, files, steps and notes before deciding":
+   IMPLEMENTED, not merged.** Owner said go on 2026-11-17. Branch `37-leave-approval-detail`: `5fa7fba` (pure move of
+   the read-only cards into `time_off/presentation/widgets/leave_request_detail_body.dart`), `55b7eeb` (feature),
+   `c67dced` (review fixes). Gates: analyze 1 warning already on `main`; `flutter test` 1,773 passed; debug APK builds.
+   Waits for "push issue 37 to main directly".
+   - `/approvals/leave/:id` (behind the Approvals gate): by-id load, list row first, pull to refresh; employee card
+     (name, number, department), every day (one too). Buttons only from the page's own copy and only when
+     `ApproverAccess.canDecideLeave` (HR step: leave permission or admin role; dept-head step: `approver.id` ==
+     employee id, now `LeaveApprovalStep.approverId`; never own, never decided).
+   - `ApproveNoteDialog` (shared by later approvals): confirm, optional `approver_note`, last-step balance line. Success:
+     toast, lists reload, back (or to `/approvals` when opened by a link); kept alive if the user goes back mid-way.
+     Stale refusals: text + page and lists reload. One decision per request, page or card. The list's inline Approve
+     asks first too (owner's go on the plan's choice). Seven `appr*` strings.
+   Open after #37, none built there:
+   - phone check on `nexton-demo` with a head login (the "Done when" walk);
+   - the shared by-id notifier refreshes the signed-in user's own balances/history when a status changes (extra call);
+   - whether the list endpoint's rows carry `approver.id` (else the buttons wait for the by-id load: safe).
 
    **#36 (work order 35 of 60), "approvals: one Approvals place, only for department heads and HR": MERGED (`4ad1873`),
    2026-11-17.** Owner said go on 2026-11-17. Branch `36-approvals-heads-hr`: `d62a2bf` (feature), `04b85ee` (review
@@ -595,7 +611,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 33 | #34 | overtime: the clock button knows about an open OT session | `34-clock-open-ot` | `1c44232`, `5f53ffa` | merged to main directly (`55c41e7`) | analyze: 1 warning already on `main`; `flutter test`: 1,696 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 34 | #35 | attendance: show OT hours on the summary and history | | | | | BLOCKED: backend, OT hours (re-checked 2026-11-17, skipped) |
 | 35 | #36 | approvals: one Approvals place, only for department heads and HR (leave moves in) | `36-approvals-heads-hr` | `d62a2bf`, `04b85ee` | merged to main directly (`4ad1873`) | analyze: 1 warning already on `main`; `flutter test`: 1,738 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 36 | #37 | approvals: open a leave request to see days, files, steps and notes before deciding | | | | | NOT STARTED |
+| 36 | #37 | approvals: open a leave request to see days, files, steps and notes before deciding | `37-leave-approval-detail` | `5fa7fba`, `55b7eeb`, `c67dced` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,773 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
 | 37 | #38 | photos: take a photo with the camera and upload it (shared) | | | | | NOT STARTED |
 | 38 | #39 | leave: attach a photo when the type needs a file, and open attached files | | | | | NOT STARTED |
 | 39 | #40 | attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason | | | | | NOT STARTED |
