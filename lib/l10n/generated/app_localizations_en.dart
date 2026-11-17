@@ -1763,4 +1763,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get payslipPdfShareFailed => 'Could not share the PDF';
+
+  @override
+  String get otDisabled => 'Your company has not turned on OT.';
+
+  @override
+  String get otNotEligible => 'You may not ask for OT yet. Please contact HR.';
+
+  @override
+  String get otTooFarBack =>
+      'This date is further back than your company allows.';
+
+  @override
+  String get otOverlap => 'This time overlaps another OT of yours.';
+
+  @override
+  String get otOverlapsShift =>
+      'This time overlaps your shift. OT must be outside your shift.';
+
+  @override
+  String get otEmployeeLeft =>
+      'OT cannot be asked for this date. Please contact HR.';
+
+  @override
+  String get otAlreadyDecided =>
+      'This request is already decided and cannot change. Ask your approver or HR.';
+
+  @override
+  String get otAnnounced =>
+      'This OT is from an HR post; its time cannot change. Cancel it if you cannot come.';
+
+  @override
+  String get otFull => 'All places are taken.';
+
+  @override
+  String get otJoinClosed => 'Joining is closed.';
+
+  @override
+  String get otStepChanged => 'This request just changed — please check again.';
+
+  @override
+  String get otStarted => 'This OT has started. Only HR can cancel it.';
+
+  @override
+  String get otAlreadyPaid =>
+      'An approved payroll already pays this OT; it cannot be cancelled.';
+
+  @override
+  String get otPaidByHand =>
+      'HR marked this OT as paid in cash. Please ask HR.';
+
+  @override
+  String get otCancelForbidden => 'A waiting request: reject it instead.';
 }

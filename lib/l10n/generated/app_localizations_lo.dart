@@ -1747,4 +1747,56 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get payslipPdfShareFailed => 'ແບ່ງປັນໄຟລ໌ PDF ບໍ່ສຳເລັດ';
+
+  @override
+  String get otDisabled => 'ບໍລິສັດຍັງບໍ່ໄດ້ເປີດໃຊ້ໂອທີ.';
+
+  @override
+  String get otNotEligible =>
+      'ທ່ານຍັງບໍ່ມີສິດຂໍໂອທີ. ກະລຸນາຕິດຕໍ່ຝ່າຍບຸກຄະລາກອນ.';
+
+  @override
+  String get otTooFarBack => 'ວັນທີນີ້ຍ້ອນຫຼັງເກີນກວ່າທີ່ບໍລິສັດອະນຸຍາດ.';
+
+  @override
+  String get otOverlap => 'ເວລານີ້ທັບກັບໂອທີອື່ນຂອງທ່ານ.';
+
+  @override
+  String get otOverlapsShift =>
+      'ເວລານີ້ທັບກັບກະວຽກຂອງທ່ານ. ໂອທີຕ້ອງຢູ່ນອກກະວຽກ.';
+
+  @override
+  String get otEmployeeLeft =>
+      'ຂໍໂອທີວັນນີ້ບໍ່ໄດ້. ກະລຸນາຕິດຕໍ່ຝ່າຍບຸກຄະລາກອນ.';
+
+  @override
+  String get otAlreadyDecided =>
+      'ຄຳຂໍນີ້ມີການຕັດສິນແລ້ວ, ປ່ຽນບໍ່ໄດ້. ກະລຸນາຖາມຜູ້ອະນຸມັດ ຫຼື ຝ່າຍບຸກຄະລາກອນ.';
+
+  @override
+  String get otAnnounced =>
+      'ໂອທີນີ້ມາຈາກປະກາດຂອງຝ່າຍບຸກຄະລາກອນ, ແກ້ເວລາບໍ່ໄດ້. ຖ້າບໍ່ໄປ ໃຫ້ຍົກເລີກ.';
+
+  @override
+  String get otFull => 'ບ່ອນເຕັມແລ້ວ.';
+
+  @override
+  String get otJoinClosed => 'ປິດຮັບແລ້ວ.';
+
+  @override
+  String get otStepChanged => 'ຄຳຂໍນີ້ຫາກໍ່ຖືກອັບເດດ — ກະລຸນາກວດຄືນ.';
+
+  @override
+  String get otStarted => 'ໂອທີນີ້ເລີ່ມແລ້ວ. ມີແຕ່ຝ່າຍບຸກຄະລາກອນທີ່ຍົກເລີກໄດ້.';
+
+  @override
+  String get otAlreadyPaid =>
+      'ເງິນເດືອນທີ່ອະນຸມັດແລ້ວໄດ້ຈ່າຍໂອທີນີ້, ຍົກເລີກບໍ່ໄດ້.';
+
+  @override
+  String get otPaidByHand =>
+      'ຝ່າຍບຸກຄະລາກອນໝາຍວ່າຈ່າຍເງິນສົດແລ້ວ. ກະລຸນາຖາມຝ່າຍບຸກຄະລາກອນ.';
+
+  @override
+  String get otCancelForbidden => 'ຄຳຂໍທີ່ລໍຖ້າ ໃຫ້ກົດປະຕິເສດແທນ.';
 }

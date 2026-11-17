@@ -3229,6 +3229,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not share the PDF'**
   String get payslipPdfShareFailed;
+
+  /// No description provided for @otDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Your company has not turned on OT.'**
+  String get otDisabled;
+
+  /// No description provided for @otNotEligible.
+  ///
+  /// In en, this message translates to:
+  /// **'You may not ask for OT yet. Please contact HR.'**
+  String get otNotEligible;
+
+  /// No description provided for @otTooFarBack.
+  ///
+  /// In en, this message translates to:
+  /// **'This date is further back than your company allows.'**
+  String get otTooFarBack;
+
+  /// No description provided for @otOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'This time overlaps another OT of yours.'**
+  String get otOverlap;
+
+  /// No description provided for @otOverlapsShift.
+  ///
+  /// In en, this message translates to:
+  /// **'This time overlaps your shift. OT must be outside your shift.'**
+  String get otOverlapsShift;
+
+  /// No description provided for @otEmployeeLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'OT cannot be asked for this date. Please contact HR.'**
+  String get otEmployeeLeft;
+
+  /// No description provided for @otAlreadyDecided.
+  ///
+  /// In en, this message translates to:
+  /// **'This request is already decided and cannot change. Ask your approver or HR.'**
+  String get otAlreadyDecided;
+
+  /// No description provided for @otAnnounced.
+  ///
+  /// In en, this message translates to:
+  /// **'This OT is from an HR post; its time cannot change. Cancel it if you cannot come.'**
+  String get otAnnounced;
+
+  /// No description provided for @otFull.
+  ///
+  /// In en, this message translates to:
+  /// **'All places are taken.'**
+  String get otFull;
+
+  /// No description provided for @otJoinClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Joining is closed.'**
+  String get otJoinClosed;
+
+  /// No description provided for @otStepChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'This request just changed — please check again.'**
+  String get otStepChanged;
+
+  /// No description provided for @otStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'This OT has started. Only HR can cancel it.'**
+  String get otStarted;
+
+  /// No description provided for @otAlreadyPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'An approved payroll already pays this OT; it cannot be cancelled.'**
+  String get otAlreadyPaid;
+
+  /// No description provided for @otPaidByHand.
+  ///
+  /// In en, this message translates to:
+  /// **'HR marked this OT as paid in cash. Please ask HR.'**
+  String get otPaidByHand;
+
+  /// No description provided for @otCancelForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'A waiting request: reject it instead.'**
+  String get otCancelForbidden;
 }
 
 class _AppLocalizationsDelegate

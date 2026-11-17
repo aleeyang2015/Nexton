@@ -128,6 +128,42 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.leaveRequestGone;
     case 'leaveStartedContactHr':
       return l10n.leaveStartedContactHr;
+    // Overtime business rules: the OT data source encodes a recognised
+    // `error.code` as one of these tokens
+    // (`overtime/data/datasources/ot_error_code.dart`).
+    case 'otDisabled':
+      return l10n.otDisabled;
+    case 'otNotEligible':
+      return l10n.otNotEligible;
+    case 'otTooFarBack':
+      return l10n.otTooFarBack;
+    case 'otOverlap':
+      return l10n.otOverlap;
+    case 'otOverlapsShift':
+      return l10n.otOverlapsShift;
+    case 'otEmployeeLeft':
+      return l10n.otEmployeeLeft;
+    case 'otAlreadyDecided':
+      return l10n.otAlreadyDecided;
+    case 'otAnnounced':
+      return l10n.otAnnounced;
+    case 'otFull':
+      return l10n.otFull;
+    case 'otJoinClosed':
+      return l10n.otJoinClosed;
+    case 'otStepChanged':
+      return l10n.otStepChanged;
+    case 'otStarted':
+      return l10n.otStarted;
+    case 'otAlreadyPaid':
+      return l10n.otAlreadyPaid;
+    case 'otPaidByHand':
+      return l10n.otPaidByHand;
+    // The same words as for leave.
+    case 'otNotApprover':
+      return l10n.leaveNotApprover;
+    case 'otCancelForbidden':
+      return l10n.otCancelForbidden;
     // Salary history — raised by the payroll datasource when the PDF
     // endpoint answers with something that isn't a PDF.
     case 'salaryPdfInvalid':

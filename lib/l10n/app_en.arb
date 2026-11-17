@@ -731,5 +731,20 @@
   "payslipPdfLoading": "Making the PDF…",
   "payslipPdfMakeFailed": "Could not make the PDF. Please try again",
   "payslipPdfShare": "Share",
-  "payslipPdfShareFailed": "Could not share the PDF"
+  "payslipPdfShareFailed": "Could not share the PDF",
+  "otDisabled": "Your company has not turned on OT.",
+  "otNotEligible": "You may not ask for OT yet. Please contact HR.",
+  "otTooFarBack": "This date is further back than your company allows.",
+  "otOverlap": "This time overlaps another OT of yours.",
+  "otOverlapsShift": "This time overlaps your shift. OT must be outside your shift.",
+  "otEmployeeLeft": "OT cannot be asked for this date. Please contact HR.",
+  "otAlreadyDecided": "This request is already decided and cannot change. Ask your approver or HR.",
+  "otAnnounced": "This OT is from an HR post; its time cannot change. Cancel it if you cannot come.",
+  "otFull": "All places are taken.",
+  "otJoinClosed": "Joining is closed.",
+  "otStepChanged": "This request just changed — please check again.",
+  "otStarted": "This OT has started. Only HR can cancel it.",
+  "otAlreadyPaid": "An approved payroll already pays this OT; it cannot be cancelled.",
+  "otPaidByHand": "HR marked this OT as paid in cash. Please ask HR.",
+  "otCancelForbidden": "A waiting request: reject it instead."
 }
