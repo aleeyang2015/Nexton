@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
@@ -5,6 +7,7 @@ import 'package:next_on/core/network/session_end_reason.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/auth/auth_providers.dart';
 import 'package:next_on/features/auth/domain/entities/auth_session.dart';
+import 'package:next_on/features/auth/domain/entities/user.dart';
 import 'package:next_on/features/auth/presentation/providers/auth_session_notifier.dart';
 
 import '../../support/auth_test_doubles.dart';
@@ -225,6 +228,106 @@ void main() {
       expect(result.failureOrNull, isA<ValidationFailure>());
       expect(repository.changePasswordCalls, 0);
       expect(current().status, AuthStatus.mustChangePassword);
+    });
+  });
+
+  group('back from the background: /auth/me read again', () {
+    User head() => User(
+      id: testUser().id,
+      tenantId: testUser().tenantId,
+      email: testUser().email,
+      firstName: testUser().firstName,
+      lastName: testUser().lastName,
+      employeeId: testUser().employeeId,
+      isDepartmentHead: true,
+    );
+
+    test('made a head meanwhile: the session shows it without a new sign-in',
+        () async {
+      repository.restoreResult = Result.success(AuthSession.signedIn(testUser()));
+      await session();
+      repository.profileResult = Result.success(head());
+
+      await container.read(authSessionProvider.notifier).refreshOnResume();
+
+      expect(current().user?.isDepartmentHead, isTrue);
+      expect(current().status, AuthStatus.authenticated);
+    });
+
+    test('signed out: nothing is asked', () async {
+      await session();
+
+      await container.read(authSessionProvider.notifier).refreshOnResume();
+
+      expect(repository.fetchProfileCalls, 0);
+      expect(current().status, AuthStatus.unauthenticated);
+    });
+
+    test('a pending password change stays pending', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser(), mustChangePassword: true),
+      );
+      await session();
+      repository.profileResult = Result.success(head());
+
+      await container.read(authSessionProvider.notifier).refreshOnResume();
+
+      expect(current().status, AuthStatus.mustChangePassword);
+    });
+
+    test('a failure leaves the session as it was', () async {
+      repository.restoreResult = Result.success(AuthSession.signedIn(head()));
+      await session();
+      repository.profileResult = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+
+      await container.read(authSessionProvider.notifier).refreshOnResume();
+
+      expect(current().user?.isDepartmentHead, isTrue);
+    });
+
+    test('an answer that lands after sign-out does not sign back in', () async {
+      repository.restoreResult = Result.success(AuthSession.signedIn(testUser()));
+      await session();
+      final slow = Completer<void>();
+      repository
+        ..holdProfile = slow
+        ..profileResult = Result.success(head());
+      final notifier = container.read(authSessionProvider.notifier);
+
+      final refresh = notifier.refreshOnResume();
+      await notifier.logout();
+      slow.complete();
+      await refresh;
+
+      expect(current().status, AuthStatus.unauthenticated);
+      expect(current().user, isNull);
+    });
+
+    test('an answer for another user (signed in again meanwhile) is dropped',
+        () async {
+      repository.restoreResult = Result.success(AuthSession.signedIn(testUser()));
+      await session();
+      final slow = Completer<void>();
+      repository
+        ..holdProfile = slow
+        ..profileResult = Result.success(head());
+      final notifier = container.read(authSessionProvider.notifier);
+
+      final refresh = notifier.refreshOnResume();
+      repository.loginResult = Result.success(
+        AuthSession.signedIn(testUser(id: 'someone-else')),
+      );
+      await notifier.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'password1',
+      );
+      slow.complete();
+      await refresh;
+
+      expect(current().user?.id, 'someone-else');
+      expect(current().user?.isDepartmentHead, isFalse);
     });
   });
 

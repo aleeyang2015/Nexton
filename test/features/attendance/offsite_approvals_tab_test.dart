@@ -13,6 +13,7 @@ import 'package:next_on/features/time_off/domain/entities/leave_approval_step.da
 import 'package:next_on/features/time_off/time_off_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
+import '../../support/approver_access_test_doubles.dart';
 import '../../support/attendance_test_doubles.dart';
 import '../../support/leave_test_doubles.dart';
 
@@ -167,6 +168,7 @@ void main() {
             getLeaveApprovalsUseCaseProvider.overrideWithValue(
               FakeGetLeaveApprovals(pending: const Result.success([])),
             ),
+            approverAccessOf(),
           ],
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -225,6 +227,7 @@ void main() {
             getLeaveApprovalsUseCaseProvider.overrideWithValue(
               FakeGetLeaveApprovals(pending: const Result.success([])),
             ),
+            approverAccessOf(),
           ],
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,

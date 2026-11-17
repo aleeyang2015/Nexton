@@ -1,17 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/error_page.dart';
 import '../../core/widgets/global_widgets.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../attendance/presentation/widgets/offsite_approvals_tab.dart';
 import '../attendance/presentation/widgets/time_correction_approvals_tab.dart';
 import '../time_off/presentation/widgets/leave_approvals_badge_icon.dart';
 import '../time_off/presentation/widgets/leave_approvals_tab.dart';
+import 'domain/approver_access.dart';
+import 'presentation/providers/approver_access_provider.dart';
 
-/// Which tab [ApprovalsPage] should open on. The order matches the [TabBar]
-/// below, so `.index` doubles as the tab index.
-enum ApprovalsTab { leave, timeCorrection, offsite }
+/// The sections of [ApprovalsPage], in tab order.
+enum ApprovalsTab {
+  leave,
+  timeCorrection,
+  offsite;
+
+  /// The sections [access] may see, in tab order: leave for leave approvers,
+  /// "forgot to scan" and off-site for attendance approvers.
+  static List<ApprovalsTab> visibleFor(ApproverAccess access) => [
+    if (access.canApproveLeave) leave,
+    if (access.canApproveAttendance) ...[timeCorrection, offsite],
+  ];
+}
 
 /// "ອະນຸມັດ" — everything waiting on the signed-in approver, gathered behind
 /// the home menu's single approvals tile: the leave requests
@@ -19,41 +33,39 @@ enum ApprovalsTab { leave, timeCorrection, offsite }
 /// requests ([TimeCorrectionApprovalsTab]) and the off-site scan requests
 /// ([OffsiteApprovalsTab]).
 ///
-/// Both tabs are the feature's own widgets rather than copies, so a change to
-/// either list shows up here and on its own screen at once. Each one owns its
-/// provider, its filters and its empty / failed states; this page only holds
-/// the chrome and the [TabController].
+/// For department heads and HR only (decision 8), and each section only for
+/// those who may decide it ([ApprovalsTab.visibleFor]). With one section the
+/// tab bar still shows, so the place looks the same as more arrive. The
+/// sections can change while the page is open (`/auth/me` read again on
+/// resume): [DefaultTabController] follows the new count.
 ///
-/// The title stays "ອະນຸມັດ" on both tabs — the tab bar already names the
-/// section, so there is nothing for a switching title to add.
-class ApprovalsPage extends StatefulWidget {
+/// Each tab is the feature's own widget rather than a copy, so a change to
+/// a list shows up here and on its own screen at once. Each one owns its
+/// provider, its filters and its empty / failed states; this page only holds
+/// the chrome.
+class ApprovalsPage extends ConsumerWidget {
   const ApprovalsPage({super.key, this.initialTab = ApprovalsTab.leave});
 
   final ApprovalsTab initialTab;
 
   @override
-  State<ApprovalsPage> createState() => _ApprovalsPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tabs = ApprovalsTab.visibleFor(ref.watch(approverAccessProvider));
+    if (tabs.isEmpty) return const NotFoundPage();
+    final initial = tabs.indexOf(initialTab);
 
-class _ApprovalsPageState extends State<ApprovalsPage>
-    with SingleTickerProviderStateMixin {
-  late final TabController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TabController(
-      length: ApprovalsTab.values.length,
-      vsync: this,
-      initialIndex: widget.initialTab.index,
+    return DefaultTabController(
+      length: tabs.length,
+      initialIndex: initial < 0 ? 0 : initial,
+      child: _ApprovalsScaffold(tabs: tabs),
     );
   }
+}
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+class _ApprovalsScaffold extends StatelessWidget {
+  const _ApprovalsScaffold({required this.tabs});
+
+  final List<ApprovalsTab> tabs;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +95,6 @@ class _ApprovalsPageState extends State<ApprovalsPage>
               ),
             ),
             bottom: TabBar(
-              controller: _controller,
               labelColor: AppColors.primary,
               unselectedLabelColor: AppColors.subTitle,
               indicatorColor: AppColors.primary,
@@ -91,34 +102,38 @@ class _ApprovalsPageState extends State<ApprovalsPage>
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
               ),
-              tabs: [
-                // Badged with the pending count, and the watch that keeps the
-                // leave approvals provider alive across tab switches.
-                Tab(
-                  icon: const LeaveApprovalsBadgeIcon(),
-                  text: l10n.approvalsLeaveTab,
-                ),
-                Tab(
-                  icon: const Icon(Icons.more_time),
-                  text: l10n.approvalsTimeCorrectionTab,
-                ),
-                Tab(
-                  icon: const Icon(Icons.wrong_location_outlined),
-                  text: l10n.approvalsOffsiteTab,
-                ),
-              ],
+              tabs: [for (final tab in tabs) _tab(tab, l10n)],
             ),
           ),
           body: TabBarView(
-            controller: _controller,
-            children: const [
-              LeaveApprovalsTab(),
-              TimeCorrectionApprovalsTab(),
-              OffsiteApprovalsTab(),
-            ],
+            children: [for (final tab in tabs) _view(tab)],
           ),
         ),
       ),
     );
   }
+
+  static Widget _tab(ApprovalsTab tab, AppLocalizations l10n) =>
+      switch (tab) {
+        // Badged with the pending count, and the watch that keeps the
+        // leave approvals provider alive across tab switches.
+        ApprovalsTab.leave => Tab(
+          icon: const LeaveApprovalsBadgeIcon(),
+          text: l10n.approvalsLeaveTab,
+        ),
+        ApprovalsTab.timeCorrection => Tab(
+          icon: const Icon(Icons.more_time),
+          text: l10n.approvalsTimeCorrectionTab,
+        ),
+        ApprovalsTab.offsite => Tab(
+          icon: const Icon(Icons.wrong_location_outlined),
+          text: l10n.approvalsOffsiteTab,
+        ),
+      };
+
+  static Widget _view(ApprovalsTab tab) => switch (tab) {
+    ApprovalsTab.leave => const LeaveApprovalsTab(),
+    ApprovalsTab.timeCorrection => const TimeCorrectionApprovalsTab(),
+    ApprovalsTab.offsite => const OffsiteApprovalsTab(),
+  };
 }

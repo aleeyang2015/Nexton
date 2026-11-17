@@ -50,6 +50,16 @@ class UserModel {
   @JsonKey(name: 'position_title')
   final String? positionTitle;
 
+  /// Whether the user heads a department (`is_department_head`, live on
+  /// `/auth/me` since 14 Nov, read fresh on every call). Null when the
+  /// server did not say (an older server); the login answer then counts.
+  /// Read so that a value of another type is "not said", never a failed
+  /// sign-in.
+  @JsonKey(name: 'is_department_head', fromJson: _boolOrNull)
+  final bool? isDepartmentHead;
+
+  static bool? _boolOrNull(Object? value) => value is bool ? value : null;
+
   const UserModel({
     required this.id,
     required this.tenantId,
@@ -63,7 +73,28 @@ class UserModel {
     this.profilePhotoUrl,
     this.departmentName,
     this.positionTitle,
+    this.isDepartmentHead,
   });
+
+  /// This user, with [isDepartmentHead] filled in when the server did not
+  /// say it.
+  UserModel withDepartmentHead(bool? value) => isDepartmentHead != null
+      ? this
+      : UserModel(
+          id: id,
+          tenantId: tenantId,
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+          roles: roles,
+          permissions: permissions,
+          modules: modules,
+          employeeId: employeeId,
+          profilePhotoUrl: profilePhotoUrl,
+          departmentName: departmentName,
+          positionTitle: positionTitle,
+          isDepartmentHead: value,
+        );
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
       _$UserModelFromJson(json);
@@ -84,5 +115,6 @@ class UserModel {
     profilePhotoUrl: profilePhotoUrl,
     departmentName: departmentName,
     positionTitle: positionTitle,
+    isDepartmentHead: isDepartmentHead ?? false,
   );
 }

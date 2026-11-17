@@ -126,10 +126,18 @@ class FakeAuthRepository implements AuthRepository {
     return restoreResult;
   }
 
+  /// When set, the next [fetchProfile] waits for it before answering with
+  /// the [profileResult] set when it was called.
+  Completer<void>? holdProfile;
+
   @override
   FutureResult<User> fetchProfile() async {
     fetchProfileCalls++;
-    return profileResult;
+    final answer = profileResult;
+    final hold = holdProfile;
+    holdProfile = null;
+    await hold?.future;
+    return answer;
   }
 
   @override
@@ -153,16 +161,23 @@ class FakeAuthRepository implements AuthRepository {
 }
 
 /// The `/auth/me` sample from auth.md, as a model.
-UserModel testUserModel({String id = 'cce14a0e'}) => UserModel(
+UserModel testUserModel({
+  String id = 'cce14a0e',
+  bool? isDepartmentHead,
+  List<String> roles = const ['employee'],
+  List<String> permissions = const ['corehr:employee:read'],
+  String? employeeId = 'b3f1-employees-uuid',
+}) => UserModel(
   id: id,
   tenantId: 'cbc6553a',
   email: 'somphone.vilaysone@nexton.la',
   firstName: 'Somphone',
   lastName: 'Vilaysone',
-  roles: const ['employee'],
-  permissions: const ['corehr:employee:read'],
+  roles: roles,
+  permissions: permissions,
   modules: const ['core_hr'],
-  employeeId: 'b3f1-employees-uuid',
+  employeeId: employeeId,
+  isDepartmentHead: isDepartmentHead,
 );
 
 User testUser({String id = 'cce14a0e'}) => testUserModel(id: id).toEntity();
@@ -170,9 +185,11 @@ User testUser({String id = 'cce14a0e'}) => testUserModel(id: id).toEntity();
 LoginResponseModel testTokens({
   bool mustChangePassword = false,
   DateTime? expiresAt,
+  bool isDepartmentHead = false,
 }) => LoginResponseModel(
   accessToken: 'access-1',
   refreshToken: 'refresh-1',
   mustChangePassword: mustChangePassword,
   expiresAt: expiresAt,
+  isDepartmentHead: isDepartmentHead,
 );
