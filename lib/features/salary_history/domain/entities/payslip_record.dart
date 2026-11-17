@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/utils/ot_pay.dart';
+import '../../../../core/utils/ot_pay_type.dart';
 
 /// Where HR's payroll run for this payslip stands (`status`). Staff only
 /// ever see a payslip once its run is `approved` or `paid`.

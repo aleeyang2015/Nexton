@@ -280,10 +280,14 @@ PayslipRow _rowOf(PayslipRecordLine line, {required bool isDeduction}) {
   );
 }
 
-/// Whether [row] opens the sheet of OT pieces: it is the OT line, and the
-/// payslip has pieces to show (`overtime_items`; missing means none).
+/// Whether [row] opens the sheet of OT pieces: it is the OT earning line,
+/// and the payslip has pieces to show (`overtime_items`; missing means
+/// none). A line coded `OT` that is not an earning is not the one the
+/// pieces add up to.
 bool opensOvertimeItems(PayslipRow row, PayslipRecord payslip) =>
-    row.title == PayslipLineTitle.overtime && payslip.overtimeItems.isNotEmpty;
+    row.title == PayslipLineTitle.overtime &&
+    !row.isDeduction &&
+    payslip.overtimeItems.isNotEmpty;
 
 /// The App's own name for a line with this `component_code`, or null for a
 /// code it does not know (the page then shows the server's name).

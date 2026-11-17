@@ -104,6 +104,27 @@ void main() {
     expect(find.text(en.payslipOtNotPaidNote), findsOneWidget);
   });
 
+  testWidgets('a piece with money but no minutes (not something the server '
+      'sends) shows its figures and no "not paid" note', (tester) async {
+    await pumpSheet(
+      tester,
+      items: [
+        PayslipOvertimeItem(
+          pieceId: 'odd',
+          workDate: DateTime(2026, 10, 3),
+          payType: PayslipOvertimePayType.percent,
+          payValue: 150,
+          amount: 43269,
+        ),
+      ],
+      total: 43269,
+    );
+
+    expect(rowTexts(tester, 'odd'), contains('0 min'));
+    expect(rowTexts(tester, 'odd'), contains('43,269'));
+    expect(find.text(en.payslipOtNotPaidNote), findsNothing);
+  });
+
   testWidgets('in Lao: 0 ນາທີ, 2 ຊມ 0 ນາທີ, ກີບ/ຊມ and the Lao note', (
     tester,
   ) async {

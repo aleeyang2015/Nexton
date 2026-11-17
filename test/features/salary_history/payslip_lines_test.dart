@@ -871,4 +871,41 @@ void main() {
       }
     });
   });
+
+  group('opensOvertimeItems', () {
+    PayslipRow row({
+      String code = 'OT',
+      bool isDeduction = false,
+    }) => PayslipRow(
+      code: code,
+      title: lineTitleKey(code),
+      name: code,
+      caption: null,
+      amount: 162259,
+      isDeduction: isDeduction,
+    );
+
+    final withPieces = PayslipRecord(
+      id: 'p',
+      overtimeItems: const [PayslipOvertimeItem(pieceId: 'piece-1')],
+    );
+    final withoutPieces = PayslipRecord(id: 'p');
+
+    test('the OT earning line, on a payslip with pieces', () {
+      expect(opensOvertimeItems(row(), withPieces), isTrue);
+    });
+
+    test('not with no pieces (overtime_items missing or empty)', () {
+      expect(opensOvertimeItems(row(), withoutPieces), isFalse);
+    });
+
+    test('not another line', () {
+      expect(opensOvertimeItems(row(code: 'BASIC'), withPieces), isFalse);
+      expect(opensOvertimeItems(row(code: 'LATE'), withPieces), isFalse);
+    });
+
+    test('not a line coded OT that takes from the pay', () {
+      expect(opensOvertimeItems(row(isDeduction: true), withPieces), isFalse);
+    });
+  });
 }

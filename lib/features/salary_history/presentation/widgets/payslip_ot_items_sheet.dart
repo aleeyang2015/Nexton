@@ -133,7 +133,10 @@ class _PieceRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final workDate = item.workDate;
     final window = _window(item);
-    final unpaid = item.paidMinutes == 0;
+    // Nothing paid: no time counted and no money. A piece with money but no
+    // minutes (not something the server sends) shows its figures without
+    // the note, so the sheet never says "not paid" beside an amount.
+    final unpaid = item.paidMinutes == 0 && item.amount == 0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),

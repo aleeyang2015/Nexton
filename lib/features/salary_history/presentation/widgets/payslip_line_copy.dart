@@ -2,6 +2,8 @@ import 'package:intl/intl.dart';
 
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/payslip_lines.dart';
+// The domain's `caption` again, by a prefix: inside [PayslipLineCopy] the
+// bare name is the class's own `caption`.
 import '../../domain/payslip_lines.dart' as domain show caption;
 
 /// What a row's amount is, for the page to colour it.
