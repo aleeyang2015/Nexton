@@ -3319,6 +3319,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A waiting request: reject it instead.'**
   String get otCancelForbidden;
+
+  /// No description provided for @otMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'OT'**
+  String get otMenu;
+
+  /// No description provided for @otListEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No OT requests yet'**
+  String get otListEmpty;
+
+  /// No description provided for @otListLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load OT'**
+  String get otListLoadFailed;
+
+  /// No description provided for @otAllMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'All months'**
+  String get otAllMonths;
+
+  /// No description provided for @otNextDay.
+  ///
+  /// In en, this message translates to:
+  /// **'(next day)'**
+  String get otNextDay;
+
+  /// No description provided for @otFromPost.
+  ///
+  /// In en, this message translates to:
+  /// **'From an HR post'**
+  String get otFromPost;
+
+  /// No description provided for @otDidNotCome.
+  ///
+  /// In en, this message translates to:
+  /// **'Did not come'**
+  String get otDidNotCome;
+
+  /// No description provided for @otPickMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a month'**
+  String get otPickMonth;
 }
 
 class _AppLocalizationsDelegate

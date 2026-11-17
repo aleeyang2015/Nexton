@@ -31,7 +31,9 @@ void main() {
     final lo = lookupAppLocalizations(const Locale('lo'));
     expect(tester.takeException(), isNull);
     expect(find.text(lo.homeServicesTitle), findsOneWidget);
-    expect(find.text(lo.menuItemCount(7)), findsOneWidget);
+    // Seven, and the OT tile (#29).
+    expect(find.text(lo.menuItemCount(8)), findsOneWidget);
+    expect(find.text(lo.otMenu), findsOneWidget);
     expect(find.text(lo.salaryHistoryMenu), findsOneWidget);
     // The standalone "ອະນຸມັດແກ້ໄຂເວລາ" tile was folded into the combined
     // approvals page, so the menu carries that one instead.

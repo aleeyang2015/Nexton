@@ -1815,4 +1815,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get otCancelForbidden => 'A waiting request: reject it instead.';
+
+  @override
+  String get otMenu => 'OT';
+
+  @override
+  String get otListEmpty => 'No OT requests yet';
+
+  @override
+  String get otListLoadFailed => 'Could not load OT';
+
+  @override
+  String get otAllMonths => 'All months';
+
+  @override
+  String get otNextDay => '(next day)';
+
+  @override
+  String get otFromPost => 'From an HR post';
+
+  @override
+  String get otDidNotCome => 'Did not come';
+
+  @override
+  String get otPickMonth => 'Choose a month';
 }

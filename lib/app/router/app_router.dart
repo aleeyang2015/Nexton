@@ -15,6 +15,7 @@ import '../../features/auth/domain/entities/auth_session.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/change_password/presentation/pages/change_password_page.dart';
+import '../../features/overtime/presentation/pages/ot_list_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/salary_history/domain/entities/payslip_record.dart';
 import '../../features/salary_history/presentation/pages/payslip_detail_page.dart';
@@ -83,6 +84,9 @@ class AppRoutes {
   /// The location of the PDF of the payslip [id].
   static String payslipPdf(String id) => '${payslip(id)}/pdf';
   static const String approvals = '/approvals';
+
+  /// The employee's OT requests.
+  static const String overtime = '/overtime';
   static const String notFound = '/404';
 }
 
@@ -357,6 +361,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
 
       ...payslipRoutes,
+
+      // Overtime
+      GoRoute(
+        path: AppRoutes.overtime,
+        name: 'overtime',
+        builder: (context, state) => const OtListPage(),
+      ),
 
       // 404 Route
       GoRoute(
