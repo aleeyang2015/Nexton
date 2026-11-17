@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#42 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#42 merged; next is #43). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 
 | | |
 |---|---|
-| Last finished work order | 40 of 60: #41, attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too |
-| Next work order | **41 of 60: #42**, attendance: my off-site requests — list, detail, cancel. IMPLEMENTED on `42-my-offsite-requests` (`47cc6b0`, `8733133`), pushed, reviewed; waits for "push issue 42 to main directly" |
-| `origin/main` | `a205629` "Merge branch '41-waiting-offsite' into main" (2026-11-17) |
+| Last finished work order | 41 of 60: #42, attendance: my off-site requests — list, detail, cancel |
+| Next work order | **42 of 60: #43**, attendance: "forgot to scan" — rules and sending (no screen). Not started, no branch, no plan yet |
+| `origin/main` | `2385f00` "Merge branch '42-my-offsite-requests' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -57,7 +57,7 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#42: say "push issue 42 to main directly".** Built 2026-11-17 after the owner's go.
+1. **#42 merged** (`2385f00`) on the owner's say, 2026-11-17.
    **#41 merged** (`a205629`) on the owner's say, 2026-11-17.
    **#40 merged** (`01bf4be`) on the owner's say, 2026-11-17.
    **#39 merged** (`35df673`) on the owner's say, 2026-11-17.
@@ -143,10 +143,13 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#42 (work order 41 of 60), "attendance: my off-site requests — list, detail, cancel": IMPLEMENTED, not merged.**
+1. **Next: #43 (work order 42 of 60), "attendance: "forgot to scan" — rules and sending (no screen)".** Read the issue and its comments, show a plan, wait for "go".
+
+   **#42 (work order 41 of 60), "attendance: my off-site requests — list, detail, cancel": MERGED (`2385f00`),
+   2026-11-17.**
    Owner said go on 2026-11-17. Branch `42-my-offsite-requests`: `47cc6b0` (feature), `8733133` (review fixes). Gates:
-   analyze 1 warning already on `main`; `flutter test` 1,892 passed; debug APK builds. Waits for "push issue 42 to main
-   directly".
+   analyze 1 warning already on `main`; `flutter test` 1,892 passed; debug APK builds. Merged on the owner's "push issue 42
+   to main directly"; gates green on the merge commit.
    - "ຄຳຮ້ອງຂອງຂ້ອຍ" (`/attendance/requests`, TabBar, off-site tab; #45 adds "forgot to scan"). The off-site menu tile is
      now "My requests"; `/attendance/offsite/history` opens the same page.
    - The list pages by cursor (`limit=20`), status as a server filter (no counts), next page on scroll. Each request opens
@@ -709,7 +712,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 38 | #39 | leave: attach a photo when the type needs a file, and open attached files | `39-leave-files` | `d940f37`, `70da51a`, `6724eac` | merged to main directly (`35df673`) | analyze: 1 warning already on `main`; `flutter test`: 1,829 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 39 | #40 | attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason | `40-offsite-after-refusal` | `90823eb`, `7b616b4` | merged to main directly (`01bf4be`) | analyze: 1 warning already on `main`; `flutter test`: 1,843 passed, 0 failed; debug APK builds | MERGED, phone check pending |
 | 40 | #41 | attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too | `41-waiting-offsite` | `f6a1a8d`, `c45b99f` | merged to main directly (`a205629`) | analyze: 1 warning already on `main`; `flutter test`: 1,871 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 41 | #42 | attendance: my off-site requests — list, detail, cancel | `42-my-offsite-requests` | `47cc6b0`, `8733133` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,892 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
+| 41 | #42 | attendance: my off-site requests — list, detail, cancel | `42-my-offsite-requests` | `47cc6b0`, `8733133` | merged to main directly (`2385f00`) | analyze: 1 warning already on `main`; `flutter test`: 1,892 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 42 | #43 | attendance: "forgot to scan" — rules and sending (no screen) | | | | | NOT STARTED |
 | 43 | #44 | attendance: "forgot to scan" form, from a history day or the menu | | | | | NOT STARTED |
 | 44 | #45 | attendance: my "forgot to scan" requests — list, detail, cancel | | | | | NOT STARTED |
