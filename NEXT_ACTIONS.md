@@ -143,7 +143,7 @@ Decided by the owner on 2026-11-16, during the work:
 
 1. **#40 (work order 39 of 60), "attendance: after a clock-in or clock-out refused for the area, scan outside the area
    with a photo and reason": IMPLEMENTED, not merged.** Owner said go on 2026-11-17. Branch `40-offsite-after-refusal`:
-   `90823eb` (feature), `7b616b4` (review fixes). Gates: analyze 1 warning already on `main`; `flutter test` 1,844 passed;
+   `90823eb` (feature), `7b616b4` (review fixes). Gates: analyze 1 warning already on `main`; `flutter test` 1,843 passed;
    debug APK builds. Waits for "push issue 40 to main directly".
    - The form opens only from a refused punch, with its direction (read-only); `/attendance/offsite` without one is
      not-found. Camera only (gallery/file pick removed). **Owner's choice:** the off-site menu tile stays and opens only
@@ -675,7 +675,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 36 | #37 | approvals: open a leave request to see days, files, steps and notes before deciding | `37-leave-approval-detail` | `5fa7fba`, `55b7eeb`, `c67dced` | merged to main directly (`abfde43`) | analyze: 1 warning already on `main`; `flutter test`: 1,773 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 37 | #38 | photos: take a photo with the camera and upload it (shared) | `38-shared-upload` | `e2612f9`, `a498e41`, `a0c7ecd` | merged to main directly (`f3cdef7`) | analyze: 1 warning already on `main`; `flutter test`: 1,804 passed, 0 failed; debug APK builds | MERGED, phone check pending |
 | 38 | #39 | leave: attach a photo when the type needs a file, and open attached files | `39-leave-files` | `d940f37`, `70da51a`, `6724eac` | merged to main directly (`35df673`) | analyze: 1 warning already on `main`; `flutter test`: 1,829 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 39 | #40 | attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason | `40-offsite-after-refusal` | `90823eb`, `7b616b4` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,844 passed, 0 failed; debug APK builds; phone check pending | IMPLEMENTED |
+| 39 | #40 | attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason | `40-offsite-after-refusal` | `90823eb`, `7b616b4` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,843 passed, 0 failed; debug APK builds; phone check pending | IMPLEMENTED |
 | 40 | #41 | attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too | | | | | NOT STARTED |
 | 41 | #42 | attendance: my off-site requests — list, detail, cancel | | | | | NOT STARTED |
 | 42 | #43 | attendance: "forgot to scan" — rules and sending (no screen) | | | | | NOT STARTED |
