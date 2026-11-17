@@ -43,16 +43,19 @@ void main() {
   final en = AppLocalizationsEn();
   late _HeldOffsite offsite;
   late FakeAttendanceRepository attendance;
+  late FakePunchLocationSource location;
   late GoRouter router;
 
   setUp(() {
     offsite = _HeldOffsite();
     attendance = FakeAttendanceRepository();
+    location = FakePunchLocationSource();
   });
 
   Future<ProviderContainer> open(
     WidgetTester tester, {
     Object? extra = OffsiteMethod.checkIn,
+    bool settle = true,
   }) async {
     tester.view.physicalSize = const Size(420, 2000);
     tester.view.devicePixelRatio = 1;
@@ -86,9 +89,7 @@ void main() {
       overrides: [
         offsiteRepositoryProvider.overrideWithValue(offsite),
         attendanceRepositoryProvider.overrideWithValue(attendance),
-        punchLocationSourceProvider.overrideWithValue(
-          FakePunchLocationSource(),
-        ),
+        punchLocationSourceProvider.overrideWithValue(location),
         uploadRepositoryProvider.overrideWithValue(FakeUploads()),
       ],
     );
@@ -108,7 +109,13 @@ void main() {
       ),
     );
     unawaited(router.push(AppRoutes.offsiteRequest, extra: extra));
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      // A spinner is running: let the page in, without waiting for it.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+    }
     return container;
   }
 
@@ -143,7 +150,8 @@ void main() {
 
     expect(find.text(en.offsiteMethodCheckOut), findsOneWidget);
     expect(find.text(en.offsiteMethodCheckIn), findsNothing);
-    expect(find.text(en.offsiteChooseImage), findsNothing);
+    expect(find.text('Choose image'), findsNothing);
+    expect(find.byIcon(Icons.photo_library_outlined), findsNothing);
     expect(find.text(en.timeCorrectionTakePhoto), findsWidgets);
   });
 
@@ -252,5 +260,43 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(offsite.submitted, hasLength(1));
+  });
+
+  testWidgets('back while the send is on its way: no error, and today is '
+      'still read again', (tester) async {
+    await open(tester);
+    await fillIn(tester);
+    final todayBefore = attendance.todayCalls;
+    final slow = Completer<void>();
+    offsite.hold = slow;
+
+    await tester.tap(find.text(en.offsiteSubmit));
+    await tester.pump();
+    router.pop();
+    await tester.pumpAndSettle();
+    slow.complete();
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(offsite.submitted, hasLength(1));
+    expect(attendance.todayCalls, greaterThan(todayBefore));
+  });
+
+  testWidgets('while the position is still being read, Send waits (no '
+      '"something went wrong")', (tester) async {
+    final slowFix = Completer<void>();
+    location.hold = slowFix;
+    await open(tester, settle: false);
+    await tester.enterText(find.byType(TextField), 'Client visit');
+
+    expect(find.text(en.offsiteSubmit), findsNothing);
+    await tester.tap(find.byType(ElevatedButton).last, warnIfMissed: false);
+    await tester.pump();
+    expect(find.text(en.genericError), findsNothing);
+    expect(offsite.submitted, isEmpty);
+
+    slowFix.complete();
+    await tester.pumpAndSettle();
+    expect(find.text(en.offsiteSubmit), findsOneWidget);
   });
 }

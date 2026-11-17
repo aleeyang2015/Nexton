@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -104,7 +106,9 @@ class OffsiteRequestPage extends ConsumerWidget {
           bottomNavigationBar: Padding(
             padding: const EdgeInsets.fromLTRB(15, 8, 15, 12),
             child: _SubmitButton(
-              loading: state.isSubmitting || uploading,
+              // Also while the position is still being read: a send then
+              // has nothing to send yet.
+              loading: state.isSubmitting || state.isLocating || uploading,
               onTap: () => _submit(context, ref),
             ),
           ),
@@ -126,13 +130,17 @@ class OffsiteRequestPage extends ConsumerWidget {
   Future<void> _submit(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
     final provider = offsiteFormNotifierProvider(method);
+    // Taken now: the page may close while the request is on its way, and
+    // its ref cannot be used after that. The card behind it still must not
+    // keep offering the punch that was just filed.
+    final today = ref.exists(attendanceNotifierProvider)
+        ? ref.read(attendanceNotifierProvider.notifier)
+        : null;
 
     final outcome = await ref.read(provider.notifier).submit();
-    // Read again even if the page closed meanwhile: the card must not keep
-    // offering the punch that was just filed.
     if (outcome is OffsiteFiled ||
         (outcome is OffsiteBlocked && outcome.rule.meansTodayChanged)) {
-      _reloadToday(ref);
+      unawaited(today?.loadToday());
     }
     if (!context.mounted) return;
 
@@ -151,13 +159,6 @@ class OffsiteRequestPage extends ConsumerWidget {
           error is Failure ? error.localize(l10n) : l10n.genericError,
         );
     }
-  }
-}
-
-/// Today's attendance, read again when it is on screen (the home card).
-void _reloadToday(WidgetRef ref) {
-  if (ref.exists(attendanceNotifierProvider)) {
-    ref.read(attendanceNotifierProvider.notifier).loadToday();
   }
 }
 

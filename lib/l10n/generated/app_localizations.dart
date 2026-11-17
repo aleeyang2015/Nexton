@@ -2690,12 +2690,6 @@ abstract class AppLocalizations {
   /// **'A photo is required: JPG, PNG, HEIC or WEBP\n(max 5MB)'**
   String get offsitePhotoHint;
 
-  /// No description provided for @offsiteChooseImage.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose image'**
-  String get offsiteChooseImage;
-
   /// No description provided for @offsitePhotoRequired.
   ///
   /// In en, this message translates to:
@@ -2773,18 +2767,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load your off-site clock-in requests.'**
   String get offsiteHistoryLoadFailed;
-
-  /// No description provided for @offsiteNewRequestTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'New off-site clock-in'**
-  String get offsiteNewRequestTitle;
-
-  /// No description provided for @offsiteNewRequestSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'File a clock-in taken outside the work area'**
-  String get offsiteNewRequestSubtitle;
 
   /// No description provided for @offsiteOfferTitle.
   ///

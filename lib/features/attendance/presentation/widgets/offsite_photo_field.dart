@@ -175,7 +175,7 @@ class _Preview extends StatelessWidget {
               bottom: 12,
               child: _Buttons(
                 onTakePhoto: onTakePhoto,
-                    background: Colors.white,
+                background: Colors.white,
               ),
             ),
           ],

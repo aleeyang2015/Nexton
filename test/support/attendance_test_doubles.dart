@@ -272,9 +272,15 @@ class FakePunchLocationSource implements PunchLocationSource {
     ),
   ]);
 
+  /// When set, the next read waits for it (a slow GPS fix).
+  Completer<void>? hold;
+
   @override
   Future<PunchLocationReading> read(ClockMethod method) async {
     reads.add(method);
+    final h = hold;
+    hold = null;
+    await h?.future;
     if (error != null) throw error!;
     return reading;
   }
