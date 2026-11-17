@@ -22,6 +22,8 @@ class SalaryHistoryNotifier extends AutoDisposeNotifier<SalaryHistoryState> {
 
     final year = DateTime.now().year;
     Future.microtask(() {
+      // The page may have closed before this ran.
+      if (_disposed) return;
       _load(year);
       _loadLatest();
     });
@@ -86,6 +88,9 @@ class SalaryHistoryNotifier extends AutoDisposeNotifier<SalaryHistoryState> {
 
     final result = await ref.read(getMyLatestPayslipUseCaseProvider)();
     if (_disposed || loadedAs != _latestLoads) return;
+    // A card that is showing is the server's own answer from moments ago: a
+    // failed Retry (still offline) does not take it away.
+    if (result.isFailure && state.latest.hasValue) return;
     state = state.copyWith(latest: _toAsync(result));
   }
 

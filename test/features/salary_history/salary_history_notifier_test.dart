@@ -175,6 +175,32 @@ void main() {
       expect(state().latest.valueOrNull, sampleLatestPayslip);
     });
 
+    test('a Retry that fails (still offline) keeps the card that is showing',
+        () async {
+      repository.latestResult = const Result.success(sampleLatestPayslip);
+      await settle();
+
+      repository.latestResult = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+      notifier().retry();
+      await settle();
+
+      expect(repository.latestCalls, 2);
+      expect(state().latest.valueOrNull, sampleLatestPayslip);
+      expect(state().latest.hasError, isFalse);
+    });
+
+    test('a page closed before its first load asks for nothing', () async {
+      final sub = container.listen(salaryHistoryNotifierProvider, (_, _) {});
+      sub.close();
+      container.dispose();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.latestCalls, 0);
+      expect(repository.myPayslipsYears, isEmpty);
+    });
+
     test('an older answer that comes late does not replace a newer one',
         () async {
       final slow = Completer<void>();
@@ -300,7 +326,7 @@ void main() {
       notifier().setFilter(SalaryHistoryFilter.paid);
 
       expect(state().filtered.map((p) => p.id), ['p-paid', 'p-failed']);
-      // The summary card's source is untouched by the chip.
+      // The chip narrows the list on the phone; the year's payslips stay.
       expect(state().all, hasLength(3));
       expect(repository.myPayslipsYears, [thisYear]);
     });
