@@ -85,6 +85,20 @@ void main() {
     );
   });
 
+  test('a request whose day is not known cannot be edited (the form would '
+      'move it to today); Cancel stays', () {
+    final noDay = OtRequest(
+      id: 'ot-1',
+      employeeId: me,
+      startTime: '18:00',
+      endTime: '20:00',
+      status: OtStatus.pending,
+    );
+
+    expect(actions(noDay).canEdit, isFalse);
+    expect(actions(noDay).canCancel, isTrue);
+  });
+
   test('own employee id unknown (no staff record linked): nothing', () {
     expect(actions(sampleOt('ot-1'), own: null).any, isFalse);
     expect(actions(sampleOt('ot-1'), own: '').any, isFalse);

@@ -78,12 +78,7 @@ class _OtRequestActionBarState extends ConsumerState<OtRequestActionBar> {
           if (actions.canEdit)
             Expanded(
               child: FilledButton(
-                onPressed: _busy
-                    ? null
-                    : () => context.push(
-                        AppRoutes.otRequestEditOf(widget.request.id),
-                        extra: widget.request,
-                      ),
+                onPressed: _busy ? null : () => _edit(context),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -98,6 +93,22 @@ class _OtRequestActionBarState extends ConsumerState<OtRequestActionBar> {
         ],
       ),
     );
+  }
+
+  /// Opens the edit form, once: a second tap while it opens, or while it is
+  /// open, does nothing (two forms would send two edits, each restarting
+  /// the approval).
+  Future<void> _edit(BuildContext context) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await context.push<void>(
+        AppRoutes.otRequestEditOf(widget.request.id),
+        extra: widget.request,
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   /// Asks first; then cancels and says what happened. A second tap while

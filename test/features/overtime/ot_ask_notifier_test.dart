@@ -324,6 +324,23 @@ void main() {
       expect(container.read(withSeconds).endTime, isNull);
     });
 
+    test('an impossible time (25:99) is left for the user to pick', () {
+      final odd = otAskNotifierProvider(sampleOt('ot-9', start: '25:99'));
+      container.listen(odd, (_, _) {});
+
+      expect(container.read(odd).startTime, isNull);
+      expect(container.read(odd).canSend, isFalse);
+    });
+
+    test('a reason the server sends over 2000 code points is cut to 2000', () {
+      final long = otAskNotifierProvider(
+        sampleOt('ot-10', reason: 'ກໍ່' * 1000),
+      );
+      container.listen(long, (_, _) {});
+
+      expect(container.read(long).reason.runes.length, 2000);
+    });
+
     test('Save sends the change to that request, not a new ask', () async {
       editForm()
         ..setStart(19, 0)

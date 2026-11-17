@@ -9,8 +9,9 @@ import '../../domain/entities/ot_step.dart';
 /// opening a team member's), nor when the user's own employee id is not
 /// known.
 class OtRequestActions {
-  /// While it waits, before any step is approved, and not for a join of an
-  /// HR post (its time is HR's).
+  /// While it waits, before any step is approved, not for a join of an HR
+  /// post (its time is HR's), and only with its day known (the form would
+  /// otherwise start on today and move it there).
   final bool canEdit;
 
   /// While it waits (joins too).
@@ -46,7 +47,11 @@ class OtRequestActions {
       (step) => step.status == OtStepStatus.approved,
     );
     return OtRequestActions._(
-      canEdit: pending && !anyApproved && request.announcementId == null,
+      canEdit:
+          pending &&
+          !anyApproved &&
+          request.announcementId == null &&
+          request.workDate != null,
       canCancel: pending,
       askApprover: request.status == OtStatus.approved,
     );

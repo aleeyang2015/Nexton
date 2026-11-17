@@ -39,7 +39,7 @@ class OtAskNotifier extends AutoDisposeFamilyNotifier<OtAskState, OtRequest?> {
       today: today,
       startTime: _asSent(arg.startTime),
       endTime: _asSent(arg.endTime),
-      reason: arg.reason ?? '',
+      reason: _within(arg.reason ?? '', reasonMaxRunes),
     );
   }
 
@@ -129,12 +129,25 @@ class OtAskNotifier extends AutoDisposeFamilyNotifier<OtAskState, OtRequest?> {
   /// The request is gone, or not the caller's (`404`).
   static bool isGone(Failure? failure) => OtDetailNotifier.isGone(failure);
 
+  /// The server's limit on a reason, kept in code points (a Lao letter with
+  /// its marks is several).
+  static const int reasonMaxRunes = 2000;
+
   /// `18:00` from `18:00` or `18:00:00`; null for anything that is not a
-  /// time, so the user picks it again.
+  /// real time (`25:99`, `8:00`), so the user picks it again.
   static String? _asSent(String time) {
     final match = RegExp(r'^(\d{2}):(\d{2})').firstMatch(time);
-    return match == null ? null : '${match[1]}:${match[2]}';
+    if (match == null) return null;
+    final hour = int.parse(match[1]!);
+    final minute = int.parse(match[2]!);
+    if (hour > 23 || minute > 59) return null;
+    return '${match[1]}:${match[2]}';
   }
+
+  /// [text] cut to [max] code points.
+  static String _within(String text, int max) => text.runes.length <= max
+      ? text
+      : String.fromCharCodes(text.runes.take(max));
 
   /// A change to the form: the last refusal and End error no longer apply
   /// (but for a change to the reason alone). Today is read again, so a form

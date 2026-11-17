@@ -318,4 +318,88 @@ void main() {
       expect(find.text(lo.otOverlapsShift), findsOneWidget);
     });
   });
+
+  group('the edit route', () {
+    testWidgets('a double tap on Edit opens one form, and Save sends once', (
+      tester,
+    ) async {
+      serve(waiting());
+      await openRequest(tester);
+
+      await tester.tap(button(en.otEditAction));
+      await tester.tap(button(en.otEditAction), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OtAskPage, skipOffstage: false), findsOneWidget);
+      await tester.tap(find.text(en.otSaveAction));
+      await tester.pumpAndSettle();
+
+      expect(repository.edits, hasLength(1));
+      expect(find.byType(OtAskPage, skipOffstage: false), findsNothing);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    Future<void> openLink(WidgetTester tester, String location) async {
+      tester.view.physicalSize = const Size(900, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      repository.myRequestsAnswer = (call) =>
+          const Result.success(OtPage(items: [], page: 1, totalPages: 1));
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            otRepositoryProvider.overrideWithValue(repository),
+            profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
+            otOwnEmployeeIdProvider.overrideWithValue('emp-noy'),
+          ],
+          child: MaterialApp.router(
+            routerConfig: GoRouter(
+              initialLocation: location,
+              routes: overtimeRoutes,
+            ),
+            scaffoldMessengerKey: rootScaffoldMessengerKey,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a link to edit a request that is gone: "not available", '
+        'and the list; no endless spinner', (tester) async {
+      repository.requestAnswer = (_) => const Result.failure(
+        Failure.network(message: 'not found', statusCode: 404),
+      );
+
+      await openLink(tester, AppRoutes.otRequestEditOf('ot-7'));
+
+      expect(find.text(en.otRequestGone), findsOneWidget);
+      expect(find.byType(OtAskPage), findsNothing);
+      expect(find.byType(OtRequestDetailPage), findsNothing);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('a link to edit an approved request shows the request, not '
+        'a form the server would refuse', (tester) async {
+      serve(waiting(status: OtStatus.approved));
+
+      await openLink(tester, AppRoutes.otRequestEditOf('ot-7'));
+
+      expect(find.byType(OtAskPage), findsNothing);
+      expect(find.byType(OtRequestDetailPage), findsOneWidget);
+      expect(find.text(en.otAskApproverToChange), findsOneWidget);
+    });
+
+    testWidgets('a link to edit my waiting request opens the form', (
+      tester,
+    ) async {
+      serve(waiting());
+
+      await openLink(tester, AppRoutes.otRequestEditOf('ot-7'));
+
+      expect(find.byType(OtAskPage), findsOneWidget);
+      expect(find.text('Stock count'), findsOneWidget);
+    });
+  });
 }
