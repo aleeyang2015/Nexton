@@ -45,7 +45,7 @@ class AppConstants {
 
   // Time-correction requests ("ລືມລົງເວລາ")
   /// How far back a correction may be filed, in days.
-  static const int timeCorrectionMaxAgeDays = 90;
+  static const int timeCorrectionMaxAgeDays = 30;
 
   /// Longest reason a correction request accepts.
   static const int timeCorrectionReasonMaxLength = 200;

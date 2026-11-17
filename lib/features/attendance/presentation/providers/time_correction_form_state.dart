@@ -6,6 +6,8 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../profile/domain/entities/shift_detail.dart';
 import '../../domain/entities/time_correction_request.dart';
 import '../../domain/entities/time_correction_type.dart';
+import '../../domain/correction_rules.dart';
+import '../../../../core/errors/validation_codes.dart';
 
 part 'time_correction_form_state.freezed.dart';
 
@@ -42,17 +44,29 @@ class TimeCorrectionFormState with _$TimeCorrectionFormState {
     clockIn: Duration(hours: clockIn.hour, minutes: clockIn.minute),
     clockOut: Duration(hours: clockOut.hour, minutes: clockOut.minute),
     reason: reason,
+    part: shiftDetail,
   );
+
+  /// The chosen part's window on [date] (#43), for the "outside the part
+  /// (from–to)" text; null when the part's times are not known.
+  CorrectionWindow? get window {
+    final part = shiftDetail;
+    return part == null ? null : CorrectionRules.window(part, date);
+  }
 
   /// The [ValidationCode] for [field] (a [TimeCorrectionFields] name), or
   /// null when it is fine or errors aren't shown yet.
   ///
   /// The clock-in/out order is the exception: it shows as soon as it breaks,
-  /// since it only ever comes from a pick the user just made.
+  /// since it only ever comes from a pick the user just made. A time outside
+  /// the part waits for Send like the rest: the form must not open in red.
   String? errorFor(String field) {
     final code = toRequest().violations()[field];
     if (showErrors) return code;
-    return field == TimeCorrectionFields.times ? code : null;
+    return field == TimeCorrectionFields.times &&
+            code == ValidationCode.correctionInvalidTimes
+        ? code
+        : null;
   }
 
   bool get isSubmitting => submission.isLoading;

@@ -27,7 +27,10 @@ class TimeCorrectionRequestModel {
         'requested_clock_in': _hourMinute(clockIn),
       if (type.needsClockOut && clockOut != null)
         'requested_clock_out': _hourMinute(clockOut),
-      'shift_detail_id': request.shiftDetailId,
+      // Left out when there is none (#43): an empty optional field is not
+      // sent.
+      if (request.shiftDetailId case final id? when id.isNotEmpty)
+        'shift_detail_id': id,
       'attachment_url': attachment == null
           ? ''
           : UploadedAttachmentModel.toJson(attachment),

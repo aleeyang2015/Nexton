@@ -14,12 +14,24 @@ class ShiftDetailWeekly extends Equatable {
   final String? startTime;
   final String? endTime;
 
+  /// That weekday's own allowances, when HR set them; null keeps the part's.
+  final int? earlyCheckinMinutes;
+  final int? lateCheckoutMinutes;
+
   const ShiftDetailWeekly({
     required this.weeklyDay,
     this.startTime,
     this.endTime,
+    this.earlyCheckinMinutes,
+    this.lateCheckoutMinutes,
   });
 
   @override
-  List<Object?> get props => [weeklyDay, startTime, endTime];
+  List<Object?> get props => [
+    weeklyDay,
+    startTime,
+    endTime,
+    earlyCheckinMinutes,
+    lateCheckoutMinutes,
+  ];
 }

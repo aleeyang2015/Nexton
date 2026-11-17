@@ -2036,6 +2036,27 @@ class AppLocalizationsLo extends AppLocalizations {
       'ລົງເວລາເຂົ້າ ແລະ ອອກ ນອກພື້ນທີ່: ລໍຖ້າອະນຸມັດ';
 
   @override
+  String get attCorrectionDuplicate => 'ທ່ານຂໍແກ້ໄຂມື້ ແລະ ຊ່ວງກະນີ້ແລ້ວ';
+
+  @override
+  String attCorrectionTooEarly(String time) {
+    return 'ລົງເວລາເຂົ້າຂອງກະນັ້ນເລີ່ມໄດ້ເວລາ $time';
+  }
+
+  @override
+  String attCorrectionOutOfRange(String earliest, String latest) {
+    return 'ເລືອກໄດ້ແຕ່ວັນທີ $earliest–$latest';
+  }
+
+  @override
+  String get attCorrectionInvalid => 'ກະລຸນາກວດວັນທີ, ເວລາ ແລະ ຊ່ວງກະອີກຄັ້ງ';
+
+  @override
+  String attCorrectionOutsideWindow(String from, String to) {
+    return 'ເວລາຢູ່ນອກຊ່ວງກະ ($from–$to)';
+  }
+
+  @override
   String attOtClockOutBy(String time) {
     return 'ສະແກນອອກພາຍໃນ $time';
   }

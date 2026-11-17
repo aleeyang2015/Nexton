@@ -2050,6 +2050,29 @@ class AppLocalizationsEn extends AppLocalizations {
       'Check-in and check-out outside the area: waiting for approval';
 
   @override
+  String get attCorrectionDuplicate =>
+      'You already asked for this day and shift part';
+
+  @override
+  String attCorrectionTooEarly(String time) {
+    return 'Clock-in for that shift opens at $time';
+  }
+
+  @override
+  String attCorrectionOutOfRange(String earliest, String latest) {
+    return 'Pick a date from $earliest to $latest';
+  }
+
+  @override
+  String get attCorrectionInvalid =>
+      'Please check the date, times and shift part again';
+
+  @override
+  String attCorrectionOutsideWindow(String from, String to) {
+    return 'The time is outside the shift part ($from–$to)';
+  }
+
+  @override
   String attOtClockOutBy(String time) {
     return 'Clock out by $time';
   }

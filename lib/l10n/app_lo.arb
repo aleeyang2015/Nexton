@@ -631,5 +631,10 @@
   "otPostsEmpty": "ບໍ່ມີປະກາດໂອທີສຳລັບພະແນກຂອງທ່ານ",
   "attOffsiteCheckinWaiting": "ລົງເວລາເຂົ້ານອກພື້ນທີ່ເວລາ {time}: ລໍຖ້າອະນຸມັດ",
   "attOffsiteBothWaiting": "ລົງເວລາເຂົ້າ ແລະ ອອກ ນອກພື້ນທີ່: ລໍຖ້າອະນຸມັດ",
+  "attCorrectionDuplicate": "ທ່ານຂໍແກ້ໄຂມື້ ແລະ ຊ່ວງກະນີ້ແລ້ວ",
+  "attCorrectionTooEarly": "ລົງເວລາເຂົ້າຂອງກະນັ້ນເລີ່ມໄດ້ເວລາ {time}",
+  "attCorrectionOutOfRange": "ເລືອກໄດ້ແຕ່ວັນທີ {earliest}–{latest}",
+  "attCorrectionInvalid": "ກະລຸນາກວດວັນທີ, ເວລາ ແລະ ຊ່ວງກະອີກຄັ້ງ",
+  "attCorrectionOutsideWindow": "ເວລາຢູ່ນອກຊ່ວງກະ ({from}–{to})",
   "attOtClockOutBy": "ສະແກນອອກພາຍໃນ {time}"
 }

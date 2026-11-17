@@ -3746,6 +3746,36 @@ abstract class AppLocalizations {
   /// **'Check-in and check-out outside the area: waiting for approval'**
   String get attOffsiteBothWaiting;
 
+  /// No description provided for @attCorrectionDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'You already asked for this day and shift part'**
+  String get attCorrectionDuplicate;
+
+  /// No description provided for @attCorrectionTooEarly.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock-in for that shift opens at {time}'**
+  String attCorrectionTooEarly(String time);
+
+  /// No description provided for @attCorrectionOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date from {earliest} to {latest}'**
+  String attCorrectionOutOfRange(String earliest, String latest);
+
+  /// No description provided for @attCorrectionInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please check the date, times and shift part again'**
+  String get attCorrectionInvalid;
+
+  /// No description provided for @attCorrectionOutsideWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'The time is outside the shift part ({from}–{to})'**
+  String attCorrectionOutsideWindow(String from, String to);
+
   /// No description provided for @attOtClockOutBy.
   ///
   /// In en, this message translates to:

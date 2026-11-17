@@ -26,6 +26,7 @@ import '../models/time_correction_detail_model.dart';
 import '../models/time_correction_record_model.dart';
 import '../models/time_correction_request_model.dart';
 import 'attendance_api_paths.dart';
+import 'correction_error_code.dart';
 import 'time_correction_error_code.dart';
 
 /// The attendance calls the home screen can trigger.
@@ -259,6 +260,9 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
       _debugLog('response ${response.statusCode}', response.data);
     } on DioException catch (error) {
       _debugLog('error ${error.response?.statusCode}', error.response?.data);
+      // A refusal the user can act on, in plain words (#43).
+      final refusal = CorrectionErrorCode.fromResponse(error);
+      if (refusal != null) throw refusal;
       rethrow;
     }
   }

@@ -24,6 +24,12 @@ class ShiftDetail extends Equatable {
   /// backend's order. Empty when every day keeps the part's own times.
   final List<ShiftDetailWeekly> weeklys;
 
+  /// How early before [startTime] a clock-in still counts, and how late
+  /// after [endTime] a clock-out does (`early_checkin_minutes`,
+  /// `late_checkout_minutes`). Zero when not sent.
+  final int earlyCheckinMinutes;
+  final int lateCheckoutMinutes;
+
   const ShiftDetail({
     this.id,
     this.name,
@@ -32,6 +38,8 @@ class ShiftDetail extends Equatable {
     this.endTime,
     this.endsNextDay = false,
     this.weeklys = const [],
+    this.earlyCheckinMinutes = 0,
+    this.lateCheckoutMinutes = 0,
   });
 
   /// `weekly_day` codes by `DateTime.weekday` (1 = Monday … 7 = Sunday).
@@ -70,6 +78,24 @@ class ShiftDetail extends Equatable {
     return (start: start ?? startTime, end: end ?? endTime);
   }
 
+  /// This part's allowances on [day]: that weekday's row's, field by field,
+  /// else the part's own (as [timesOn]).
+  ({int early, int late}) minutesOn(DateTime day) {
+    final code = _weekdayCodes[day.weekday - 1];
+
+    int? early;
+    int? late;
+    for (final row in weeklys) {
+      if (row.weeklyDay.trim().toUpperCase() != code) continue;
+      early ??= row.earlyCheckinMinutes;
+      late ??= row.lateCheckoutMinutes;
+    }
+    return (
+      early: early ?? earlyCheckinMinutes,
+      late: late ?? lateCheckoutMinutes,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id,
@@ -78,6 +104,8 @@ class ShiftDetail extends Equatable {
     startTime,
     endTime,
     endsNextDay,
+    earlyCheckinMinutes,
+    lateCheckoutMinutes,
     weeklys,
   ];
 }

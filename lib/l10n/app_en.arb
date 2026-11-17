@@ -822,6 +822,14 @@
   "attOffsiteCheckinWaiting": "Check-in outside the area at {time}: waiting for approval",
   "@attOffsiteCheckinWaiting": {"placeholders": {"time": {"type": "String"}}},
   "attOffsiteBothWaiting": "Check-in and check-out outside the area: waiting for approval",
+  "attCorrectionDuplicate": "You already asked for this day and shift part",
+  "attCorrectionTooEarly": "Clock-in for that shift opens at {time}",
+  "@attCorrectionTooEarly": {"placeholders": {"time": {"type": "String"}}},
+  "attCorrectionOutOfRange": "Pick a date from {earliest} to {latest}",
+  "@attCorrectionOutOfRange": {"placeholders": {"earliest": {"type": "String"}, "latest": {"type": "String"}}},
+  "attCorrectionInvalid": "Please check the date, times and shift part again",
+  "attCorrectionOutsideWindow": "The time is outside the shift part ({from}–{to})",
+  "@attCorrectionOutsideWindow": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
   "attOtClockOutBy": "Clock out by {time}",
   "@attOtClockOutBy": {"placeholders": {"time": {"type": "String"}}}
 }

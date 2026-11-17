@@ -39,13 +39,14 @@ void main() {
       expect(request(date: DateTime(2026, 9, 25)).violations(now: now), {
         TimeCorrectionFields.date: ValidationCode.correctionDateInFuture,
       });
-      expect(request(date: DateTime(2026, 6, 25)).violations(now: now), {
+      // 31 days back: past the owner's 30 (decision 16, #43).
+      expect(request(date: DateTime(2026, 8, 24)).violations(now: now), {
         TimeCorrectionFields.date: ValidationCode.correctionDateTooOld,
       });
-      // Today and exactly 90 days back are both allowed.
+      // Today and exactly 30 days back are both allowed.
       expect(request(date: now).violations(now: now), isEmpty);
       expect(
-        request(date: DateTime(2026, 6, 26)).violations(now: now),
+        request(date: DateTime(2026, 8, 25)).violations(now: now),
         isEmpty,
       );
     });
@@ -135,5 +136,24 @@ void main() {
 
     expect(result.isFailure, isTrue);
     expect(repository.timeCorrectionRequests, isEmpty);
+  });
+
+  test('the body: Latin digits, no session_order, no shift_detail_id when '
+      'there is none (#43)', () {
+    final body = TimeCorrectionRequestModel(
+      TimeCorrectionRequest(
+        date: DateTime(2026, 9, 5),
+        type: TimeCorrectionType.both,
+        shiftDetailId: null,
+        clockIn: const Duration(hours: 7, minutes: 5),
+        clockOut: const Duration(hours: 17),
+        reason: 'Forgot',
+      ),
+    ).toJson();
+
+    expect(body['request_date'], '2026-09-05');
+    expect(body['requested_clock_in'], '07:05');
+    expect(body.containsKey('session_order'), isFalse);
+    expect(body.containsKey('shift_detail_id'), isFalse);
   });
 }

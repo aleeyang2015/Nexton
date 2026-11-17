@@ -24,6 +24,7 @@ extension FailureLocalization on Failure {
         _byStatusCode(l10n, statusCode) ??
         message,
     validation: (message, _, code) =>
+        _byCorrection(l10n, message) ??
         _byValidationCode(l10n, message) ??
         _byErrorCode(l10n, code) ??
         message,
@@ -257,4 +258,18 @@ String? _byStatusCode(AppLocalizations l10n, int? statusCode) {
   }
   if (statusCode != null && statusCode >= 500) return l10n.serverError;
   return null;
+}
+
+/// A refused "forgot to scan" (#43), with the times or dates it names: the
+/// token, then its values after `|` (attendance's `CorrectionErrorCode`).
+String? _byCorrection(AppLocalizations l10n, String message) {
+  final parts = message.split('|');
+  String at(int i) => i + 1 < parts.length ? parts[i + 1] : '';
+  return switch (parts.first) {
+    'correctionDuplicate' => l10n.attCorrectionDuplicate,
+    'correctionTooEarly' => l10n.attCorrectionTooEarly(at(0)),
+    'correctionOutOfRange' => l10n.attCorrectionOutOfRange(at(0), at(1)),
+    'correctionInvalid' => l10n.attCorrectionInvalid,
+    _ => null,
+  };
 }
