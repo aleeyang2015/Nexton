@@ -636,5 +636,6 @@
   "attCorrectionOutOfRange": "ເລືອກໄດ້ແຕ່ວັນທີ {earliest}–{latest}",
   "attCorrectionInvalid": "ກະລຸນາກວດວັນທີ, ເວລາ ແລະ ຊ່ວງກະອີກຄັ້ງ",
   "attCorrectionOutsideWindow": "ເວລາຢູ່ນອກຊ່ວງກະ ({from}–{to})",
+  "attCorrectionWindowHint": "ເວລາທີ່ຮັບໄດ້: {from}–{to}",
   "attOtClockOutBy": "ສະແກນອອກພາຍໃນ {time}"
 }

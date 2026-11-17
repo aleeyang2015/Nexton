@@ -50,6 +50,7 @@ class AttendanceRecordModel {
       locationLabel:
           _nonEmpty(_string(json['clock_in_location_name'])) ??
           _nonEmpty(_string(json['clock_out_location_name'])),
+      partId: _nonEmpty(_string(partJson['id'])),
       partStartTime: _nonEmpty(_string(partJson['start_time'])),
       partEndTime: _nonEmpty(_string(partJson['end_time'])),
     );

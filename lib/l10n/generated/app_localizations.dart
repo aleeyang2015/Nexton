@@ -3776,6 +3776,12 @@ abstract class AppLocalizations {
   /// **'The time is outside the shift part ({from}–{to})'**
   String attCorrectionOutsideWindow(String from, String to);
 
+  /// No description provided for @attCorrectionWindowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted times: {from}–{to}'**
+  String attCorrectionWindowHint(String from, String to);
+
   /// No description provided for @attOtClockOutBy.
   ///
   /// In en, this message translates to:

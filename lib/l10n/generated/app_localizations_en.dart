@@ -2073,6 +2073,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String attCorrectionWindowHint(String from, String to) {
+    return 'Accepted times: $from–$to';
+  }
+
+  @override
   String attOtClockOutBy(String time) {
     return 'Clock out by $time';
   }

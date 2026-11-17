@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/upload/domain/local_file.dart';
 import '../../../../core/upload/domain/uploaded_attachment.dart';
-import '../../../time_off/presentation/services/attachment_picker.dart';
 import '../../../../core/upload/domain/upload_rules.dart';
 import '../../../../core/upload/upload_providers.dart';
 
@@ -27,35 +26,19 @@ class TimeCorrectionEvidence extends Equatable {
 }
 
 /// Holds the evidence file of the time-correction form — same workflow as the
-/// leave form's [LeaveAttachmentNotifier]: the file is uploaded
-/// (`POST /uploads`) the moment it is picked, and the accepted attachment is
-/// what [TimeCorrectionFormNotifier.submit] sends as `attachment_url`.
+/// leave form's files: the file is uploaded (`POST /uploads`) the moment it
+/// is picked, and the accepted attachment is what
+/// [TimeCorrectionFormNotifier.submit] sends as `attachment_url`.
 ///
 /// The value is the file the backend has accepted, or null. A failed
 /// upload surfaces as [AsyncError] while the previous value is kept.
 class TimeCorrectionAttachmentNotifier
     extends AutoDisposeAsyncNotifier<TimeCorrectionEvidence?> {
-  /// File types the correction form accepts, per the design: images and PDF.
-  static const extensions = ['jpg', 'jpeg', 'png', 'pdf'];
-
   /// Largest file the form accepts, in bytes: the shared limit.
   static const int maxBytes = UploadRules.maxBytes;
 
   @override
   FutureOr<TimeCorrectionEvidence?> build() => null;
-
-  /// Opens the file chooser, then [upload]s the pick. A back-out changes
-  /// nothing and returns null.
-  Future<TimeCorrectionAttachmentError?> pickAndUpload() async {
-    if (state.isLoading) return null;
-
-    final picked = await ref
-        .read(attachmentPickerProvider)
-        .pickAttachment(extensions: extensions);
-    if (picked == null) return null;
-
-    return upload(picked);
-  }
 
   /// Uploads [picked] — from the file chooser or the camera — and keeps it
   /// (replacing any previous one). Returns

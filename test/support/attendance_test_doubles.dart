@@ -117,8 +117,15 @@ class FakeAttendanceRepository implements AttendanceRepository {
   @override
   FutureResult<Unit> submitTimeCorrection(TimeCorrectionRequest request) async {
     timeCorrectionRequests.add(request);
-    return timeCorrectionResult;
+    final answer = timeCorrectionResult;
+    final hold = holdTimeCorrection;
+    holdTimeCorrection = null;
+    await hold?.future;
+    return answer;
   }
+
+  /// When set, the next correction submit waits for it.
+  Completer<void>? holdTimeCorrection;
 
   Result<List<TimeCorrectionRecord>> timeCorrectionHistoryResult =
       const Result.success([]);

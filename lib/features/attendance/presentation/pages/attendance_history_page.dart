@@ -14,6 +14,8 @@ import '../../domain/entities/attendance_summary.dart';
 import '../providers/attendance_history_notifier.dart';
 import '../widgets/attendance_copy.dart';
 import '../widgets/attendance_history_copy.dart';
+import '../../domain/correction_rules.dart';
+import '../../../../app/router/app_router.dart';
 
 /// "ປະຫວັດການເຂົ້າວຽກ" — the destination behind the home screen's "view all".
 ///
@@ -566,13 +568,28 @@ class _DayCard extends ConsumerWidget {
             heightBx(h: 12),
             const Divider(height: 1, color: AppColors.border),
             heightBx(h: 8),
-            for (var i = 0; i < day.sessions.length; i++)
+            for (var i = 0; i < day.sessions.length; i++) ...[
               _SessionRow(
                 index: i,
                 session: day.sessions[i],
                 locale: locale,
                 shiftDetails: shiftDetails,
               ),
+              // "Forgot to scan" for this session's part (#44).
+              if (date != null && _canCorrect(date))
+                _CorrectionButton(
+                  date: date,
+                  session: day.sessions[i],
+                ),
+            ],
+          ],
+          // A day with nothing on it: "forgot to scan" with the date only.
+          if (expanded &&
+              day.sessions.isEmpty &&
+              date != null &&
+              _canCorrect(date)) ...[
+            heightBx(h: 8),
+            _CorrectionButton(date: date),
           ],
         ],
       ),
@@ -745,5 +762,40 @@ class _SessionRow extends StatelessWidget {
       if (name.isNotEmpty) return name;
     }
     return isMorning ? l10n.shiftMorningLabel : l10n.shiftAfternoonLabel;
+  }
+}
+
+/// A day inside "forgot to scan"'s look-back (#43: 30 days, not the future).
+bool _canCorrect(DateTime date) =>
+    CorrectionRules.inLookBack(date, DateTime.now());
+
+/// "ລືມລົງເວລາ" under a history session (or a day with none): opens the
+/// form filled with that day and the session's part (#44).
+class _CorrectionButton extends StatelessWidget {
+  const _CorrectionButton({required this.date, this.session});
+
+  final DateTime date;
+  final AttendanceSession? session;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final part = session?.part;
+    return Align(
+      alignment: Alignment.centerRight,
+      child: TextButton.icon(
+        onPressed: () => context.push(
+          AppRoutes.timeCorrectionRequestFor(date, partId: part?.id),
+          extra: part,
+        ),
+        icon: const Icon(Icons.more_time, size: 16, color: AppColors.primary),
+        label: customText(
+          l10n.forgotClockInMenu,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primary,
+        ),
+      ),
+    );
   }
 }

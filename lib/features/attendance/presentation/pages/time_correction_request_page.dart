@@ -23,16 +23,59 @@ import '../widgets/time_correction_section_card.dart';
 import '../widgets/time_correction_shift_sheet.dart';
 import '../../../../core/errors/validation_codes.dart';
 import '../../domain/correction_rules.dart';
+import '../../../../core/upload/domain/capture_policy.dart';
+import '../../../../core/upload/presentation/file_source_sheet.dart';
+import '../../../../core/widgets/app_dialog.dart';
+import '../../../profile/domain/entities/shift_detail.dart';
+import '../../data/datasources/correction_error_code.dart';
 
 /// "ແກ້ໄຂເວລາເຂົ້າ ອອກວຽກ" — the time-correction request form behind the
 /// "ລືມລົງເວລາ" menu tile. Fields and rules live in
 /// [timeCorrectionFormNotifierProvider]; this page only renders them, opens
 /// the pickers, and reports how the submission went.
-class TimeCorrectionRequestPage extends ConsumerWidget {
-  const TimeCorrectionRequestPage({super.key});
+class TimeCorrectionRequestPage extends ConsumerStatefulWidget {
+  const TimeCorrectionRequestPage({
+    super.key,
+    this.date,
+    this.partId,
+    this.sessionPart,
+  });
+
+  /// The day to fill in (#44): a history row's, or `?date=` on a link.
+  final DateTime? date;
+
+  /// The shift part to fill in: a history session's, or `?part=`.
+  final String? partId;
+
+  /// The history session's own part, for when the profile no longer has it.
+  final ShiftDetail? sessionPart;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TimeCorrectionRequestPage> createState() =>
+      _TimeCorrectionRequestPageState();
+}
+
+class _TimeCorrectionRequestPageState
+    extends ConsumerState<TimeCorrectionRequestPage> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.date == null && widget.partId == null) return;
+    // After the first frame: a provider cannot change while widgets build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref
+          .read(timeCorrectionFormNotifierProvider.notifier)
+          .prefill(
+            date: widget.date,
+            partId: widget.partId,
+            sessionPart: widget.sessionPart,
+          );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final state = ref.watch(timeCorrectionFormNotifierProvider);
     final notifier = ref.read(timeCorrectionFormNotifierProvider.notifier);
@@ -115,6 +158,11 @@ class TimeCorrectionRequestPage extends ConsumerWidget {
     );
   }
 
+  /// Back to where the form was opened from; home when nothing is under it
+  /// (opened by a link).
+  static void _leave(BuildContext context) =>
+      context.canPop() ? context.pop() : context.go(AppRoutes.home);
+
   Future<void> _pickDate(
     BuildContext context,
     TimeCorrectionFormNotifier notifier,
@@ -142,11 +190,18 @@ class TimeCorrectionRequestPage extends ConsumerWidget {
 
     if (ok) {
       AppToast.success(l10n.timeCorrectionSubmitSuccess);
-      context.pop();
+      _leave(context);
       return;
     }
 
     final error = ref.read(provider).submission.error;
+    // Already asked for this day and part: say so, then back (#44).
+    if (error is ValidationFailure &&
+        error.message.startsWith(CorrectionErrorCode.tokenDuplicate)) {
+      await AppDialog.warning(context, message: error.localize(l10n));
+      if (context.mounted) _leave(context);
+      return;
+    }
     AppToast.error(error is Failure ? error.localize(l10n) : l10n.genericError);
   }
 }
@@ -183,20 +238,38 @@ class _AttachmentSection extends ConsumerWidget {
       child: TimeCorrectionAttachment(
         file: upload.valueOrNull,
         uploading: upload.isLoading,
-        onChooseFile: () => _pickFile(ref, l10n),
+        onChooseFile: () => _pickFile(context, ref, l10n),
         onTakePhoto: () => _takePhoto(context, ref, l10n),
         onRemove: ref.read(provider.notifier).clear,
       ),
     );
   }
 
-  Future<void> _pickFile(WidgetRef ref, AppLocalizations l10n) async {
-    _reportRejection(
-      l10n,
-      await ref
-          .read(timeCorrectionAttachmentNotifierProvider.notifier)
-          .pickAndUpload(),
+  /// #38's sheet with `CapturePolicy.photo` (#44): camera, gallery or an
+  /// image file; the pick is uploaded to folder `correction`.
+  Future<void> _pickFile(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) async {
+    final notifier = ref.read(
+      timeCorrectionAttachmentNotifierProvider.notifier,
     );
+    final picked = await FileSourceSheet.pick(
+      context,
+      ref,
+      CapturePolicy.photo,
+    );
+    switch (picked) {
+      case Captured(:final file):
+        _reportRejection(l10n, await notifier.upload(file));
+      case CaptureFailed():
+        AppToast.error(l10n.uploadInvalidFile);
+      case CaptureDenied():
+        AppToast.error(l10n.uploadPermissionDenied);
+      case CaptureCancelled():
+        break;
+    }
   }
 
   /// Opens the camera screen and uploads the photo it returns, exactly as a
@@ -277,7 +350,11 @@ class _ShiftSection extends ConsumerWidget {
     }
 
     final value = profile.valueOrNull;
-    final details = value?.shiftDetails ?? const [];
+    // The profile's parts, and the history session's own when the profile
+    // no longer has it (#44).
+    final details = notifier.offeredParts(
+      value?.shiftDetails ?? const <ShiftDetail>[],
+    );
     final shiftName =
         AttendanceCopy.employeeShiftName(
           locale,
@@ -417,6 +494,18 @@ class _TimesRow extends StatelessWidget {
               ),
           ],
         ),
+        // The part's window on that day, as a hint (#44).
+        if (state.window case final window?) ...[
+          heightBx(h: 8),
+          customText(
+            l10n.attCorrectionWindowHint(
+              CorrectionRules.hhmm(window.from),
+              CorrectionRules.hhmm(window.to),
+            ),
+            fontSize: 12.5,
+            color: AppColors.secondaryTxt,
+          ),
+        ],
         if (timesError != null) ...[
           heightBx(h: 8),
           customText(timesError, fontSize: 13, color: AppColors.danger),

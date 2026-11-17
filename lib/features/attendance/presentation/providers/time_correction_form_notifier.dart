@@ -5,6 +5,7 @@ import '../../../profile/domain/entities/employee_profile.dart';
 import '../../../profile/domain/entities/shift_detail.dart';
 import '../../../profile/presentation/providers/profile_notifier.dart';
 import '../../attendance_providers.dart';
+import '../../domain/correction_rules.dart';
 import '../../domain/entities/time_correction_type.dart';
 import 'time_correction_attachment_notifier.dart';
 import 'time_correction_form_state.dart';
@@ -23,7 +24,19 @@ class TimeCorrectionFormNotifier
     // The profile may still be loading when the form opens; take the first
     // segment once it lands, unless the user has picked one already.
     ref.listen(profileNotifierProvider, (_, next) {
-      final detail = _firstDetail(next.valueOrNull);
+      final profile = next.valueOrNull;
+      // The part asked for (a history row's) lands once the profile has it:
+      // the profile's own, full (weekday rows, minutes), also in place of a
+      // session's bare copy already chosen. Then it is forgotten, so a later
+      // refresh cannot undo the user's own pick.
+      final wanted = _wantedPartId;
+      final match = wanted == null ? null : _partWithId(profile, wanted);
+      if (match != null) {
+        _wantedPartId = null;
+        if (state.shiftDetail != match) state = _withShiftDetail(state, match);
+        return;
+      }
+      final detail = _firstDetail(profile);
       if (state.shiftDetail == null && detail != null) {
         selectShiftDetail(detail);
       }
@@ -37,13 +50,59 @@ class TimeCorrectionFormNotifier
     return detail == null ? initial : _withShiftDetail(initial, detail);
   }
 
-  void setDate(DateTime date) =>
-      state = state.copyWith(date: DateTime(date.year, date.month, date.day));
+  /// The day to correct. With a part chosen, the times become that
+  /// weekday's (the window under them moves to that day too).
+  void setDate(DateTime date) {
+    final next = state.copyWith(
+      date: DateTime(date.year, date.month, date.day),
+    );
+    final part = next.shiftDetail;
+    state = part == null ? next : _withShiftDetail(next, part);
+  }
+
+  /// Fills the form for a day and part (#44): from a history row, or a link
+  /// (`?date=&part=`). A date outside the look-back is not taken. The part is
+  /// the profile's with [partId], else [sessionPart] (the history row's own,
+  /// when the profile no longer has it); its times are that weekday's.
+  void prefill({DateTime? date, String? partId, ShiftDetail? sessionPart}) {
+    if (date != null && CorrectionRules.inLookBack(date, DateTime.now())) {
+      setDate(date);
+    }
+    if (partId == null) return;
+    if (sessionPart?.id == partId) _sessionPart = sessionPart;
+    final fromProfile = _partWithId(
+      ref.read(profileNotifierProvider).valueOrNull,
+      partId,
+    );
+    // Not in the profile yet (still loading): its listener lands on it.
+    if (fromProfile == null) _wantedPartId = partId;
+    final part = fromProfile ?? _sessionPart;
+    if (part != null) state = _withShiftDetail(state, part);
+  }
+
+  /// The parts to offer: the history session's own part when the profile
+  /// does not have it, then the profile's [profileParts].
+  List<ShiftDetail> offeredParts(List<ShiftDetail> profileParts) {
+    final own = _sessionPart;
+    return [
+      if (own != null && !profileParts.any((p) => p.id == own.id)) own,
+      ...profileParts,
+    ];
+  }
+
+  /// The history session's part a prefill was given.
+  ShiftDetail? _sessionPart;
+
+  /// The part a prefill asked for, kept until the profile has loaded.
+  String? _wantedPartId;
 
   void setType(TimeCorrectionType type) => state = state.copyWith(type: type);
 
-  void selectShiftDetail(ShiftDetail detail) =>
-      state = _withShiftDetail(state, detail);
+  /// The user's own pick: it outranks a part a prefill still waits for.
+  void selectShiftDetail(ShiftDetail detail) {
+    _wantedPartId = null;
+    state = _withShiftDetail(state, detail);
+  }
 
   void setClockIn(TimeOfDay time) => state = state.copyWith(clockIn: time);
 
@@ -95,6 +154,13 @@ class TimeCorrectionFormNotifier
     );
   }
 
+  static ShiftDetail? _partWithId(EmployeeProfile? profile, String id) {
+    for (final part in profile?.shiftDetails ?? const <ShiftDetail>[]) {
+      if (part.id == id) return part;
+    }
+    return null;
+  }
+
   static ShiftDetail? _firstDetail(EmployeeProfile? profile) {
     final details = profile?.shiftDetails ?? const <ShiftDetail>[];
     return details.isEmpty ? null : details.first;
@@ -105,10 +171,12 @@ class TimeCorrectionFormNotifier
     TimeCorrectionFormState form,
     ShiftDetail detail,
   ) {
+    // That weekday's times (#44), when HR set a row for it.
+    final times = detail.timesOn(form.date);
     return form.copyWith(
       shiftDetail: detail,
-      clockIn: _timeOf(detail.startTime) ?? form.clockIn,
-      clockOut: _timeOf(detail.endTime) ?? form.clockOut,
+      clockIn: _timeOf(times.start) ?? form.clockIn,
+      clockOut: _timeOf(times.end) ?? form.clockOut,
     );
   }
 

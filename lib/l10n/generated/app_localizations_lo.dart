@@ -2057,6 +2057,11 @@ class AppLocalizationsLo extends AppLocalizations {
   }
 
   @override
+  String attCorrectionWindowHint(String from, String to) {
+    return 'ເວລາທີ່ຮັບໄດ້: $from–$to';
+  }
+
+  @override
   String attOtClockOutBy(String time) {
     return 'ສະແກນອອກພາຍໃນ $time';
   }
