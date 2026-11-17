@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#42 merged; next is #43). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#43 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 | | |
 |---|---|
 | Last finished work order | 41 of 60: #42, attendance: my off-site requests — list, detail, cancel |
-| Next work order | **42 of 60: #43**, attendance: "forgot to scan" — rules and sending (no screen). Not started, no branch, no plan yet |
+| Next work order | **42 of 60: #43**, attendance: "forgot to scan" — rules and sending (no screen). IMPLEMENTED on `43-correction-rules` (`3bb78d8`, `3bffdd0`), pushed, reviewed; waits for "push issue 43 to main directly" |
 | `origin/main` | `2385f00` "Merge branch '42-my-offsite-requests' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
@@ -57,7 +57,8 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#42 merged** (`2385f00`) on the owner's say, 2026-11-17.
+1. **#43: say "push issue 43 to main directly".** Built 2026-11-17 after the owner's go.
+   **#42 merged** (`2385f00`) on the owner's say, 2026-11-17.
    **#41 merged** (`a205629`) on the owner's say, 2026-11-17.
    **#40 merged** (`01bf4be`) on the owner's say, 2026-11-17.
    **#39 merged** (`35df673`) on the owner's say, 2026-11-17.
@@ -143,7 +144,17 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #43 (work order 42 of 60), "attendance: "forgot to scan" — rules and sending (no screen)".** Read the issue and its comments, show a plan, wait for "go".
+1. **#43 (work order 42 of 60), "attendance: "forgot to scan" — rules and sending (no screen)": IMPLEMENTED, not
+   merged.** Owner said go on 2026-11-17. Branch `43-correction-rules`: `3bb78d8` (feature), `3bffdd0` (review fixes). Gates:
+   analyze 1 warning already on `main`; `flutter test` 1,920 passed; debug APK builds. Waits for "push issue 43 to main
+   directly".
+   - Look-back 30 days (was 90; decision 16), rule + picker + text. Profile parts read early/late minutes (part and
+     weekly rows). `domain/correction_rules.dart`: window = start − early … end + late on that weekday, overnight by the
+     times; a time placed on the day that puts it in the window; wrong_time needs one. The existing request carries
+     its part. Submit refusals mapped: DUPLICATE, TOO_EARLY_CHECKIN, CORRECTION_DATE_OUT_OF_RANGE, any 422.
+   Open after #43, none built there:
+   - no new screen: nothing to try on `nexton-demo` until #44 (the existing form is the one the rules now check);
+   - the form always holds both times, so wrong_time sends both; attachment_url "" stays for #73.
 
    **#42 (work order 41 of 60), "attendance: my off-site requests — list, detail, cancel": MERGED (`2385f00`),
    2026-11-17.**
@@ -713,7 +724,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 39 | #40 | attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason | `40-offsite-after-refusal` | `90823eb`, `7b616b4` | merged to main directly (`01bf4be`) | analyze: 1 warning already on `main`; `flutter test`: 1,843 passed, 0 failed; debug APK builds | MERGED, phone check pending |
 | 40 | #41 | attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too | `41-waiting-offsite` | `f6a1a8d`, `c45b99f` | merged to main directly (`a205629`) | analyze: 1 warning already on `main`; `flutter test`: 1,871 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 41 | #42 | attendance: my off-site requests — list, detail, cancel | `42-my-offsite-requests` | `47cc6b0`, `8733133` | merged to main directly (`2385f00`) | analyze: 1 warning already on `main`; `flutter test`: 1,892 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 42 | #43 | attendance: "forgot to scan" — rules and sending (no screen) | | | | | NOT STARTED |
+| 42 | #43 | attendance: "forgot to scan" — rules and sending (no screen) | `43-correction-rules` | `3bb78d8`, `3bffdd0` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,920 passed, 0 failed; debug APK builds | IMPLEMENTED |
 | 43 | #44 | attendance: "forgot to scan" form, from a history day or the menu | | | | | NOT STARTED |
 | 44 | #45 | attendance: my "forgot to scan" requests — list, detail, cancel | | | | | NOT STARTED |
 | 45 | #46 | approvals: off-site scans for heads and HR | | | | | NOT STARTED |
