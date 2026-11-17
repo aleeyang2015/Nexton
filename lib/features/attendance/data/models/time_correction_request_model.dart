@@ -1,4 +1,4 @@
-import '../../../time_off/data/models/uploaded_attachment_model.dart';
+import '../../../../core/upload/data/uploaded_attachment_model.dart';
 import '../../domain/entities/time_correction_request.dart';
 
 /// Serialises a [TimeCorrectionRequest] into the

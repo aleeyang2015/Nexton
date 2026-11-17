@@ -12,7 +12,7 @@ import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request_draft.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_type.dart';
-import 'package:next_on/features/time_off/domain/entities/uploaded_attachment.dart';
+import 'package:next_on/core/upload/domain/uploaded_attachment.dart';
 import 'package:next_on/features/time_off/domain/repositories/leave_repository.dart';
 import 'package:next_on/features/time_off/domain/usecases/get_leave_approvals_usecase.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_attachment_notifier.dart';

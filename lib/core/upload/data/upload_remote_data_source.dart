@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
 
-import '../../../../core/network/api_client.dart';
-import '../../../../core/network/api_response.dart';
-import '../../domain/entities/local_file.dart';
-import '../../domain/entities/uploaded_attachment.dart';
-import '../models/leave_parse.dart';
+import '../../network/api_client.dart';
+import '../../network/api_response.dart';
+import '../domain/local_file.dart';
+import '../domain/uploaded_attachment.dart';
 
 /// The generic file-upload call (`POST /uploads`), relative to the client's
 /// `/api/v1` base URL.
@@ -79,20 +78,25 @@ class UploadRemoteDataSourceImpl implements UploadRemoteDataSource {
   /// the storage key; `original_name` is the user's filename.
   static UploadedAttachment? _attachment(Map<String, dynamic> json) {
     final url =
-        LeaveJson.nonEmpty(json['url']) ?? LeaveJson.nonEmpty(json['path']);
+        _text(json['url']) ?? _text(json['path']);
     if (url == null) return null;
-    final fileName = LeaveJson.nonEmpty(json['file_name']) ?? url;
+    final fileName = _text(json['file_name']) ?? url;
     return UploadedAttachment(
       url: url,
       fileName: fileName,
       originalName:
-          LeaveJson.nonEmpty(json['original_name']) ??
-          LeaveJson.nonEmpty(json['name']) ??
+          _text(json['original_name']) ??
+          _text(json['name']) ??
           fileName,
       contentType:
-          LeaveJson.nonEmpty(json['content_type']) ??
-          LeaveJson.nonEmpty(json['mime_type']),
-      size: LeaveJson.intOf(json['size']),
+          _text(json['content_type']) ??
+          _text(json['mime_type']),
+      size: _int(json['size']),
     );
   }
+
+  static String? _text(dynamic value) =>
+      value is String && value.isNotEmpty ? value : null;
+
+  static int? _int(dynamic value) => value is num ? value.toInt() : null;
 }

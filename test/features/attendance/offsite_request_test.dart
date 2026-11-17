@@ -17,7 +17,7 @@ import 'package:next_on/features/attendance/domain/entities/punch_outcome.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_status.dart';
 import 'package:next_on/features/time_off/data/datasources/leave_error_code.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
-import 'package:next_on/features/time_off/domain/entities/uploaded_attachment.dart';
+import 'package:next_on/core/upload/domain/uploaded_attachment.dart';
 
 /// Serves one canned response and records the request that asked for it —
 /// the same stub `attendance_api_test.dart` uses.

@@ -1,4 +1,4 @@
-import '../../domain/entities/uploaded_attachment.dart';
+import '../domain/uploaded_attachment.dart';
 
 /// Writes an [UploadedAttachment] back in the shape `POST /uploads` answered
 /// with — the object request bodies embed unchanged (the leave request's

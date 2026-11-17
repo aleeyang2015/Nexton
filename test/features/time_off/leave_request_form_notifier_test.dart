@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_duration_type.dart';
-import 'package:next_on/features/time_off/domain/entities/uploaded_attachment.dart';
+import 'package:next_on/core/upload/domain/uploaded_attachment.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_attachment_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_balances_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_form_rules.dart';

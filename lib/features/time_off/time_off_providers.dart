@@ -3,11 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/network_providers.dart';
 import 'data/datasources/leave_remote_data_source.dart';
-import 'data/datasources/upload_remote_data_source.dart';
 import 'data/repositories/leave_repository_impl.dart';
-import 'data/repositories/upload_repository_impl.dart';
 import 'domain/repositories/leave_repository.dart';
-import 'domain/repositories/upload_repository.dart';
 import 'domain/usecases/approve_leave_step_usecase.dart';
 import 'domain/usecases/cancel_leave_request_usecase.dart';
 import 'domain/usecases/get_company_days_off_usecase.dart';
@@ -20,7 +17,6 @@ import 'domain/usecases/get_leave_types_usecase.dart';
 import 'domain/usecases/reject_leave_step_usecase.dart';
 import 'domain/usecases/submit_leave_request_usecase.dart';
 import 'domain/usecases/update_leave_request_usecase.dart';
-import 'domain/usecases/upload_attachment_usecase.dart';
 
 /// Composition root for the time-off feature: the one place the data layer
 /// is constructed and bound to the domain contracts. Presentation consumes
@@ -94,19 +90,4 @@ final approveLeaveStepUseCaseProvider = Provider<ApproveLeaveStepUseCase>(
 
 final rejectLeaveStepUseCaseProvider = Provider<RejectLeaveStepUseCase>(
   (ref) => RejectLeaveStepUseCase(ref.watch(leaveRepositoryProvider)),
-);
-
-// --- File upload (`POST /uploads`) for the request form's attachment slot ---
-
-final uploadRemoteDataSourceProvider = Provider<UploadRemoteDataSource>(
-  (ref) => UploadRemoteDataSourceImpl(ref.watch(apiClientProvider)),
-);
-
-final uploadRepositoryProvider = Provider<UploadRepository>(
-  (ref) =>
-      UploadRepositoryImpl(remote: ref.watch(uploadRemoteDataSourceProvider)),
-);
-
-final uploadAttachmentUseCaseProvider = Provider<UploadAttachmentUseCase>(
-  (ref) => UploadAttachmentUseCase(ref.watch(uploadRepositoryProvider)),
 );

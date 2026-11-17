@@ -1,5 +1,5 @@
 import '../../domain/entities/leave_request_draft.dart';
-import 'uploaded_attachment_model.dart';
+import '../../../../core/upload/data/uploaded_attachment_model.dart';
 
 /// Builds the JSON body for `POST /leave/requests` and `PUT /leave/requests/:id`
 /// (leave-request-flutter.md §3.3/§3.4).

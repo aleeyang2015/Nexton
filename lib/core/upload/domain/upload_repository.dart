@@ -1,6 +1,6 @@
-import '../../../../core/utils/result.dart';
-import '../entities/local_file.dart';
-import '../entities/uploaded_attachment.dart';
+import '../../utils/result.dart';
+import 'local_file.dart';
+import 'uploaded_attachment.dart';
 
 /// Contract for the generic file-upload endpoint the leave form's "attach
 /// file" slot uses. The implementation lives in data/repositories and talks to

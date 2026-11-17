@@ -1,8 +1,8 @@
-import '../../../../core/utils/base_usecase.dart';
-import '../../../../core/utils/result.dart';
-import '../entities/local_file.dart';
-import '../entities/uploaded_attachment.dart';
-import '../repositories/upload_repository.dart';
+import '../../utils/base_usecase.dart';
+import '../../utils/result.dart';
+import 'local_file.dart';
+import 'uploaded_attachment.dart';
+import 'upload_repository.dart';
 
 /// Uploads the file picked in the leave form's "attach file" slot
 /// (`POST /uploads`).

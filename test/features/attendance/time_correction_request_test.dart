@@ -4,7 +4,7 @@ import 'package:next_on/features/attendance/data/models/time_correction_request_
 import 'package:next_on/features/attendance/domain/entities/time_correction_request.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_type.dart';
 import 'package:next_on/features/attendance/domain/usecases/submit_time_correction_usecase.dart';
-import 'package:next_on/features/time_off/domain/entities/uploaded_attachment.dart';
+import 'package:next_on/core/upload/domain/uploaded_attachment.dart';
 
 import '../../support/attendance_test_doubles.dart';
 

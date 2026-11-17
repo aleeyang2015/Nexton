@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../time_off/domain/entities/local_file.dart';
-import '../../../time_off/domain/entities/uploaded_attachment.dart';
+import '../../../../core/upload/domain/local_file.dart';
+import '../../../../core/upload/domain/uploaded_attachment.dart';
 import '../providers/time_correction_attachment_notifier.dart';
 import 'time_correction_copy.dart';
 

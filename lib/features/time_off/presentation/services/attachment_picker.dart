@@ -1,7 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/entities/local_file.dart';
+import '../../../../core/upload/domain/local_file.dart';
 
 /// Thin wrapper around the `file_picker` plugin so the notifier depends on a
 /// mockable seam, not the platform channel directly.

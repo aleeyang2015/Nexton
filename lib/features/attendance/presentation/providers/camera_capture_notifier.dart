@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../time_off/domain/entities/local_file.dart';
+import '../../../../core/upload/domain/local_file.dart';
 
 /// Why the camera screen can't show a preview.
 enum CameraCaptureError { unavailable, permissionDenied, failed }

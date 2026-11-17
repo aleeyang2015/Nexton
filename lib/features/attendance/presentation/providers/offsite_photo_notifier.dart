@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../time_off/domain/entities/local_file.dart';
-import '../../../time_off/domain/entities/uploaded_attachment.dart';
+import '../../../../core/upload/domain/local_file.dart';
+import '../../../../core/upload/domain/uploaded_attachment.dart';
 import '../../../time_off/presentation/services/attachment_picker.dart';
-import '../../../time_off/time_off_providers.dart';
+import '../../../../core/upload/upload_providers.dart';
 
 /// Why a picked photo was turned away before upload.
 enum OffsitePhotoError { tooLarge }
