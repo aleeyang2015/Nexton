@@ -3547,6 +3547,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'OT request cancelled'**
   String get otCancelledToast;
+
+  /// No description provided for @otPostsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'OT posts'**
+  String get otPostsTitle;
+
+  /// No description provided for @otPostPlacesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} places left'**
+  String otPostPlacesLeft(int n);
+
+  /// No description provided for @otPostNoLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'No limit'**
+  String get otPostNoLimit;
+
+  /// No description provided for @otPostCloses.
+  ///
+  /// In en, this message translates to:
+  /// **'Closes {time}'**
+  String otPostCloses(String time);
+
+  /// No description provided for @otPostJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get otPostJoin;
+
+  /// No description provided for @otPostJoinConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask to join this OT?'**
+  String get otPostJoinConfirm;
+
+  /// No description provided for @otPostWaitingHr.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for HR'**
+  String get otPostWaitingHr;
+
+  /// No description provided for @otPostAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get otPostAccepted;
+
+  /// No description provided for @otPostFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get otPostFull;
+
+  /// No description provided for @otPostCannotJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot join now'**
+  String get otPostCannotJoin;
+
+  /// No description provided for @otPostJoinSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Join asked, waiting for HR'**
+  String get otPostJoinSent;
+
+  /// No description provided for @otPostGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This post is gone or is not for your department.'**
+  String get otPostGone;
+
+  /// No description provided for @otPostsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No OT posts for your department'**
+  String get otPostsEmpty;
 }
 
 class _AppLocalizationsDelegate

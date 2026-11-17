@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../../core/utils/ot_pay.dart';
 import '../../domain/entities/ot_piece.dart';
+import '../../domain/entities/ot_post.dart';
 import '../../domain/entities/ot_request.dart';
 import '../../domain/entities/ot_step.dart';
 
@@ -70,6 +71,35 @@ class OtCopy {
     ].where((t) => t.isNotEmpty).join('–');
     if (times.isEmpty || !request.endsNextDay) return times;
     return '$times ${l10n.otNextDay}';
+  }
+
+  /// A post's window: "08:00–12:00", with "(ມື້ຖັດໄປ)" past midnight.
+  static String postWindow(AppLocalizations l10n, OtPost post) {
+    final times = [
+      post.startTime,
+      post.endTime,
+    ].where((t) => t.isNotEmpty).join('–');
+    if (times.isEmpty || !post.endsNextDay) return times;
+    return '$times ${l10n.otNextDay}';
+  }
+
+  /// "ຍັງເຫຼືອ 3 ບ່ອນ" (seats − accepted, never below 0), or "ບໍ່ຈຳກັດຈຳນວນ"
+  /// for a post with no limit.
+  static String placesLeft(AppLocalizations l10n, OtPost post) {
+    final seats = post.seats;
+    if (seats == null) return l10n.otPostNoLimit;
+    final left = seats - post.accepted;
+    return l10n.otPostPlacesLeft(left < 0 ? 0 : left);
+  }
+
+  /// "ປິດຮັບ 06/11 17:00": the join deadline, else the start (joining closes
+  /// when the OT starts). Null when the server sent neither.
+  static String? closes(AppLocalizations l10n, OtPost post) {
+    final at = (post.joinDeadline ?? post.startsAt)?.toLocal();
+    if (at == null) return null;
+    return l10n.otPostCloses(
+      '${_two(at.day)}/${_two(at.month)} ${_two(at.hour)}:${_two(at.minute)}',
+    );
   }
 
   /// "14/11/2026".

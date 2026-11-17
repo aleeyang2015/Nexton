@@ -1924,4 +1924,47 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get otCancelledToast => 'ຍົກເລີກຄຳຂໍໂອທີແລ້ວ';
+
+  @override
+  String get otPostsTitle => 'ປະກາດໂອທີ';
+
+  @override
+  String otPostPlacesLeft(int n) {
+    return 'ຍັງເຫຼືອ $n ບ່ອນ';
+  }
+
+  @override
+  String get otPostNoLimit => 'ບໍ່ຈຳກັດຈຳນວນ';
+
+  @override
+  String otPostCloses(String time) {
+    return 'ປິດຮັບ $time';
+  }
+
+  @override
+  String get otPostJoin => 'ເຂົ້າຮ່ວມ';
+
+  @override
+  String get otPostJoinConfirm => 'ຂໍເຂົ້າຮ່ວມໂອທີນີ້ບໍ?';
+
+  @override
+  String get otPostWaitingHr => 'ລໍຖ້າຝ່າຍບຸກຄະລາກອນ';
+
+  @override
+  String get otPostAccepted => 'ຮັບແລ້ວ';
+
+  @override
+  String get otPostFull => 'ເຕັມແລ້ວ';
+
+  @override
+  String get otPostCannotJoin => 'ເຂົ້າຮ່ວມບໍ່ໄດ້ຕອນນີ້';
+
+  @override
+  String get otPostJoinSent => 'ສົ່ງຄຳຂໍເຂົ້າຮ່ວມແລ້ວ, ລໍຖ້າຝ່າຍບຸກຄະລາກອນ';
+
+  @override
+  String get otPostGone => 'ປະກາດນີ້ບໍ່ມີແລ້ວ ຫຼື ບໍ່ແມ່ນຂອງພະແນກທ່ານ.';
+
+  @override
+  String get otPostsEmpty => 'ບໍ່ມີປະກາດໂອທີສຳລັບພະແນກຂອງທ່ານ';
 }

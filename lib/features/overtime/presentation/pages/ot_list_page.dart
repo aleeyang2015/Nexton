@@ -164,6 +164,8 @@ class _OtListPageState extends ConsumerState<OtListPage> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(15, 8, 15, 96),
                     children: [
+                      const _PostsEntry(),
+                      heightBx(h: 12),
                       const OtClockHintsCard(),
                       heightBx(h: 12),
                       _Body(
@@ -346,6 +348,34 @@ class _Message extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// "ປະກາດໂອທີ": opens HR's open posts for the user's department.
+class _PostsEntry extends StatelessWidget {
+  const _PostsEntry();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Material(
+      color: Colors.white,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.border),
+      ),
+      child: ListTile(
+        leading: const Icon(Icons.campaign_outlined, color: AppColors.primary),
+        title: customText(
+          l10n.otPostsTitle,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+        ),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.subTitle),
+        onTap: () => context.push(AppRoutes.otPosts),
       ),
     );
   }

@@ -597,5 +597,18 @@
   "otSaved": "ບັນທຶກແລ້ວ",
   "otSaveAction": "ບັນທຶກ",
   "otCancelConfirm": "ຍົກເລີກຄຳຂໍໂອທີນີ້ບໍ?",
-  "otCancelledToast": "ຍົກເລີກຄຳຂໍໂອທີແລ້ວ"
+  "otCancelledToast": "ຍົກເລີກຄຳຂໍໂອທີແລ້ວ",
+  "otPostsTitle": "ປະກາດໂອທີ",
+  "otPostPlacesLeft": "ຍັງເຫຼືອ {n} ບ່ອນ",
+  "otPostNoLimit": "ບໍ່ຈຳກັດຈຳນວນ",
+  "otPostCloses": "ປິດຮັບ {time}",
+  "otPostJoin": "ເຂົ້າຮ່ວມ",
+  "otPostJoinConfirm": "ຂໍເຂົ້າຮ່ວມໂອທີນີ້ບໍ?",
+  "otPostWaitingHr": "ລໍຖ້າຝ່າຍບຸກຄະລາກອນ",
+  "otPostAccepted": "ຮັບແລ້ວ",
+  "otPostFull": "ເຕັມແລ້ວ",
+  "otPostCannotJoin": "ເຂົ້າຮ່ວມບໍ່ໄດ້ຕອນນີ້",
+  "otPostJoinSent": "ສົ່ງຄຳຂໍເຂົ້າຮ່ວມແລ້ວ, ລໍຖ້າຝ່າຍບຸກຄະລາກອນ",
+  "otPostGone": "ປະກາດນີ້ບໍ່ມີແລ້ວ ຫຼື ບໍ່ແມ່ນຂອງພະແນກທ່ານ.",
+  "otPostsEmpty": "ບໍ່ມີປະກາດໂອທີສຳລັບພະແນກຂອງທ່ານ"
 }
