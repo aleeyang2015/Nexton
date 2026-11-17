@@ -1474,7 +1474,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get attView => 'ເບິ່ງ';
 
   @override
-  String get attOffsiteDetailTitle => 'ຄຳຂໍລົງເວລານອກພື້ນທີ່';
+  String get attOffsiteDetailTitle => 'ຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
 
   @override
   String get attCheckinPendingApproval =>

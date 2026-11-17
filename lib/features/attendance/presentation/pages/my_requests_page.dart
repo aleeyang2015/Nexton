@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -29,7 +30,11 @@ class MyRequestsPage extends StatelessWidget {
               elevation: 0,
               centerTitle: true,
               leading: IconButton(
-                onPressed: () => context.pop(),
+                // Reached from a request's page opened by a toast or a link,
+                // there may be nothing underneath.
+                onPressed: () => context.canPop()
+                    ? context.pop()
+                    : context.go(AppRoutes.home),
                 icon: const Icon(
                   Icons.arrow_back,
                   color: AppColors.textPrimary,

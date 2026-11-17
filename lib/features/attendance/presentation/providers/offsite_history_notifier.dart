@@ -5,6 +5,7 @@ import '../../../../core/network/paged_list.dart';
 import '../../attendance_providers.dart';
 import '../../domain/entities/offsite_detail.dart';
 import '../../domain/entities/time_correction_status.dart';
+import 'attendance_notifier.dart';
 import 'offsite_history_state.dart';
 
 /// "My requests"' off-site tab (#42): the employee's own requests from
@@ -39,7 +40,10 @@ class OffsiteHistoryNotifier extends AutoDisposeNotifier<OffsiteHistoryState> {
   /// Loads the picked status's list again from its first page: a retry, a
   /// pull to refresh, after a withdrawal. Requests already shown stay while
   /// it loads.
-  Future<void> refresh() async {
+  ///
+  /// A failure with rows already shown keeps them, and is returned for the
+  /// page to say.
+  Future<Failure?> refresh() async {
     final loadedAs = ++_loads;
     state = state.copyWith(
       requests: const AsyncLoading<PagedList<OffsiteRequestDetail>>()
@@ -50,14 +54,18 @@ class OffsiteHistoryNotifier extends AutoDisposeNotifier<OffsiteHistoryState> {
       status: state.filter,
       cursor: null,
     ));
-    if (_disposed || loadedAs != _loads) return;
+    if (_disposed || loadedAs != _loads) return null;
 
     state = state.copyWith(
       requests: result.fold(
-        (failure) => AsyncValue.error(failure, StackTrace.current),
+        (failure) => AsyncValue<PagedList<OffsiteRequestDetail>>.error(
+          failure,
+          StackTrace.current,
+        ).copyWithPrevious(state.requests),
         (page) => AsyncValue.data(PagedList.first(page)),
       ),
     );
+    return result.failureOrNull;
   }
 
   /// The next page, when there is one and none is on its way.
@@ -104,6 +112,10 @@ class OffsiteHistoryNotifier extends AutoDisposeNotifier<OffsiteHistoryState> {
     if (_disposed) return result.failureOrNull;
 
     state = state.copyWith(cancellingIds: {...state.cancellingIds}..remove(id));
+    // Today's card may show it as a waiting check-in (#41).
+    if (ref.exists(attendanceNotifierProvider)) {
+      ref.read(attendanceNotifierProvider.notifier).loadToday();
+    }
     await refresh();
     return result.failureOrNull;
   }

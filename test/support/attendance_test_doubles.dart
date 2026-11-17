@@ -240,11 +240,6 @@ class FakeOffsiteRepository implements OffsiteRepository {
     return answer;
   }
 
-  @override
-  FutureResult<List<OffsiteRequestDetail>> mine() async {
-    mineCalls++;
-    return mineResult;
-  }
 
   @override
   FutureResult<List<OffsiteRequestDetail>> approvals({

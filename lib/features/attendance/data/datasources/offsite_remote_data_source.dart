@@ -39,14 +39,6 @@ abstract class OffsiteRemoteDataSource {
   /// the query.
   Future<List<OffsiteRequestDetail>> approvals({TimeCorrectionStatus? status});
 
-  /// Every off-site request the signed-in employee has filed, newest first —
-  /// the history page's list (§4).
-  ///
-  /// Unfiltered on purpose, unlike [approvals]: the status here is the
-  /// request's own, so the page can bucket and count the one list locally
-  /// without asking the endpoint once per status.
-  Future<List<OffsiteRequestDetail>> mine();
-
   /// One page of the caller's requests, newest first (#42): only those with
   /// [status] when given; [cursor] is the last page's `next_cursor`.
   Future<CursorPage<OffsiteRequestDetail>> myRequests({
@@ -123,10 +115,6 @@ class OffsiteRemoteDataSourceImpl implements OffsiteRemoteDataSource {
   Future<List<OffsiteRequestDetail>> approvals({
     TimeCorrectionStatus? status,
   }) => _list(AttendancePaths.myOffsiteApprovals, status: status);
-
-  @override
-  Future<List<OffsiteRequestDetail>> mine() =>
-      _list(AttendancePaths.myOffsiteRequests);
 
   /// Rows per page of "My requests".
   static const int myRequestsPageSize = 20;

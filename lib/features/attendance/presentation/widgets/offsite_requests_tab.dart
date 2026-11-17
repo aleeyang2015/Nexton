@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 
+import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_dialog.dart';
@@ -11,6 +12,7 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../domain/attendance_failure_x.dart';
 import '../../domain/entities/offsite_detail.dart';
 import '../providers/offsite_history_notifier.dart';
 import 'offsite_record_card.dart';
@@ -22,19 +24,65 @@ import '../../../../core/widgets/image_viewer.dart';
 /// time, pull to refresh. A row opens the request's own page.
 ///
 /// Requests and the picked status live in [offsiteHistoryNotifierProvider].
-class OffsiteRequestsTab extends ConsumerWidget {
+class OffsiteRequestsTab extends ConsumerStatefulWidget {
   const OffsiteRequestsTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OffsiteRequestsTab> createState() => _OffsiteRequestsTabState();
+}
+
+class _OffsiteRequestsTabState extends ConsumerState<OffsiteRequestsTab> {
+  /// How close to the end of the list, in pixels, the next page is asked
+  /// for: as the leave history does, on scroll, not as soon as a page lands.
+  static const double _loadMoreWithin = 300;
+
+  final _scroll = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_loadMoreIfNearEnd);
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _loadMoreIfNearEnd() {
+    if (!_scroll.hasClients) return;
+    if (_scroll.position.extentAfter > _loadMoreWithin) return;
+    ref.read(offsiteHistoryNotifierProvider.notifier).loadMore();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final filter = ref.watch(
       offsiteHistoryNotifierProvider.select((s) => s.filter),
     );
     final notifier = ref.read(offsiteHistoryNotifierProvider.notifier);
 
+    // A page that does not fill the screen leaves nothing to scroll, so no
+    // scroll would ask for the next one. Check once it is laid out.
+    ref.listen(offsiteHistoryNotifierProvider.select((s) => s.requests), (
+      _,
+      _,
+    ) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadMoreIfNearEnd();
+      });
+    });
+
     return RefreshIndicator(
-      onRefresh: notifier.refresh,
+      onRefresh: () async {
+        final failure = await notifier.refresh();
+        // The rows already shown stay; say why they were not renewed.
+        if (failure != null) AppToast.error(failure.localize(l10n));
+      },
       child: ListView(
+        controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(15, 16, 15, 32),
         children: [
@@ -76,10 +124,15 @@ class _RequestsList extends ConsumerWidget {
     }
 
     if (requests.hasError && !requests.hasValue) {
+      // No staff record: #11's "not linked" text, and nothing to retry.
+      final error = requests.error;
+      final notLinked = error is Failure && error.isEmployeeNotLinked;
       return _Message(
         icon: Icons.error_outline,
-        text: l10n.offsiteHistoryLoadFailed,
-        onRetry: ref.read(offsiteHistoryNotifierProvider.notifier).refresh,
+        text: notLinked ? error.localize(l10n) : l10n.offsiteHistoryLoadFailed,
+        onRetry: notLinked
+            ? null
+            : ref.read(offsiteHistoryNotifierProvider.notifier).refresh,
       );
     }
 
@@ -123,12 +176,6 @@ class _RequestsList extends ConsumerWidget {
             icon: Icons.error_outline,
             text: l10n.offsiteHistoryLoadFailed,
             onRetry: notifier.retryLoadMore,
-          )
-        else if (list != null && list.canLoadMore)
-          // Near the end: the next page.
-          _LoadMoreWhenShown(
-            key: ValueKey(list.items.length),
-            onShown: notifier.loadMore,
           ),
       ],
     );
@@ -204,27 +251,4 @@ class _Message extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Asks for the next page once, when the end of the list is built.
-class _LoadMoreWhenShown extends StatefulWidget {
-  const _LoadMoreWhenShown({super.key, required this.onShown});
-
-  final VoidCallback onShown;
-
-  @override
-  State<_LoadMoreWhenShown> createState() => _LoadMoreWhenShownState();
-}
-
-class _LoadMoreWhenShownState extends State<_LoadMoreWhenShown> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) widget.onShown();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => const SizedBox(height: 1);
 }

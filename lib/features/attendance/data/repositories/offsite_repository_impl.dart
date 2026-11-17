@@ -26,9 +26,6 @@ class OffsiteRepositoryImpl extends BaseRepository
       guard(() => _remote.submit(request));
 
   @override
-  FutureResult<List<OffsiteRequestDetail>> mine() => guard(_remote.mine);
-
-  @override
   FutureResult<CursorPage<OffsiteRequestDetail>> myRequests({
     TimeCorrectionStatus? status,
     String? cursor,

@@ -52,9 +52,13 @@ class OffsiteDetailNotifier
   /// loaded again: on success to show it cancelled, on `CANNOT_CANCEL`
   /// because it was decided meanwhile. The list behind it and today's card
   /// (#41: a waiting check-in) are read again too. One at a time.
-  Future<Result<Unit>> cancel() async {
-    if (_cancelling) return const Result.success(Unit.instance);
+  ///
+  /// Null when a withdrawal is already on its way: that one's answer is the
+  /// one to tell (never a "cancelled" the server did not give).
+  Future<Result<Unit>?> cancel() async {
+    if (_cancelling) return null;
     _cancelling = true;
+    ref.read(offsiteCancellingProvider(arg).notifier).state = true;
     try {
       final result = await ref.read(cancelOffsiteRequestUseCaseProvider)(arg);
       if (_disposed) return result;
@@ -68,6 +72,9 @@ class OffsiteDetailNotifier
       return result;
     } finally {
       _cancelling = false;
+      if (!_disposed) {
+        ref.read(offsiteCancellingProvider(arg).notifier).state = false;
+      }
     }
   }
 
@@ -84,3 +91,8 @@ final offsiteDetailNotifierProvider = AsyncNotifierProvider.autoDispose
     .family<OffsiteDetailNotifier, OffsiteRequestDetail, String>(
       OffsiteDetailNotifier.new,
     );
+
+/// True while the request [String] is being withdrawn: its Cancel button is
+/// off meanwhile.
+final offsiteCancellingProvider = StateProvider.autoDispose
+    .family<bool, String>((ref, id) => false);

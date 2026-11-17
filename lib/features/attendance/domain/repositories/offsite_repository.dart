@@ -21,13 +21,6 @@ abstract class OffsiteRepository {
   /// transport, auth and server errors come back as `Result.failure`.
   FutureResult<OffsiteOutcome> submit(OffsiteRequest request);
 
-  /// `GET /attendance/offsite-requests/my` — every off-site request the
-  /// signed-in employee has filed, newest first, for the history page (§4).
-  ///
-  /// Unfiltered: the status filter on that page is the employee's own view of
-  /// one list, not a second query.
-  FutureResult<List<OffsiteRequestDetail>> mine();
-
   /// One page of the caller's requests, newest first (#42).
   FutureResult<CursorPage<OffsiteRequestDetail>> myRequests({
     TimeCorrectionStatus? status,

@@ -10,7 +10,10 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/image_viewer.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../../core/errors/failure.dart';
+import '../../domain/attendance_failure_x.dart';
 import '../../domain/entities/offsite_detail.dart';
+import '../../domain/entities/time_correction_status.dart';
 import '../providers/offsite_detail_notifier.dart';
 import '../widgets/offsite_record_card.dart';
 import '../widgets/time_correction_approval_workflow.dart';
@@ -38,7 +41,13 @@ class OffsiteRequestDetailPage extends ConsumerWidget {
     final provider = offsiteDetailNotifierProvider(requestId);
     final loaded = ref.watch(provider);
     final gone = OffsiteDetailNotifier.isGone(loaded.error);
-    final request = gone ? null : (loaded.valueOrNull ?? initial);
+    // The list row only while the page's own copy loads: a load that failed
+    // says so rather than leave the row passing for the request.
+    final request =
+        loaded.valueOrNull ?? (loaded.hasError || gone ? null : initial);
+    final cancelling = ref.watch(offsiteCancellingProvider(requestId));
+    final error = loaded.error;
+    final notLinked = error is Failure && error.isEmployeeNotLinked;
 
     return Scaffold(
       backgroundColor: AppColors.homeBackground,
@@ -76,22 +85,28 @@ class OffsiteRequestDetailPage extends ConsumerWidget {
                     ),
                     // Shown by the card only while the request waits.
                     onCancel: () => _cancel(context, ref),
-                    cancelling: false,
+                    cancelling: cancelling,
                   ),
                   heightBx(h: 16),
                   TimeCorrectionApprovalWorkflow(
                     steps: request.steps,
                     currentStepNo: request.currentStepNo,
+                    cancelled: request.status == TimeCorrectionStatus.cancelled,
                   ),
                 ],
               ),
             )
           : loaded.hasError && !loaded.isLoading
           ? _Unavailable(
+              // No staff record: #11's "not linked" text; nothing to retry.
               text: gone
                   ? l10n.apprRequestNotFound
+                  : notLinked
+                  ? error.localize(l10n)
                   : l10n.offsiteHistoryLoadFailed,
-              onRetry: gone ? null : () => ref.invalidate(provider),
+              onRetry: gone || notLinked
+                  ? null
+                  : () => ref.invalidate(provider),
             )
           : const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
@@ -125,7 +140,8 @@ class OffsiteRequestDetailPage extends ConsumerWidget {
     if (!confirmed) return;
 
     final result = await notifier.cancel();
-    result.fold(
+    // Null: a withdrawal already on its way says how it went.
+    result?.fold(
       (failure) => AppToast.error(failure.localize(l10n)),
       (_) => AppToast.success(l10n.offsiteCancelled),
     );
