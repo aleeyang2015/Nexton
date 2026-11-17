@@ -180,4 +180,30 @@ void main() {
       expect(part.weeklys.single.weeklyDay, 'SUN');
     });
   });
+
+  group('can_ask_ot (may this employee ask for OT)', () {
+    test('true and false are read as sent', () {
+      expect(
+        EmployeeProfileModel.fromJson({'id': 'e', 'can_ask_ot': true}).canAskOt,
+        isTrue,
+      );
+      expect(
+        EmployeeProfileModel.fromJson({'id': 'e', 'can_ask_ot': false}).canAskOt,
+        isFalse,
+      );
+    });
+
+    test('missing, null or not a bool is unknown (null), not false', () {
+      expect(EmployeeProfileModel.fromJson({'id': 'e'}).canAskOt, isNull);
+      expect(
+        EmployeeProfileModel.fromJson({'id': 'e', 'can_ask_ot': null}).canAskOt,
+        isNull,
+      );
+      expect(
+        EmployeeProfileModel.fromJson({'id': 'e', 'can_ask_ot': 'false'})
+            .canAskOt,
+        isNull,
+      );
+    });
+  });
 }

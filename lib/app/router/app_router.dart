@@ -16,6 +16,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/change_password/presentation/pages/change_password_page.dart';
 import '../../features/overtime/domain/entities/ot_request.dart';
+import '../../features/overtime/presentation/pages/ot_ask_page.dart';
 import '../../features/overtime/presentation/pages/ot_list_page.dart';
 import '../../features/overtime/presentation/pages/ot_request_detail_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
@@ -90,6 +91,9 @@ class AppRoutes {
   /// The employee's OT requests.
   static const String overtime = '/overtime';
 
+  /// The Ask OT form.
+  static const String otAsk = '/overtime/ask';
+
   /// One OT request, by its id. A route pattern; build a location with
   /// [otRequest].
   static const String otRequestDetail = '/overtime/request/:id';
@@ -143,6 +147,11 @@ final List<GoRoute> overtimeRoutes = [
     path: AppRoutes.overtime,
     name: 'overtime',
     builder: (context, state) => const OtListPage(),
+  ),
+  GoRoute(
+    path: AppRoutes.otAsk,
+    name: 'otAsk',
+    builder: (context, state) => const OtAskPage(),
   ),
   GoRoute(
     path: AppRoutes.otRequestDetail,

@@ -14,6 +14,7 @@ import 'package:next_on/features/overtime/domain/entities/ot_piece.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_request.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_step.dart';
 import 'package:next_on/features/overtime/overtime_providers.dart';
+import 'package:next_on/features/profile/profile_providers.dart';
 import 'package:next_on/features/overtime/presentation/pages/ot_list_page.dart';
 import 'package:next_on/features/overtime/presentation/pages/ot_request_detail_page.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
@@ -21,6 +22,7 @@ import 'package:next_on/l10n/generated/app_localizations_en.dart';
 import 'package:next_on/l10n/generated/app_localizations_lo.dart';
 
 import '../../support/overtime_test_doubles.dart';
+import '../../support/profile_test_doubles.dart';
 
 /// One OT request's page, opened by its id: what it shows for each field,
 /// and what happens when there is no request to show.
@@ -28,8 +30,12 @@ void main() {
   final en = AppLocalizationsEn();
   final lo = AppLocalizationsLo();
   late FakeOtRepository repository;
+  late FakeProfileRepository profiles;
 
-  setUp(() => repository = FakeOtRepository());
+  setUp(() {
+    repository = FakeOtRepository();
+    profiles = FakeProfileRepository();
+  });
 
   OtStep step(
     int no,
@@ -102,7 +108,10 @@ void main() {
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [otRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          otRepositoryProvider.overrideWithValue(repository),
+          profileRepositoryProvider.overrideWithValue(profiles),
+        ],
         child: MaterialApp.router(
           routerConfig: router,
           scaffoldMessengerKey: rootScaffoldMessengerKey,
@@ -423,7 +432,10 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [otRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          otRepositoryProvider.overrideWithValue(repository),
+          profileRepositoryProvider.overrideWithValue(profiles),
+        ],
         child: MaterialApp.router(
           routerConfig: GoRouter(
             initialLocation: AppRoutes.otRequest('ot-x'),
@@ -479,7 +491,10 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [otRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          otRepositoryProvider.overrideWithValue(repository),
+          profileRepositoryProvider.overrideWithValue(profiles),
+        ],
         child: MaterialApp.router(
           routerConfig: GoRouter(
             initialLocation: AppRoutes.overtime,

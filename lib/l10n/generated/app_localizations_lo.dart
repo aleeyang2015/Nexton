@@ -1854,4 +1854,48 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get otRequestGone => 'ຄຳຂໍໂອທີນີ້ບໍ່ມີແລ້ວ';
+
+  @override
+  String get otAsk => 'ຂໍໂອທີ';
+
+  @override
+  String get otDateLabel => 'ວັນທີ';
+
+  @override
+  String get otStartLabel => 'ເວລາເລີ່ມ';
+
+  @override
+  String get otEndLabel => 'ເວລາສິ້ນສຸດ';
+
+  @override
+  String get otReasonOptional => 'ເຫດຜົນ (ບໍ່ບັງຄັບ)';
+
+  @override
+  String get otPastDateWarning =>
+      'ວັນທີນີ້ຜ່ານມາແລ້ວ. ເວລາທີ່ເຮັດກ່ອນໂອທີຖືກອະນຸມັດ ອາດໄດ້ຈ່າຍໜ້ອຍ ຫຼື ບໍ່ໄດ້ຈ່າຍ, ເພາະສະແກນເປັນໂອທີບໍ່ໄດ້.';
+
+  @override
+  String get otEndEqualsStart => 'ເວລາສິ້ນສຸດຕ້ອງບໍ່ເທົ່າກັບເວລາເລີ່ມ';
+
+  @override
+  String get otAskSent => 'ສົ່ງຄຳຂໍໂອທີແລ້ວ';
+
+  @override
+  String get otClockHintsTitle => 'ວິທີສະແກນໂອທີ';
+
+  @override
+  String get otClockHintAfterShift =>
+      'ໂອທີຕໍ່ຈາກກະວຽກ: ຢ່າສະແກນອອກຕອນເລີກກະ. ສະແກນອອກເທື່ອດຽວ ຕອນໂອທີເລີກ.';
+
+  @override
+  String get otClockHintWindow =>
+      'ໂອທີມີຊ່ວງຫ່າງ, ໃນວັນພັກ ຫຼື ວັນລາ: ສະແກນເຂົ້າໄດ້ຕັ້ງແຕ່ 30 ນາທີກ່ອນເລີ່ມ, ສະແກນອອກບໍ່ເກີນ 60 ນາທີຫຼັງເລີກ.';
+
+  @override
+  String get otClockHintTwoOts =>
+      'ໂອທີສອງອັນຫ່າງກັນບໍ່ເຖິງ 60 ນາທີ: ສະແກນເຂົ້າເທື່ອດຽວ, ການສະແກນອອກເທື່ອສຸດທ້າຍປິດທັງສອງ.';
+
+  @override
+  String get otClockHintThisApp =>
+      'ສະແກນໂອທີດ້ວຍແອັບນີ້ ບໍ່ແມ່ນເຄື່ອງສະແກນທີ່ປະຕູ. ລືມສະແກນອອກ: ໂອທີນັ້ນບໍ່ໄດ້ຈ່າຍ.';
 }

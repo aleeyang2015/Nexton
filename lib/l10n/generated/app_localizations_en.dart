@@ -1869,4 +1869,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get otRequestGone => 'This OT request is not available';
+
+  @override
+  String get otAsk => 'Ask for OT';
+
+  @override
+  String get otDateLabel => 'Date';
+
+  @override
+  String get otStartLabel => 'Start';
+
+  @override
+  String get otEndLabel => 'End';
+
+  @override
+  String get otReasonOptional => 'Reason (optional)';
+
+  @override
+  String get otPastDateWarning =>
+      'This date has passed. Time worked before the OT was approved may pay little or nothing, because it could not be clocked as OT.';
+
+  @override
+  String get otEndEqualsStart => 'End must not equal the start';
+
+  @override
+  String get otAskSent => 'OT request sent';
+
+  @override
+  String get otClockHintsTitle => 'How to clock OT';
+
+  @override
+  String get otClockHintAfterShift =>
+      'OT right after your shift: do not clock out when the shift ends. Clock out once, when the OT ends.';
+
+  @override
+  String get otClockHintWindow =>
+      'OT with a gap, on a day off or on leave: clock in from 30 minutes before the start; clock out by 60 minutes after the end.';
+
+  @override
+  String get otClockHintTwoOts =>
+      'Two OTs less than 60 minutes apart: clock in once; the last clock-out closes both.';
+
+  @override
+  String get otClockHintThisApp =>
+      'Clock OT with this App, not the door scanner. A forgotten OT clock-out pays nothing.';
 }

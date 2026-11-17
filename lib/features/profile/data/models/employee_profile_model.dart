@@ -34,6 +34,8 @@ class EmployeeProfileModel {
       shiftName: _nonEmpty(_string(shift?['name'])),
       shiftNameLo: _nonEmpty(_string(shift?['name_lo'])),
       shiftDetails: _shiftDetails(shift),
+      // Only a real bool counts: anything else is "the server did not say".
+      canAskOt: json['can_ask_ot'] is bool ? json['can_ask_ot'] as bool : null,
     );
   }
 

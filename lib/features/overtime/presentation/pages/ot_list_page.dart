@@ -13,6 +13,8 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../../time_off/presentation/widgets/leave_filter_chip.dart';
 import '../../domain/entities/ot_request.dart';
 import '../providers/ot_list_notifier.dart';
+import '../../../profile/presentation/providers/profile_notifier.dart';
+import '../widgets/ot_clock_hints_card.dart';
 import '../widgets/ot_copy.dart';
 import '../widgets/ot_month_picker_dialog.dart';
 import '../widgets/ot_request_row.dart';
@@ -87,11 +89,32 @@ class _OtListPageState extends ConsumerState<OtListPage> {
       });
     });
 
+    // Ask shows once the profile says this employee may ask (`can_ask_ot`).
+    // Not while it loads (no flash), not when it failed; a server that does
+    // not send the flag (null) shows it, and its refusal explains.
+    final canAskOt = ref.watch(
+      profileNotifierProvider.select(
+        (p) => p.hasValue && p.valueOrNull?.canAskOt != false,
+      ),
+    );
+
     return Container(
       color: AppColors.homeBackground,
       child: SafeArea(
         child: Scaffold(
           backgroundColor: AppColors.homeBackground,
+          floatingActionButton: canAskOt
+              ? FloatingActionButton.extended(
+                  onPressed: () => context.push(AppRoutes.otAsk),
+                  backgroundColor: AppColors.primary,
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: customText(
+                    l10n.otAsk,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                )
+              : null,
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -127,6 +150,10 @@ class _OtListPageState extends ConsumerState<OtListPage> {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
+                    // A profile that failed hid Ask: ask for it again too.
+                    if (ref.read(profileNotifierProvider).hasError) {
+                      ref.invalidate(profileNotifierProvider);
+                    }
                     final loaded = await notifier.refresh();
                     if (!loaded && context.mounted) {
                       AppToast.error(l10n.otListLoadFailed);
@@ -135,8 +162,10 @@ class _OtListPageState extends ConsumerState<OtListPage> {
                   child: ListView(
                     controller: _scroll,
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(15, 8, 15, 40),
+                    padding: const EdgeInsets.fromLTRB(15, 8, 15, 96),
                     children: [
+                      const OtClockHintsCard(),
+                      heightBx(h: 12),
                       _Body(
                         requests: state.requests,
                         onRetry: notifier.retry,

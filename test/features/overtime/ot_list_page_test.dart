@@ -13,7 +13,10 @@ import 'package:next_on/core/widgets/shimmer_box.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_page.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_request.dart';
 import 'package:next_on/features/overtime/overtime_providers.dart';
+import 'package:next_on/features/profile/profile_providers.dart';
+import 'package:next_on/features/overtime/presentation/pages/ot_ask_page.dart';
 import 'package:next_on/features/overtime/presentation/pages/ot_list_page.dart';
+import 'package:next_on/features/profile/domain/entities/employee_profile.dart';
 import 'package:next_on/features/overtime/presentation/pages/ot_request_detail_page.dart';
 import 'package:next_on/features/overtime/presentation/widgets/ot_request_row.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
@@ -21,6 +24,7 @@ import 'package:next_on/l10n/generated/app_localizations_en.dart';
 import 'package:next_on/l10n/generated/app_localizations_lo.dart';
 
 import '../../support/overtime_test_doubles.dart';
+import '../../support/profile_test_doubles.dart';
 
 /// The OT list page: rows with their badges, the filters, and what it says
 /// when there is nothing to show.
@@ -28,8 +32,12 @@ void main() {
   final en = AppLocalizationsEn();
   final lo = AppLocalizationsLo();
   late FakeOtRepository repository;
+  late FakeProfileRepository profiles;
 
-  setUp(() => repository = FakeOtRepository());
+  setUp(() {
+    repository = FakeOtRepository();
+    profiles = FakeProfileRepository();
+  });
 
   void serve(List<OtRequest> rows, {int totalPages = 1}) =>
       repository.myRequestsAnswer = (call) => Result.success(
@@ -47,7 +55,10 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [otRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          otRepositoryProvider.overrideWithValue(repository),
+          profileRepositoryProvider.overrideWithValue(profiles),
+        ],
         child: MaterialApp.router(
           routerConfig: GoRouter(
             initialLocation: AppRoutes.overtime,
@@ -151,8 +162,10 @@ void main() {
       repository.requestAnswer = (id) =>
           Result.success(sampleOt(id, status: OtStatus.cancelled));
       await pumpPage(tester);
-      await tester.drag(find.byType(ListView).last, const Offset(0, -5000));
-      await tester.pumpAndSettle();
+      for (var i = 0; i < 3; i++) {
+        await tester.drag(find.byType(ListView).last, const Offset(0, -5000));
+        await tester.pumpAndSettle();
+      }
       final pages = repository.listCalls.length;
       await tester.drag(find.byType(ListView).last, const Offset(0, 5000));
       await tester.pumpAndSettle();
@@ -193,6 +206,106 @@ void main() {
         find.byType(OtRequestDetailPage, skipOffstage: false),
         findsOneWidget,
       );
+    });
+  });
+
+  group('Ask and the clocking hints', () {
+    testWidgets('Ask shows when the profile says this employee may ask, and '
+        'opens the form', (tester) async {
+      profiles.profile = const Result.success(
+        EmployeeProfile(id: 'e', fullName: 'Noy', canAskOt: true),
+      );
+      await pumpPage(tester, locale: 'lo');
+
+      expect(find.text('ຂໍໂອທີ'), findsOneWidget);
+      await tester.tap(find.text('ຂໍໂອທີ'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OtAskPage), findsOneWidget);
+    });
+
+    testWidgets('Ask shows when the server does not say (older server)', (
+      tester,
+    ) async {
+      profiles.profile = const Result.success(
+        EmployeeProfile(id: 'e', fullName: 'Noy'),
+      );
+      await pumpPage(tester);
+
+      expect(find.text(en.otAsk), findsOneWidget);
+    });
+
+    testWidgets('no Ask when the employee may not ask OT', (tester) async {
+      profiles.profile = const Result.success(
+        EmployeeProfile(id: 'e', fullName: 'Noy', canAskOt: false),
+      );
+      await pumpPage(tester);
+
+      expect(find.text(en.otAsk), findsNothing);
+    });
+
+    testWidgets('no Ask while the profile loads, nor when it failed', (
+      tester,
+    ) async {
+      profiles.hold = Completer<void>();
+      await pumpPage(tester, settle: false);
+      expect(find.text(en.otAsk), findsNothing);
+      profiles.hold!.complete();
+      await tester.pumpAndSettle();
+
+      profiles
+        ..hold = null
+        ..profile = const Result.failure(
+          Failure.server(message: 'boom', statusCode: 500),
+        );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await pumpPage(tester);
+      expect(find.text(en.otAsk), findsNothing);
+    });
+
+    testWidgets('a profile that failed comes back with a pull to refresh, and '
+        'Ask with it', (tester) async {
+      profiles.profile = const Result.failure(
+        Failure.server(message: 'boom', statusCode: 500),
+      );
+      await pumpPage(tester);
+      expect(find.text(en.otAsk), findsNothing);
+
+      profiles.profile = const Result.success(
+        EmployeeProfile(id: 'e', fullName: 'Noy', canAskOt: true),
+      );
+      await tester.timedDrag(
+        find.byType(RefreshIndicator),
+        const Offset(0, 600),
+        const Duration(milliseconds: 500),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.otAsk), findsOneWidget);
+    });
+
+    testWidgets('the hints card is closed, opens and closes', (tester) async {
+      await pumpPage(tester, locale: 'lo');
+
+      expect(find.text('ວິທີສະແກນໂອທີ'), findsOneWidget);
+      expect(find.text(lo.otClockHintAfterShift), findsNothing);
+
+      await tester.tap(find.text('ວິທີສະແກນໂອທີ'));
+      await tester.pumpAndSettle();
+      for (final hint in [
+        lo.otClockHintAfterShift,
+        lo.otClockHintWindow,
+        lo.otClockHintTwoOts,
+        lo.otClockHintThisApp,
+      ]) {
+        expect(find.text(hint), findsOneWidget);
+      }
+
+      await tester.tap(find.text('ວິທີສະແກນໂອທີ'));
+      await tester.pumpAndSettle();
+      expect(find.text(lo.otClockHintAfterShift), findsNothing);
     });
   });
 
