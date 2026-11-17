@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-16 (end-of-day handoff). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#24 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 | | |
 |---|---|
 | Last finished work order | 22 of 60: #23, the payslip page opens by id |
-| Next work order | **23 of 60: #24**, payslip: tap the OT line to see what each OT paid. Not started, no branch |
+| Next work order | **23 of 60: #24**, payslip: tap the OT line to see what each OT paid. IMPLEMENTED on `24-payslip-ot-items` (`0e0962b`, `1d51810`), pushed, reviewed; waits for the owner's "push issue 24 to main directly". After it: #25 |
 | `origin/main` | `b55b1ed` "Merge branch '23-payslip-page-by-id' into main" (2026-11-16 15:44 +07) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
@@ -57,7 +57,11 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#24: say "go".** Its plan was shown at the end of 2026-11-16 and is recorded under "Next".
+1. **#24: say "push issue 24 to main directly".** Built on `24-payslip-ot-items` on 2026-11-17 after the owner's go;
+   gates green (1,284 tests). Also: which Flutter version does the team use? The local `dart format` rewrites ~20
+   salary files this change does not touch (reverted, not committed).
+10. **#75** (new, 17 Nov): docs only. `/auth/me` finds `employee_id` a new way; `lib/features/auth/auth.md` lines 24
+    and 186 are out of date. No code change. Where in the order?
 2. **#56** is on the owner's BLOCKED list, and the backend said on 15 Nov that it is live. Treat as unblocked?
    (The same question was answered "go" for #21 and #23.)
 3. **Paid chip and failed payments (#21):** a paid run whose payment failed is listed under "Paid", with its red
@@ -111,9 +115,24 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Tomorrow: #24 (work order 23 of 60), "payslip: tap the OT line to see what each OT paid".** It is not on the
-   blocked list and has no comments. Nothing has been built and no branch exists. The plan below was shown to the
-   owner on 2026-11-16 and waits for "go"; read the issue again first, in case it has changed.
+1. **#24 (work order 23 of 60), "payslip: tap the OT line to see what each OT paid": IMPLEMENTED, not merged.**
+   Owner said go on 2026-11-17. Branch `24-payslip-ot-items`: `0e0962b` (feature), `1d51810` (review fixes). Gates:
+   analyze 1 warning already on `main`; `flutter test` 1,284 passed; debug APK builds. Two reviews (issues/rules/perf,
+   adversarial) found no bugs; fixed: `OtPayType` moved to pure `core/utils/ot_pay_type.dart` (the entity had pulled
+   Flutter into the domain through the l10n import); the "not paid" note needs 0 minutes **and** 0 amount; only the
+   OT earning line opens the sheet. Waits for "push issue 24 to main directly". Then #25.
+   Differences from the plan as shown: the enum is core's `OtPayType` (entity keeps `PayslipOvertimePayType` as a
+   typedef) so core does not import a feature; one extra string `payslipOtTotal` ("Total" / "ລວມ").
+   Open after #24, none built there:
+   - phone check on `nexton-demo` (pieces match the web portal's payslip): pending;
+   - two OT lines on one payslip (the server writes one): each would open all pieces with its own amount as total;
+   - the sheet copies the pieces when opened; a reload while it is open shows only after reopening;
+   - a window across midnight shows "22:00–02:00" beside one date; the date is `work_date` (no zone) while the window
+     is `toLocal()`, so a phone outside +07:00 may show a window that looks like the day before (the issue asks for
+     `toLocal()`);
+   - negative `paid_minutes` (not sent) shows "-30 min" with no note; huge minutes are not digit-grouped;
+   - `otPayLabel` takes `OtPayType`, not the issue's `String`: #30 calls `OtPayType.fromWire` first.
+   The plan as shown on 2026-11-16, kept for the record:
    - Goal: tapping the OT line on a payslip opens a sheet with each OT piece: date, time window, pay, paid time,
      amount. No new call: the pieces are `overtime_items`, which #20 already reads.
    - New `lib/core/utils/ot_pay.dart`: `otPayLabel` ("150%", "20,000 ກີບ/ຊມ" / "20,000 kip/h", an unknown type
@@ -326,7 +345,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 20 | #21 | payslip: the salary list shows real payslips, paid and failed | `21-salary-list-real-payslips` | `a8455eb`, `a6ed9fb` | merged to main directly (`cf7c936`) | analyze clean, 1,139 tests, debug APK | MERGED, phone check on `nexton-demo` pending — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
 | 21 | #22 | payslip: name, group and caption every payslip line | `22-payslip-line-names` | `123e7d3`, `c8626d5` | merged to main directly (`e9496d6`) | analyze clean, 1,225 tests, debug APK | MERGED — functions and strings only; no screen uses them until #23 |
 | 22 | #23 | payslip: the payslip page opens by id and shows the real lines | `23-payslip-page-by-id` | `61e9f13`, `5c3f1b5` | merged to main directly (`b55b1ed`) | analyze clean, 1,261 tests, debug APK | MERGED, phone check on `nexton-demo` pending — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
-| 23 | #24 | payslip: tap the OT line to see what each OT paid | | | | | NOT STARTED |
+| 23 | #24 | payslip: tap the OT line to see what each OT paid | `24-payslip-ot-items` | `0e0962b`, `1d51810` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,284 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
 | 24 | #25 | payslip: open the PDF in the App and share it | | | | | NOT STARTED |
 | 25 | #26 | payslip: the summary card shows the latest payslip | | | | | NOT STARTED |
 | 26 | #27 | overtime: OT types and JSON reading (no screen yet) | | | | | NOT STARTED |
@@ -382,4 +401,5 @@ Parent issues (#62 to #66) group the items above. The rest were reported later a
 | #71 | push: sign the phone off on logout (shared phones get the last user's messages) | NOT STARTED; belongs with #52 |
 | #72 | payslip: the salary list stops at 10 payslips a year | priority bug; fixed on screen by #21 (one page of 100); to confirm with a login that has more than 10 payslips in a year, then close |
 | #73 | forgot to scan: a request with a photo is always refused (attachment_url must be a string) | NOT STARTED, priority bug. Root cause known: the request sends the whole upload object as `attachment_url`, not the URL string. Not scheduled |
+| #75 | Docs: /auth/me employee_id now uses the own-record lookup (backend live 17 Nov) | NOT STARTED; docs only (`lib/features/auth/auth.md` lines 24 and 186); no code change |
 | #74 | Leave edit: handle 409 LEAVE_CHANGED; type change now checked (backend #221) | its one to-do (map `LEAVE_CHANGED` on the edit call: refresh and say so) was built in #16; backend live 13 Nov 15:56 UTC; to check, then close |
