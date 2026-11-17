@@ -785,5 +785,20 @@
   "otSaved": "Saved",
   "otSaveAction": "Save",
   "otCancelConfirm": "Cancel this OT request?",
-  "otCancelledToast": "OT request cancelled"
+  "otCancelledToast": "OT request cancelled",
+  "otPostsTitle": "OT posts",
+  "otPostPlacesLeft": "{n} places left",
+  "@otPostPlacesLeft": {"placeholders": {"n": {"type": "int"}}},
+  "otPostNoLimit": "No limit",
+  "otPostCloses": "Closes {time}",
+  "@otPostCloses": {"placeholders": {"time": {"type": "String"}}},
+  "otPostJoin": "Join",
+  "otPostJoinConfirm": "Ask to join this OT?",
+  "otPostWaitingHr": "Waiting for HR",
+  "otPostAccepted": "Accepted",
+  "otPostFull": "Full",
+  "otPostCannotJoin": "Cannot join now",
+  "otPostJoinSent": "Join asked, waiting for HR",
+  "otPostGone": "This post is gone or is not for your department.",
+  "otPostsEmpty": "No OT posts for your department"
 }

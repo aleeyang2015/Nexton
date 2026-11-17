@@ -1939,4 +1939,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get otCancelledToast => 'OT request cancelled';
+
+  @override
+  String get otPostsTitle => 'OT posts';
+
+  @override
+  String otPostPlacesLeft(int n) {
+    return '$n places left';
+  }
+
+  @override
+  String get otPostNoLimit => 'No limit';
+
+  @override
+  String otPostCloses(String time) {
+    return 'Closes $time';
+  }
+
+  @override
+  String get otPostJoin => 'Join';
+
+  @override
+  String get otPostJoinConfirm => 'Ask to join this OT?';
+
+  @override
+  String get otPostWaitingHr => 'Waiting for HR';
+
+  @override
+  String get otPostAccepted => 'Accepted';
+
+  @override
+  String get otPostFull => 'Full';
+
+  @override
+  String get otPostCannotJoin => 'Cannot join now';
+
+  @override
+  String get otPostJoinSent => 'Join asked, waiting for HR';
+
+  @override
+  String get otPostGone => 'This post is gone or is not for your department.';
+
+  @override
+  String get otPostsEmpty => 'No OT posts for your department';
 }

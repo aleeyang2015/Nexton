@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_draft.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_page.dart';
+import 'package:next_on/features/overtime/domain/entities/ot_piece.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_post.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_request.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_step.dart';
@@ -71,6 +71,26 @@ class FakeOtRepository implements OtRepository {
 
   /// When set, a cancel waits for it (taken by the call that sees it).
   Completer<void>? holdCancel;
+
+  /// The pages of open posts asked for, in order.
+  final List<int> postPages = [];
+
+  /// The answer to a page of open posts; by default none.
+  Result<OtPage<OtPost>> Function(int page) postsAnswer = (page) =>
+      Result.success(OtPage(items: const [], page: page, totalPages: 1));
+
+  /// When set, a page of posts waits for it (taken by the call that sees it).
+  Completer<void>? holdPosts;
+
+  /// The posts joined, in order.
+  final List<String> joins = [];
+
+  /// The answer to a join; by default the new request, pending, for HR.
+  Result<OtRequest> Function(String postId) joinAnswer = (postId) =>
+      Result.success(sampleOt('ot-join-$postId', announcementId: postId));
+
+  /// When set, a join waits for it (taken by the call that sees it).
+  Completer<void>? holdJoin;
 
   /// The ids the detail call was asked for, in order.
   final List<String> requestIds = [];
@@ -142,14 +162,24 @@ class FakeOtRepository implements OtRepository {
   FutureResult<OtPage<OtPost>> openPosts({
     int page = 1,
     int perPage = OtPage.defaultPerPage,
-  }) => _unused();
+  }) async {
+    postPages.add(page);
+    final answer = postsAnswer(page);
+    final hold = holdPosts;
+    holdPosts = null;
+    await hold?.future;
+    return answer;
+  }
 
   @override
-  FutureResult<OtRequest> join(String postId) => _unused();
-
-  static Future<Result<T>> _unused<T>() async => const Result.failure(
-    Failure.unknown(message: 'not used by this test'),
-  );
+  FutureResult<OtRequest> join(String postId) async {
+    joins.add(postId);
+    final answer = joinAnswer(postId);
+    final hold = holdJoin;
+    holdJoin = null;
+    await hold?.future;
+    return answer;
+  }
 }
 
 /// An OT request for a list, with only what a row shows.
@@ -193,3 +223,46 @@ Result<OtPage<OtRequest>> pagedOt(OtListCall call, {required int total}) {
     ),
   );
 }
+
+/// HR's post for the kitchen: Saturday 7 November 08:00–12:00 at 200%,
+/// 5 places, 2 accepted, closes Friday 6 November 17:00.
+OtPost samplePost(
+  String id, {
+  int? seats = 5,
+  int accepted = 2,
+  bool full = false,
+  bool joinOpen = true,
+  OtRequest? myJoin,
+  bool? joined,
+  DateTime? joinDeadline,
+  bool noDeadline = false,
+  String? reason = 'Banquet prep',
+}) => OtPost(
+  id: id,
+  departmentId: 'dep-kitchen',
+  departmentName: 'Kitchen',
+  workDate: DateTime(2026, 11, 7),
+  startTime: '08:00',
+  endTime: '12:00',
+  startsAt: DateTime(2026, 11, 7, 8),
+  endsAt: DateTime(2026, 11, 7, 12),
+  seats: seats,
+  accepted: accepted,
+  joinDeadline: noDeadline ? null : (joinDeadline ?? DateTime(2026, 11, 6, 17)),
+  reason: reason,
+  status: OtPostStatus.open,
+  full: full,
+  joinOpen: joinOpen,
+  myJoin: myJoin,
+  joined: joined,
+  pieces: [
+    OtPiece(
+      id: '$id-p1',
+      pieceNo: 1,
+      startsAt: DateTime(2026, 11, 7, 8),
+      endsAt: DateTime(2026, 11, 7, 12),
+      payType: OtPayType.percent,
+      payValue: 200,
+    ),
+  ],
+);
