@@ -31,6 +31,7 @@ void main() {
     int? periodYear = 2026,
     int? periodMonth = 10,
     List<PayslipRecordLine> lines = samplePayslipLines,
+    List<PayslipOvertimeItem> overtimeItems = const [],
   }) => samplePayslipRecord(
     id: 'p-oct',
     status: status,
@@ -41,6 +42,7 @@ void main() {
     lines: lines,
     benefits: samplePayslipBenefits,
     deductionItems: samplePayslipDeductionItems,
+    overtimeItems: overtimeItems,
   );
 
   setUp(() {
@@ -545,6 +547,70 @@ void main() {
       expect(find.text(en.payslipSectionAttendance), findsNothing);
       expect(find.text(en.payslipSectionStatutory), findsNothing);
       expect(find.text(en.payslipSectionOther), findsNothing);
+    });
+  });
+
+  group('the OT line', () {
+    testWidgets('with OT pieces it has a chevron, and a tap opens the sheet '
+        'with each piece and the line\'s own amount as the total', (
+      tester,
+    ) async {
+      repository.myPayslipResult = Result.success(
+        fullPayslip(overtimeItems: samplePayslipOvertimeItems),
+      );
+      await pumpPage(tester);
+
+      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      expect(find.text(en.payslipOtDetailsTitle), findsNothing);
+
+      await tester.tap(find.text(en.payslipLineOvertime));
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.payslipOtDetailsTitle), findsOneWidget);
+      expect(find.text('28/09/2026'), findsOneWidget);
+      expect(find.text('18:00–20:00'), findsOneWidget);
+      expect(find.text('43,269'), findsOneWidget);
+      expect(find.text(en.payslipOtNotPaidNote), findsOneWidget);
+      // The line's own amount, as the sheet's total (the page writes it
+      // "+ 162,259").
+      expect(find.text('162,259'), findsOneWidget);
+    });
+
+    testWidgets('with no OT pieces it has no chevron, and a tap opens '
+        'nothing', (tester) async {
+      await pumpPage(tester);
+
+      expect(find.byIcon(Icons.chevron_right), findsNothing);
+
+      await tester.tap(find.text(en.payslipLineOvertime));
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.payslipOtDetailsTitle), findsNothing);
+    });
+
+    testWidgets('no other line opens the sheet', (tester) async {
+      repository.myPayslipResult = Result.success(
+        fullPayslip(overtimeItems: samplePayslipOvertimeItems),
+      );
+      await pumpPage(tester);
+
+      await tester.tap(find.text(en.salaryBaseSalary));
+      await tester.tap(find.text(en.payslipLineLate));
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.payslipOtDetailsTitle), findsNothing);
+    });
+
+    testWidgets('in Lao the sheet\'s title is ລາຍລະອຽດໂອທີ', (tester) async {
+      repository.myPayslipResult = Result.success(
+        fullPayslip(overtimeItems: samplePayslipOvertimeItems),
+      );
+      await pumpPage(tester, locale: 'lo');
+
+      await tester.tap(find.text('ຄ່າລ່ວງເວລາ (ໂອທີ)'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ລາຍລະອຽດໂອທີ'), findsOneWidget);
     });
   });
 

@@ -15,6 +15,7 @@ import '../../domain/payslip_lines.dart';
 import '../providers/payslip_detail_notifier.dart';
 import '../providers/payslip_pdf_notifier.dart';
 import '../widgets/payslip_line_copy.dart';
+import '../widgets/payslip_ot_items_sheet.dart';
 import '../widgets/salary_error_block.dart';
 import '../widgets/salary_history_copy.dart';
 
@@ -121,8 +122,8 @@ class PayslipDetailPage extends ConsumerWidget {
                     heightBx(h: 12),
                     _SummaryStrip(payslip: shown),
                     heightBx(h: 20),
-                    if (sections != null)
-                      _Sections(sections: sections)
+                    if (loaded != null && sections != null)
+                      _Sections(sections: sections, payslip: loaded)
                     else if (error != null && !detail.isLoading)
                       // The header above is the list's row; the lines could
                       // not be loaded.
@@ -693,7 +694,10 @@ class _SummaryColumn extends StatelessWidget {
 class _Sections extends StatelessWidget {
   final PayslipSections sections;
 
-  const _Sections({required this.sections});
+  /// The loaded payslip the rows came from: the OT line opens its pieces.
+  final PayslipRecord payslip;
+
+  const _Sections({required this.sections, required this.payslip});
 
   @override
   Widget build(BuildContext context) {
@@ -705,21 +709,25 @@ class _Sections extends StatelessWidget {
           title: PayslipLineCopy.earningsSection(l10n),
           titleColor: AppColors.primary,
           rows: sections.earnings,
+          payslip: payslip,
         ),
         _Section(
           title: PayslipLineCopy.attendanceSection(l10n),
           titleColor: AppColors.danger,
           rows: sections.attendance,
+          payslip: payslip,
         ),
         _Section(
           title: PayslipLineCopy.statutorySection(l10n),
           titleColor: AppColors.danger,
           rows: sections.statutory,
+          payslip: payslip,
         ),
         _Section(
           title: PayslipLineCopy.otherDeductionsSection(l10n),
           titleColor: AppColors.danger,
           rows: sections.otherDeductions,
+          payslip: payslip,
         ),
         // Lines whose kind the App does not know: shown under the server's
         // own names, in a block with no heading, so no figure goes missing.
@@ -727,6 +735,7 @@ class _Sections extends StatelessWidget {
           title: null,
           titleColor: AppColors.subTitle,
           rows: sections.unplaced,
+          payslip: payslip,
           unplaced: true,
         ),
       ],
@@ -740,6 +749,7 @@ class _Section extends StatelessWidget {
   final String? title;
   final Color titleColor;
   final List<PayslipRow> rows;
+  final PayslipRecord payslip;
 
   /// Rows the App could not place: shown with no sign and no colour, as it
   /// cannot say whether they add to the pay or take from it.
@@ -749,6 +759,7 @@ class _Section extends StatelessWidget {
     required this.title,
     required this.titleColor,
     required this.rows,
+    required this.payslip,
     this.unplaced = false,
   });
 
@@ -798,7 +809,17 @@ class _Section extends StatelessWidget {
                       endIndent: 16,
                       color: AppColors.gray200,
                     ),
-                  _LineRow(row: rows[i], unplaced: unplaced),
+                  _LineRow(
+                    row: rows[i],
+                    unplaced: unplaced,
+                    onTap: opensOvertimeItems(rows[i], payslip)
+                        ? () => showPayslipOtItemsSheet(
+                            context,
+                            items: payslip.overtimeItems,
+                            total: rows[i].amount,
+                          )
+                        : null,
+                  ),
                 ],
               ],
             ),
@@ -819,7 +840,11 @@ class _LineRow extends StatelessWidget {
   final PayslipRow row;
   final bool unplaced;
 
-  const _LineRow({required this.row, this.unplaced = false});
+  /// Set for the OT line with pieces to show: the row then has a chevron and
+  /// opens them.
+  final VoidCallback? onTap;
+
+  const _LineRow({required this.row, this.unplaced = false, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -840,7 +865,8 @@ class _LineRow extends StatelessWidget {
       PayslipAmountKind.plain => AppColors.textPrimary,
     };
 
-    return Padding(
+    final tap = onTap;
+    final content = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
@@ -886,8 +912,22 @@ class _LineRow extends StatelessWidget {
             fontWeight: FontWeight.w700,
             fontSize: 16,
           ),
+          if (tap != null) ...[
+            widthBx(w: 4),
+            const Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: AppColors.subTitle,
+            ),
+          ],
         ],
       ),
+    );
+
+    if (tap == null) return content;
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(onTap: tap, child: content),
     );
   }
 }

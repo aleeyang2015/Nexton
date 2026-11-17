@@ -1720,4 +1720,19 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get back => 'ກັບຄືນ';
+
+  @override
+  String get payslipOtDetailsTitle => 'ລາຍລະອຽດໂອທີ';
+
+  @override
+  String get payslipOtNotPaidNote =>
+      'ບໍ່ໄດ້ຈ່າຍເປັນໂອທີ: ເວລານີ້ຢູ່ໃນກະວຽກ ຫຼື ບໍ່ໄດ້ສະແກນ';
+
+  @override
+  String payslipOtKipPerHour(String amount) {
+    return '$amount ກີບ/ຊມ';
+  }
+
+  @override
+  String get payslipOtTotal => 'ລວມ';
 }

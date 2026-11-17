@@ -97,6 +97,7 @@ PayslipRecord samplePayslipRecord({
   List<PayslipRecordLine> lines = const [],
   List<PayslipBenefit> benefits = const [],
   List<PayslipDeductionItem> deductionItems = const [],
+  List<PayslipOvertimeItem> overtimeItems = const [],
 }) {
   return PayslipRecord(
     id: id,
@@ -127,6 +128,7 @@ PayslipRecord samplePayslipRecord({
     lines: lines,
     benefits: benefits,
     deductionItems: deductionItems,
+    overtimeItems: overtimeItems,
   );
 }
 
@@ -243,4 +245,52 @@ const List<PayslipBenefit> samplePayslipBenefits = [
 
 const List<PayslipDeductionItem> samplePayslipDeductionItems = [
   PayslipDeductionItem(id: 'd-1', name: 'ພັກວຽກ', amount: 100000),
+];
+
+/// The OT pieces behind [samplePayslipLines]' OT line (162,259), in the
+/// server's order (by piece start):
+///
+/// * 28 September, the month before the payslip's October: 18:00–20:00 at
+///   150%, 120 minutes paid, 43,269;
+/// * 3 October, 17:00–18:30 at 20,000 kip per hour, 90 minutes, 30,000;
+/// * 10 October, 07:00–08:00, inside the shift: 0 minutes, 0.
+///
+/// They add up to 73,269, not the line's 162,259, on purpose: a sheet that
+/// summed the pieces would show a total no test expects.
+final List<PayslipOvertimeItem> samplePayslipOvertimeItems = [
+  PayslipOvertimeItem(
+    pieceId: 'piece-1',
+    overtimeRequestId: 'ot-1',
+    workDate: DateTime(2026, 9, 28),
+    startsAt: DateTime(2026, 9, 28, 18),
+    endsAt: DateTime(2026, 9, 28, 20),
+    payType: PayslipOvertimePayType.percent,
+    payValue: 150,
+    paidMinutes: 120,
+    baseSalary: 12000000,
+    daysPerMonth: 26,
+    amount: 43269,
+  ),
+  PayslipOvertimeItem(
+    pieceId: 'piece-2',
+    overtimeRequestId: 'ot-2',
+    workDate: DateTime(2026, 10, 3),
+    startsAt: DateTime(2026, 10, 3, 17),
+    endsAt: DateTime(2026, 10, 3, 18, 30),
+    payType: PayslipOvertimePayType.fixedPerHour,
+    payValue: 20000,
+    paidMinutes: 90,
+    amount: 30000,
+  ),
+  PayslipOvertimeItem(
+    pieceId: 'piece-3',
+    overtimeRequestId: 'ot-3',
+    workDate: DateTime(2026, 10, 10),
+    startsAt: DateTime(2026, 10, 10, 7),
+    endsAt: DateTime(2026, 10, 10, 8),
+    payType: PayslipOvertimePayType.percent,
+    payValue: 200,
+    paidMinutes: 0,
+    amount: 0,
+  ),
 ];

@@ -3181,6 +3181,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back'**
   String get back;
+
+  /// No description provided for @payslipOtDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'OT details'**
+  String get payslipOtDetailsTitle;
+
+  /// No description provided for @payslipOtNotPaidNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Not paid as OT: the time was inside your shift, or not clocked'**
+  String get payslipOtNotPaidNote;
+
+  /// No description provided for @payslipOtKipPerHour.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} kip/h'**
+  String payslipOtKipPerHour(String amount);
+
+  /// No description provided for @payslipOtTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get payslipOtTotal;
 }
 
 class _AppLocalizationsDelegate

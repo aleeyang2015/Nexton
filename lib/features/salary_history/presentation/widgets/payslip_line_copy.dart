@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/payslip_lines.dart';
+import '../../domain/payslip_lines.dart' as domain show caption;
 
 /// What a row's amount is, for the page to colour it.
 enum PayslipAmountKind { zero, earning, deduction, plain }
@@ -44,13 +45,11 @@ class PayslipLineCopy {
 
     final number = caption.number ?? '';
     final text = switch (caption.unit) {
-      PayslipQuantityUnit.minutes =>
-        (caption.hours ?? 0) > 0
-            ? l10n.payslipCaptionHoursMinutes(
-                '${caption.hours}',
-                '${caption.minutes ?? 0}',
-              )
-            : l10n.payslipCaptionMinutes('${caption.minutes ?? 0}'),
+      PayslipQuantityUnit.minutes => _hoursMinutes(
+        l10n,
+        caption.hours ?? 0,
+        caption.minutes ?? 0,
+      ),
       PayslipQuantityUnit.times => l10n.payslipCaptionTimes(number),
       PayslipQuantityUnit.days => l10n.payslipCaptionDays(number),
       PayslipQuantityUnit.hours => l10n.payslipCaptionHours(number),
@@ -61,6 +60,18 @@ class PayslipLineCopy {
     // Nothing to say is no caption, not an empty line.
     return text.trim().isEmpty ? null : text;
   }
+
+  /// A count of minutes as the payslip writes it: "2 ຊມ 0 ນາທີ" for 120,
+  /// "45 ນາທີ" for 45, "0 ນາທີ" for 0. The split is the domain's [domain.caption].
+  static String minutes(AppLocalizations l10n, int minutes) {
+    final split = domain.caption(minutes.toDouble(), 'minutes')!;
+    return _hoursMinutes(l10n, split.hours ?? 0, split.minutes ?? 0);
+  }
+
+  static String _hoursMinutes(AppLocalizations l10n, int hours, int minutes) =>
+      hours > 0
+      ? l10n.payslipCaptionHoursMinutes('$hours', '$minutes')
+      : l10n.payslipCaptionMinutes('$minutes');
 
   /// How a row's amount is written, and what it is.
   ///
