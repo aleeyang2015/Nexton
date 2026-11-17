@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#30 merged; #31 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#31 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 
 | | |
 |---|---|
-| Last finished work order | 29 of 60: #30, overtime: an OT request page that opens by id |
-| Next work order | **30 of 60: #31**, overtime: ask for OT. IMPLEMENTED on `31-ot-ask` (`c3659c1`, `fdc36ec`), pushed, reviewed; waits for "push issue 31 to main directly". After it: #32 |
-| `origin/main` | `41c604f` "Merge branch '30-ot-request-page' into main" (2026-11-17) |
+| Last finished work order | 30 of 60: #31, overtime: ask for OT |
+| Next work order | **31 of 60: #32**, overtime: edit or cancel my OT while it waits. Not started, no branch, no plan yet |
+| `origin/main` | `446a272` "Merge branch '31-ot-ask' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -57,7 +57,7 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#31: say "push issue 31 to main directly".** Built 2026-11-17 after the owner's go. For the backend: the reason's
+1. **#31 merged** (`446a272`) on the owner's say, 2026-11-17. For the backend: the reason's
    2000 limit is kept in code points on the App side (a Lao letter is several); confirm how the server counts.
    **#30 merged** (`41c604f`) on the owner's say, 2026-11-17, after the review fixes (owner chose "fix first, then
    merge").
@@ -132,10 +132,13 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#31 (work order 30 of 60), "overtime: ask for OT": IMPLEMENTED, not merged.** Owner said go on 2026-11-17.
+1. **Next: #32 (work order 31 of 60), "overtime: edit or cancel my OT while it waits".** Read the issue and its
+   comments, show a plan, wait for "go". Reuse the Ask form (#31) and `OtDetailNotifier.replace` (#30).
+
+   **#31 (work order 30 of 60), "overtime: ask for OT": MERGED (`446a272`), 2026-11-17.** Owner said go on 2026-11-17.
    Branch `31-ot-ask`: `c3659c1` (feature), `fdc36ec` (review fixes). Gates: analyze 1 warning already on `main`;
-   `flutter test` 1,598 passed; debug APK builds. Waits for "push issue 31 to main directly". Then #32 (edit or
-   cancel my OT while it waits; reuse this form).
+   `flutter test` 1,598 passed; debug APK builds. Merged on the owner's "push issue 31 to main directly"; gates green
+   on the merge commit.
    - `/overtime/ask`: date (today), start/end 24 h (HH:MM), reason (2000, also 2000 code points); `(ມື້ຖັດໄປ)` when
      End < Start; amber past-date note (warning only). `OtAskNotifier`: one request however fast Send; 422
      `end_time` → End error; other refusals above Send, form kept; 201 → toast, `pushReplacement` to the request
@@ -515,7 +518,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 27 | #28 | overtime: OT calls, error codes and Lao text | `28-overtime-calls` | `09944a4`, `7dbfb73` | merged to main directly (`c8ccd35`) | analyze: 1 warning already on `main`; `flutter test`: 1,459 passed, 0 failed; debug APK builds | MERGED |
 | 28 | #29 | overtime: my OT list, on its own tile | `29-ot-list` | `3728c18`, `4615de2` | merged to main directly (`444929f`) | analyze: 1 warning already on `main`; `flutter test`: 1,513 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 29 | #30 | overtime: an OT request page that opens by id | `30-ot-request-page` | `d4e2f6f`, `0acf102` | merged to main directly (`41c604f`) | analyze: 1 warning already on `main`; `flutter test`: 1,552 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 30 | #31 | overtime: ask for OT | `31-ot-ask` | `c3659c1`, `fdc36ec` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,598 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
+| 30 | #31 | overtime: ask for OT | `31-ot-ask` | `c3659c1`, `fdc36ec` | merged to main directly (`446a272`) | analyze: 1 warning already on `main`; `flutter test`: 1,598 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 31 | #32 | overtime: edit or cancel my OT while it waits | | | | | NOT STARTED |
 | 32 | #33 | overtime: see HR's OT posts for my department and join one | | | | | NOT STARTED |
 | 33 | #34 | overtime: the clock button knows about an open OT session | | | | | NOT STARTED |
