@@ -5,6 +5,7 @@ import 'data/upload_remote_data_source.dart';
 import 'data/upload_repository_impl.dart';
 import 'domain/upload_attachment_usecase.dart';
 import 'domain/upload_repository.dart';
+import 'presentation/file_capture.dart';
 
 // File upload (`POST /uploads`), shared by every feature that sends a file:
 // leave documents, off-site proof, the "forgot to scan" photo.
@@ -20,4 +21,10 @@ final uploadRepositoryProvider = Provider<UploadRepository>(
 
 final uploadAttachmentUseCaseProvider = Provider<UploadAttachmentUseCase>(
   (ref) => UploadAttachmentUseCase(ref.watch(uploadRepositoryProvider)),
+);
+
+/// Takes a photo or picks a file. Provided at start-up (`main.dart`), where
+/// the App's camera route is known; a test overrides it with a fake.
+final fileCaptureProvider = Provider<FileCapture>(
+  (ref) => throw UnimplementedError('fileCaptureProvider is set in main.dart'),
 );

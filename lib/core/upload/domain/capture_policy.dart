@@ -1,0 +1,48 @@
+import 'local_file.dart';
+
+/// Where a file can come from.
+enum CaptureSource { camera, gallery, file }
+
+/// Which sources a screen offers (owner's decision 23).
+enum CapturePolicy {
+  /// The camera alone: off-site proof must be taken there and then.
+  cameraOnly,
+
+  /// Camera, gallery or an image file: the "forgot to scan" photo, the
+  /// profile photo.
+  photo,
+
+  /// Camera, gallery, or an image or PDF file: a leave document.
+  document;
+
+  /// The sources offered, in the order the sheet lists them.
+  List<CaptureSource> get sources => switch (this) {
+    cameraOnly => const [CaptureSource.camera],
+    photo || document => CaptureSource.values,
+  };
+
+  /// A PDF may be chosen as the file.
+  bool get allowsPdf => this == document;
+}
+
+/// How a pick ended.
+sealed class CaptureResult {
+  const CaptureResult();
+}
+
+/// A file was taken or chosen.
+class Captured extends CaptureResult {
+  const Captured(this.file);
+
+  final LocalFile file;
+}
+
+/// The user backed out: nothing to do.
+class CaptureCancelled extends CaptureResult {
+  const CaptureCancelled();
+}
+
+/// The phone would not let the App use the camera or the photos.
+class CaptureDenied extends CaptureResult {
+  const CaptureDenied();
+}

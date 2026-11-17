@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/upload/domain/local_file.dart';
 import '../../../../core/upload/domain/uploaded_attachment.dart';
 import '../../../time_off/presentation/services/attachment_picker.dart';
+import '../../../../core/upload/domain/upload_rules.dart';
 import '../../../../core/upload/upload_providers.dart';
 
 /// Why a picked photo was turned away before upload.
@@ -38,8 +39,8 @@ class OffsitePhotoNotifier extends AutoDisposeAsyncNotifier<OffsitePhoto?> {
   /// where the employee is standing — a PDF would prove nothing.
   static const extensions = ['jpg', 'jpeg', 'png', 'heic', 'webp'];
 
-  /// Largest file the form accepts, in bytes (5 MB).
-  static const int maxBytes = 5 * 1024 * 1024;
+  /// Largest file the form accepts, in bytes: the shared limit.
+  static const int maxBytes = UploadRules.maxBytes;
 
   @override
   FutureOr<OffsitePhoto?> build() => null;
@@ -70,7 +71,10 @@ class OffsitePhotoNotifier extends AutoDisposeAsyncNotifier<OffsitePhoto?> {
     final previous = state.valueOrNull;
     state = const AsyncValue<OffsitePhoto?>.loading().copyWithPrevious(state);
 
-    final result = await ref.read(uploadAttachmentUseCaseProvider)(picked);
+    final result = await ref.read(uploadAttachmentUseCaseProvider)((
+      file: picked,
+      folder: UploadFolder.offsite,
+    ));
 
     state = result.fold(
       (failure) => AsyncValue<OffsitePhoto?>.error(

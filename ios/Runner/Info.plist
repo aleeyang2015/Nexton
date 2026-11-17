@@ -27,7 +27,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>NEXTON uses the camera to photograph evidence for your time-correction requests.</string>
+	<string>NEXTON uses the camera to take a photo for your off-site check-in, leave document or time-correction request.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>NEXTON lets you choose a photo for your leave document or profile.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>NEXTON uses your location to confirm you are at your workplace when you clock in and out.</string>
 	<key>UIApplicationSceneManifest</key>

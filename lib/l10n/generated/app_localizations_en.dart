@@ -1345,6 +1345,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get apprEmployeeLabel => 'Employee';
 
   @override
+  String get uploadTakePhoto => 'Take a photo';
+
+  @override
+  String get uploadPickPhoto => 'Choose from photos';
+
+  @override
+  String get uploadPickFile => 'Choose a file';
+
+  @override
+  String get uploadInProgress => 'Uploading…';
+
+  @override
+  String get uploadFileTooLarge => 'The file is over 5 MB';
+
+  @override
+  String get uploadInvalidFile => 'Could not read the file; choose it again';
+
+  @override
+  String get uploadStorageUnavailable =>
+      'File upload is not available; contact HR';
+
+  @override
+  String get uploadPermissionDenied =>
+      'Allow the App to use the camera or photos in the phone\'s settings';
+
+  @override
   String get approvalsLeaveTab => 'Approve Leave';
 
   @override

@@ -105,6 +105,16 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
     // Off-site withdrawal — §9's one refusal, raised by the same datasource.
     case 'offsiteCannotCancel':
       return l10n.offsiteCannotCancel;
+    // A refused upload (`core/upload/data/upload_error_code.dart`).
+    case 'uploadFileTooLarge':
+      return l10n.uploadFileTooLarge;
+    case 'uploadInvalidFile':
+      return l10n.uploadInvalidFile;
+    case 'uploadStorageUnavailable':
+      return l10n.uploadStorageUnavailable;
+    case 'uploadPermissionDenied':
+      return l10n.uploadPermissionDenied;
+
     // Leave (time-off) business rules — the leave datasource encodes a
     // recognised `error.code` as one of these tokens
     // (see `time_off/data/datasources/leave_error_code.dart`).

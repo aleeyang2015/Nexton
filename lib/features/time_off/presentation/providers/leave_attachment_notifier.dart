@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/upload/domain/uploaded_attachment.dart';
+import '../../../../core/upload/domain/upload_rules.dart';
 import '../../../../core/upload/upload_providers.dart';
 import '../services/attachment_picker.dart';
 
@@ -32,7 +33,10 @@ class LeaveAttachmentNotifier
       state,
     );
 
-    final result = await ref.read(uploadAttachmentUseCaseProvider)(picked);
+    final result = await ref.read(uploadAttachmentUseCaseProvider)((
+      file: picked,
+      folder: UploadFolder.leave,
+    ));
 
     state = result.fold(
       (failure) => AsyncValue<UploadedAttachment?>.error(

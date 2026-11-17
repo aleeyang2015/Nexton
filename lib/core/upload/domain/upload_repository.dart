@@ -11,5 +11,8 @@ import 'uploaded_attachment.dart';
 abstract class UploadRepository {
   /// `POST /uploads` (multipart) — uploads [file] and returns the stored
   /// attachment metadata the backend echoes back.
-  FutureResult<UploadedAttachment> upload(LocalFile file);
+  ///
+  /// [folder] is where the server keeps it (`UploadFolder`). A file over
+  /// `UploadRules.maxBytes` is refused without being sent.
+  FutureResult<UploadedAttachment> upload(LocalFile file, {String? folder});
 }
