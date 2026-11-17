@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/core/widgets/shimmer_box.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip_record.dart';
 import 'package:next_on/features/salary_history/presentation/pages/salary_history_page.dart';
 import 'package:next_on/features/salary_history/salary_history_providers.dart';
@@ -40,7 +43,11 @@ void main() {
       ..myPayslipsResult = Result.success([october, september]);
   });
 
-  Future<void> pumpPage(WidgetTester tester, {String locale = 'en'}) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    String locale = 'en',
+    bool settle = true,
+  }) async {
     // Wide enough for the test font, which is far wider than a real one.
     tester.view.physicalSize = const Size(800, 2000);
     tester.view.devicePixelRatio = 1;
@@ -59,7 +66,14 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      // A shimmer never settles: a few frames for the list to arrive.
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+    }
   }
 
   /// Opens the inline totals of the [n]th card.
@@ -88,11 +102,7 @@ void main() {
       await pumpPage(tester);
 
       expect(find.textContaining('November'), findsNothing);
-      // The summary card is the newest pay month, the first row sent.
-      expect(
-        find.text('${en.salaryNetSalaryLabel} • October 2026'),
-        findsOneWidget,
-      );
+      expect(find.text('October 2026'), findsOneWidget);
     });
 
     testWidgets('a payslip with no period is titled "Payslip", with no '
@@ -104,10 +114,6 @@ void main() {
       await pumpPage(tester);
 
       expect(find.text(en.payslipDetailTitle), findsOneWidget);
-      expect(
-        find.text('${en.salaryNetSalaryLabel} • ${en.payslipDetailTitle}'),
-        findsOneWidget,
-      );
       // It was made on 1 November 2026; that is not shown as its month.
       expect(find.textContaining('November'), findsNothing);
       expect(find.textContaining('October'), findsNothing);
@@ -148,7 +154,7 @@ void main() {
       await pumpPage(tester);
 
       expect(find.textContaining(en.salaryPaidOnLabel), findsNothing);
-      expect(find.text(en.salaryPaymentFailed), findsNWidgets(2));
+      expect(find.text(en.salaryPaymentFailed), findsOneWidget);
     });
 
     testWidgets('an approved payslip shows no paid date', (tester) async {
@@ -168,8 +174,8 @@ void main() {
     ) async {
       await pumpPage(tester);
 
-      // The summary card (October, approved) and October's row.
-      expect(find.text(en.salaryStatusApproved), findsNWidgets(2));
+      // October's row (the top card has no pill).
+      expect(find.text(en.salaryStatusApproved), findsOneWidget);
       // The Paid chip and September's row.
       expect(find.text(en.salaryFilterPaid), findsNWidgets(2));
       expect(find.text('Pending'), findsNothing);
@@ -178,7 +184,7 @@ void main() {
     testWidgets('in Lao: ອະນຸມັດແລ້ວ and ຈ່າຍແລ້ວ', (tester) async {
       await pumpPage(tester, locale: 'lo');
 
-      expect(find.text('ອະນຸມັດແລ້ວ'), findsNWidgets(2));
+      expect(find.text('ອະນຸມັດແລ້ວ'), findsOneWidget);
       expect(find.text('ຈ່າຍແລ້ວ'), findsNWidgets(2));
       expect(find.text(lo.salaryFilterAll), findsOneWidget);
     });
@@ -195,8 +201,8 @@ void main() {
       ]);
       await pumpPage(tester);
 
-      // Summary card and row.
-      expect(find.text(en.salaryPaymentFailed), findsNWidgets(2));
+      // The row (the top card has no pill).
+      expect(find.text(en.salaryPaymentFailed), findsOneWidget);
       // It is not also called Paid (the chip is the only "Paid").
       expect(find.text(en.salaryFilterPaid), findsOneWidget);
       expect(find.text(en.salaryPaymentFailedContactHr), findsNothing);
@@ -216,7 +222,7 @@ void main() {
       await pumpPage(tester, locale: 'lo');
       await expand(tester);
 
-      expect(find.text('ໂອນເງິນບໍ່ສຳເລັດ'), findsNWidgets(2));
+      expect(find.text('ໂອນເງິນບໍ່ສຳເລັດ'), findsOneWidget);
       expect(
         find.text('ການໂອນເງິນບໍ່ສຳເລັດ, ກະລຸນາຕິດຕໍ່ຝ່າຍບຸກຄະລາກອນ'),
         findsOneWidget,
@@ -248,7 +254,7 @@ void main() {
       expect(find.text(en.salaryStatusApproved), findsNothing);
       // Only the chip.
       expect(find.text(en.salaryFilterPaid), findsOneWidget);
-      expect(find.text('₭ 7,426,674'), findsNWidgets(2));
+      expect(find.text('₭ 7,426,674'), findsOneWidget);
     });
   });
 
@@ -270,8 +276,9 @@ void main() {
       // In English the section and its total row share the word.
       expect(find.text(en.salaryTotalDeductionsLabel), findsNWidgets(2));
       expect(find.text('- 5,373,326'), findsOneWidget);
-      // Net: the summary card, the row, and the open row's net box.
-      expect(find.text('₭ 7,426,674'), findsNWidgets(3));
+      // Net: the row and the open row's net box (no top card: nothing
+      // from /my/latest here).
+      expect(find.text('₭ 7,426,674'), findsNWidgets(2));
 
       // 12,800,000 - 12,000,000 (the old "allowance") and
       // 5,373,326 - 247,500 - 940,249 (the old "other deductions").
@@ -356,35 +363,131 @@ void main() {
   });
 
   group('the summary card', () {
-    testWidgets('shows who the payslip is for', (tester) async {
-      await pumpPage(tester);
-
-      expect(find.text('Sandy Vang • EMP-002 • IT Developer'), findsOneWidget);
-    });
-
-    testWidgets('a missing position leaves no stray separator', (tester) async {
-      repository.myPayslipsResult = Result.success([
-        samplePayslipRecord(positionTitle: null),
-      ]);
+    testWidgets('is the newest payslip from /my/latest: its month, net pay '
+        'and totals', (tester) async {
+      repository.latestResult = const Result.success(sampleLatestPayslip);
 
       await pumpPage(tester);
 
-      expect(find.text('Sandy Vang • EMP-002'), findsOneWidget);
+      expect(
+        find.text('${en.salaryNetSalaryLabel} • December 2026'),
+        findsOneWidget,
+      );
+      expect(find.text('₭ 7,426,674'), findsWidgets);
+      expect(
+        find.text(
+          '${en.salaryGrossLabel} ₭ 12,800,000 · '
+          '${en.salaryTotalDeductionsLabel} ₭ 5,373,326',
+        ),
+        findsOneWidget,
+      );
+      expect(repository.latestCalls, 1);
     });
 
-    testWidgets('is the newest pay month whichever chip is on', (tester) async {
+    testWidgets('in Lao: ເງິນເດືອນສຸດທິ • ທັນວາ 2026, and the month comes from '
+        'month and year', (tester) async {
+      repository.latestResult = const Result.success(sampleLatestPayslip);
+
+      await pumpPage(tester, locale: 'lo');
+
+      expect(find.text('ເງິນເດືອນສຸດທິ • ທັນວາ 2026'), findsOneWidget);
+      expect(find.textContaining('ລາຍຮັບລວມ ₭ 12,800,000'), findsOneWidget);
+      expect(find.textContaining('ຫັກລວມ ₭ 5,373,326'), findsOneWidget);
+    });
+
+    testWidgets('shows even when the year on screen has no payslips', (
+      tester,
+    ) async {
+      repository
+        ..myPayslipsResult = const Result.success([])
+        ..latestResult = const Result.success(sampleLatestPayslip);
+
+      await pumpPage(tester);
+
+      expect(find.text(en.salaryHistoryEmpty), findsOneWidget);
+      expect(
+        find.text('${en.salaryNetSalaryLabel} • December 2026'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('is not the first row of the year: no name line, no pill', (
+      tester,
+    ) async {
+      repository.latestResult = const Result.success(sampleLatestPayslip);
+
+      await pumpPage(tester);
+
+      expect(
+        find.text('${en.salaryNetSalaryLabel} • October 2026'),
+        findsNothing,
+      );
+      expect(find.text('Sandy Vang • EMP-002 • IT Developer'), findsNothing);
+    });
+
+    testWidgets('stays the same whichever chip is on', (tester) async {
+      repository.latestResult = const Result.success(sampleLatestPayslip);
       await pumpPage(tester);
 
       await tester.tap(find.widgetWithText(InkWell, en.salaryFilterPaid).first);
       await tester.pumpAndSettle();
 
-      // October is filtered out of the list but still heads the page.
       expect(
-        find.text('${en.salaryNetSalaryLabel} • October 2026'),
+        find.text('${en.salaryNetSalaryLabel} • December 2026'),
         findsOneWidget,
       );
-      expect(find.text('October 2026'), findsNothing);
-      expect(find.text('September 2026'), findsOneWidget);
+      expect(repository.latestCalls, 1);
+    });
+
+    testWidgets('a shimmer while it loads', (tester) async {
+      repository
+        ..latestResult = const Result.success(sampleLatestPayslip)
+        ..holdLatest = Completer<void>();
+
+      await pumpPage(tester, settle: false);
+
+      expect(find.byType(ShimmerBox), findsOneWidget);
+      expect(find.textContaining(en.salaryNetSalaryLabel), findsNothing);
+
+      repository.holdLatest!.complete();
+      await tester.pumpAndSettle();
+      expect(find.byType(ShimmerBox), findsNothing);
+    });
+
+    testWidgets('none (no payslip yet, or no employee): no card and no error',
+        (tester) async {
+      await pumpPage(tester);
+
+      expect(find.textContaining('${en.salaryNetSalaryLabel} •'), findsNothing);
+      expect(find.text(en.salaryHistoryLoadFailed), findsNothing);
+    });
+
+    testWidgets('403 no payroll: no card; the list says why', (tester) async {
+      const refusal = Failure.validation(
+        message: 'payroll is not active',
+        code: 'MODULE_NOT_ACTIVE',
+      );
+      repository
+        ..latestResult = const Result.failure(refusal)
+        ..myPayslipsResult = const Result.failure(refusal);
+
+      await pumpPage(tester);
+
+      expect(find.textContaining('${en.salaryNetSalaryLabel} •'), findsNothing);
+      expect(find.text(en.errorModuleNotActive), findsOneWidget);
+    });
+
+    testWidgets('a server error: no card and no error of its own; the list '
+        'below is shown as usual', (tester) async {
+      repository.latestResult = const Result.failure(
+        Failure.server(message: 'boom', statusCode: 500),
+      );
+
+      await pumpPage(tester);
+
+      expect(find.textContaining('${en.salaryNetSalaryLabel} •'), findsNothing);
+      expect(find.text(en.retry), findsNothing);
+      expect(find.text('October 2026'), findsOneWidget);
     });
   });
 

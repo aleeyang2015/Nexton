@@ -294,3 +294,38 @@ class PayslipOvertimeItem extends Equatable {
     amount,
   ];
 }
+
+/// The caller's newest payslip, as `GET /payroll/payslips/my/latest` sends
+/// it: the newest of an approved or paid run by its pay month, whatever
+/// year the salary list shows. Totals only; no status, name or lines.
+class PayslipLatest extends Equatable {
+  final String id;
+
+  /// The pay month, 1 to 12, and its year.
+  final int month;
+  final int year;
+
+  /// Whole kip.
+  final int grossPay;
+  final int totalDeductions;
+  final int netPay;
+
+  const PayslipLatest({
+    required this.id,
+    required this.month,
+    required this.year,
+    required this.grossPay,
+    required this.totalDeductions,
+    required this.netPay,
+  });
+
+  @override
+  List<Object?> get props => [
+    id,
+    month,
+    year,
+    grossPay,
+    totalDeductions,
+    netPay,
+  ];
+}

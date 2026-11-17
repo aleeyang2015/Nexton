@@ -22,6 +22,15 @@ class FakeSalaryRepository implements SalaryRepository {
   /// When set, `pdf()` waits for it: the server still making the PDF.
   Completer<void>? holdPdf;
 
+  /// The newest payslip; none by default (`"data": null`).
+  Result<PayslipLatest?> latestResult = const Result.success(null);
+
+  /// How many times the newest payslip was asked for.
+  int latestCalls = 0;
+
+  /// When set, `myLatestPayslip()` waits for it.
+  Completer<void>? holdLatest;
+
   /// When set, `myPayslip()` never completes — the payslip page stays
   /// loading.
   bool hangMyPayslip = false;
@@ -62,6 +71,14 @@ class FakeSalaryRepository implements SalaryRepository {
         const Result.failure(
           Failure.network(message: 'not found', statusCode: 404),
         );
+  }
+
+  @override
+  FutureResult<PayslipLatest?> myLatestPayslip() async {
+    latestCalls++;
+    final result = latestResult;
+    await holdLatest?.future;
+    return result;
   }
 
   @override
@@ -341,3 +358,14 @@ final List<PayslipOvertimeItem> samplePayslipOvertimeItems = [
     amount: 0,
   ),
 ];
+
+/// December 2026's payslip as `/my/latest` sends it: the newest one, in a
+/// later year than the list may be showing.
+const PayslipLatest sampleLatestPayslip = PayslipLatest(
+  id: 'p-dec',
+  month: 12,
+  year: 2026,
+  grossPay: 12800000,
+  totalDeductions: 5373326,
+  netPay: 7426674,
+);

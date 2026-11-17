@@ -191,4 +191,132 @@ void main() {
       expect(result.isFailure, isTrue);
     });
   });
+
+  group('myLatestPayslip', () {
+    /// `GET /payroll/payslips/my/latest`, as the server fills it
+    /// (`mobile.go:205-215`).
+    Map<String, dynamic> latest() => {
+      'id': 'p-dec',
+      'period': '2026-12',
+      'period_label': 'December 2026',
+      'month': 12,
+      'year': 2026,
+      'earnings': [
+        {'label': 'Basic Salary', 'amount': 12000000},
+      ],
+      'deductions': [
+        {'label': 'Income Tax', 'amount': 940249},
+      ],
+      'gross_pay': 12800000,
+      'total_deductions': 5373326,
+      'net_pay': 7426674,
+    };
+
+    test('GET /payroll/payslips/my/latest, with no query', () async {
+      adapter.body = {'success': true, 'data': latest()};
+
+      await source.myLatestPayslip();
+
+      final request = adapter.lastRequest!;
+      expect(request.method, 'GET');
+      expect(request.path, '/payroll/payslips/my/latest');
+      expect(request.queryParameters, isEmpty);
+    });
+
+    test('reads the id, the month and year, and the three totals', () async {
+      adapter.body = {'success': true, 'data': latest()};
+
+      final payslip = (await source.myLatestPayslip())!;
+
+      expect(payslip.id, 'p-dec');
+      expect(payslip.month, 12);
+      expect(payslip.year, 2026);
+      expect(payslip.grossPay, 12800000);
+      expect(payslip.totalDeductions, 5373326);
+      expect(payslip.netPay, 7426674);
+    });
+
+    test('a whole number sent as 7426674.0 is read as 7426674', () async {
+      adapter.body = {
+        'success': true,
+        'data': {...latest(), 'net_pay': 7426674.0, 'month': 12.0},
+      };
+
+      final payslip = (await source.myLatestPayslip())!;
+
+      expect(payslip.netPay, 7426674);
+      expect(payslip.month, 12);
+    });
+
+    test('"data": null (nothing yet, or no employee linked) is null, not '
+        'the envelope', () async {
+      adapter.body = {'success': true, 'data': null};
+
+      final result = await repository.myLatestPayslip();
+
+      expect(result.isSuccess, isTrue);
+      expect(result.dataOrNull, isNull);
+    });
+
+    test('an answer with no data at all is null too', () async {
+      adapter.body = {'success': true};
+
+      expect((await repository.myLatestPayslip()).dataOrNull, isNull);
+    });
+
+    test('a fraction of a kip is refused, never shown rounded', () async {
+      adapter.body = {
+        'success': true,
+        'data': {...latest(), 'net_pay': 7426674.5},
+      };
+
+      expect((await repository.myLatestPayslip()).isFailure, isTrue);
+    });
+
+    test('a month that is not 1 to 12, or no year, is refused', () async {
+      adapter.body = {
+        'success': true,
+        'data': {...latest(), 'month': 13},
+      };
+      expect((await repository.myLatestPayslip()).isFailure, isTrue);
+
+      adapter.body = {
+        'success': true,
+        'data': {...latest()}..remove('year'),
+      };
+      expect((await repository.myLatestPayslip()).isFailure, isTrue);
+    });
+
+    test('no id is refused: the card could not open the payslip', () async {
+      adapter.body = {
+        'success': true,
+        'data': {...latest(), 'id': ''},
+      };
+
+      expect((await repository.myLatestPayslip()).isFailure, isTrue);
+    });
+
+    test('a missing total is refused, never shown as 0', () async {
+      adapter.body = {
+        'success': true,
+        'data': {...latest()}..remove('net_pay'),
+      };
+
+      expect((await repository.myLatestPayslip()).isFailure, isTrue);
+    });
+
+    test('403 MODULE_NOT_ACTIVE keeps its code', () async {
+      refuse(403, 'MODULE_NOT_ACTIVE', 'payroll is not active');
+
+      final failure = (await repository.myLatestPayslip()).failureOrNull!;
+
+      expect((failure as ValidationFailure).code, 'MODULE_NOT_ACTIVE');
+    });
+
+    test('a body that is not a payslip is a failure, not a crash', () async {
+      adapter.body = {'success': true, 'data': 'nope'};
+
+      expect((await repository.myLatestPayslip()).isFailure, isTrue);
+    });
+  });
 }

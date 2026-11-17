@@ -22,6 +22,10 @@ mixin _$SalaryHistoryState {
       throw _privateConstructorUsedError;
   Set<int> get expandedIndexes => throw _privateConstructorUsedError;
 
+  /// The newest payslip, whatever year is showing (`/my/latest`): the top
+  /// card. Null when there is none.
+  AsyncValue<PayslipLatest?> get latest => throw _privateConstructorUsedError;
+
   @JsonKey(ignore: true)
   $SalaryHistoryStateCopyWith<SalaryHistoryState> get copyWith =>
       throw _privateConstructorUsedError;
@@ -37,7 +41,8 @@ abstract class $SalaryHistoryStateCopyWith<$Res> {
       {int year,
       SalaryHistoryFilter filter,
       AsyncValue<List<PayslipRecord>> payslips,
-      Set<int> expandedIndexes});
+      Set<int> expandedIndexes,
+      AsyncValue<PayslipLatest?> latest});
 }
 
 /// @nodoc
@@ -57,6 +62,7 @@ class _$SalaryHistoryStateCopyWithImpl<$Res, $Val extends SalaryHistoryState>
     Object? filter = null,
     Object? payslips = null,
     Object? expandedIndexes = null,
+    Object? latest = null,
   }) {
     return _then(_value.copyWith(
       year: null == year
@@ -75,6 +81,10 @@ class _$SalaryHistoryStateCopyWithImpl<$Res, $Val extends SalaryHistoryState>
           ? _value.expandedIndexes
           : expandedIndexes // ignore: cast_nullable_to_non_nullable
               as Set<int>,
+      latest: null == latest
+          ? _value.latest
+          : latest // ignore: cast_nullable_to_non_nullable
+              as AsyncValue<PayslipLatest?>,
     ) as $Val);
   }
 }
@@ -91,7 +101,8 @@ abstract class _$$SalaryHistoryStateImplCopyWith<$Res>
       {int year,
       SalaryHistoryFilter filter,
       AsyncValue<List<PayslipRecord>> payslips,
-      Set<int> expandedIndexes});
+      Set<int> expandedIndexes,
+      AsyncValue<PayslipLatest?> latest});
 }
 
 /// @nodoc
@@ -109,6 +120,7 @@ class __$$SalaryHistoryStateImplCopyWithImpl<$Res>
     Object? filter = null,
     Object? payslips = null,
     Object? expandedIndexes = null,
+    Object? latest = null,
   }) {
     return _then(_$SalaryHistoryStateImpl(
       year: null == year
@@ -127,6 +139,10 @@ class __$$SalaryHistoryStateImplCopyWithImpl<$Res>
           ? _value._expandedIndexes
           : expandedIndexes // ignore: cast_nullable_to_non_nullable
               as Set<int>,
+      latest: null == latest
+          ? _value.latest
+          : latest // ignore: cast_nullable_to_non_nullable
+              as AsyncValue<PayslipLatest?>,
     ));
   }
 }
@@ -138,7 +154,8 @@ class _$SalaryHistoryStateImpl extends _SalaryHistoryState {
       {required this.year,
       this.filter = SalaryHistoryFilter.all,
       this.payslips = const AsyncValue<List<PayslipRecord>>.loading(),
-      final Set<int> expandedIndexes = const <int>{}})
+      final Set<int> expandedIndexes = const <int>{},
+      this.latest = const AsyncValue<PayslipLatest?>.loading()})
       : _expandedIndexes = expandedIndexes,
         super._();
 
@@ -159,9 +176,15 @@ class _$SalaryHistoryStateImpl extends _SalaryHistoryState {
     return EqualUnmodifiableSetView(_expandedIndexes);
   }
 
+  /// The newest payslip, whatever year is showing (`/my/latest`): the top
+  /// card. Null when there is none.
+  @override
+  @JsonKey()
+  final AsyncValue<PayslipLatest?> latest;
+
   @override
   String toString() {
-    return 'SalaryHistoryState(year: $year, filter: $filter, payslips: $payslips, expandedIndexes: $expandedIndexes)';
+    return 'SalaryHistoryState(year: $year, filter: $filter, payslips: $payslips, expandedIndexes: $expandedIndexes, latest: $latest)';
   }
 
   @override
@@ -174,12 +197,13 @@ class _$SalaryHistoryStateImpl extends _SalaryHistoryState {
             (identical(other.payslips, payslips) ||
                 other.payslips == payslips) &&
             const DeepCollectionEquality()
-                .equals(other._expandedIndexes, _expandedIndexes));
+                .equals(other._expandedIndexes, _expandedIndexes) &&
+            (identical(other.latest, latest) || other.latest == latest));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, year, filter, payslips,
-      const DeepCollectionEquality().hash(_expandedIndexes));
+      const DeepCollectionEquality().hash(_expandedIndexes), latest);
 
   @JsonKey(ignore: true)
   @override
@@ -194,7 +218,8 @@ abstract class _SalaryHistoryState extends SalaryHistoryState {
       {required final int year,
       final SalaryHistoryFilter filter,
       final AsyncValue<List<PayslipRecord>> payslips,
-      final Set<int> expandedIndexes}) = _$SalaryHistoryStateImpl;
+      final Set<int> expandedIndexes,
+      final AsyncValue<PayslipLatest?> latest}) = _$SalaryHistoryStateImpl;
   const _SalaryHistoryState._() : super._();
 
   @override
@@ -205,6 +230,11 @@ abstract class _SalaryHistoryState extends SalaryHistoryState {
   AsyncValue<List<PayslipRecord>> get payslips;
   @override
   Set<int> get expandedIndexes;
+  @override
+
+  /// The newest payslip, whatever year is showing (`/my/latest`): the top
+  /// card. Null when there is none.
+  AsyncValue<PayslipLatest?> get latest;
   @override
   @JsonKey(ignore: true)
   _$$SalaryHistoryStateImplCopyWith<_$SalaryHistoryStateImpl> get copyWith =>

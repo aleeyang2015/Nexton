@@ -91,8 +91,9 @@ void main() {
       await pumpPage(tester);
 
       expect(repository.myPayslipsYears, [now.year]);
-      // Headline net on the summary card and on each row — wire value.
-      expect(find.text('₭ 7,426,674'), findsNWidgets(3));
+      // Headline net on each row — wire value. No top card: nothing from
+      // /my/latest here.
+      expect(find.text('₭ 7,426,674'), findsNWidgets(2));
       expect(find.text('August ${now.year}'), findsOneWidget);
       expect(find.text('September ${now.year}'), findsOneWidget);
     });
@@ -225,6 +226,38 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(PayslipPdfPage), findsOneWidget);
       expect(repository.pdfIds, [listRow.id, listRow.id]);
+    });
+  });
+
+  group('the top card', () {
+    testWidgets('a tap opens the newest payslip, by its id', (tester) async {
+      repository.latestResult = const Result.success(sampleLatestPayslip);
+      await pumpPage(tester);
+
+      await tester.tap(find.text('Net Salary • December 2026'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PayslipDetailPage), findsOneWidget);
+      expect(repository.myPayslipIds, ['p-dec']);
+    });
+
+    testWidgets('coming back from the payslip does not ask for the newest '
+        'payslip again', (tester) async {
+      repository.latestResult = const Result.success(sampleLatestPayslip);
+      await pumpPage(tester);
+
+      await tester.tap(find.text('Net Salary • December 2026'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(PayslipDetailPage),
+          matching: find.byIcon(Icons.arrow_back_ios),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SalaryHistoryPage), findsOneWidget);
+      expect(repository.latestCalls, 1);
     });
   });
 

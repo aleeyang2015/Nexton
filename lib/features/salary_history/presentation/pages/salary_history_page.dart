@@ -72,7 +72,7 @@ class SalaryHistoryPage extends ConsumerWidget {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(15, 16, 15, 40),
                   children: [
-                    _LatestSummaryCard(payslips: state.payslips, all: state.all),
+                    _LatestSummaryCard(latest: state.latest),
                     heightBx(h: 16),
                     _RecordsList(payslips: state.payslips, records: state.filtered),
                   ],
@@ -202,133 +202,89 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
+/// The newest payslip, whatever year the list shows (`/my/latest`): its
+/// month, net pay and totals. A tap opens it. Nothing at all while there is
+/// none, or when it could not be had: the list below says why, with its own
+/// Retry.
 class _LatestSummaryCard extends StatelessWidget {
-  final AsyncValue<List<PayslipRecord>> payslips;
-  final List<PayslipRecord> all;
+  final AsyncValue<PayslipLatest?> latest;
 
-  const _LatestSummaryCard({required this.payslips, required this.all});
+  const _LatestSummaryCard({required this.latest});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final loading = payslips.isLoading && !payslips.hasValue;
 
-    if (loading) {
+    if (latest.isLoading && !latest.hasValue) {
       return const ShimmerBox(width: double.infinity, height: 150, borderRadius: BorderRadius.all(Radius.circular(24)));
     }
 
-    if (payslips.hasError || all.isEmpty) return const SizedBox.shrink();
+    final payslip = latest.valueOrNull;
+    if (latest.hasError || payslip == null) return const SizedBox.shrink();
 
-    // The server lists the newest pay month first.
-    final latest = all.first;
-    final status = SalaryHistoryCopy.recordStatus(l10n, latest);
-    final who = SalaryHistoryCopy.identityLine(latest);
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: Stack(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primaryTint,
-                  Color.alphaBlend(
-                    AppColors.primary.withValues(alpha: 0.1),
+    return GestureDetector(
+      onTap: () => context.push(AppRoutes.payslip(payslip.id)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
                     AppColors.primaryTint,
-                  ),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                customText(
-                  '${l10n.salaryNetSalaryLabel} • ${SalaryHistoryCopy.periodTitle(l10n, latest)}',
-                  color: AppColors.subTitle,
-                  fontSize: 13,
-                ),
-                heightBx(h: 6),
-                customText(
-                  SalaryHistoryCopy.currency(latest.netSalary),
-                  color: AppColors.primary,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                ),
-                heightBx(h: 6),
-                if (who.isNotEmpty)
-                  customText(who, color: AppColors.subTitle, fontSize: 13),
-                if (status != null) ...[
-                  heightBx(h: 12),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: _StatusPill(
-                      label: status.label,
-                      color: status.color,
-                      failed: SalaryHistoryCopy.isPaymentFailed(latest),
+                    Color.alphaBlend(
+                      AppColors.primary.withValues(alpha: 0.1),
+                      AppColors.primaryTint,
                     ),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  customText(
+                    SalaryHistoryCopy.latestTitle(l10n, payslip),
+                    color: AppColors.subTitle,
+                    fontSize: 13,
+                  ),
+                  heightBx(h: 6),
+                  customText(
+                    SalaryHistoryCopy.currency(payslip.netPay),
+                    color: AppColors.primary,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  heightBx(h: 6),
+                  customText(
+                    SalaryHistoryCopy.latestTotals(l10n, payslip),
+                    color: AppColors.subTitle,
+                    fontSize: 13,
+                    maxLine: 2,
                   ),
                 ],
-              ],
-            ),
-          ),
-          Positioned(
-            right: -18,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: Icon(
-                Icons.access_time,
-                size: 120,
-                color: AppColors.primary.withValues(alpha: 0.18),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusPill extends StatelessWidget {
-  final String label;
-  final Color color;
-
-  /// A failed payment gets a warning mark, not the tick of one that is fine.
-  final bool failed;
-
-  const _StatusPill({
-    required this.label,
-    required this.color,
-    this.failed = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            failed ? Icons.error : Icons.check_circle,
-            size: 14,
-            color: color,
-          ),
-          widthBx(w: 5),
-          customText(label, color: color, fontWeight: FontWeight.w700, fontSize: 12),
-        ],
+            Positioned(
+              right: -18,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Icon(
+                  Icons.access_time,
+                  size: 120,
+                  color: AppColors.primary.withValues(alpha: 0.18),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

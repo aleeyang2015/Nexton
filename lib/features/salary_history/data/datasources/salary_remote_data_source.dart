@@ -18,6 +18,9 @@ abstract class SalaryRemoteDataSource {
 
   /// One of the caller's payslips in full, as the server sends it.
   Future<PayslipRecord> myPayslip(String id);
+
+  /// The caller's newest payslip, or null when there is none.
+  Future<PayslipLatest?> myLatestPayslip();
 }
 
 /// The payroll calls behind the salary-history screens, on the shared
@@ -64,6 +67,19 @@ class SalaryRemoteDataSourceImpl implements SalaryRemoteDataSource {
     return PayslipRecordModel.fromJson(
       ApiEnvelope.unwrapObject(response.data),
     );
+  }
+
+  /// Nothing to show yet, or no employee linked, is `200` with
+  /// `"data": null`: that is null here. It is checked before
+  /// [ApiEnvelope.unwrapObject], which would hand back the envelope itself.
+  @override
+  Future<PayslipLatest?> myLatestPayslip() async {
+    final response = await _client.get<dynamic>(SalaryPaths.payslipsMyLatest);
+    final body = response.data;
+    if (body is Map && body['success'] == true && body['data'] == null) {
+      return null;
+    }
+    return PayslipRecordModel.latestFromJson(ApiEnvelope.unwrapObject(body));
   }
 
   /// The payslip's PDF. A refusal comes back as JSON in bytes; the error

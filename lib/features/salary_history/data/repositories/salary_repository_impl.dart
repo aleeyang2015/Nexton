@@ -21,4 +21,8 @@ class SalaryRepositoryImpl extends BaseRepository implements SalaryRepository {
   @override
   FutureResult<PayslipRecord> myPayslip(String id) =>
       guard(() => _remote.myPayslip(id));
+
+  @override
+  FutureResult<PayslipLatest?> myLatestPayslip() =>
+      guard(_remote.myLatestPayslip);
 }

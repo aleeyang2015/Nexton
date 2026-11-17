@@ -4,9 +4,14 @@ import '../../../../core/utils/result.dart';
 import '../../salary_history_providers.dart';
 import 'salary_history_state.dart';
 
-/// Owns the history page's year, its payslips, the active filter and which
-/// rows are expanded. The page renders what comes back and forwards taps
-/// here; it holds no fetching logic of its own.
+/// Owns the history page's year, its payslips, the active filter, which
+/// rows are expanded, and the newest payslip for the top card. The page
+/// renders what comes back and forwards taps here; it holds no fetching
+/// logic of its own.
+///
+/// The newest payslip is asked for once, when the page opens: it does not
+/// depend on the year, so switching year or chip leaves it as it is. Retry
+/// asks for it again with the year's list.
 class SalaryHistoryNotifier extends AutoDisposeNotifier<SalaryHistoryState> {
   bool _disposed = false;
 
@@ -16,7 +21,10 @@ class SalaryHistoryNotifier extends AutoDisposeNotifier<SalaryHistoryState> {
     ref.onDispose(() => _disposed = true);
 
     final year = DateTime.now().year;
-    Future.microtask(() => _load(year));
+    Future.microtask(() {
+      _load(year);
+      _loadLatest();
+    });
 
     return SalaryHistoryState(year: year);
   }
@@ -28,9 +36,12 @@ class SalaryHistoryNotifier extends AutoDisposeNotifier<SalaryHistoryState> {
     _load(state.year + 1);
   }
 
-  /// Re-runs the current year's fetch, e.g. after the user retries a failed
-  /// load.
-  void retry() => _load(state.year);
+  /// Re-runs the current year's fetch and the newest payslip's, e.g. after
+  /// the user retries a failed load.
+  void retry() {
+    _load(state.year);
+    _loadLatest();
+  }
 
   void setFilter(SalaryHistoryFilter filter) {
     state = state.copyWith(filter: filter, expandedIndexes: {});
@@ -49,7 +60,11 @@ class SalaryHistoryNotifier extends AutoDisposeNotifier<SalaryHistoryState> {
     final loadedAs = ++_loads;
     // A fresh year resets the list and expanded rows, but keeps the chosen
     // filter — that's a display preference, not tied to any one year.
-    state = SalaryHistoryState(year: year, filter: state.filter);
+    state = SalaryHistoryState(
+      year: year,
+      filter: state.filter,
+      latest: state.latest,
+    );
 
     final result = await ref.read(getMyPayslipsUseCaseProvider)(year);
     // Only the latest load counts. An older one answered late, for another
@@ -57,6 +72,21 @@ class SalaryHistoryNotifier extends AutoDisposeNotifier<SalaryHistoryState> {
     // replace the list that is showing, least of all with its failure.
     if (_disposed || loadedAs != _loads) return;
     state = state.copyWith(payslips: _toAsync(result));
+  }
+
+  /// Counts the newest-payslip loads, as [_loads] does for the year's.
+  int _latestLoads = 0;
+
+  Future<void> _loadLatest() async {
+    final loadedAs = ++_latestLoads;
+    // A card already showing stays while it is asked for again.
+    if (!state.latest.hasValue) {
+      state = state.copyWith(latest: const AsyncValue.loading());
+    }
+
+    final result = await ref.read(getMyLatestPayslipUseCaseProvider)();
+    if (_disposed || loadedAs != _latestLoads) return;
+    state = state.copyWith(latest: _toAsync(result));
   }
 
   AsyncValue<T> _toAsync<T>(Result<T> result) => result.fold(

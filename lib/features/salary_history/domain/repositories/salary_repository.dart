@@ -17,4 +17,8 @@ abstract class SalaryRepository {
   /// payslip that is not there (or not the caller's, or not yet approved)
   /// fails with status 404.
   FutureResult<PayslipRecord> myPayslip(String id);
+
+  /// The caller's newest payslip by pay month, whatever year, or null when
+  /// there is none (or no employee record).
+  FutureResult<PayslipLatest?> myLatestPayslip();
 }
