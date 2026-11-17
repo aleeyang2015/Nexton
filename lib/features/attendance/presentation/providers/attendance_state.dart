@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../domain/entities/attendance_day.dart';
+import '../../domain/entities/offsite_detail.dart';
 import '../../domain/entities/open_ot_session.dart';
+import '../../domain/next_punch.dart';
 
 part 'attendance_state.freezed.dart';
 
@@ -32,6 +34,16 @@ class AttendanceState with _$AttendanceState {
     /// it could not be read (the card then goes by the record alone; the
     /// server still guards a wrong punch).
     OpenOtSession? openOt,
+
+    /// The user's off-site scans still waiting for a decision
+    /// (`offsite-requests/my?status=pending`, #41): a waiting check-in has no
+    /// session in [today] until it is approved. Empty when there are none,
+    /// and when they could not be read (the card then goes by the record).
+    @Default(<OffsiteRequestDetail>[]) List<OffsiteRequestDetail> waitingOffsite,
+
+    /// The phone's date when today was last loaded: what "today" means for
+    /// the waiting scans.
+    DateTime? loadedOn,
   }) = _AttendanceState;
 
   /// Today's record, or the empty day while it loads or after it failed.
@@ -51,15 +63,26 @@ class AttendanceState with _$AttendanceState {
   /// at 02:00 the night shift's card would offer clock-in.
   bool get isClockedIn => day.isClockedIn;
 
-  /// Which endpoint the slide action should hit next: a clock-out when the
-  /// record has an open session ([isClockedIn], #7's rule) or an OT
-  /// clock-in is open ([openOt]), else a clock-in (guide 1.6). An OT right
-  /// after the shift has no clock-in of its own and shows as the record's
-  /// open session; an OT clocked in at 23:30 stays open past midnight
-  /// through [openOt].
-  ClockAction get nextAction => isClockedIn || openOt != null
-      ? ClockAction.clockOut
-      : ClockAction.clockIn;
+  /// What the slide does next ([nextPunch], one rule for the whole App):
+  /// a clock-out when the record has an open session ([isClockedIn], #7's
+  /// rule) or an OT clock-in is open ([openOt]); an off-site clock-out when
+  /// an off-site check-in waits for approval ([waitingOffsite], #41); else a
+  /// clock-in.
+  NextPunch get next => nextPunch(
+    clockedIn: isClockedIn,
+    otOpen: openOt != null,
+    waiting: waitingOffsite,
+    today: loadedOn ?? DateTime.now(),
+  );
+
+  /// Which way the slide points: out for a normal or an off-site clock-out,
+  /// else in (guide 1.6). An OT right after the shift has no clock-in of its
+  /// own and shows as the record's open session; an OT clocked in at 23:30
+  /// stays open past midnight through [openOt].
+  ClockAction get nextAction => switch (next) {
+    NormalClockOut() || OffsiteClockOut() => ClockAction.clockOut,
+    NormalClockIn() || WaitingBoth() => ClockAction.clockIn,
+  };
 
   bool get isCoolingDown {
     final until = cooldownUntil;

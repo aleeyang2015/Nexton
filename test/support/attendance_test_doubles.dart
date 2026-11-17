@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:next_on/features/attendance/domain/entities/offsite_method.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/domain/datasources/punch_location_source.dart';
@@ -219,6 +220,25 @@ class FakeOffsiteRepository implements OffsiteRepository {
         );
   }
 
+  /// Answers `waiting(month:)`; the months asked for are kept.
+  Result<List<OffsiteRequestDetail>> waitingResult = const Result.success([]);
+  final List<String> waitingMonths = [];
+
+  /// When set, the next `waiting` waits for it.
+  Completer<void>? holdWaiting;
+
+  @override
+  FutureResult<List<OffsiteRequestDetail>> waiting({
+    required String month,
+  }) async {
+    waitingMonths.add(month);
+    final answer = waitingResult;
+    final hold = holdWaiting;
+    holdWaiting = null;
+    await hold?.future;
+    return answer;
+  }
+
   @override
   FutureResult<List<OffsiteRequestDetail>> mine() async {
     mineCalls++;
@@ -285,3 +305,45 @@ class FakePunchLocationSource implements PunchLocationSource {
     return reading;
   }
 }
+
+/// An off-site scan of the caller's, as `offsite-requests/my` lists it:
+/// waiting by default, session 1, scanned at [at].
+OffsiteRequestDetail waitingOffsite({
+  required OffsiteMethod method,
+  required DateTime at,
+  String id = 'off-1',
+  int sessionOrder = 1,
+  TimeCorrectionStatus status = TimeCorrectionStatus.pending,
+  TimeCorrectionShift? shift,
+  DateTime? submittedAt,
+  bool noScanTime = false,
+}) => OffsiteRequestDetail(
+  id: id,
+  employee: const TimeCorrectionEmployee(name: 'Somchai'),
+  method: method,
+  latitude: 17.9757,
+  longitude: 102.6331,
+  scanTimestamp: noScanTime ? null : at,
+  scanDate: DateTime(at.year, at.month, at.day),
+  sessionOrder: sessionOrder,
+  shift: shift,
+  attachmentUrl: 'https://files.nexton.work/uploads/shop.jpg',
+  reason: 'Client visit',
+  status: status,
+  currentStepNo: 1,
+  attendanceRecordId: null,
+  steps: const [],
+  submittedAt: submittedAt ?? at,
+);
+
+/// A night shift, 22:00 to 06:00: it crosses midnight.
+const nightShift = TimeCorrectionShift(
+  start: Duration(hours: 22),
+  end: Duration(hours: 6),
+);
+
+/// A day shift, 08:00 to 17:00.
+const dayShift = TimeCorrectionShift(
+  start: Duration(hours: 8),
+  end: Duration(hours: 17),
+);

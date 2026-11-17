@@ -26,6 +26,7 @@ import 'domain/usecases/get_time_correction_approvals_usecase.dart';
 import 'domain/usecases/get_time_correction_detail_usecase.dart';
 import 'domain/usecases/get_time_correction_history_usecase.dart';
 import 'domain/usecases/get_today_attendance_usecase.dart';
+import 'domain/usecases/get_waiting_offsite_usecase.dart';
 import 'domain/usecases/prepare_punch_usecase.dart';
 import 'domain/usecases/read_offsite_location_usecase.dart';
 import 'domain/usecases/reject_offsite_request_usecase.dart';
@@ -187,6 +188,12 @@ final submitOffsiteRequestUseCaseProvider =
 /// a GPS punch uses.
 final readOffsiteLocationUseCaseProvider = Provider<ReadOffsiteLocationUseCase>(
   (ref) => ReadOffsiteLocationUseCase(ref.watch(punchLocationSourceProvider)),
+);
+
+/// The caller's off-site scans still waiting for a decision, for today's
+/// card (#41).
+final getWaitingOffsiteUseCaseProvider = Provider<GetWaitingOffsiteUseCase>(
+  (ref) => GetWaitingOffsiteUseCase(ref.watch(offsiteRepositoryProvider)),
 );
 
 /// The employee's own off-site requests, for the history page in front of the

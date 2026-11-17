@@ -37,6 +37,17 @@ mixin _$AttendanceState {
   /// server still guards a wrong punch).
   OpenOtSession? get openOt => throw _privateConstructorUsedError;
 
+  /// The user's off-site scans still waiting for a decision
+  /// (`offsite-requests/my?status=pending`, #41): a waiting check-in has no
+  /// session in [today] until it is approved. Empty when there are none,
+  /// and when they could not be read (the card then goes by the record).
+  List<OffsiteRequestDetail> get waitingOffsite =>
+      throw _privateConstructorUsedError;
+
+  /// The phone's date when today was last loaded: what "today" means for
+  /// the waiting scans.
+  DateTime? get loadedOn => throw _privateConstructorUsedError;
+
   @JsonKey(ignore: true)
   $AttendanceStateCopyWith<AttendanceState> get copyWith =>
       throw _privateConstructorUsedError;
@@ -54,6 +65,8 @@ abstract class $AttendanceStateCopyWith<$Res> {
     bool isPunching,
     DateTime? cooldownUntil,
     OpenOtSession? openOt,
+    List<OffsiteRequestDetail> waitingOffsite,
+    DateTime? loadedOn,
   });
 }
 
@@ -74,6 +87,8 @@ class _$AttendanceStateCopyWithImpl<$Res, $Val extends AttendanceState>
     Object? isPunching = null,
     Object? cooldownUntil = freezed,
     Object? openOt = freezed,
+    Object? waitingOffsite = null,
+    Object? loadedOn = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -93,6 +108,14 @@ class _$AttendanceStateCopyWithImpl<$Res, $Val extends AttendanceState>
                 ? _value.openOt
                 : openOt // ignore: cast_nullable_to_non_nullable
                       as OpenOtSession?,
+            waitingOffsite: null == waitingOffsite
+                ? _value.waitingOffsite
+                : waitingOffsite // ignore: cast_nullable_to_non_nullable
+                      as List<OffsiteRequestDetail>,
+            loadedOn: freezed == loadedOn
+                ? _value.loadedOn
+                : loadedOn // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
           )
           as $Val,
     );
@@ -113,6 +136,8 @@ abstract class _$$AttendanceStateImplCopyWith<$Res>
     bool isPunching,
     DateTime? cooldownUntil,
     OpenOtSession? openOt,
+    List<OffsiteRequestDetail> waitingOffsite,
+    DateTime? loadedOn,
   });
 }
 
@@ -132,6 +157,8 @@ class __$$AttendanceStateImplCopyWithImpl<$Res>
     Object? isPunching = null,
     Object? cooldownUntil = freezed,
     Object? openOt = freezed,
+    Object? waitingOffsite = null,
+    Object? loadedOn = freezed,
   }) {
     return _then(
       _$AttendanceStateImpl(
@@ -151,6 +178,14 @@ class __$$AttendanceStateImplCopyWithImpl<$Res>
             ? _value.openOt
             : openOt // ignore: cast_nullable_to_non_nullable
                   as OpenOtSession?,
+        waitingOffsite: null == waitingOffsite
+            ? _value._waitingOffsite
+            : waitingOffsite // ignore: cast_nullable_to_non_nullable
+                  as List<OffsiteRequestDetail>,
+        loadedOn: freezed == loadedOn
+            ? _value.loadedOn
+            : loadedOn // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
       ),
     );
   }
@@ -164,7 +199,11 @@ class _$AttendanceStateImpl extends _AttendanceState {
     this.isPunching = false,
     this.cooldownUntil,
     this.openOt,
-  }) : super._();
+    final List<OffsiteRequestDetail> waitingOffsite =
+        const <OffsiteRequestDetail>[],
+    this.loadedOn,
+  }) : _waitingOffsite = waitingOffsite,
+       super._();
 
   /// Today's record. Starts as data-with-empty rather than loading, so the
   /// card paints its "not checked in" resting state immediately instead of
@@ -192,9 +231,32 @@ class _$AttendanceStateImpl extends _AttendanceState {
   @override
   final OpenOtSession? openOt;
 
+  /// The user's off-site scans still waiting for a decision
+  /// (`offsite-requests/my?status=pending`, #41): a waiting check-in has no
+  /// session in [today] until it is approved. Empty when there are none,
+  /// and when they could not be read (the card then goes by the record).
+  final List<OffsiteRequestDetail> _waitingOffsite;
+
+  /// The user's off-site scans still waiting for a decision
+  /// (`offsite-requests/my?status=pending`, #41): a waiting check-in has no
+  /// session in [today] until it is approved. Empty when there are none,
+  /// and when they could not be read (the card then goes by the record).
+  @override
+  @JsonKey()
+  List<OffsiteRequestDetail> get waitingOffsite {
+    if (_waitingOffsite is EqualUnmodifiableListView) return _waitingOffsite;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_waitingOffsite);
+  }
+
+  /// The phone's date when today was last loaded: what "today" means for
+  /// the waiting scans.
+  @override
+  final DateTime? loadedOn;
+
   @override
   String toString() {
-    return 'AttendanceState(today: $today, isPunching: $isPunching, cooldownUntil: $cooldownUntil, openOt: $openOt)';
+    return 'AttendanceState(today: $today, isPunching: $isPunching, cooldownUntil: $cooldownUntil, openOt: $openOt, waitingOffsite: $waitingOffsite, loadedOn: $loadedOn)';
   }
 
   @override
@@ -207,12 +269,25 @@ class _$AttendanceStateImpl extends _AttendanceState {
                 other.isPunching == isPunching) &&
             (identical(other.cooldownUntil, cooldownUntil) ||
                 other.cooldownUntil == cooldownUntil) &&
-            (identical(other.openOt, openOt) || other.openOt == openOt));
+            (identical(other.openOt, openOt) || other.openOt == openOt) &&
+            const DeepCollectionEquality().equals(
+              other._waitingOffsite,
+              _waitingOffsite,
+            ) &&
+            (identical(other.loadedOn, loadedOn) ||
+                other.loadedOn == loadedOn));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, today, isPunching, cooldownUntil, openOt);
+  int get hashCode => Object.hash(
+    runtimeType,
+    today,
+    isPunching,
+    cooldownUntil,
+    openOt,
+    const DeepCollectionEquality().hash(_waitingOffsite),
+    loadedOn,
+  );
 
   @JsonKey(ignore: true)
   @override
@@ -230,6 +305,8 @@ abstract class _AttendanceState extends AttendanceState {
     final bool isPunching,
     final DateTime? cooldownUntil,
     final OpenOtSession? openOt,
+    final List<OffsiteRequestDetail> waitingOffsite,
+    final DateTime? loadedOn,
   }) = _$AttendanceStateImpl;
   const _AttendanceState._() : super._();
 
@@ -253,6 +330,16 @@ abstract class _AttendanceState extends AttendanceState {
   /// it could not be read (the card then goes by the record alone; the
   /// server still guards a wrong punch).
   OpenOtSession? get openOt;
+  @override
+  /// The user's off-site scans still waiting for a decision
+  /// (`offsite-requests/my?status=pending`, #41): a waiting check-in has no
+  /// session in [today] until it is approved. Empty when there are none,
+  /// and when they could not be read (the card then goes by the record).
+  List<OffsiteRequestDetail> get waitingOffsite;
+  @override
+  /// The phone's date when today was last loaded: what "today" means for
+  /// the waiting scans.
+  DateTime? get loadedOn;
   @override
   @JsonKey(ignore: true)
   _$$AttendanceStateImplCopyWith<_$AttendanceStateImpl> get copyWith =>

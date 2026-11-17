@@ -10,6 +10,7 @@ import '../../domain/entities/attendance_day.dart';
 import '../../domain/entities/open_ot_session.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../../domain/entities/punch_receipt.dart';
+import '../../domain/next_punch.dart';
 
 /// Turns attendance domain values into the words the card and its dialogs
 /// show. Pure functions, no widgets — the mapping is testable on its own and
@@ -22,6 +23,26 @@ import '../../domain/entities/punch_receipt.dart';
 /// know, and such a code never becomes a [PunchBlocked] in the first place.
 class AttendanceCopy {
   AttendanceCopy._();
+
+  /// The card's line for an off-site scan still waiting for approval
+  /// (#41): the check-in's time when it is the one to clock out of, or that
+  /// both wait. Null for a normal punch.
+  static String? offsiteWaiting(AppLocalizations l10n, NextPunch next) =>
+      switch (next) {
+        OffsiteClockOut(:final checkIn) => l10n.attOffsiteCheckinWaiting(
+          _hhmm(checkIn.scanTimestamp ?? checkIn.submittedAt),
+        ),
+        WaitingBoth() => l10n.attOffsiteBothWaiting,
+        NormalClockIn() || NormalClockOut() => null,
+      };
+
+  /// `HH:mm` in the phone's time: a wall-clock time as it is, an instant
+  /// sent in UTC (`created_at`) turned local.
+  static String _hhmm(DateTime time) {
+    final local = time.toLocal();
+    return '${local.hour.toString().padLeft(2, '0')}:'
+        '${local.minute.toString().padLeft(2, '0')}';
+  }
 
   /// "ສະແກນອອກພາຍໃນ 23:00" under the clock while an OT clock-in is open,
   /// from its `clock_out_until` on the phone's clock; null when there is

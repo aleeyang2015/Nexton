@@ -46,6 +46,10 @@ abstract class OffsiteRemoteDataSource {
   /// without asking the endpoint once per status.
   Future<List<OffsiteRequestDetail>> mine();
 
+  /// The caller's scans still waiting for a decision, scanned in [month]
+  /// (`YYYY-MM`): `GET offsite-requests/my?status=pending&month=` (#41).
+  Future<List<OffsiteRequestDetail>> waiting({required String month});
+
   /// Approves the request's current step. [stepId] is the step the caller saw
   /// pending; the backend refuses with `STEP_CHANGED` when it has moved on
   /// since. The body isn't read.
@@ -113,6 +117,13 @@ class OffsiteRemoteDataSourceImpl implements OffsiteRemoteDataSource {
       _list(AttendancePaths.myOffsiteRequests);
 
   @override
+  Future<List<OffsiteRequestDetail>> waiting({required String month}) => _list(
+    AttendancePaths.myOffsiteRequests,
+    status: TimeCorrectionStatus.pending,
+    month: month,
+  );
+
+  @override
   Future<void> approve(String id, {String? stepId}) => _decide(
     AttendancePaths.approveOffsiteRequest(id),
     {if (stepId != null) 'step_id': stepId},
@@ -142,11 +153,13 @@ class OffsiteRemoteDataSourceImpl implements OffsiteRemoteDataSource {
   Future<List<OffsiteRequestDetail>> _list(
     String path, {
     TimeCorrectionStatus? status,
+    String? month,
   }) async {
     final response = await _client.get<dynamic>(
       path,
       queryParameters: {
         if (status != null) 'status': status.wireValue,
+        if (month != null) 'month': month,
         'page': 1,
         'per_page': _pageSize,
       },

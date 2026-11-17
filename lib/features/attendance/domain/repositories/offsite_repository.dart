@@ -27,6 +27,10 @@ abstract class OffsiteRepository {
   /// one list, not a second query.
   FutureResult<List<OffsiteRequestDetail>> mine();
 
+  /// The caller's scans waiting for a decision, scanned in [month]
+  /// (`YYYY-MM`).
+  FutureResult<List<OffsiteRequestDetail>> waiting({required String month});
+
   /// `GET /attendance/offsite-requests/my-approvals` — the requests the
   /// signed-in approver decides on, newest first.
   ///

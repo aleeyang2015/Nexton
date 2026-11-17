@@ -3716,6 +3716,18 @@ abstract class AppLocalizations {
   /// **'No OT posts for your department'**
   String get otPostsEmpty;
 
+  /// No description provided for @attOffsiteCheckinWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in outside the area at {time}: waiting for approval'**
+  String attOffsiteCheckinWaiting(String time);
+
+  /// No description provided for @attOffsiteBothWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in and check-out outside the area: waiting for approval'**
+  String get attOffsiteBothWaiting;
+
   /// No description provided for @attOtClockOutBy.
   ///
   /// In en, this message translates to:

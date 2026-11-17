@@ -145,12 +145,14 @@ class OffsiteRequestPage extends ConsumerWidget {
     if (!context.mounted) return;
 
     switch (outcome) {
+      // `true`: today has been read again here, so whoever opened the form
+      // need not read it a second time.
       case OffsiteFiled(:final submission):
         AppToast.success(OffsiteCopy.filed(l10n, submission));
-        context.pop();
+        context.pop(true);
       case OffsiteBlocked() when outcome.rule.meansTodayChanged:
         AppToast.warning(OffsiteCopy.blocked(l10n, outcome));
-        context.pop();
+        context.pop(true);
       case OffsiteBlocked():
         AppToast.warning(OffsiteCopy.blocked(l10n, outcome));
       case null:

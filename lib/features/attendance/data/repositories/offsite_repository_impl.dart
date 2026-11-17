@@ -28,6 +28,10 @@ class OffsiteRepositoryImpl extends BaseRepository
   FutureResult<List<OffsiteRequestDetail>> mine() => guard(_remote.mine);
 
   @override
+  FutureResult<List<OffsiteRequestDetail>> waiting({required String month}) =>
+      guard(() => _remote.waiting(month: month));
+
+  @override
   FutureResult<List<OffsiteRequestDetail>> approvals({
     TimeCorrectionStatus? status,
   }) => guard(() => _remote.approvals(status: status));

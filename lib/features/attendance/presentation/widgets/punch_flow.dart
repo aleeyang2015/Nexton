@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +19,7 @@ import '../providers/attendance_notifier.dart';
 import 'attendance_copy.dart';
 import 'early_checkout_reason_dialog.dart';
 import 'punch_progress_dialog.dart';
+import '../../domain/next_punch.dart';
 
 /// Drives one press of the slide action from tap to feedback.
 ///
@@ -37,6 +40,20 @@ class PunchFlow {
     // letting the control feel broken (§7 rule 10).
     if (state.isCoolingDown) {
       AppToast.info(AppLocalizations.of(context)!.clockCooldownActive);
+      return;
+    }
+
+    // An off-site check-in still waits for approval (#41): the server has
+    // no session to close, so the clock-out goes as an off-site request too
+    // (it pairs it with the check-in). The punch endpoint is not called; the
+    // form reads the position itself. Today is read again on the way back,
+    // unless the form did it already (it filed, or learned today changed).
+    if (state.next is OffsiteClockOut) {
+      final reloaded = await context.push<bool>(
+        AppRoutes.offsiteRequest,
+        extra: OffsiteMethod.checkOut,
+      );
+      if (reloaded != true) unawaited(notifier.loadToday());
       return;
     }
 
