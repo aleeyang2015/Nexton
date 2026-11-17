@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Thin wrapper around `file_picker`'s save dialog, so the notifier depends
 /// on a mockable seam rather than the platform channel — same split as
-/// `PayslipPdfSaver`.
+/// `PayslipPdfFiles`.
 class AttachmentFileSaver {
   const AttachmentFileSaver();
 

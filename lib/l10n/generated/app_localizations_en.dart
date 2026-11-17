@@ -467,7 +467,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salaryUnpaidLeaveLabel => 'Unpaid leave (days)';
 
   @override
-  String get salaryDownloadPdf => 'Download Payslip (PDF)';
+  String get salaryDownloadPdf => 'View payslip (PDF)';
 
   @override
   String get payslipDetailTitle => 'Payslip';
@@ -495,9 +495,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get payslipDetailLoadFailed => 'Unable to load the payslip.';
-
-  @override
-  String get salaryPdfSaved => 'Payslip saved';
 
   @override
   String get salaryPdfInvalid => 'The payslip PDF could not be read.';
@@ -1751,4 +1748,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get payslipOtTotal => 'Total';
+
+  @override
+  String get payslipPdfTitle => 'Payslip (PDF)';
+
+  @override
+  String get payslipPdfLoading => 'Making the PDF…';
+
+  @override
+  String get payslipPdfMakeFailed => 'Could not make the PDF. Please try again';
+
+  @override
+  String get payslipPdfShare => 'Share';
+
+  @override
+  String get payslipPdfShareFailed => 'Could not share the PDF';
 }

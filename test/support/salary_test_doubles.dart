@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip_pdf.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip_record.dart';
 import 'package:next_on/features/salary_history/domain/repositories/salary_repository.dart';
-import 'package:next_on/features/salary_history/presentation/services/payslip_pdf_saver.dart';
+import 'package:next_on/features/salary_history/presentation/services/payslip_pdf_files.dart';
+import 'package:next_on/features/salary_history/presentation/widgets/payslip_pdf_view.dart';
 
 /// Programmable salary repository: each call returns the queued result and
 /// records the argument it was given, so a widget test can assert which
@@ -14,6 +18,9 @@ import 'package:next_on/features/salary_history/presentation/services/payslip_pd
 class FakeSalaryRepository implements SalaryRepository {
   Result<PayslipPdf>? pdfResult;
   final List<String> pdfIds = [];
+
+  /// When set, `pdf()` waits for it: the server still making the PDF.
+  Completer<void>? holdPdf;
 
   /// When set, `myPayslip()` never completes — the payslip page stays
   /// loading.
@@ -60,22 +67,62 @@ class FakeSalaryRepository implements SalaryRepository {
   @override
   FutureResult<PayslipPdf> pdf(String id) async {
     pdfIds.add(id);
+    await holdPdf?.future;
     return pdfResult ??
         const Result.failure(Failure.network(message: 'not found', statusCode: 404));
   }
 }
 
-/// Records what the notifier asked to save and answers with [savedPath].
-class FakePayslipPdfSaver implements PayslipPdfSaver {
-  String? savedPath = '/tmp/payslip.pdf';
-  final List<({Uint8List bytes, String fileName})> saves = [];
+/// The temp files of opened PDFs, in memory: records what was written,
+/// deleted and shared. A written file's path is
+/// `/tmp/payslips/<n>/<name>`.
+class FakePayslipPdfFiles implements PayslipPdfFiles {
+  final List<PayslipPdf> writes = [];
+  final List<String> deletes = [];
+  final List<({String path, Rect? origin})> shares = [];
+
+  /// When set, `share()` fails: the share sheet could not be opened.
+  bool shareFails = false;
+
+  /// When set, `share()` waits for it: the share sheet is still open.
+  Completer<void>? holdShare;
+
+  /// Paths written and not deleted since.
+  final Set<String> live = {};
 
   @override
-  Future<String?> save(PayslipPdf pdf, {required String fileName}) async {
-    saves.add((bytes: pdf.bytes, fileName: fileName));
-    return savedPath;
+  Future<String> write(PayslipPdf pdf) async {
+    writes.add(pdf);
+    final path = '/tmp/payslips/${writes.length}/${pdf.fileName}';
+    live.add(path);
+    return path;
+  }
+
+  @override
+  Future<void> delete(String path) async {
+    deletes.add(path);
+    live.remove(path);
+  }
+
+  @override
+  Future<void> share(String path, {Rect? origin}) async {
+    if (shareFails) throw Exception('no share sheet');
+    shares.add((path: path, origin: origin));
+    await holdShare?.future;
   }
 }
+
+/// A sample PDF, as the server sends it for October's payslip.
+final PayslipPdf samplePayslipPdf = PayslipPdf(
+  bytes: Uint8List.fromList([0x25, 0x50, 0x44, 0x46, 0x2d]),
+  fileName: 'payslip-EMP-002-2026-10.pdf',
+);
+
+/// Puts a stand-in where the PDF viewer goes: the real one needs the phone's
+/// PDF renderer. It shows "PDF " and the path.
+Override fakePayslipPdfView() => payslipPdfViewProvider.overrideWithValue(
+  (path) => Text('PDF $path'),
+);
 
 /// A payslip as the server sends it in the year's list (totals only, no
 /// lines): October 2026 by default, paid on 5 November. The figures match

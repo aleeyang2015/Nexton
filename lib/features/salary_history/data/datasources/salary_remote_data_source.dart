@@ -66,6 +66,9 @@ class SalaryRemoteDataSourceImpl implements SalaryRemoteDataSource {
     );
   }
 
+  /// The payslip's PDF. A refusal comes back as JSON in bytes; the error
+  /// mapper reads its code (`ApiError.tryParse`). A 200 that is not a PDF
+  /// is refused here, so nothing ever opens a JSON body as a file.
   @override
   Future<PayslipPdf> pdf(String id) async {
     final response = await _client.get<List<int>>(
@@ -74,14 +77,21 @@ class SalaryRemoteDataSourceImpl implements SalaryRemoteDataSource {
     );
 
     final data = response.data;
-    final bytes = data == null ? Uint8List(0) : Uint8List.fromList(data);
+    // Dio already hands bytes over as a Uint8List: no second copy of the PDF.
+    final bytes = data == null
+        ? Uint8List(0)
+        : data is Uint8List
+        ? data
+        : Uint8List.fromList(data);
     if (!_looksLikePdf(bytes)) {
       throw const Failure.validation(message: pdfInvalidToken);
     }
 
     return PayslipPdf(
       bytes: bytes,
-      fileName: _fileNameOf(response.headers.value('content-disposition')),
+      fileName:
+          _fileNameOf(response.headers.value('content-disposition')) ??
+          'payslip-$id.pdf',
     );
   }
 

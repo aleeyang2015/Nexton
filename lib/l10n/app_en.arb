@@ -181,7 +181,7 @@
   "salaryWorkingDaysLabel": "Working Days",
   "salaryOvertimeLabel": "OT Hours",
   "salaryUnpaidLeaveLabel": "Unpaid leave (days)",
-  "salaryDownloadPdf": "Download Payslip (PDF)",
+  "salaryDownloadPdf": "View payslip (PDF)",
   "payslipDetailTitle": "Payslip",
   "salaryGrossLabel": "Gross",
   "salaryTotalDeductionsLabel": "Deductions",
@@ -191,7 +191,6 @@
   "salaryHistoryEmpty": "No salary records",
   "salaryHistoryLoadFailed": "Unable to load salary records.",
   "payslipDetailLoadFailed": "Unable to load the payslip.",
-  "salaryPdfSaved": "Payslip saved",
   "salaryPdfInvalid": "The payslip PDF could not be read.",
 
   "language": "Language",
@@ -727,5 +726,10 @@
   "payslipOtNotPaidNote": "Not paid as OT: the time was inside your shift, or not clocked",
   "payslipOtKipPerHour": "{amount} kip/h",
   "@payslipOtKipPerHour": {"placeholders": {"amount": {"type": "String"}}},
-  "payslipOtTotal": "Total"
+  "payslipOtTotal": "Total",
+  "payslipPdfTitle": "Payslip (PDF)",
+  "payslipPdfLoading": "Making the PDF…",
+  "payslipPdfMakeFailed": "Could not make the PDF. Please try again",
+  "payslipPdfShare": "Share",
+  "payslipPdfShareFailed": "Could not share the PDF"
 }

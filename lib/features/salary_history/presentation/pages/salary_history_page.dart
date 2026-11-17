@@ -3,17 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
-import '../../../../core/errors/failure.dart';
-import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/payslip_record.dart';
-import '../providers/payslip_pdf_notifier.dart';
 import '../providers/salary_history_notifier.dart';
 import '../providers/salary_history_state.dart';
+import '../widgets/payslip_pdf_opener.dart';
 import '../widgets/salary_error_block.dart';
 import '../widgets/salary_history_copy.dart';
 
@@ -580,7 +577,7 @@ class _PayslipCard extends ConsumerWidget {
               ],
             ),
             heightBx(h: 12),
-            _DownloadButton(payslip: payslip),
+            _ViewPdfButton(payslip: payslip),
           ],
         ],
       ),
@@ -791,56 +788,35 @@ class _StatBox extends StatelessWidget {
   }
 }
 
-/// "Download Payslip (PDF)" — fetches the payslip's PDF and hands it to the
-/// system save dialog. The icon becomes a spinner while the download runs;
-/// the outcome is toasted.
-class _DownloadButton extends ConsumerWidget {
+/// "ເບິ່ງໃບເງິນເດືອນ (PDF)": opens the payslip's PDF inside the App, once
+/// however fast it is tapped.
+class _ViewPdfButton extends StatelessWidget {
   final PayslipRecord payslip;
 
-  const _DownloadButton({required this.payslip});
+  const _ViewPdfButton({required this.payslip});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final provider = payslipPdfNotifierProvider(payslip.id);
-    final downloading = ref.watch(provider).isLoading;
 
-    ref.listen(provider, (previous, next) {
-      next.whenOrNull(
-        data: (path) {
-          if (path != null) AppToast.success(l10n.salaryPdfSaved);
-        },
-        error: (error, _) => AppToast.error(
-          error is Failure ? error.localize(l10n) : error.toString(),
-        ),
-      );
-    });
-
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        // Stays enabled so the border keeps its colour; the notifier ignores
-        // a tap while a download is already running.
-        onPressed: () => ref
-            .read(provider.notifier)
-            .download(defaultFileName: SalaryHistoryCopy.pdfFileName(payslip)),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          side: const BorderSide(color: AppColors.primary),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        ),
-        icon: downloading
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-              )
-            : const Icon(Icons.file_download_outlined, color: AppColors.primary, size: 18),
-        label: customText(
-          l10n.salaryDownloadPdf,
-          color: AppColors.primary,
-          fontWeight: FontWeight.w700,
-          fontSize: 14,
+    return PayslipPdfOpener(
+      payslipId: payslip.id,
+      builder: (context, open) => SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: open,
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            side: const BorderSide(color: AppColors.primary),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          ),
+          icon: const Icon(Icons.picture_as_pdf_outlined, color: AppColors.primary, size: 18),
+          label: customText(
+            l10n.salaryDownloadPdf,
+            color: AppColors.primary,
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+          ),
         ),
       ),
     );

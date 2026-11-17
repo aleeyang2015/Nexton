@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// Parsers for the backend's standard JSON envelope.
 ///
 /// Success: `{ "success": true, "data": … }` — `data`/`error`/`meta` are
@@ -89,7 +91,11 @@ class ApiError {
 
   /// Reads an error body. Returns null when [body] is not a recognisable
   /// error envelope.
+  ///
+  /// A call that asked for bytes (the payslip PDF) gets its error as bytes
+  /// too: they are read as UTF-8 JSON first, so the code is not lost.
   static ApiError? tryParse(dynamic body) {
+    if (body is List<int>) body = _jsonOf(body);
     if (body is! Map) return null;
 
     String? code;
@@ -97,14 +103,16 @@ class ApiError {
 
     final error = body['error'];
     if (error is Map) {
-      code = error['code'] as String?;
-      message = error['message'] as String?;
+      // Text only: a code or message of another kind is no code at all,
+      // not a crash while reading the error.
+      code = _textOf(error['code']);
+      message = _textOf(error['message']);
     } else if (error is String) {
       message = error;
     }
 
     // 422 puts the summary at the top level.
-    message ??= body['message'] as String?;
+    message ??= _textOf(body['message']);
 
     final fieldErrors = <String, String>{};
     final errors = body['errors'];
@@ -120,6 +128,18 @@ class ApiError {
     if (code == null && message == null && fieldErrors.isEmpty) return null;
 
     return ApiError(code: code, message: message, fieldErrors: fieldErrors);
+  }
+
+  static String? _textOf(Object? value) => value is String ? value : null;
+
+  /// [bytes] as JSON, or null when they are not UTF-8 JSON (a PDF, an HTML
+  /// error page from a proxy).
+  static Object? _jsonOf(List<int> bytes) {
+    try {
+      return jsonDecode(utf8.decode(bytes));
+    } on FormatException {
+      return null;
+    }
   }
 }
 

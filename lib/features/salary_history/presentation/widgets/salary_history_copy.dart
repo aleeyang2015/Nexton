@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/errors/failure.dart';
+import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/payslip_record.dart';
+import 'salary_error_block.dart';
 
 /// Turns a payslip's raw fields into the words, colour and number strings
 /// the salary pages render. Pure functions, no widgets — same split
@@ -83,15 +86,13 @@ class SalaryHistoryCopy {
 
   /// What the payslip page's header shows, taken from the list's row so the
   /// two screens say the same thing: the title with the pay month, the line
-  /// under it (paid on, or the status), the status pill, and the name a
-  /// saved PDF gets.
+  /// under it (paid on, or the status) and the status pill.
   static ({
     String title,
     String subtitle,
     Color color,
     String? pill,
     bool failed,
-    String pdfFileName,
   })
   detailHeader(AppLocalizations l10n, PayslipRecord row) {
     final status = recordStatus(l10n, row);
@@ -105,7 +106,6 @@ class SalaryHistoryCopy {
       color: status?.color ?? AppColors.subTitle,
       pill: status?.label,
       failed: isPaymentFailed(row),
-      pdfFileName: pdfFileName(row),
     );
   }
 
@@ -137,12 +137,27 @@ class SalaryHistoryCopy {
     };
   }
 
-  /// "payslip-2026-10.pdf" for a saved PDF the server did not name, or
-  /// "payslip.pdf" when the payslip has no period.
-  static String pdfFileName(PayslipRecord payslip) {
-    final month = payslip.periodMonth;
-    final year = payslip.periodYear;
-    if (month == null || year == null) return 'payslip.pdf';
-    return 'payslip-$year-${_two(month)}.pdf';
+  /// What the PDF page says when the PDF could not be had, and whether
+  /// Retry is offered:
+  ///
+  /// * not there (404) → #23's "not available", no Retry;
+  /// * no payroll (403 `MODULE_NOT_ACTIVE`) → its own text, no Retry;
+  /// * no signal or a timeout → that, with Retry;
+  /// * anything else (500, a 200 that is not a PDF) → "could not make the
+  ///   PDF, please try again", with Retry.
+  static ({String message, bool canRetry}) pdfError(
+    AppLocalizations l10n,
+    Object? error,
+  ) {
+    if (SalaryErrorBlock.isNotFound(error)) {
+      return (message: l10n.payslipNotAvailable, canRetry: false);
+    }
+    if (SalaryErrorBlock.isModuleOff(error) && error is Failure) {
+      return (message: error.localize(l10n), canRetry: false);
+    }
+    if (error is NetworkFailure && error.statusCode == null) {
+      return (message: error.localize(l10n), canRetry: true);
+    }
+    return (message: l10n.payslipPdfMakeFailed, canRetry: true);
   }
 }

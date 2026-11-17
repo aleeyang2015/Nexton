@@ -935,7 +935,7 @@ abstract class AppLocalizations {
   /// No description provided for @salaryDownloadPdf.
   ///
   /// In en, this message translates to:
-  /// **'Download Payslip (PDF)'**
+  /// **'View payslip (PDF)'**
   String get salaryDownloadPdf;
 
   /// No description provided for @payslipDetailTitle.
@@ -991,12 +991,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to load the payslip.'**
   String get payslipDetailLoadFailed;
-
-  /// No description provided for @salaryPdfSaved.
-  ///
-  /// In en, this message translates to:
-  /// **'Payslip saved'**
-  String get salaryPdfSaved;
 
   /// No description provided for @salaryPdfInvalid.
   ///
@@ -3205,6 +3199,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total'**
   String get payslipOtTotal;
+
+  /// No description provided for @payslipPdfTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payslip (PDF)'**
+  String get payslipPdfTitle;
+
+  /// No description provided for @payslipPdfLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Making the PDF…'**
+  String get payslipPdfLoading;
+
+  /// No description provided for @payslipPdfMakeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not make the PDF. Please try again'**
+  String get payslipPdfMakeFailed;
+
+  /// No description provided for @payslipPdfShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get payslipPdfShare;
+
+  /// No description provided for @payslipPdfShareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not share the PDF'**
+  String get payslipPdfShareFailed;
 }
 
 class _AppLocalizationsDelegate

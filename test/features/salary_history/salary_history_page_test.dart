@@ -1,14 +1,10 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
-import 'package:next_on/features/salary_history/domain/entities/payslip_pdf.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip_record.dart';
 import 'package:next_on/features/salary_history/presentation/pages/salary_history_page.dart';
-import 'package:next_on/features/salary_history/presentation/services/payslip_pdf_saver.dart';
 import 'package:next_on/features/salary_history/salary_history_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 import 'package:next_on/l10n/generated/app_localizations_en.dart';
@@ -21,7 +17,6 @@ void main() {
   final en = AppLocalizationsEn();
   final lo = AppLocalizationsLo();
   late FakeSalaryRepository repository;
-  late FakePayslipPdfSaver saver;
 
   // September: paid on 5 October. October: approved, money not sent yet.
   final september = samplePayslipRecord(
@@ -42,11 +37,7 @@ void main() {
 
   setUp(() {
     repository = FakeSalaryRepository()
-      ..myPayslipsResult = Result.success([october, september])
-      ..pdfResult = Result.success(
-        PayslipPdf(bytes: Uint8List.fromList([0x25, 0x50, 0x44, 0x46, 0x2d])),
-      );
-    saver = FakePayslipPdfSaver();
+      ..myPayslipsResult = Result.success([october, september]);
   });
 
   Future<void> pumpPage(WidgetTester tester, {String locale = 'en'}) async {
@@ -59,7 +50,6 @@ void main() {
       ProviderScope(
         overrides: [
           salaryRepositoryProvider.overrideWithValue(repository),
-          payslipPdfSaverProvider.overrideWithValue(saver),
         ],
         child: MaterialApp(
           locale: Locale(locale),
@@ -343,29 +333,25 @@ void main() {
       expect(find.text('ລາພັກບໍ່ໄດ້ຮັບເງິນ (ວັນ)'), findsOneWidget);
     });
 
-    testWidgets('the PDF is saved under the pay month\'s name', (tester) async {
+    testWidgets('the PDF button says it opens the payslip, and asks for '
+        'nothing until it is tapped', (tester) async {
       repository.myPayslipsResult = Result.success([october]);
       await pumpPage(tester);
       await expand(tester);
 
-      await tester.tap(find.text(en.salaryDownloadPdf));
-      await tester.pumpAndSettle();
-
-      expect(repository.pdfIds, ['p-oct']);
-      expect(saver.saves.single.fileName, 'payslip-2026-10.pdf');
+      expect(find.text('View payslip (PDF)'), findsOneWidget);
+      expect(find.byIcon(Icons.picture_as_pdf_outlined), findsOneWidget);
+      expect(repository.pdfIds, isEmpty);
     });
 
-    testWidgets('with no period the PDF is just "payslip.pdf"', (tester) async {
-      repository.myPayslipsResult = Result.success([
-        samplePayslipRecord(periodYear: null, periodMonth: null),
-      ]);
-      await pumpPage(tester);
+    testWidgets('in Lao the PDF button reads ເບິ່ງໃບເງິນເດືອນ (PDF)', (
+      tester,
+    ) async {
+      repository.myPayslipsResult = Result.success([october]);
+      await pumpPage(tester, locale: 'lo');
       await expand(tester);
 
-      await tester.tap(find.text(en.salaryDownloadPdf));
-      await tester.pumpAndSettle();
-
-      expect(saver.saves.single.fileName, 'payslip.pdf');
+      expect(find.text('ເບິ່ງໃບເງິນເດືອນ (PDF)'), findsOneWidget);
     });
   });
 
