@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#26 merged; #27 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#27 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 
 | | |
 |---|---|
-| Last finished work order | 25 of 60: #26, the summary card shows the latest payslip (last of the payslip group) |
-| Next work order | **26 of 60: #27**, overtime: OT types and JSON reading. IMPLEMENTED on `27-overtime-models` (`ef5fe9c`, `5ff8a06`), pushed, reviewed; waits for "push issue 27 to main directly". After it: #28 |
-| `origin/main` | `8cc530a` "Merge branch '26-latest-payslip-card' into main" (2026-11-17) |
+| Last finished work order | 26 of 60: #27, overtime: OT types and JSON reading |
+| Next work order | **27 of 60: #28**, overtime: OT calls, error codes and Lao text. Not started, no branch, no plan yet |
+| `origin/main` | `9a871bb` "Merge branch '27-overtime-models' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -57,7 +57,7 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#27: say "push issue 27 to main directly".** Built 2026-11-17 after the owner's go. Also for the lead: on a
+1. **#27 merged** (`9a871bb`) on the owner's say, 2026-11-17. Still open for the lead: on a
    phone outside Laos, OT wall-clock times (`created_at`, `acted_at`, …, read as phone-local as the issue says) and
    moments (`starts_at`, …) are on different clocks, up to 12 h apart. Documented "never compare them"; reading both
    as Lao time (+07, or the company's zone) is a decision.
@@ -123,10 +123,13 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#27 (work order 26 of 60), "overtime: OT types and JSON reading (no screen yet)": IMPLEMENTED, not merged.**
+1. **Next: #28 (work order 27 of 60), "overtime: OT calls, error codes and Lao text".** Read the issue and its
+   comments, show a plan, wait for "go". Use `OtRequestModel.tryFromJson` / `OtPostModel.tryFromJson` for lists.
+
+   **#27 (work order 26 of 60), "overtime: OT types and JSON reading (no screen yet)": MERGED (`9a871bb`), 2026-11-17.**
    Owner said go on 2026-11-17. Branch `27-overtime-models`: `ef5fe9c` (feature), `5ff8a06` (review fixes). Gates:
-   analyze 1 warning already on `main`; `flutter test` 1,416 passed; debug APK builds. Waits for "push issue 27 to
-   main directly". Then #28 (the OT calls).
+   analyze 1 warning already on `main`; `flutter test` 1,416 passed; debug APK builds. Merged on the owner's "push
+   issue 27 to main directly"; gates green on the merge commit.
    - `lib/features/overtime/`: entities `OtRequest` (`OtStatus`, `pendingStep`, `hasApprovedStep`), `OtStep`,
      `OtPiece` (core `OtPayType`, `payValue` null when not a whole number), `OtPost` (`OtPostStatus`, `joined`,
      `hasSeatLimit`), `OtDraft`; hand-written models; `ot_parse.dart` (`instant` RFC 3339, `wallClock` no-zone Lao
@@ -141,7 +144,6 @@ Decided by the owner on 2026-11-16, during the work:
    - `pendingStep` takes the first pending step in list order, not checked against `currentStepNo` (0 when missing);
    - an `instant` with no offset is read as phone-local, not +07; a `work_date` sent as a UTC stamp keeps its UTC date.
 
-   **Next after #27: #28.**
 
    **#26 (work order 25 of 60), "payslip: the summary card shows the latest payslip": MERGED (`8cc530a`), 2026-11-17.**
    Owner said go on 2026-11-17. Branch `26-latest-payslip-card`: `5e51952` (feature), `7036c8b` (review fixes).
@@ -427,7 +429,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 23 | #24 | payslip: tap the OT line to see what each OT paid | `24-payslip-ot-items` | `0e0962b`, `1d51810` | merged to main directly (`2d744c4`) | analyze: 1 warning already on `main`; `flutter test`: 1,284 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 24 | #25 | payslip: open the PDF in the App and share it | `25-payslip-pdf-viewer` | `de4324b`, `1a59b20` | merged to main directly (`9515eee`) | analyze: 1 warning already on `main`; `flutter test`: 1,340 passed, 0 failed; debug APK builds | MERGED, phone check (Android and iOS) on `nexton-demo` pending |
 | 25 | #26 | payslip: the summary card shows the latest payslip | `26-latest-payslip-card` | `5e51952`, `7036c8b` | merged to main directly (`8cc530a`) | analyze: 1 warning already on `main`; `flutter test`: 1,368 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 26 | #27 | overtime: OT types and JSON reading (no screen yet) | `27-overtime-models` | `ef5fe9c`, `5ff8a06` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,416 passed, 0 failed; debug APK builds | IMPLEMENTED |
+| 26 | #27 | overtime: OT types and JSON reading (no screen yet) | `27-overtime-models` | `ef5fe9c`, `5ff8a06` | merged to main directly (`9a871bb`) | analyze: 1 warning already on `main`; `flutter test`: 1,416 passed, 0 failed; debug APK builds | MERGED, a real `nexton-demo` request and post to be checked against the reader |
 | 27 | #28 | overtime: OT calls, error codes and Lao text | | | | | NOT STARTED |
 | 28 | #29 | overtime: my OT list, on its own tile | | | | | NOT STARTED |
 | 29 | #30 | overtime: an OT request page that opens by id | | | | | NOT STARTED |
