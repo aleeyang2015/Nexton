@@ -1,10 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_duration_type.dart';
-import 'package:next_on/core/upload/domain/uploaded_attachment.dart';
-import 'package:next_on/features/time_off/presentation/providers/leave_attachment_notifier.dart';
+import 'package:next_on/core/upload/domain/local_file.dart';
+import 'package:next_on/core/upload/upload_providers.dart';
+import 'package:next_on/features/time_off/domain/entities/leave_attachment.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_balances_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_form_rules.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_history_notifier.dart';
@@ -14,27 +17,24 @@ import 'package:next_on/features/time_off/presentation/providers/leave_types_not
 import 'package:next_on/features/time_off/time_off_providers.dart';
 
 import '../../support/leave_test_doubles.dart';
+import '../../support/upload_test_doubles.dart';
 
-const _uploaded = UploadedAttachment(
-  url: 'https://files.nexton.work/a/medical.pdf',
-  fileName: 'tenants/x/uploads/1_medical.pdf',
-  originalName: 'medical.pdf',
-);
 
 void main() {
   late FakeLeaveRepository repository;
+  late FakeUploads uploads;
 
-  setUp(() => repository = FakeLeaveRepository());
+  setUp(() {
+    repository = FakeLeaveRepository();
+    uploads = FakeUploads();
+  });
 
-  /// A container with the repository faked and the attachment slot holding
-  /// [attachment].
-  ProviderContainer containerWith({UploadedAttachment? attachment}) {
+  /// A container with the repository and the uploads faked.
+  ProviderContainer containerWith() {
     final container = ProviderContainer(
       overrides: [
         leaveRepositoryProvider.overrideWithValue(repository),
-        leaveAttachmentNotifierProvider.overrideWith(
-          () => FixedLeaveAttachment(attachment),
-        ),
+        uploadRepositoryProvider.overrideWithValue(uploads),
       ],
     );
     // A successful submit invalidates the history list, whose reload starts on
@@ -237,28 +237,36 @@ void main() {
       expect(draft.durationType, LeaveDurationType.fullDay);
       expect(draft.returnDate, DateTime(2026, 11, 21));
       expect(draft.reason, 'Family trip');
-      expect(draft.attachment, isNull);
+      expect(draft.attachments, isNull);
       expect(repository.updateCalls, isEmpty);
     });
 
-    test('carries the file in the attachment slot', () async {
-      final container = containerWith(attachment: _uploaded);
-      // The slot resolves on a microtask; let it settle before it is read.
-      await container.read(leaveAttachmentNotifierProvider(null).future);
+    test('carries the files attached, each as the server kept it', () async {
+      final container = containerWith();
       final form = formOf(container)
         ..setLeaveType('lt-sick')
         ..setDates([DateTime(2026, 11, 18)]);
+      await form.addFile(_photo);
 
       await form.submit();
 
-      expect(repository.submitCalls.single.attachment, _uploaded);
+      expect(repository.submitCalls.single.attachments, [
+        const LeaveAttachment(
+          url: 'https://files.nexton.work/uploads/cert.jpg',
+          fileName: 'uploads/cert.jpg',
+          originalName: 'cert.jpg',
+          contentType: 'image/jpeg',
+          size: 1234,
+        ),
+      ]);
+      expect(uploads.calls.single.folder, 'leave');
     });
 
-    test('resets the form and clears the attachment slot after success',
-        () async {
-      final container = containerWith(attachment: _uploaded);
-      await container.read(leaveAttachmentNotifierProvider(null).future);
-      final form = formOf(container)
+    test('resets the form, files too, after success', () async {
+      final container = containerWith();
+      final form = formOf(container);
+      await form.addFile(_photo);
+      form
         ..setLeaveType('lt-annual')
         ..setDates([DateTime(2026, 11, 18)])
         ..setReason('Trip');
@@ -271,10 +279,7 @@ void main() {
       expect(reset.leaveTypeId, isNull);
       expect(reset.hasDays, isFalse);
       expect(reset.reason, isEmpty);
-      expect(
-        container.read(leaveAttachmentNotifierProvider(null)).valueOrNull,
-        isNull,
-      );
+      expect(reset.files, isEmpty);
     });
 
     test('a failure keeps what was typed and surfaces the failure', () async {
@@ -308,6 +313,10 @@ void main() {
   });
 
   group('submit, an edit', () {
+    final withFiles = sampleLeaveRequest(
+      id: 'req-7',
+      attachments: const [_cert, _noUrl],
+    );
     final existing = sampleLeaveRequest(
       id: 'req-7',
       requestDays: [DateTime(2026, 11, 20), DateTime(2026, 11, 18)],
@@ -430,37 +439,51 @@ void main() {
       expect(state.submission.value, updated);
     });
 
-    test('with no new file, the draft carries none', () async {
-      final container = containerWith();
-      final form = formOf(container, 'req-7')..seed(existing);
-
-      await form.submit();
-
-      expect(repository.updateCalls.single.draft.attachment, isNull);
-    });
-
-    test('a file attached on the edit page goes with the update', () async {
-      final container = containerWith(attachment: _uploaded);
-      await container.read(leaveAttachmentNotifierProvider('req-7').future);
-      final form = formOf(container, 'req-7')..seed(existing);
-
-      await form.submit();
-
-      expect(repository.updateCalls.single.draft.attachment, _uploaded);
-    });
-
-    test('an edit leaves the attachment slot as it is, unlike a new request',
+    test('files not touched: no attachments sent, the request keeps its own',
         () async {
-      final container = containerWith(attachment: _uploaded);
-      await container.read(leaveAttachmentNotifierProvider('req-7').future);
-      final form = formOf(container, 'req-7')..seed(existing);
+      final container = containerWith();
+      final form = formOf(container, 'req-7')..seed(withFiles);
+      expect(stateOf(container, 'req-7').files, [_cert, _noUrl]);
 
       await form.submit();
 
-      expect(
-        container.read(leaveAttachmentNotifierProvider('req-7')).valueOrNull,
-        _uploaded,
-      );
+      expect(repository.updateCalls.single.draft.attachments, isNull);
+    });
+
+    test('a file removed: the whole remaining list is sent', () async {
+      final container = containerWith();
+      final form = formOf(container, 'req-7')..seed(withFiles);
+
+      form.removeFile(0);
+      await form.submit();
+
+      // The url-less one goes back too, or the edit would drop it.
+      expect(repository.updateCalls.single.draft.attachments, [_noUrl]);
+    });
+
+    test('every file removed: [] is sent, so the server removes them',
+        () async {
+      final container = containerWith();
+      final form = formOf(container, 'req-7')..seed(withFiles);
+
+      form
+        ..removeFile(1)
+        ..removeFile(0);
+      await form.submit();
+
+      expect(repository.updateCalls.single.draft.attachments, isEmpty);
+    });
+
+    test('a file added: the kept ones and the new one are sent', () async {
+      final container = containerWith();
+      final form = formOf(container, 'req-7')..seed(withFiles);
+
+      await form.addFile(_photo);
+      await form.submit();
+
+      final sent = repository.updateCalls.single.draft.attachments!;
+      expect(sent.take(2), [_cert, _noUrl]);
+      expect(sent.last.originalName, 'cert.jpg');
     });
   });
 
@@ -926,4 +949,94 @@ void main() {
       expect(stateOf(container, 'req-7').reason, 'typed again');
     });
   });
+
+  group('files (#39)', () {
+    test('an upload on its way: nothing can be sent', () async {
+      final container = containerWith();
+      final form = formOf(container)
+        ..setLeaveType('lt-annual')
+        ..setDates([DateTime(2026, 11, 18)]);
+      final slow = Completer<void>();
+      uploads.hold = slow;
+
+      final adding = form.addFile(_photo);
+      expect(stateOf(container).uploadingFiles, 1);
+      expect(stateOf(container).hasValidShape, isFalse);
+      slow.complete();
+      await adding;
+
+      expect(stateOf(container).hasValidShape, isTrue);
+      expect(stateOf(container).files, hasLength(1));
+    });
+
+    test('a failed upload is kept to show; the files stay as they were',
+        () async {
+      final container = containerWith();
+      final form = formOf(container, 'req-7')
+        ..seed(sampleLeaveRequest(id: 'req-7', attachments: const [_cert]));
+      uploads.answer = const Result.failure(
+        Failure.validation(message: 'uploadFileTooLarge'),
+      );
+
+      await form.addFile(_photo);
+
+      final state = stateOf(container, 'req-7');
+      expect(state.files, [_cert]);
+      expect(state.filesChanged, isFalse);
+      expect(state.uploadingFiles, 0);
+      expect(state.fileFailure, isNotNull);
+    });
+
+    test('an upload that answers after the form was filled again is dropped',
+        () async {
+      final container = containerWith();
+      final form = formOf(container, 'req-7')
+        ..seed(sampleLeaveRequest(id: 'req-7', reason: 'one'));
+      final slow = Completer<void>();
+      uploads.hold = slow;
+
+      final adding = form.addFile(_photo);
+      form.seed(sampleLeaveRequest(id: 'req-7', reason: 'two'));
+      slow.complete();
+      await adding;
+
+      expect(stateOf(container, 'req-7').files, isEmpty);
+    });
+
+    test('the block: a type that needs a file, until one is attached',
+        () async {
+      final container = containerWith();
+      final form = formOf(container)..setDates([DateTime(2026, 11, 18)]);
+      final needsFile = sampleLeaveType(id: 'lt-sick', requiresAttachment: true);
+
+      LeaveFormBlock? block() => LeaveFormRules.block(
+        state: stateOf(container),
+        type: needsFile,
+        remaining: null,
+      );
+
+      expect(block(), LeaveFormBlock.attachmentRequired);
+      await form.addFile(_photo);
+      expect(block(), isNull);
+      form.removeFile(0);
+      expect(block(), LeaveFormBlock.attachmentRequired);
+    });
+  });
 }
+
+const _photo = LocalFile(path: '/phone/cert.jpg', name: 'cert.jpg');
+
+const _cert = LeaveAttachment(
+  id: 'att-1',
+  url: 'https://files.nexton.work/a/medical.pdf',
+  fileName: 'tenants/x/uploads/1_medical.pdf',
+  originalName: 'medical.pdf',
+  contentType: 'application/pdf',
+);
+
+/// A file the server kept by its storage key alone.
+const _noUrl = LeaveAttachment(
+  id: 'att-2',
+  fileName: 'tenants/x/uploads/2_old.pdf',
+  originalName: 'old.pdf',
+);

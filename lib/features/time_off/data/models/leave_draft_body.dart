@@ -1,5 +1,5 @@
 import '../../domain/entities/leave_request_draft.dart';
-import '../../../../core/upload/data/uploaded_attachment_model.dart';
+import 'leave_attachment_model.dart';
 
 /// Builds the JSON body for `POST /leave/requests` and `PUT /leave/requests/:id`
 /// (leave-request-flutter.md §3.3/§3.4).
@@ -30,10 +30,10 @@ class LeaveDraftBody {
       'duration_type': draft.durationType.wireValue,
       if (draft.returnDate != null) 'return_date': _isoDate(draft.returnDate!),
       if (draft.reason.trim().isNotEmpty) 'reason': draft.reason.trim(),
-      // §3.3 accepts a single full object; omitted entirely on edit when the
-      // user didn't attach anything, which leaves the existing one in place.
-      if (draft.attachment != null)
-        'attachments': UploadedAttachmentModel.toJson(draft.attachment!),
+      // A list of upload objects. Left out when null, so an edit keeps the
+      // files the request has; present (even empty) it replaces them all.
+      if (draft.attachments case final files?)
+        'attachments': [for (final f in files) LeaveAttachmentModel.toJson(f)],
     };
   }
 

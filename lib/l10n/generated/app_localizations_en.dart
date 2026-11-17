@@ -733,6 +733,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t upload the file. Please try again.';
 
   @override
+  String get leaveFileRemove => 'Remove file';
+
+  @override
+  String get leaveFileOpenFailed => 'This file can\'t be opened';
+
+  @override
   String get timeOffApprovalsTab => 'Team Approvals';
 
   @override
@@ -803,7 +809,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leaveRequiresAttachmentBlocked =>
-      'This leave type needs a supporting document. Attaching files isn\'t available in the app yet — please submit this request on the web.';
+      'This type needs a file; attach one before sending';
 
   @override
   String get leaveInsufficientBalanceHint =>

@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:next_on/core/network/paged_list.dart';
 import 'package:next_on/core/utils/result.dart';
@@ -12,22 +11,8 @@ import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request_draft.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_type.dart';
-import 'package:next_on/core/upload/domain/uploaded_attachment.dart';
 import 'package:next_on/features/time_off/domain/repositories/leave_repository.dart';
 import 'package:next_on/features/time_off/domain/usecases/get_leave_approvals_usecase.dart';
-import 'package:next_on/features/time_off/presentation/providers/leave_attachment_notifier.dart';
-
-/// The leave form's attachment slot, already holding [initial] — so a test
-/// never opens a file chooser or uploads anything. Use it to override
-/// `leaveAttachmentNotifierProvider`, which the form reads on submit.
-class FixedLeaveAttachment extends LeaveAttachmentNotifier {
-  FixedLeaveAttachment(this.initial);
-
-  final UploadedAttachment? initial;
-
-  @override
-  FutureOr<UploadedAttachment?> build(String? arg) => initial;
-}
 
 /// Repository stand-in for the leave notifiers and widgets.
 ///

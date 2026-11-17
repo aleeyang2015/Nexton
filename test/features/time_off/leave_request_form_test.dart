@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/core/upload/upload_providers.dart';
+import 'package:next_on/core/upload/domain/local_file.dart';
+import 'package:next_on/core/upload/domain/capture_policy.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/clock_provider.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_balance.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_type.dart';
-import 'package:next_on/features/time_off/presentation/providers/leave_attachment_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/company_days_off_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_history_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_request_form_notifier.dart';
@@ -17,7 +19,9 @@ import 'package:next_on/features/time_off/presentation/widgets/leave_request_for
 import 'package:next_on/features/time_off/time_off_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
+import '../../support/file_capture_test_doubles.dart';
 import '../../support/leave_test_doubles.dart';
+import '../../support/upload_test_doubles.dart';
 
 void main() {
   late FakeLeaveRepository repository;
@@ -42,7 +46,15 @@ void main() {
     isActive: false,
   );
 
+  late FakeUploads uploads;
+  late FakeFileCapture capture;
+
   setUp(() {
+    uploads = FakeUploads();
+    capture = FakeFileCapture()
+      ..answer = const Captured(
+        LocalFile(path: '/phone/cert.jpg', name: 'cert.jpg'),
+      );
     repository = FakeLeaveRepository()
       ..leaveTypesResult = Result.success([switchedOff, annual, sick])
       ..balancesByYear[2026] = Result.success([
@@ -52,9 +64,8 @@ void main() {
       overrides: [
         leaveRepositoryProvider.overrideWithValue(repository),
         clockProvider.overrideWithValue(() => now),
-        leaveAttachmentNotifierProvider.overrideWith(
-          () => FixedLeaveAttachment(null),
-        ),
+        uploadRepositoryProvider.overrideWithValue(uploads),
+        fileCaptureProvider.overrideWithValue(capture),
       ],
     );
     addTearDown(() async {
@@ -699,6 +710,47 @@ void main() {
       await tester.pump();
 
       expect(closed, 0);
+    });
+  });
+
+  group('files (#39)', () {
+    testWidgets('attach: camera, photos or a file (PDF allowed); the file is '
+        'uploaded and listed, and can be removed', (tester) async {
+      await pumpForm(tester);
+      final en = lookupAppLocalizations(const Locale('en'));
+
+      await tester.ensureVisible(find.text(en.leaveChooseFileButton));
+      await tester.tap(find.text(en.leaveChooseFileButton));
+      await tester.pumpAndSettle();
+      expect(find.text(en.uploadTakePhoto), findsOneWidget);
+      expect(find.text(en.uploadPickPhoto), findsOneWidget);
+      await tester.tap(find.text(en.uploadPickFile));
+      await tester.pumpAndSettle();
+
+      expect(capture.asked, ['file(pdf)']);
+      expect(uploads.calls.single.folder, 'leave');
+      expect(find.text('cert.jpg'), findsOneWidget);
+
+      await tester.tap(find.byTooltip(en.leaveFileRemove));
+      await tester.pumpAndSettle();
+      expect(find.text('cert.jpg'), findsNothing);
+      expect(form().state.files, isEmpty);
+    });
+
+    testWidgets('a failed upload says why under the files', (tester) async {
+      uploads.answer = const Result.failure(
+        Failure.validation(message: 'uploadFileTooLarge'),
+      );
+      await pumpForm(tester);
+      final en = lookupAppLocalizations(const Locale('en'));
+
+      await tester.ensureVisible(find.text(en.leaveChooseFileButton));
+      await tester.tap(find.text(en.leaveChooseFileButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(en.uploadTakePhoto));
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.uploadFileTooLarge), findsOneWidget);
     });
   });
 }

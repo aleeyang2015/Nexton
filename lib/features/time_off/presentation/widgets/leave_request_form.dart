@@ -15,7 +15,6 @@ import '../../data/datasources/leave_error_code.dart';
 import '../../domain/entities/leave_balance.dart';
 import '../../domain/entities/leave_type.dart';
 import '../providers/company_days_off_notifier.dart';
-import '../providers/leave_attachment_notifier.dart';
 import '../providers/leave_balances_notifier.dart';
 import '../providers/leave_form_rules.dart';
 import '../providers/leave_request_form_notifier.dart';
@@ -24,11 +23,14 @@ import '../providers/leave_types_notifier.dart';
 import 'leave_copy.dart';
 import 'leave_dates_calendar_dialog.dart';
 import 'leave_filter_chip.dart';
+import '../../../../core/upload/domain/capture_policy.dart';
+import '../../../../core/upload/presentation/file_source_sheet.dart';
+import '../../domain/entities/leave_attachment.dart';
 
 /// The shared request-leave form: balance card, leave-type picker, day-part
-/// selector, a multi-select date calendar, return-to-work date, an attachment
-/// slot (file pick → `POST /uploads`, held in [leaveAttachmentNotifierProvider]
-/// and folded into the submit body's `attachments`) and a reason field. Form
+/// selector, a multi-select date calendar, return-to-work date, the files
+/// (camera, gallery or a file → `POST /uploads`, kept in the form's state and
+/// sent as the body's `attachments`) and a reason field. Form
 /// fields and submission live in [leaveRequestFormNotifierProvider]; this
 /// widget only renders them.
 ///
@@ -151,6 +153,27 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     LeaveFormBlock.allDaysOff => l10n.leaveAllDaysOff,
   };
 
+  /// "ແນບໄຟລ໌": the camera, the gallery, or an image or PDF file
+  /// (decision 23), then the upload. Several files may be attached.
+  Future<void> _attach() async {
+    final l10n = AppLocalizations.of(context)!;
+    final picked = await FileSourceSheet.pick(
+      context,
+      ref,
+      CapturePolicy.document,
+    );
+    switch (picked) {
+      case Captured(:final file):
+        await _notifier.addFile(file);
+      case CaptureFailed():
+        AppToast.error(l10n.uploadInvalidFile);
+      case CaptureDenied():
+        AppToast.error(l10n.uploadPermissionDenied);
+      case CaptureCancelled():
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -177,20 +200,6 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     // answers, what is left is not known, and the form waits rather than send
     // a request the server is about to refuse.
     final balanceLoading = balancesAsync.isLoading && !balancesAsync.hasValue;
-
-    // Surface the outcome of an attachment upload; the file itself is rendered
-    // inside the "attach file" section card.
-    ref.listen(leaveAttachmentNotifierProvider(key), (previous, next) {
-      if (next.isLoading) return;
-      if (next.hasError) {
-        final error = next.error;
-        AppToast.error(
-          error is Failure ? error.localize(l10n) : l10n.leaveAttachUploadFailed,
-        );
-      } else if ((previous?.valueOrNull) == null && next.valueOrNull != null) {
-        AppToast.success(l10n.leaveAttachUploaded);
-      }
-    });
 
     final allTypes = typesAsync.valueOrNull ?? const <LeaveType>[];
     // Only the types HR has switched on, plus, when editing, the request's
@@ -343,14 +352,15 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
             titleBadge: (selectedType?.requiresAttachment ?? false)
                 ? l10n.leaveRequiredBadge
                 : l10n.leaveOptionalBadge,
-            titleTrailing: _AttachFileButton(
-              onTap: ref
-                  .read(leaveAttachmentNotifierProvider(key).notifier)
-                  .pickAndUpload,
-            ),
+            titleTrailing: _AttachFileButton(onTap: _attach),
             child: Padding(
               padding: const EdgeInsets.only(left: 12, right: 12),
-              child: _AttachmentRow(requestId: key),
+              child: _FileList(
+                files: state.files,
+                uploading: state.uploadingFiles,
+                failure: state.fileFailure,
+                onRemove: _notifier.removeFile,
+              ),
             ),
           ),
           heightBx(h: 16),
@@ -1122,56 +1132,51 @@ class _AttachFileButton extends StatelessWidget {
   }
 }
 
-/// Renders the file uploaded from the attachment slot, or a placeholder / an
-/// in-flight spinner. Reads [leaveAttachmentNotifierProvider]; the pick + upload
-/// itself is triggered by [_AttachFileButton].
-class _AttachmentRow extends ConsumerWidget {
-  final String? requestId;
+/// The request's files: each with a thumbnail (a photo) or an icon, its
+/// name, and a remove ×; a spinner per upload on its way; the reason the
+/// last upload failed, under the list.
+class _FileList extends StatelessWidget {
+  final List<LeaveAttachment> files;
+  final int uploading;
+  final Failure? failure;
+  final void Function(int index) onRemove;
 
-  const _AttachmentRow({required this.requestId});
+  const _FileList({
+    required this.files,
+    required this.uploading,
+    required this.failure,
+    required this.onRemove,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final upload = ref.watch(leaveAttachmentNotifierProvider(requestId));
-    final file = upload.valueOrNull;
+    final failure = this.failure;
 
-    if (upload.isLoading) {
-      return _hint(const _UploadSpinner(), l10n.leaveAttachUploading);
-    }
-    if (file == null) {
-      return _hint(null, l10n.leaveAttachNoFiles);
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.insert_drive_file_outlined,
-            size: 18,
-            color: AppColors.primary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (files.isEmpty && uploading == 0)
+          _hint(null, l10n.leaveAttachNoFiles),
+        for (var i = 0; i < files.length; i++)
+          _FileRow(
+            file: files[i],
+            removeLabel: l10n.leaveFileRemove,
+            onRemove: () => onRemove(i),
           ),
-          widthBx(w: 10),
-          Expanded(
+        for (var i = 0; i < uploading; i++)
+          _hint(const _UploadSpinner(), l10n.leaveAttachUploading),
+        if (failure != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
             child: customText(
-              file.originalName,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          InkWell(
-            onTap: ref
-                .read(leaveAttachmentNotifierProvider(requestId).notifier)
-                .clear,
-            child: const Icon(
-              Icons.delete_outline,
-              size: 20,
+              failure.localize(l10n),
               color: AppColors.danger,
+              fontSize: 12.5,
+              maxLine: 3,
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -1186,6 +1191,65 @@ class _AttachmentRow extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _FileRow extends StatelessWidget {
+  final LeaveAttachment file;
+  final String removeLabel;
+  final VoidCallback onRemove;
+
+  const _FileRow({
+    required this.file,
+    required this.removeLabel,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final url = file.url;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 36,
+            height: 36,
+            child: file.isImage && url != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Image.network(
+                      url,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _icon(Icons.image_outlined),
+                    ),
+                  )
+                : _icon(
+                    file.isPdf
+                        ? Icons.picture_as_pdf_outlined
+                        : Icons.insert_drive_file_outlined,
+                  ),
+          ),
+          widthBx(w: 10),
+          Expanded(
+            child: customText(
+              file.displayName,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              maxLine: 2,
+            ),
+          ),
+          IconButton(
+            tooltip: removeLabel,
+            onPressed: onRemove,
+            icon: const Icon(Icons.close, size: 20, color: AppColors.danger),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _icon(IconData icon) =>
+      Center(child: Icon(icon, size: 22, color: AppColors.primary));
 }
 
 class _UploadSpinner extends StatelessWidget {

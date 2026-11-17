@@ -346,18 +346,23 @@ void main() {
       expect(attachment.size, 20480);
     });
 
-    test('an attachment with no url is dropped', () {
+    test('an attachment with no url is kept, with no url (#39): it is shown '
+        'as text and sent back on an edit; one with nothing at all is '
+        'dropped', () {
       final request = LeaveRequestModel.fromJson(
         _request(
           attachments: [
             {'id': 'att-1', 'file_name': 'lost.pdf'},
             {'id': 'att-2', 'url': '', 'file_name': 'empty.pdf'},
             {'id': 'att-3', 'url': 'https://files.nexton.work/a/kept.pdf'},
+            {'id': 'att-4'},
           ],
         ),
       );
 
-      expect(request.attachments.single.id, 'att-3');
+      expect(request.attachments.map((a) => a.id), ['att-1', 'att-2', 'att-3']);
+      expect(request.attachments[0].url, isNull);
+      expect(request.attachments[1].url, isNull);
     });
 
     test('every request status is read; an unknown one reads as pending', () {
@@ -425,8 +430,29 @@ void main() {
       expect(LeaveAttachmentModel.fromJson({'url': url})!.fileName, url);
     });
 
-    test('is null with no url', () {
-      expect(LeaveAttachmentModel.fromJson({'file_name': 'x.pdf'}), isNull);
+    test('no url: kept by its name, with no url', () {
+      final file = LeaveAttachmentModel.fromJson({'file_name': 'x.pdf'})!;
+      expect(file.fileName, 'x.pdf');
+      expect(file.url, isNull);
+    });
+
+    test('original_name is read and shown; file_name stays the storage key',
+        () {
+      final file = LeaveAttachmentModel.fromJson({
+        'url': 'https://files.nexton.work/a/1_cert.jpg',
+        'file_name': 'tenants/x/1_cert.jpg',
+        'original_name': 'cert.jpg',
+        'content_type': 'image/jpeg',
+      })!;
+      expect(file.fileName, 'tenants/x/1_cert.jpg');
+      expect(file.originalName, 'cert.jpg');
+      expect(file.displayName, 'cert.jpg');
+      expect(file.isImage, isTrue);
+      expect(file.isPdf, isFalse);
+    });
+
+    test('nothing to name it by: dropped', () {
+      expect(LeaveAttachmentModel.fromJson({'id': 'x'}), isNull);
     });
   });
 
