@@ -30,6 +30,13 @@ mixin _$AttendanceState {
   /// slide action is inert — §7 rule 10's cooldown.
   DateTime? get cooldownUntil => throw _privateConstructorUsedError;
 
+  /// The user's own OT clock-in a clock-out would close now
+  /// (`ot-sessions/open`): an OT on a day off or with a gap from the shift,
+  /// which `records/my` does not list. Null when there is none, and when
+  /// it could not be read (the card then goes by the record alone; the
+  /// server still guards a wrong punch).
+  OpenOtSession? get openOt => throw _privateConstructorUsedError;
+
   @JsonKey(ignore: true)
   $AttendanceStateCopyWith<AttendanceState> get copyWith =>
       throw _privateConstructorUsedError;
@@ -46,6 +53,7 @@ abstract class $AttendanceStateCopyWith<$Res> {
     AsyncValue<AttendanceDay> today,
     bool isPunching,
     DateTime? cooldownUntil,
+    OpenOtSession? openOt,
   });
 }
 
@@ -65,6 +73,7 @@ class _$AttendanceStateCopyWithImpl<$Res, $Val extends AttendanceState>
     Object? today = null,
     Object? isPunching = null,
     Object? cooldownUntil = freezed,
+    Object? openOt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -80,6 +89,10 @@ class _$AttendanceStateCopyWithImpl<$Res, $Val extends AttendanceState>
                 ? _value.cooldownUntil
                 : cooldownUntil // ignore: cast_nullable_to_non_nullable
                       as DateTime?,
+            openOt: freezed == openOt
+                ? _value.openOt
+                : openOt // ignore: cast_nullable_to_non_nullable
+                      as OpenOtSession?,
           )
           as $Val,
     );
@@ -99,6 +112,7 @@ abstract class _$$AttendanceStateImplCopyWith<$Res>
     AsyncValue<AttendanceDay> today,
     bool isPunching,
     DateTime? cooldownUntil,
+    OpenOtSession? openOt,
   });
 }
 
@@ -117,6 +131,7 @@ class __$$AttendanceStateImplCopyWithImpl<$Res>
     Object? today = null,
     Object? isPunching = null,
     Object? cooldownUntil = freezed,
+    Object? openOt = freezed,
   }) {
     return _then(
       _$AttendanceStateImpl(
@@ -132,6 +147,10 @@ class __$$AttendanceStateImplCopyWithImpl<$Res>
             ? _value.cooldownUntil
             : cooldownUntil // ignore: cast_nullable_to_non_nullable
                   as DateTime?,
+        openOt: freezed == openOt
+            ? _value.openOt
+            : openOt // ignore: cast_nullable_to_non_nullable
+                  as OpenOtSession?,
       ),
     );
   }
@@ -144,6 +163,7 @@ class _$AttendanceStateImpl extends _AttendanceState {
     this.today = const AsyncValue.data(AttendanceDay.empty),
     this.isPunching = false,
     this.cooldownUntil,
+    this.openOt,
   }) : super._();
 
   /// Today's record. Starts as data-with-empty rather than loading, so the
@@ -164,9 +184,17 @@ class _$AttendanceStateImpl extends _AttendanceState {
   @override
   final DateTime? cooldownUntil;
 
+  /// The user's own OT clock-in a clock-out would close now
+  /// (`ot-sessions/open`): an OT on a day off or with a gap from the shift,
+  /// which `records/my` does not list. Null when there is none, and when
+  /// it could not be read (the card then goes by the record alone; the
+  /// server still guards a wrong punch).
+  @override
+  final OpenOtSession? openOt;
+
   @override
   String toString() {
-    return 'AttendanceState(today: $today, isPunching: $isPunching, cooldownUntil: $cooldownUntil)';
+    return 'AttendanceState(today: $today, isPunching: $isPunching, cooldownUntil: $cooldownUntil, openOt: $openOt)';
   }
 
   @override
@@ -178,12 +206,13 @@ class _$AttendanceStateImpl extends _AttendanceState {
             (identical(other.isPunching, isPunching) ||
                 other.isPunching == isPunching) &&
             (identical(other.cooldownUntil, cooldownUntil) ||
-                other.cooldownUntil == cooldownUntil));
+                other.cooldownUntil == cooldownUntil) &&
+            (identical(other.openOt, openOt) || other.openOt == openOt));
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, today, isPunching, cooldownUntil);
+      Object.hash(runtimeType, today, isPunching, cooldownUntil, openOt);
 
   @JsonKey(ignore: true)
   @override
@@ -200,6 +229,7 @@ abstract class _AttendanceState extends AttendanceState {
     final AsyncValue<AttendanceDay> today,
     final bool isPunching,
     final DateTime? cooldownUntil,
+    final OpenOtSession? openOt,
   }) = _$AttendanceStateImpl;
   const _AttendanceState._() : super._();
 
@@ -216,6 +246,13 @@ abstract class _AttendanceState extends AttendanceState {
   /// Set when the backend throttles a punch (429). Until it passes, the
   /// slide action is inert — §7 rule 10's cooldown.
   DateTime? get cooldownUntil;
+  @override
+  /// The user's own OT clock-in a clock-out would close now
+  /// (`ot-sessions/open`): an OT on a day off or with a gap from the shift,
+  /// which `records/my` does not list. Null when there is none, and when
+  /// it could not be read (the card then goes by the record alone; the
+  /// server still guards a wrong punch).
+  OpenOtSession? get openOt;
   @override
   @JsonKey(ignore: true)
   _$$AttendanceStateImplCopyWith<_$AttendanceStateImpl> get copyWith =>

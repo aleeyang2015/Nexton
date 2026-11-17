@@ -85,25 +85,32 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
     }
   }
 
-  /// Fetches today's record so the card knows which punch is owed (§6.2).
+  /// Fetches today's record and the user's open OT clock-in, together, so
+  /// the card knows which punch is owed (§6.2, guide 1.6).
   ///
-  /// A failure here is not fatal — the card falls back to its resting state
-  /// and the backend's session guard still catches a wrong guess — so the
-  /// error is surfaced without blocking the control.
+  /// A failure of the record is not fatal — the card falls back to its
+  /// resting state and the backend's session guard still catches a wrong
+  /// guess — so the error is surfaced without blocking the control. A
+  /// failure of the OT read is not shown at all: the card goes by the
+  /// record alone.
   Future<void> loadToday() async {
     if (_disposed) return;
     _loadedDate = _dateOnly(DateTime.now());
     state = state.copyWith(today: const AsyncValue.loading());
 
-    final result = await ref.read(getTodayAttendanceUseCaseProvider)();
+    final (record, openOt) = await (
+      ref.read(getTodayAttendanceUseCaseProvider)(),
+      ref.read(getOpenOtSessionUseCaseProvider)(),
+    ).wait;
     if (_disposed) return;
 
     state = state.copyWith(
-      today: result.fold(
+      today: record.fold(
         (failure) =>
             AsyncValue<AttendanceDay>.error(failure, StackTrace.current),
         (day) => AsyncValue<AttendanceDay>.data(day),
       ),
+      openOt: openOt.dataOrNull,
     );
   }
 

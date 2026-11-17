@@ -53,11 +53,18 @@ class AttendanceStatusCard extends ConsumerWidget {
       state.day.sessions,
       day: cardDay,
     );
-    final shiftName = AttendanceCopy.employeeShiftName(
-      locale,
-      profile?.shiftName,
-      profile?.shiftNameLo,
-    );
+    final openOt = state.openOt;
+    // An open OT clock-in names itself ("OT 19:00–22:00") in place of the
+    // shift, and says until when a clock-out still closes it.
+    final shiftName =
+        openOt?.sessionLabel.isNotEmpty == true
+            ? openOt!.sessionLabel
+            : AttendanceCopy.employeeShiftName(
+                locale,
+                profile?.shiftName,
+                profile?.shiftNameLo,
+              );
+    final clockOutBy = AttendanceCopy.otClockOutBy(l10n, openOt);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -78,6 +85,15 @@ class AttendanceStatusCard extends ConsumerWidget {
           _CardHeader(shiftName: shiftName),
           heightBx(h: 10),
           const _LiveClock(),
+          if (clockOutBy != null) ...[
+            heightBx(h: 4),
+            customText(
+              clockOutBy,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.attendanceLate,
+            ),
+          ],
           // Both hidden when the profile has no shift to show.
           if (shiftDetails.isNotEmpty) ...[
             // heightBx(h: 6),

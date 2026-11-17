@@ -800,5 +800,7 @@
   "otPostCannotJoin": "Cannot join now",
   "otPostJoinSent": "Join asked, waiting for HR",
   "otPostGone": "This post is gone or is not for your department.",
-  "otPostsEmpty": "No OT posts for your department"
+  "otPostsEmpty": "No OT posts for your department",
+  "attOtClockOutBy": "Clock out by {time}",
+  "@attOtClockOutBy": {"placeholders": {"time": {"type": "String"}}}
 }

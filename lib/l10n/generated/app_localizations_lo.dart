@@ -1967,4 +1967,9 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get otPostsEmpty => 'ບໍ່ມີປະກາດໂອທີສຳລັບພະແນກຂອງທ່ານ';
+
+  @override
+  String attOtClockOutBy(String time) {
+    return 'ສະແກນອອກພາຍໃນ $time';
+  }
 }

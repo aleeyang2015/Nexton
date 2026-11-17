@@ -7,6 +7,7 @@ import '../../../../core/errors/failure.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_response.dart';
 import '../../domain/entities/attendance_day.dart';
+import '../../domain/entities/open_ot_session.dart';
 import '../../domain/entities/attendance_summary.dart';
 import '../../domain/entities/date_range.dart';
 import '../../domain/entities/punch_outcome.dart';
@@ -15,6 +16,7 @@ import '../../domain/entities/time_correction_detail.dart';
 import '../../domain/entities/time_correction_record.dart';
 import '../../domain/entities/time_correction_request.dart';
 import '../../domain/entities/time_correction_status.dart';
+import '../models/open_ot_session_model.dart';
 import '../models/attendance_record_model.dart';
 import '../models/attendance_summary_model.dart';
 import '../models/clock_request_model.dart';
@@ -42,6 +44,9 @@ abstract class AttendanceRemoteDataSource {
   /// [AttendanceDay.pickCurrent] — or [AttendanceDay.empty] when nothing is
   /// punched yet.
   Future<AttendanceDay> todayRecord();
+
+  /// The user's own open OT clock-in, or null when there is none.
+  Future<OpenOtSession?> openOtSession();
 
   /// The history page's daily list over [range], newest first.
   Future<List<AttendanceDay>> records(DateRange range);
@@ -160,6 +165,18 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     return AttendanceDay.pickCurrent([
       for (final page in pages) ...page,
     ], now);
+  }
+
+  /// `"data": null` (no open OT clock-in) is null here. It is checked before
+  /// [ApiEnvelope.unwrapObject], which would hand back the envelope itself.
+  @override
+  Future<OpenOtSession?> openOtSession() async {
+    final response = await _client.get<dynamic>(AttendancePaths.openOtSession);
+    final body = response.data;
+    if (body is Map && body['data'] == null && body['success'] == true) {
+      return null;
+    }
+    return OpenOtSessionModel.fromJson(ApiEnvelope.unwrapObject(body));
   }
 
   /// The newest rows of [month], enough to hold every day from

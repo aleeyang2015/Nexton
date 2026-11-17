@@ -1982,4 +1982,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get otPostsEmpty => 'No OT posts for your department';
+
+  @override
+  String attOtClockOutBy(String time) {
+    return 'Clock out by $time';
+  }
 }
