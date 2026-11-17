@@ -20,6 +20,7 @@ import 'domain/usecases/download_time_correction_attachment_usecase.dart';
 import 'domain/usecases/get_monthly_records_usecase.dart';
 import 'domain/usecases/get_open_ot_session_usecase.dart';
 import 'domain/usecases/get_offsite_approvals_usecase.dart';
+import 'domain/usecases/get_offsite_detail_usecase.dart';
 import 'domain/usecases/get_offsite_history_usecase.dart';
 import 'domain/usecases/get_monthly_summary_usecase.dart';
 import 'domain/usecases/get_time_correction_approvals_usecase.dart';
@@ -200,6 +201,10 @@ final getWaitingOffsiteUseCaseProvider = Provider<GetWaitingOffsiteUseCase>(
 /// request form.
 final getOffsiteHistoryUseCaseProvider = Provider<GetOffsiteHistoryUseCase>(
   (ref) => GetOffsiteHistoryUseCase(ref.watch(offsiteRepositoryProvider)),
+);
+
+final getOffsiteDetailUseCaseProvider = Provider<GetOffsiteDetailUseCase>(
+  (ref) => GetOffsiteDetailUseCase(ref.watch(offsiteRepositoryProvider)),
 );
 
 final getOffsiteApprovalsUseCaseProvider = Provider<GetOffsiteApprovalsUseCase>(

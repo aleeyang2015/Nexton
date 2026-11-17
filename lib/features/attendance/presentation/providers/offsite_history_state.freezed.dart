@@ -12,11 +12,12 @@ part of 'offsite_history_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$OffsiteHistoryState {
-  AsyncValue<List<OffsiteRequestDetail>> get requests =>
+  AsyncValue<PagedList<OffsiteRequestDetail>> get requests =>
       throw _privateConstructorUsedError;
   TimeCorrectionStatus? get filter => throw _privateConstructorUsedError;
   Set<String> get cancellingIds => throw _privateConstructorUsedError;
@@ -29,13 +30,15 @@ mixin _$OffsiteHistoryState {
 /// @nodoc
 abstract class $OffsiteHistoryStateCopyWith<$Res> {
   factory $OffsiteHistoryStateCopyWith(
-          OffsiteHistoryState value, $Res Function(OffsiteHistoryState) then) =
-      _$OffsiteHistoryStateCopyWithImpl<$Res, OffsiteHistoryState>;
+    OffsiteHistoryState value,
+    $Res Function(OffsiteHistoryState) then,
+  ) = _$OffsiteHistoryStateCopyWithImpl<$Res, OffsiteHistoryState>;
   @useResult
-  $Res call(
-      {AsyncValue<List<OffsiteRequestDetail>> requests,
-      TimeCorrectionStatus? filter,
-      Set<String> cancellingIds});
+  $Res call({
+    AsyncValue<PagedList<OffsiteRequestDetail>> requests,
+    TimeCorrectionStatus? filter,
+    Set<String> cancellingIds,
+  });
 }
 
 /// @nodoc
@@ -55,44 +58,50 @@ class _$OffsiteHistoryStateCopyWithImpl<$Res, $Val extends OffsiteHistoryState>
     Object? filter = freezed,
     Object? cancellingIds = null,
   }) {
-    return _then(_value.copyWith(
-      requests: null == requests
-          ? _value.requests
-          : requests // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<List<OffsiteRequestDetail>>,
-      filter: freezed == filter
-          ? _value.filter
-          : filter // ignore: cast_nullable_to_non_nullable
-              as TimeCorrectionStatus?,
-      cancellingIds: null == cancellingIds
-          ? _value.cancellingIds
-          : cancellingIds // ignore: cast_nullable_to_non_nullable
-              as Set<String>,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            requests: null == requests
+                ? _value.requests
+                : requests // ignore: cast_nullable_to_non_nullable
+                      as AsyncValue<PagedList<OffsiteRequestDetail>>,
+            filter: freezed == filter
+                ? _value.filter
+                : filter // ignore: cast_nullable_to_non_nullable
+                      as TimeCorrectionStatus?,
+            cancellingIds: null == cancellingIds
+                ? _value.cancellingIds
+                : cancellingIds // ignore: cast_nullable_to_non_nullable
+                      as Set<String>,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$OffsiteHistoryStateImplCopyWith<$Res>
     implements $OffsiteHistoryStateCopyWith<$Res> {
-  factory _$$OffsiteHistoryStateImplCopyWith(_$OffsiteHistoryStateImpl value,
-          $Res Function(_$OffsiteHistoryStateImpl) then) =
-      __$$OffsiteHistoryStateImplCopyWithImpl<$Res>;
+  factory _$$OffsiteHistoryStateImplCopyWith(
+    _$OffsiteHistoryStateImpl value,
+    $Res Function(_$OffsiteHistoryStateImpl) then,
+  ) = __$$OffsiteHistoryStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {AsyncValue<List<OffsiteRequestDetail>> requests,
-      TimeCorrectionStatus? filter,
-      Set<String> cancellingIds});
+  $Res call({
+    AsyncValue<PagedList<OffsiteRequestDetail>> requests,
+    TimeCorrectionStatus? filter,
+    Set<String> cancellingIds,
+  });
 }
 
 /// @nodoc
 class __$$OffsiteHistoryStateImplCopyWithImpl<$Res>
     extends _$OffsiteHistoryStateCopyWithImpl<$Res, _$OffsiteHistoryStateImpl>
     implements _$$OffsiteHistoryStateImplCopyWith<$Res> {
-  __$$OffsiteHistoryStateImplCopyWithImpl(_$OffsiteHistoryStateImpl _value,
-      $Res Function(_$OffsiteHistoryStateImpl) _then)
-      : super(_value, _then);
+  __$$OffsiteHistoryStateImplCopyWithImpl(
+    _$OffsiteHistoryStateImpl _value,
+    $Res Function(_$OffsiteHistoryStateImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -101,36 +110,38 @@ class __$$OffsiteHistoryStateImplCopyWithImpl<$Res>
     Object? filter = freezed,
     Object? cancellingIds = null,
   }) {
-    return _then(_$OffsiteHistoryStateImpl(
-      requests: null == requests
-          ? _value.requests
-          : requests // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<List<OffsiteRequestDetail>>,
-      filter: freezed == filter
-          ? _value.filter
-          : filter // ignore: cast_nullable_to_non_nullable
-              as TimeCorrectionStatus?,
-      cancellingIds: null == cancellingIds
-          ? _value._cancellingIds
-          : cancellingIds // ignore: cast_nullable_to_non_nullable
-              as Set<String>,
-    ));
+    return _then(
+      _$OffsiteHistoryStateImpl(
+        requests: null == requests
+            ? _value.requests
+            : requests // ignore: cast_nullable_to_non_nullable
+                  as AsyncValue<PagedList<OffsiteRequestDetail>>,
+        filter: freezed == filter
+            ? _value.filter
+            : filter // ignore: cast_nullable_to_non_nullable
+                  as TimeCorrectionStatus?,
+        cancellingIds: null == cancellingIds
+            ? _value._cancellingIds
+            : cancellingIds // ignore: cast_nullable_to_non_nullable
+                  as Set<String>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$OffsiteHistoryStateImpl extends _OffsiteHistoryState {
-  const _$OffsiteHistoryStateImpl(
-      {this.requests = const AsyncValue<List<OffsiteRequestDetail>>.loading(),
-      this.filter,
-      final Set<String> cancellingIds = const <String>{}})
-      : _cancellingIds = cancellingIds,
-        super._();
+  const _$OffsiteHistoryStateImpl({
+    this.requests = const AsyncValue<PagedList<OffsiteRequestDetail>>.loading(),
+    this.filter,
+    final Set<String> cancellingIds = const <String>{},
+  }) : _cancellingIds = cancellingIds,
+       super._();
 
   @override
   @JsonKey()
-  final AsyncValue<List<OffsiteRequestDetail>> requests;
+  final AsyncValue<PagedList<OffsiteRequestDetail>> requests;
   @override
   final TimeCorrectionStatus? filter;
   final Set<String> _cancellingIds;
@@ -155,31 +166,40 @@ class _$OffsiteHistoryStateImpl extends _OffsiteHistoryState {
             (identical(other.requests, requests) ||
                 other.requests == requests) &&
             (identical(other.filter, filter) || other.filter == filter) &&
-            const DeepCollectionEquality()
-                .equals(other._cancellingIds, _cancellingIds));
+            const DeepCollectionEquality().equals(
+              other._cancellingIds,
+              _cancellingIds,
+            ));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, requests, filter,
-      const DeepCollectionEquality().hash(_cancellingIds));
+  int get hashCode => Object.hash(
+    runtimeType,
+    requests,
+    filter,
+    const DeepCollectionEquality().hash(_cancellingIds),
+  );
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$OffsiteHistoryStateImplCopyWith<_$OffsiteHistoryStateImpl> get copyWith =>
       __$$OffsiteHistoryStateImplCopyWithImpl<_$OffsiteHistoryStateImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 }
 
 abstract class _OffsiteHistoryState extends OffsiteHistoryState {
-  const factory _OffsiteHistoryState(
-      {final AsyncValue<List<OffsiteRequestDetail>> requests,
-      final TimeCorrectionStatus? filter,
-      final Set<String> cancellingIds}) = _$OffsiteHistoryStateImpl;
+  const factory _OffsiteHistoryState({
+    final AsyncValue<PagedList<OffsiteRequestDetail>> requests,
+    final TimeCorrectionStatus? filter,
+    final Set<String> cancellingIds,
+  }) = _$OffsiteHistoryStateImpl;
   const _OffsiteHistoryState._() : super._();
 
   @override
-  AsyncValue<List<OffsiteRequestDetail>> get requests;
+  AsyncValue<PagedList<OffsiteRequestDetail>> get requests;
   @override
   TimeCorrectionStatus? get filter;
   @override

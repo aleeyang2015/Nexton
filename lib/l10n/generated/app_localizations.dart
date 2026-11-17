@@ -2588,12 +2588,6 @@ abstract class AppLocalizations {
   /// **'Approve Corrections'**
   String get approvalsTimeCorrectionTab;
 
-  /// No description provided for @offsiteMenu.
-  ///
-  /// In en, this message translates to:
-  /// **'Off-site Clock-in'**
-  String get offsiteMenu;
-
   /// No description provided for @offsiteTitle.
   ///
   /// In en, this message translates to:
@@ -2744,17 +2738,41 @@ abstract class AppLocalizations {
   /// **'Approve Off-site'**
   String get approvalsOffsiteTab;
 
-  /// No description provided for @offsiteHistoryTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Off-site Clock-in History'**
-  String get offsiteHistoryTitle;
-
   /// No description provided for @offsiteHistoryEmpty.
   ///
   /// In en, this message translates to:
   /// **'No off-site clock-in requests'**
   String get offsiteHistoryEmpty;
+
+  /// No description provided for @attMyRequestsMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'My requests'**
+  String get attMyRequestsMenu;
+
+  /// No description provided for @attMyRequestsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My requests'**
+  String get attMyRequestsTitle;
+
+  /// No description provided for @attOffsiteTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Off-site scans'**
+  String get attOffsiteTab;
+
+  /// No description provided for @attView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get attView;
+
+  /// No description provided for @attOffsiteDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Off-site scan request'**
+  String get attOffsiteDetailTitle;
 
   /// No description provided for @attCheckinPendingApproval.
   ///

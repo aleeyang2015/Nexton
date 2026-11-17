@@ -59,6 +59,9 @@ void main() {
     // approvals page, so the menu carries that one instead: for heads and
     // HR only (#36).
     expect(find.text(lo.approvalsMenu), findsOneWidget);
-    expect(find.text(lo.offsiteMenu), findsOneWidget);
+    // The off-site tile became "My requests" (#42): off-site history is its
+    // first tab.
+    expect(find.text(lo.attMyRequestsMenu), findsOneWidget);
+    expect(find.text('ລົງເວລານອກພື້ນທີ່'), findsNothing);
   });
 }

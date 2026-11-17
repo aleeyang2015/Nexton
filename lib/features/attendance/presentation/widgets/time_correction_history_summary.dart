@@ -201,7 +201,9 @@ class _PendingDot extends StatelessWidget {
 /// ones an approver acts on.
 class TimeCorrectionFilterDropdown extends StatelessWidget {
   final TimeCorrectionStatus? selected;
-  final int Function(TimeCorrectionStatus? status) countOf;
+  /// Each status's count, or null where it is not known (a list the server
+  /// pages and filters: "My requests"); a null count shows the plain name.
+  final int? Function(TimeCorrectionStatus? status) countOf;
   final ValueChanged<TimeCorrectionStatus?> onSelect;
   final List<TimeCorrectionStatus?> options;
 

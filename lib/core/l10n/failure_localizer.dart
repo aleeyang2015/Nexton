@@ -136,6 +136,8 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.leaveChanged;
     case 'leaveRequestGone':
       return l10n.leaveRequestGone;
+    case 'offsiteRequestGone':
+      return l10n.apprRequestNotFound;
     case 'leaveRequiresAttachmentBlocked':
       return l10n.leaveRequiresAttachmentBlocked;
     case 'leaveStartedContactHr':

@@ -75,11 +75,12 @@ List<ListMenuEntry> buildListMenuEntries(
     color: const Color(0xFF8B5CF6),
     onTap: () => context.push(AppRoutes.timeCorrectionHistory),
   ),
+  // "My requests" (#42): the off-site requests filed, and their state.
   ListMenuEntry(
-    l10n.offsiteMenu,
-    Icons.wrong_location_outlined,
+    l10n.attMyRequestsMenu,
+    Icons.assignment_outlined,
     color: const Color(0xFFE8604C),
-    onTap: () => context.push(AppRoutes.offsiteHistory),
+    onTap: () => context.push(AppRoutes.myRequests),
   ),
   // ListMenuEntry(
   //   l10n.profile,

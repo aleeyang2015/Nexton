@@ -1,20 +1,24 @@
-import '../../../../core/utils/base_usecase.dart';
+import '../../../../core/network/paged_list.dart';
 import '../../../../core/utils/result.dart';
 import '../entities/offsite_detail.dart';
+import '../entities/time_correction_status.dart';
 import '../repositories/offsite_repository.dart';
 
-/// Loads the off-site scan requests the employee has filed, for the history
-/// page that fronts the "ລົງເວລານອກພື້ນທີ່" menu.
-///
-/// No status parameter, unlike [GetOffsiteApprovalsUseCase]: on an employee's
-/// own list the status is the request's own, so the page filters and counts the
-/// one list it already holds.
-class GetOffsiteHistoryUseCase
-    implements NoParamsUseCase<List<OffsiteRequestDetail>> {
+/// The status picked and where to go on from: one page of "My requests".
+typedef OffsiteHistoryPageParams = ({
+  TimeCorrectionStatus? status,
+  String? cursor,
+});
+
+/// One page of the off-site scan requests the employee has filed, newest
+/// first, for "My requests" (#42). The status is a server filter, so each
+/// picked status pages through its own list.
+class GetOffsiteHistoryUseCase {
   final OffsiteRepository _repository;
 
   GetOffsiteHistoryUseCase(this._repository);
 
-  @override
-  FutureResult<List<OffsiteRequestDetail>> call() => _repository.mine();
+  FutureResult<CursorPage<OffsiteRequestDetail>> call(
+    OffsiteHistoryPageParams params,
+  ) => _repository.myRequests(status: params.status, cursor: params.cursor);
 }

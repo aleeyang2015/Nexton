@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
+
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_dialog.dart';
@@ -11,90 +13,39 @@ import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/offsite_detail.dart';
 import '../providers/offsite_history_notifier.dart';
-import '../widgets/offsite_record_card.dart';
-import '../widgets/time_correction_history_summary.dart';
+import 'offsite_record_card.dart';
+import 'time_correction_history_summary.dart';
 import '../../../../core/widgets/image_viewer.dart';
 
-/// "ປະຫວັດລົງເວລານອກພື້ນທີ່" — the off-site scan requests the employee has
-/// filed, and the way in to filing another.
+/// "ລົງເວລານອກພື້ນທີ່", the off-site tab of "My requests" (#42): the scans
+/// the employee has filed, a status filter the server applies, a page at a
+/// time, pull to refresh. A row opens the request's own page.
 ///
-/// This is what the "ລົງເວລານອກພື້ນທີ່" menu tile now opens: a scan request's
-/// answer arrives later (HR has to approve it unless the employee holds
-/// `can_work_offsite`, §3), so the list of what is still waiting is what they
-/// come back for, and [OffsiteRequestPage] sits one tap behind it. The same
-/// arrangement the time-correction menu already has.
-///
-/// Requests and the picked tab live in [offsiteHistoryNotifierProvider].
-class OffsiteHistoryPage extends ConsumerWidget {
-  const OffsiteHistoryPage({super.key});
+/// Requests and the picked status live in [offsiteHistoryNotifierProvider].
+class OffsiteRequestsTab extends ConsumerWidget {
+  const OffsiteRequestsTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(offsiteHistoryNotifierProvider);
+    final filter = ref.watch(
+      offsiteHistoryNotifierProvider.select((s) => s.filter),
+    );
     final notifier = ref.read(offsiteHistoryNotifierProvider.notifier);
 
-    return Container(
-      color: Colors.white,
-      child: SafeArea(
-        bottom: false,
-        child: Scaffold(
-          backgroundColor: AppColors.homeBackground,
-          body: Column(
-            children: [
-              const _Header(),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: notifier.refresh,
-                  child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(15, 16, 15, 32),
-                    children: [
-                      TimeCorrectionFilterDropdown(
-                        selected: state.filter,
-                        countOf: state.countOf,
-                        onSelect: notifier.selectFilter,
-                      ),
-                      heightBx(h: 16),
-                      const _RequestsList(),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
-      child: Row(
+    return RefreshIndicator(
+      onRefresh: notifier.refresh,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(15, 16, 15, 32),
         children: [
-          IconButton(
-            onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          // No counts: the server filters and pages each status's list.
+          TimeCorrectionFilterDropdown(
+            selected: filter,
+            countOf: (_) => null,
+            onSelect: notifier.selectFilter,
           ),
-          Expanded(
-            child: customText(
-              l10n.offsiteHistoryTitle,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-              alight: TextAlign.center,
-            ),
-          ),
-          // Balances the back button so the title stays centred.
-          const SizedBox(width: 48),
+          heightBx(h: 16),
+          const _RequestsList(),
         ],
       ),
     );
@@ -139,18 +90,45 @@ class _RequestsList extends ConsumerWidget {
         text: l10n.offsiteHistoryEmpty,
       );
     }
+    final list = requests.valueOrNull;
+    final notifier = ref.read(offsiteHistoryNotifierProvider.notifier);
 
     return Column(
       children: [
         for (final request in visible)
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
-            child: OffsiteRecordCard(
-              request: request,
-              onViewImage: (url) => showImageViewer(context, url),
-              onCancel: () => _cancel(context, ref, request),
-              cancelling: state.cancellingIds.contains(request.id),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              // The request's own page; its buttons keep their own taps.
+              onTap: () => context.push(
+                AppRoutes.myOffsiteRequest(request.id),
+                extra: request,
+              ),
+              child: OffsiteRecordCard(
+                request: request,
+                onViewImage: (url) => showImageViewer(context, url),
+                onCancel: () => _cancel(context, ref, request),
+                cancelling: state.cancellingIds.contains(request.id),
+              ),
             ),
+          ),
+        if (list != null && list.loadingMore)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: CircularProgressIndicator(color: AppColors.primary),
+          )
+        else if (list != null && list.loadMoreError != null)
+          _Message(
+            icon: Icons.error_outline,
+            text: l10n.offsiteHistoryLoadFailed,
+            onRetry: notifier.retryLoadMore,
+          )
+        else if (list != null && list.canLoadMore)
+          // Near the end: the next page.
+          _LoadMoreWhenShown(
+            key: ValueKey(list.items.length),
+            onShown: notifier.loadMore,
           ),
       ],
     );
@@ -228,3 +206,25 @@ class _Message extends StatelessWidget {
   }
 }
 
+/// Asks for the next page once, when the end of the list is built.
+class _LoadMoreWhenShown extends StatefulWidget {
+  const _LoadMoreWhenShown({super.key, required this.onShown});
+
+  final VoidCallback onShown;
+
+  @override
+  State<_LoadMoreWhenShown> createState() => _LoadMoreWhenShownState();
+}
+
+class _LoadMoreWhenShownState extends State<_LoadMoreWhenShown> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.onShown();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox(height: 1);
+}

@@ -71,6 +71,12 @@ void main() {
           path: AppRoutes.offsiteRequest,
           builder: (context, state) => offsiteRequestPageFor(state.extra),
         ),
+        // A request's page, opened by "View" on the toast (#42).
+        GoRoute(
+          path: AppRoutes.myOffsiteRequestDetail,
+          builder: (_, state) =>
+              Scaffold(body: Text('DETAIL:${state.pathParameters['id']}')),
+        ),
         // The camera: pops at once with a photo.
         GoRoute(
           path: AppRoutes.cameraCapture,
@@ -298,5 +304,20 @@ void main() {
     slowFix.complete();
     await tester.pumpAndSettle();
     expect(find.text(en.offsiteSubmit), findsOneWidget);
+  });
+
+  testWidgets('"View" on the "recorded" toast opens the new request (#42)',
+      (tester) async {
+    offsite.submitResult = const Result.success(
+      OffsiteFiled(OffsiteSubmission(autoApproved: true, requestId: 'new-1')),
+    );
+    await open(tester);
+    await fillIn(tester);
+
+    await send(tester);
+    await tester.tap(find.text(en.attView));
+    await tester.pumpAndSettle();
+
+    expect(find.text('DETAIL:new-1'), findsOneWidget);
   });
 }

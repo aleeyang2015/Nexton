@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:next_on/core/network/paged_list.dart';
 import 'package:next_on/features/attendance/domain/entities/offsite_method.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
@@ -273,6 +274,39 @@ class FakeOffsiteRepository implements OffsiteRepository {
   FutureResult<Unit> cancel(String id) async {
     cancelled.add(id);
     return cancelResult;
+  }
+
+  /// "My requests": the pages answered in order (the last one again after
+  /// that); by default [mineResult]'s rows as one page. Each call is kept.
+  List<Result<CursorPage<OffsiteRequestDetail>>>? myRequestsPages;
+  final List<({TimeCorrectionStatus? status, String? cursor})> myRequestsCalls =
+      [];
+
+  @override
+  FutureResult<CursorPage<OffsiteRequestDetail>> myRequests({
+    TimeCorrectionStatus? status,
+    String? cursor,
+  }) async {
+    myRequestsCalls.add((status: status, cursor: cursor));
+    final pages = myRequestsPages;
+    if (pages == null || pages.isEmpty) {
+      return mineResult.mapData(CursorPage.single);
+    }
+    return pages[(myRequestsCalls.length - 1).clamp(0, pages.length - 1)];
+  }
+
+  /// One request by id: [detailResults] in order (the last one again after
+  /// that); each id asked for is kept.
+  List<Result<OffsiteRequestDetail>> detailResults = [];
+  final List<String> detailCalls = [];
+
+  @override
+  FutureResult<OffsiteRequestDetail> detail(String id) async {
+    detailCalls.add(id);
+    return detailResults[(detailCalls.length - 1).clamp(
+      0,
+      detailResults.length - 1,
+    )];
   }
 }
 

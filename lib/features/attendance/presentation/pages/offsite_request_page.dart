@@ -148,7 +148,17 @@ class OffsiteRequestPage extends ConsumerWidget {
       // `true`: today has been read again here, so whoever opened the form
       // need not read it a second time.
       case OffsiteFiled(:final submission):
-        AppToast.success(OffsiteCopy.filed(l10n, submission));
+        // "View" opens the request in "My requests" (#42). The router is
+        // taken now: this page is closing.
+        final id = submission.requestId;
+        final router = GoRouter.of(context);
+        AppToast.success(
+          OffsiteCopy.filed(l10n, submission),
+          actionLabel: id == null ? null : l10n.attView,
+          onAction: id == null
+              ? null
+              : () => router.push(AppRoutes.myOffsiteRequest(id)),
+        );
         context.pop(true);
       case OffsiteBlocked() when outcome.rule.meansTodayChanged:
         AppToast.warning(OffsiteCopy.blocked(l10n, outcome));
