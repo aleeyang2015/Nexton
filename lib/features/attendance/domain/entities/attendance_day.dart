@@ -44,6 +44,9 @@ class AttendanceSession extends Equatable {
   /// When this session's shift part starts and ends, as the company's wall
   /// clock reads (`HH:MM` or `HH:MM:SS`). Null when the record carries no
   /// shift part for the session.
+  /// The part's id (`shift_detail.id`): what a "forgot to scan" request
+  /// for this session sends as `shift_detail_id` (#44).
+  final String? partId;
   final String? partStartTime;
   final String? partEndTime;
 
@@ -62,6 +65,7 @@ class AttendanceSession extends Equatable {
     this.locationLabel,
     this.partStartTime,
     this.partEndTime,
+    this.partId,
   });
 
   /// Punched in and not yet out — the session a clock-out would close.
@@ -110,6 +114,7 @@ class AttendanceSession extends Equatable {
     status,
     method,
     locationLabel,
+    partId,
     partStartTime,
     partEndTime,
   ];

@@ -12,6 +12,7 @@ import '../../features/attendance/presentation/pages/my_requests_page.dart';
 import '../../features/attendance/presentation/pages/offsite_request_detail_page.dart';
 import '../../features/attendance/presentation/pages/offsite_request_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_approvals_page.dart';
+import '../../features/profile/domain/entities/shift_detail.dart';
 import '../../features/attendance/presentation/pages/time_correction_history_detail_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_history_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_request_page.dart';
@@ -50,6 +51,18 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String attendanceHistory = '/attendance-history';
   static const String timeCorrectionRequest = '/attendance/time-correction';
+
+  /// The "forgot to scan" form filled for [date] and, when given, the shift
+  /// part [partId] (#44): `?date=YYYY-MM-DD&part=<id>`.
+  static String timeCorrectionRequestFor(DateTime date, {String? partId}) {
+    final d =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-'
+        '${date.day.toString().padLeft(2, '0')}';
+    return Uri(
+      path: timeCorrectionRequest,
+      queryParameters: {'date': d, 'part': ?partId},
+    ).toString();
+  }
   static const String timeCorrectionHistory =
       '/attendance/time-correction/history';
   static const String timeCorrectionHistoryDetail =
@@ -385,7 +398,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.timeCorrectionRequest,
         name: 'timeCorrectionRequest',
-        builder: (context, state) => const TimeCorrectionRequestPage(),
+        // `?date=YYYY-MM-DD&part=<id>` fill it in (a history row, #53's
+        // push); a history row also passes its session's part as `extra`.
+        builder: (context, state) =>
+            timeCorrectionRequestPageFor(state.uri.queryParameters, state.extra),
       ),
       // The requests filed from it
       GoRoute(
@@ -538,3 +554,12 @@ class _ApprovalsGate extends ConsumerWidget {
 Widget offsiteRequestPageFor(Object? extra) => extra is OffsiteMethod
     ? OffsiteRequestPage(method: extra)
     : const NotFoundPage();
+
+/// The "forgot to scan" form for `?date=YYYY-MM-DD&part=<id>` and, from a
+/// history row, its session's part as [extra] (#44).
+Widget timeCorrectionRequestPageFor(Map<String, String> query, Object? extra) =>
+    TimeCorrectionRequestPage(
+      date: DateTime.tryParse(query['date'] ?? ''),
+      partId: query['part'],
+      sessionPart: extra is ShiftDetail ? extra : null,
+    );

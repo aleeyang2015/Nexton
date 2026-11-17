@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/app/router/app_router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/api_client.dart';
 import 'package:next_on/core/theme/app_colors.dart';
@@ -108,6 +110,7 @@ void main() {
                   'clock_in_location_name': 'Office Center',
                   'clock_out_location_name': 'Warehouse',
                   'shift_detail': {
+                    'id': 'sd-am',
                     'name': 'Morning',
                     'name_lo': 'ກະເຊົ້າ',
                     'start_time': '08:00:00',
@@ -148,6 +151,9 @@ void main() {
       expect(late.lateMinutes, 11);
       // The clock-in's method and place, when the session has a clock-in.
       expect(late.sessions.single.method, 'gps');
+      // Its part's id, for "forgot to scan" from this row (#44).
+      expect(late.sessions.single.partId, 'sd-am');
+      expect(days.first.sessions.single.partId, isNull);
       expect(late.sessions.single.locationLabel, 'Office Center');
       expect(late.sessions.single.partName, 'Morning');
       expect(late.sessions.single.partNameLo, 'ກະເຊົ້າ');
@@ -941,6 +947,95 @@ void main() {
       expect(find.text('ກະເຊົ້າ'), findsOneWidget);
       expect(find.text('ກະແລງ'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    group('"forgot to scan" from a day (#44)', () {
+      final today = DateTime(now.year, now.month, now.day);
+      final tomorrow = DateTime(now.year, now.month, now.day + 1);
+
+      Future<List<String>> pumpWithRouter(WidgetTester tester) async {
+        final opened = <String>[];
+        repository.monthRecords = Result.success([
+          AttendanceDay(
+            date: today,
+            sessions: [
+              AttendanceSession(
+                partId: 'sd-am',
+                partName: 'Morning',
+                partStartTime: '08:00:00',
+                partEndTime: '12:00:00',
+                clockIn: DateTime(today.year, today.month, today.day, 8, 2),
+              ),
+            ],
+          ),
+          if (tomorrow.month == today.month)
+            AttendanceDay(date: tomorrow, sessions: const []),
+        ]);
+        final router = GoRouter(
+          initialLocation: '/',
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (_, _) => const AttendanceHistoryPage(),
+            ),
+            GoRoute(
+              path: AppRoutes.timeCorrectionRequest,
+              builder: (_, state) {
+                opened.add(state.uri.toString());
+                return const Scaffold(body: Text('FORM'));
+              },
+            ),
+          ],
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              attendanceRepositoryProvider.overrideWithValue(repository),
+            ],
+            child: DefaultAssetBundle(
+              bundle: TestAssetBundle(),
+              child: MaterialApp.router(
+                routerConfig: router,
+                locale: const Locale('en'),
+                supportedLocales: AppLocalizations.supportedLocales,
+                localizationsDelegates:
+                    AppLocalizations.localizationsDelegates,
+              ),
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+        return opened;
+      }
+
+      testWidgets('under a session: opens the form with that day and part',
+          (tester) async {
+        final en = lookupAppLocalizations(const Locale('en'));
+        final opened = await pumpWithRouter(tester);
+
+        await tester.tap(find.text(AttendanceHistoryCopy.dayTitle(en, today)));
+        await tester.pump();
+        await tester.tap(find.text(en.forgotClockInMenu));
+        await tester.pumpAndSettle();
+
+        expect(
+          opened.single,
+          AppRoutes.timeCorrectionRequestFor(today, partId: 'sd-am'),
+        );
+      });
+
+      testWidgets('no button on a day after today', (tester) async {
+        if (tomorrow.month != today.month) return;
+        final en = lookupAppLocalizations(const Locale('en'));
+        await pumpWithRouter(tester);
+
+        await tester.tap(
+          find.text(AttendanceHistoryCopy.dayTitle(en, tomorrow)),
+        );
+        await tester.pump();
+
+        expect(find.text(en.forgotClockInMenu), findsNothing);
+      });
     });
 
     testWidgets('a session with no shift part is named by its position', (

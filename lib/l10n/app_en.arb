@@ -830,6 +830,8 @@
   "attCorrectionInvalid": "Please check the date, times and shift part again",
   "attCorrectionOutsideWindow": "The time is outside the shift part ({from}–{to})",
   "@attCorrectionOutsideWindow": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
+  "attCorrectionWindowHint": "Accepted times: {from}–{to}",
+  "@attCorrectionWindowHint": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
   "attOtClockOutBy": "Clock out by {time}",
   "@attOtClockOutBy": {"placeholders": {"time": {"type": "String"}}}
 }
