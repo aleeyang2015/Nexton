@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/result.dart';
-
 import '../../../time_off/data/datasources/leave_error_code.dart';
 import '../../../time_off/domain/entities/leave_request.dart';
 import '../../../time_off/presentation/providers/leave_approvals_notifier.dart';
@@ -55,11 +54,21 @@ class LeaveApprovalDecisionNotifier
   Future<LeaveDecisionOutcome> _decide(
     Future<Result<LeaveRequest>> Function() action,
   ) async {
-    if (state) return LeaveDecisionOutcome.gone;
+    // One decision at a time, here or from the request's card in the list
+    // (its inline Approve may still be on its way).
+    if (state || _listIsDeciding()) return LeaveDecisionOutcome.gone;
     state = true;
+    // Kept alive until the answer is handled: the approver may go back
+    // while it is on its way, and the list underneath must still reload.
+    final keep = ref.keepAlive();
 
-    final result = await action();
-    if (!_disposed) state = false;
+    final Result<LeaveRequest> result;
+    try {
+      result = await action();
+    } finally {
+      state = false;
+      keep.close();
+    }
 
     return result.fold(
       (failure) async {
@@ -80,8 +89,11 @@ class LeaveApprovalDecisionNotifier
     );
   }
 
-  /// The two lists underneath, when they are open. Not once this page has
-  /// closed: the lists reload when opened again.
+  bool _listIsDeciding() =>
+      ref.exists(leaveApprovalsNotifierProvider) &&
+      ref.read(leaveApprovalsNotifierProvider).decidingIds.contains(arg);
+
+  /// The two lists underneath, when they are open.
   void _reloadLists() {
     if (_disposed || !ref.exists(leaveApprovalsNotifierProvider)) return;
     ref.read(leaveApprovalsNotifierProvider.notifier).retry();

@@ -77,7 +77,9 @@ class LeaveApprovalDetailPage extends ConsumerWidget {
               ? RefreshIndicator(
                   color: AppColors.primary,
                   onRefresh: () => _refresh(context, ref),
-                  child: _Body(request: request),
+                  // The buttons wait for the page's own copy: the list row
+                  // may be out of date.
+                  child: _Body(request: request, loaded: loaded.hasValue),
                 )
               : loaded.hasError && !loaded.isLoading
               ? LeaveRequestUnavailable(
@@ -108,16 +110,19 @@ class LeaveApprovalDetailPage extends ConsumerWidget {
 }
 
 class _Body extends ConsumerWidget {
-  const _Body({required this.request});
+  const _Body({required this.request, required this.loaded});
 
   final LeaveRequest request;
+
+  /// True once the page's own copy is in, not just the list row.
+  final bool loaded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(
       authSessionProvider.select((s) => s.valueOrNull?.user),
     );
-    final canDecide = ApproverAccess.canDecideLeave(request, user);
+    final canDecide = loaded && ApproverAccess.canDecideLeave(request, user);
 
     return ListView(
       // Always scrollable, so a short request can still be pulled to refresh.

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
+import 'package:next_on/core/network/paged_list.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/features/approvals/presentation/pages/leave_approval_detail_page.dart';
@@ -29,6 +30,18 @@ class _HeldLeave extends FakeLeaveRepository {
 
   /// When set, the next by-id load waits for it.
   Completer<void>? holdDetail;
+
+  /// How many times the approvals lists were asked for.
+  int approvalsCalls = 0;
+
+  @override
+  FutureResult<CursorPage<LeaveRequest>> myApprovals({
+    LeaveStatus? status,
+    String? cursor,
+  }) {
+    approvalsCalls++;
+    return super.myApprovals(status: status, cursor: cursor);
+  }
 
   @override
   FutureResult<LeaveRequest> requestDetail(String id) async {
@@ -398,5 +411,147 @@ void main() {
 
     expect(find.byType(LeaveApprovalDetailPage), findsOneWidget);
     expect(find.text('EMP-0042'), findsOneWidget);
+  });
+
+  group('review fixes', () {
+    Future<GoRouter> openOverList(WidgetTester tester) async {
+      repository.pendingApprovalsResult = Result.success([bees()]);
+      tester.view.physicalSize = const Size(420, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const Scaffold(body: LeaveApprovalsTab()),
+          ),
+          ...approvalsRoutes,
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            leaveRepositoryProvider.overrideWithValue(repository),
+            leaveOwnEmployeeIdProvider.overrideWithValue('emp-lee'),
+            signedInAs(lee),
+            approverAccessOf(lee),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            scaffoldMessengerKey: rootScaffoldMessengerKey,
+            locale: const Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return router;
+    }
+
+    testWidgets('back while the approval is on its way: the list underneath '
+        'still reloads and "Approved" is still said', (tester) async {
+      final router = await openOverList(tester);
+      await tester.tap(find.text('Bee Keomany'));
+      await tester.pumpAndSettle();
+      final slow = Completer<void>();
+      repository.hold = slow;
+
+      await tester.tap(find.text(en.leaveApprovalApproveAction).last);
+      await tester.pumpAndSettle();
+      await tester.tap(inDialog(en.leaveApprovalApproveAction));
+      await tester.pump();
+      router.pop();
+      await tester.pumpAndSettle();
+      final listCallsBefore = repository.approvalsCalls;
+      repository.pendingApprovalsResult = const Result.success([]);
+      slow.complete();
+      await tester.pumpAndSettle();
+
+      expect(repository.approveCalls, hasLength(1));
+      expect(repository.approvalsCalls, greaterThan(listCallsBefore));
+      expect(find.text('Bee Keomany'), findsNothing);
+      expect(find.text(en.apprApprovedToast), findsOneWidget);
+    });
+
+    testWidgets('opened by a link with nothing underneath: after a decision '
+        'it goes to the Approvals place, not stays pending', (tester) async {
+      tester.view.physicalSize = const Size(420, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final router = GoRouter(
+        initialLocation: AppRoutes.approvalLeave('req-bee'),
+        routes: [
+          GoRoute(
+            path: AppRoutes.approvals,
+            builder: (_, _) => const Scaffold(body: Text('APPROVALS')),
+          ),
+          approvalsRoutes[1],
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            leaveRepositoryProvider.overrideWithValue(repository),
+            signedInAs(lee),
+            approverAccessOf(lee),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            scaffoldMessengerKey: rootScaffoldMessengerKey,
+            locale: const Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(en.leaveApprovalApproveAction));
+      await tester.pumpAndSettle();
+      await tester.tap(inDialog(en.leaveApprovalApproveAction));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LeaveApprovalDetailPage), findsNothing);
+      expect(find.text('APPROVALS'), findsOneWidget);
+    });
+
+    testWidgets('approved from the card, then the card opened while that is '
+        'on its way: the page\'s Approve sends nothing more', (tester) async {
+      await openOverList(tester);
+      final slow = Completer<void>();
+      repository.hold = slow;
+
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+      await tester.tap(inDialog('Approve'));
+      await tester.pump();
+      await tester.tap(find.text('Bee Keomany'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(en.leaveApprovalApproveAction).last);
+      await tester.pumpAndSettle();
+      await tester.tap(inDialog(en.leaveApprovalApproveAction));
+      await tester.pump();
+
+      expect(repository.approveCalls, hasLength(1));
+      slow.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('no buttons from the list row until the page\'s own copy is in',
+        (tester) async {
+      final slow = Completer<void>();
+      repository.holdDetail = slow;
+      await open(tester, initial: bees(), settle: false);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.text('Bee Keomany'), findsOneWidget);
+      expect(find.text(en.leaveApprovalRejectAction), findsNothing);
+
+      slow.complete();
+      await tester.pumpAndSettle();
+      expect(find.text(en.leaveApprovalRejectAction), findsOneWidget);
+    });
   });
 }

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
-import '../../../approvals/presentation/widgets/approve_note_dialog.dart';
 import '../../../../core/network/paged_list.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
@@ -11,6 +10,7 @@ import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/load_more_footer.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../approvals/presentation/widgets/approve_note_dialog.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_type.dart';
 import '../providers/leave_approvals_notifier.dart';

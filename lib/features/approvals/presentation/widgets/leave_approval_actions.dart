@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
@@ -85,9 +86,10 @@ class LeaveApprovalActions extends ConsumerWidget {
     if (note == null || !context.mounted) return;
 
     final outcome = await notifier.approve(request, note: note);
-    if (context.mounted) {
-      _report(context, l10n, outcome, l10n.apprApprovedToast);
-    }
+    // Said whether or not the page is still open: the toast needs no
+    // page, and going back mid-way must not lose the answer.
+    _report(l10n, outcome, l10n.apprApprovedToast);
+    if (outcome.isDone && context.mounted) _leave(context);
   }
 
   Future<void> _reject(BuildContext context, WidgetRef ref) async {
@@ -99,15 +101,15 @@ class LeaveApprovalActions extends ConsumerWidget {
     if (reason == null || !context.mounted) return;
 
     final outcome = await notifier.reject(request, reason);
-    if (context.mounted) {
-      _report(context, l10n, outcome, l10n.apprRejectedToast);
-    }
+    // Said whether or not the page is still open: the toast needs no
+    // page, and going back mid-way must not lose the answer.
+    _report(l10n, outcome, l10n.apprRejectedToast);
+    if (outcome.isDone && context.mounted) _leave(context);
   }
 
-  /// Says how it went. A decision goes back to the list; a refusal stays on
-  /// the page, which now shows the request as it is.
+  /// Says how it went. A refusal stays on the page, which now shows the
+  /// request as it is.
   static void _report(
-    BuildContext context,
     AppLocalizations l10n,
     LeaveDecisionOutcome outcome,
     String done,
@@ -116,11 +118,25 @@ class LeaveApprovalActions extends ConsumerWidget {
     switch (outcome.kind) {
       case LeaveDecisionKind.success:
         AppToast.success(done);
-        if (context.canPop()) context.pop();
       case LeaveDecisionKind.reloaded:
         AppToast.info(LeaveCopy.decisionRefusal(l10n, outcome)!);
       case LeaveDecisionKind.failed:
         AppToast.error(LeaveCopy.decisionRefusal(l10n, outcome)!);
     }
   }
+
+  /// After a decision: back to the list, or to the Approvals place when
+  /// opened by a link with nothing underneath (not a page still showing
+  /// the request as waiting).
+  static void _leave(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(AppRoutes.approvals);
+    }
+  }
+}
+
+extension on LeaveDecisionOutcome {
+  bool get isDone => kind == LeaveDecisionKind.success && !abandoned;
 }
