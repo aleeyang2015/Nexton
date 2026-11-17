@@ -47,16 +47,23 @@ class PayslipPdfNotifier
     await future.then<void>((_) {}, onError: (_) {});
   }
 
+  bool _sharing = false;
+
   /// Opens the share sheet with the loaded PDF. False when there is no file
-  /// yet, or the share sheet could not be opened.
+  /// yet, or the share sheet could not be opened. A second tap while the
+  /// sheet is open does nothing (and is not a failure).
   Future<bool> share({Rect? origin}) async {
     final path = state.valueOrNull;
     if (path == null || state.isLoading) return false;
+    if (_sharing) return true;
+    _sharing = true;
     try {
       await ref.read(payslipPdfFilesProvider).share(path, origin: origin);
       return true;
     } catch (_) {
       return false;
+    } finally {
+      _sharing = false;
     }
   }
 }

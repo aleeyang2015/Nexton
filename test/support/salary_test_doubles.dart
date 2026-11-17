@@ -84,6 +84,9 @@ class FakePayslipPdfFiles implements PayslipPdfFiles {
   /// When set, `share()` fails: the share sheet could not be opened.
   bool shareFails = false;
 
+  /// When set, `share()` waits for it: the share sheet is still open.
+  Completer<void>? holdShare;
+
   /// Paths written and not deleted since.
   final Set<String> live = {};
 
@@ -105,6 +108,7 @@ class FakePayslipPdfFiles implements PayslipPdfFiles {
   Future<void> share(String path, {Rect? origin}) async {
     if (shareFails) throw Exception('no share sheet');
     shares.add((path: path, origin: origin));
+    await holdShare?.future;
   }
 }
 

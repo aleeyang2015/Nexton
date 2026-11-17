@@ -73,6 +73,35 @@ void main() {
     expect(await File(next).exists(), isTrue);
   });
 
+  test('a write that fails leaves no folder behind, and the next one works',
+      () async {
+    // A file where the folder of PDFs should be: nothing can be written.
+    await File('${temp.path}/payslips').writeAsString('in the way');
+
+    await expectLater(files.write(pdf('a.pdf')), throwsA(anything));
+
+    await File('${temp.path}/payslips').delete();
+    final path = await files.write(pdf('b.pdf'));
+    final folders = await Directory('${temp.path}/payslips').list().toList();
+    expect(folders, hasLength(1));
+    expect(await File(path).exists(), isTrue);
+  });
+
+  test('Android\'s share copies of payslips are cleared at the next open; '
+      'other features\' shares are left alone', () async {
+    final shared = Directory('${temp.path}/share_plus');
+    await shared.create(recursive: true);
+    final payslip = File('${shared.path}/payslip-EMP-002-2026-09.pdf');
+    final other = File('${shared.path}/leave-photo.jpg');
+    await payslip.writeAsBytes(bytes);
+    await other.writeAsBytes(bytes);
+
+    await files.write(pdf('next.pdf'));
+
+    expect(await payslip.exists(), isFalse);
+    expect(await other.exists(), isTrue);
+  });
+
   group('safeFileName', () {
     test('keeps a plain name', () {
       expect(
@@ -88,9 +117,21 @@ void main() {
     });
 
     test('odd characters become _, and the name ends in .pdf', () {
-      expect(PayslipPdfFiles.safeFileName('slip 9:30?.PDF'), 'slip_9_30_.PDF');
+      expect(PayslipPdfFiles.safeFileName('slip 9:30?.PDF'), 'slip_9_30_.pdf');
       expect(PayslipPdfFiles.safeFileName('slip'), 'slip.pdf');
       expect(PayslipPdfFiles.safeFileName(''), 'payslip.pdf');
+    });
+
+    test('a very long name is cut to 100 characters before .pdf', () {
+      final name = PayslipPdfFiles.safeFileName('${'a' * 400}.pdf');
+
+      expect(name, '${'a' * 100}.pdf');
+    });
+
+    test('a very long name can still be written', () async {
+      final path = await files.write(pdf('${'a' * 400}.pdf'));
+
+      expect(await File(path).exists(), isTrue);
     });
   });
 }

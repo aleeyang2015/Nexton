@@ -577,7 +577,7 @@ class _PayslipCard extends ConsumerWidget {
               ],
             ),
             heightBx(h: 12),
-            _DownloadButton(payslip: payslip),
+            _ViewPdfButton(payslip: payslip),
           ],
         ],
       ),
@@ -790,10 +790,10 @@ class _StatBox extends StatelessWidget {
 
 /// "ເບິ່ງໃບເງິນເດືອນ (PDF)": opens the payslip's PDF inside the App, once
 /// however fast it is tapped.
-class _DownloadButton extends StatelessWidget {
+class _ViewPdfButton extends StatelessWidget {
   final PayslipRecord payslip;
 
-  const _DownloadButton({required this.payslip});
+  const _ViewPdfButton({required this.payslip});
 
   @override
   Widget build(BuildContext context) {

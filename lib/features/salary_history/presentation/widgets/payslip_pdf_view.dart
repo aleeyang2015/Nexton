@@ -25,13 +25,18 @@ class PayslipPdfView extends StatefulWidget {
 }
 
 class _PayslipPdfViewState extends State<PayslipPdfView> {
+  late final Future<PdfDocument> _document = PdfDocument.openFile(widget.path);
   late final PdfControllerPinch _controller = PdfControllerPinch(
-    document: PdfDocument.openFile(widget.path),
+    document: _document,
   );
 
   @override
   void dispose() {
     _controller.dispose();
+    // The controller does not close the document. Until it is closed the
+    // phone's renderer keeps the file open, and a deleted payslip's bytes
+    // stay on disk.
+    _document.then((document) => document.close(), onError: (_) {});
     super.dispose();
   }
 

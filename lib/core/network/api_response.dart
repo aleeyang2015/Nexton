@@ -103,14 +103,16 @@ class ApiError {
 
     final error = body['error'];
     if (error is Map) {
-      code = error['code'] as String?;
-      message = error['message'] as String?;
+      // Text only: a code or message of another kind is no code at all,
+      // not a crash while reading the error.
+      code = _textOf(error['code']);
+      message = _textOf(error['message']);
     } else if (error is String) {
       message = error;
     }
 
     // 422 puts the summary at the top level.
-    message ??= body['message'] as String?;
+    message ??= _textOf(body['message']);
 
     final fieldErrors = <String, String>{};
     final errors = body['errors'];
@@ -127,6 +129,8 @@ class ApiError {
 
     return ApiError(code: code, message: message, fieldErrors: fieldErrors);
   }
+
+  static String? _textOf(Object? value) => value is String ? value : null;
 
   /// [bytes] as JSON, or null when they are not UTF-8 JSON (a PDF, an HTML
   /// error page from a proxy).

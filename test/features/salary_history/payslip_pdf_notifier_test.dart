@@ -144,6 +144,28 @@ void main() {
     expect(await container.read(provider.notifier).share(), isFalse);
   });
 
+  test('a second Share while the sheet is open does nothing, and is not a '
+      'failure', () async {
+    final sub = container.listen(provider, (_, _) {});
+    addTearDown(sub.close);
+    await container.read(provider.future);
+    final open = Completer<void>();
+    files.holdShare = open;
+
+    final first = container.read(provider.notifier).share();
+    final second = await container.read(provider.notifier).share();
+    open.complete();
+
+    expect(second, isTrue);
+    expect(await first, isTrue);
+    expect(files.shares, hasLength(1));
+
+    // Once the sheet has closed, Share works again.
+    files.holdShare = null;
+    await container.read(provider.notifier).share();
+    expect(files.shares, hasLength(2));
+  });
+
   test('share with no PDF yet does nothing', () async {
     repository.pdfResult = const Result.failure(
       Failure.server(message: 'boom', statusCode: 500),

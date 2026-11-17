@@ -14,10 +14,13 @@ import '../../domain/entities/payslip_pdf.dart';
 /// under the server's name (`payslip-EMP-002-2026-09.pdf`), so the share
 /// sheet offers that name. The page deletes the folder when it closes: the
 /// file holds salary data. Folders left by an App that was killed while the
-/// page was open are cleared the next time a PDF is opened.
+/// page was open are cleared the next time a PDF is opened, and so are the
+/// copies Android's share sheet keeps of a shared payslip (`share_plus`
+/// copies a shared file into `<cache>/share_plus/` and only empties it at
+/// its next share). They are not cleared when the page closes: the App the
+/// user shared to may still be reading the copy.
 ///
-/// A seam for the tests, as `PayslipPdfSaver` was: the plugins need a
-/// platform.
+/// A seam for the tests: the plugins need a platform.
 class PayslipPdfFiles {
   final Future<Directory> Function() _tempDir;
 
@@ -31,18 +34,33 @@ class PayslipPdfFiles {
 
   /// Writes [pdf] to a folder of its own and returns the file's path.
   Future<String> write(PayslipPdf pdf) async {
-    final root = Directory(_join((await _tempDir()).path, 'payslips'));
-    await _clearLeftovers(root);
-
+    final temp = (await _tempDir()).path;
+    final root = Directory(_join(temp, 'payslips'));
     final folder = Directory(
       _join(root.path, '${DateTime.now().microsecondsSinceEpoch}-${_count++}'),
     );
-    await folder.create(recursive: true);
+    // Claimed before any await, so a clean-up running at the same time
+    // never takes it for a leftover.
     _open.add(folder.path);
 
-    final file = File(_join(folder.path, safeFileName(pdf.fileName)));
-    await file.writeAsBytes(pdf.bytes, flush: true);
-    return file.path;
+    try {
+      await _clearLeftovers(root);
+      await _clearSharedCopies(Directory(_join(temp, 'share_plus')));
+      await folder.create(recursive: true);
+      final file = File(_join(folder.path, safeFileName(pdf.fileName)));
+      await file.writeAsBytes(pdf.bytes, flush: true);
+      return file.path;
+    } catch (_) {
+      // Nothing half-written stays behind: the caller never gets this path
+      // to delete.
+      _open.remove(folder.path);
+      try {
+        if (await folder.exists()) await folder.delete(recursive: true);
+      } on FileSystemException {
+        // Already gone.
+      }
+      rethrow;
+    }
   }
 
   /// Deletes the file at [path] and its folder. Nothing happens when they
@@ -80,20 +98,42 @@ class PayslipPdfFiles {
     }
   }
 
+  /// Android's copies of shared payslips (`payslip-….pdf`); anything else
+  /// in that folder belongs to another feature's share and is left alone.
+  Future<void> _clearSharedCopies(Directory shared) async {
+    if (!await shared.exists()) return;
+    await for (final entry in shared.list()) {
+      final name = entry.path.split(Platform.pathSeparator).last;
+      if (entry is! File || !name.startsWith('payslip')) continue;
+      if (!name.toLowerCase().endsWith('.pdf')) continue;
+      try {
+        await entry.delete();
+      } on FileSystemException {
+        // Gone already.
+      }
+    }
+  }
+
   static String _join(String folder, String name) =>
       '$folder${Platform.pathSeparator}$name';
 
   /// [name] as a plain file name: no folders, nothing but letters, digits,
-  /// `-`, `_` and `.`, ending in `.pdf`. A name from a header must not
-  /// write outside the folder (`../../x`).
+  /// `-`, `_` and `.`, at most [_maxNameLength] characters before `.pdf`,
+  /// ending in `.pdf`. A name from a header must not write outside the
+  /// folder (`../../x`) or be longer than the phone allows.
   static String safeFileName(String name) {
     var base = name.replaceAll('\\', '/').split('/').last;
     base = base.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
     base = base.replaceAll(RegExp(r'^\.+'), '');
+    if (base.toLowerCase().endsWith('.pdf')) {
+      base = base.substring(0, base.length - 4);
+    }
+    if (base.length > _maxNameLength) base = base.substring(0, _maxNameLength);
     if (base.isEmpty) base = 'payslip';
-    if (!base.toLowerCase().endsWith('.pdf')) base = '$base.pdf';
-    return base;
+    return '$base.pdf';
   }
+
+  static const _maxNameLength = 100;
 }
 
 final payslipPdfFilesProvider = Provider<PayslipPdfFiles>(

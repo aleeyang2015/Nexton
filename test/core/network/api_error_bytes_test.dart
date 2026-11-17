@@ -51,6 +51,23 @@ void main() {
       expect(ApiError.tryParse(<int>[]), isNull);
     });
 
+    test('a code or message that is not text is left out, not a crash', () {
+      final error = ApiError.tryParse({
+        'success': false,
+        'error': {'code': 5, 'message': 'odd'},
+      });
+
+      expect(error?.code, isNull);
+      expect(error?.message, 'odd');
+      expect(
+        ApiError.tryParse({
+          'error': {'code': 'X', 'message': 7},
+          'message': 8,
+        })?.message,
+        isNull,
+      );
+    });
+
     test('JSON that is not an object is no error', () {
       expect(ApiError.tryParse(utf8.encode('[1, 2]')), isNull);
       expect(ApiError.tryParse(utf8.encode('"text"')), isNull);

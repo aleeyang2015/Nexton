@@ -77,7 +77,12 @@ class SalaryRemoteDataSourceImpl implements SalaryRemoteDataSource {
     );
 
     final data = response.data;
-    final bytes = data == null ? Uint8List(0) : Uint8List.fromList(data);
+    // Dio already hands bytes over as a Uint8List: no second copy of the PDF.
+    final bytes = data == null
+        ? Uint8List(0)
+        : data is Uint8List
+        ? data
+        : Uint8List.fromList(data);
     if (!_looksLikePdf(bytes)) {
       throw const Failure.validation(message: pdfInvalidToken);
     }
