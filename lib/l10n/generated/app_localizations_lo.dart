@@ -1799,4 +1799,28 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get otCancelForbidden => 'ຄຳຂໍທີ່ລໍຖ້າ ໃຫ້ກົດປະຕິເສດແທນ.';
+
+  @override
+  String get otMenu => 'ໂອທີ';
+
+  @override
+  String get otListEmpty => 'ຍັງບໍ່ມີຄຳຂໍໂອທີ';
+
+  @override
+  String get otListLoadFailed => 'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນໂອທີໄດ້.';
+
+  @override
+  String get otAllMonths => 'ທຸກເດືອນ';
+
+  @override
+  String get otNextDay => '(ມື້ຖັດໄປ)';
+
+  @override
+  String get otFromPost => 'ຈາກປະກາດ';
+
+  @override
+  String get otDidNotCome => 'ບໍ່ໄດ້ມາ';
+
+  @override
+  String get otPickMonth => 'ເລືອກເດືອນ';
 }

@@ -54,11 +54,20 @@ class CursorPage<T> {
 /// A list as a screen holds it while it loads page after page: the rows so
 /// far, where to go on from, and how the page being fetched is doing.
 ///
+/// Two ways to go on, by what the server hands out: a cursor ([nextCursor],
+/// from [first] and [append]) or a page number ([nextPage], from
+/// [PagedList.firstNumbered] and [appendNumbered]: the OT lists). A list
+/// uses one or the other.
+///
 /// Immutable; every change gives a new list, so a notifier can put it in its
 /// state.
 class PagedList<T> {
   final List<T> items;
   final String? nextCursor;
+
+  /// The page number to ask for next, for a list that pages by number. Null
+  /// on the last page, and for a list that pages by cursor.
+  final int? nextPage;
   final bool hasMore;
 
   /// True while the next page is being fetched.
@@ -71,6 +80,7 @@ class PagedList<T> {
   const PagedList({
     this.items = const [],
     this.nextCursor,
+    this.nextPage,
     this.hasMore = false,
     this.loadingMore = false,
     this.loadMoreError,
@@ -79,6 +89,18 @@ class PagedList<T> {
   /// The list after its first page. A first page with no rows is the whole
   /// list, whatever it says about there being more (see [append]).
   factory PagedList.first(CursorPage<T> page) => PagedList<T>().append(page);
+
+  /// The list after its first page, for a list that pages by number
+  /// (`meta {page, total_pages}`).
+  factory PagedList.firstNumbered({
+    required List<T> items,
+    required int page,
+    required int totalPages,
+  }) => PagedList<T>().appendNumbered(
+    items: items,
+    page: page,
+    totalPages: totalPages,
+  );
 
   /// True when a next page may be asked for now: there is one, none is on
   /// its way, and the last try did not fail (that one waits for a Retry, so
@@ -94,6 +116,7 @@ class PagedList<T> {
   PagedList<T> startLoadingMore() => PagedList(
     items: items,
     nextCursor: nextCursor,
+    nextPage: nextPage,
     hasMore: hasMore,
     loadingMore: true,
   );
@@ -118,12 +141,42 @@ class PagedList<T> {
     );
   }
 
-  /// The list after its next page failed: the rows and the cursor stay, so
-  /// a Retry asks for the same page.
+  /// The list with page number [page] of [totalPages] added after the rows
+  /// it already has.
+  ///
+  /// It ends when [page] is the last, when the page has no rows (as
+  /// [append]), or when [page] is not past the pages already loaded: asking
+  /// on would fetch the same rows again.
+  PagedList<T> appendNumbered({
+    required List<T> items,
+    required int page,
+    required int totalPages,
+  }) {
+    final movedOn = nextPage == null || page >= nextPage!;
+    final goesOn = page < totalPages && items.isNotEmpty && movedOn;
+    return PagedList(
+      items: [...this.items, ...items],
+      nextPage: goesOn ? page + 1 : null,
+      hasMore: goesOn,
+    );
+  }
+
+  /// The list after its next page failed: the rows and where to go on from
+  /// stay, so a Retry asks for the same page.
   PagedList<T> failLoadingMore(Object error) => PagedList(
     items: items,
     nextCursor: nextCursor,
+    nextPage: nextPage,
     hasMore: hasMore,
     loadMoreError: error,
+  );
+
+  /// The list with its load-more error cleared, for a Retry to ask for the
+  /// same page again.
+  PagedList<T> get retryable => PagedList(
+    items: items,
+    nextCursor: nextCursor,
+    nextPage: nextPage,
+    hasMore: hasMore,
   );
 }

@@ -217,4 +217,110 @@ void main() {
       expect(list.canLoadMore, isFalse);
     });
   });
+
+  group('PagedList by page number', () {
+    test('the first page: its rows, and page 2 next when there are more', () {
+      final list = PagedList<int>.firstNumbered(
+        items: [1, 2],
+        page: 1,
+        totalPages: 3,
+      );
+
+      expect(list.items, [1, 2]);
+      expect(list.hasMore, isTrue);
+      expect(list.nextPage, 2);
+      expect(list.nextCursor, isNull);
+      expect(list.canLoadMore, isTrue);
+      expect(list.countLabel, '2+');
+    });
+
+    test('45 rows at 20 a page: page 2, then page 3, then it stops', () {
+      var list = PagedList<int>.firstNumbered(
+        items: List.generate(20, (i) => i),
+        page: 1,
+        totalPages: 3,
+      );
+      list = list.appendNumbered(
+        items: List.generate(20, (i) => 20 + i),
+        page: 2,
+        totalPages: 3,
+      );
+      expect(list.nextPage, 3);
+      expect(list.hasMore, isTrue);
+
+      list = list.appendNumbered(
+        items: List.generate(5, (i) => 40 + i),
+        page: 3,
+        totalPages: 3,
+      );
+
+      expect(list.items, List.generate(45, (i) => i));
+      expect(list.hasMore, isFalse);
+      expect(list.nextPage, isNull);
+      expect(list.canLoadMore, isFalse);
+    });
+
+    test('a single page is the whole list', () {
+      final list = PagedList<int>.firstNumbered(
+        items: [1],
+        page: 1,
+        totalPages: 1,
+      );
+
+      expect(list.hasMore, isFalse);
+      expect(list.nextPage, isNull);
+    });
+
+    test('a page with no rows ends the list, whatever total_pages says', () {
+      final list = PagedList<int>.firstNumbered(
+        items: [1, 2],
+        page: 1,
+        totalPages: 5,
+      ).appendNumbered(items: [], page: 2, totalPages: 5);
+
+      expect(list.hasMore, isFalse);
+    });
+
+    test('a page number that does not move on ends the list: the same rows '
+        'would come again', () {
+      final list = PagedList<int>.firstNumbered(
+        items: [1, 2],
+        page: 1,
+        totalPages: 5,
+      ).appendNumbered(items: [3, 4], page: 1, totalPages: 5);
+
+      expect(list.items, [1, 2, 3, 4]);
+      expect(list.hasMore, isFalse);
+    });
+
+    test('a failed page keeps the rows and the page to ask for, and waits '
+        'for a retry', () {
+      final list = PagedList<int>.firstNumbered(
+        items: [1, 2],
+        page: 1,
+        totalPages: 3,
+      ).startLoadingMore();
+      expect(list.loadingMore, isTrue);
+      expect(list.nextPage, 2);
+      expect(list.canLoadMore, isFalse);
+
+      final failed = list.failLoadingMore('offline');
+
+      expect(failed.items, [1, 2]);
+      expect(failed.nextPage, 2);
+      expect(failed.loadMoreError, 'offline');
+      expect(failed.canLoadMore, isFalse);
+      expect(failed.retryable.canLoadMore, isTrue);
+      expect(failed.retryable.nextPage, 2);
+    });
+
+    test('a cursor page appended to a cursor list leaves no page number', () {
+      final list = PagedList.first(
+        const CursorPage(items: [1], nextCursor: 'a', hasMore: true),
+      );
+
+      expect(list.nextPage, isNull);
+      expect(list.nextCursor, 'a');
+    });
+  });
 }

@@ -746,5 +746,13 @@
   "otStarted": "This OT has started. Only HR can cancel it.",
   "otAlreadyPaid": "An approved payroll already pays this OT; it cannot be cancelled.",
   "otPaidByHand": "HR marked this OT as paid in cash. Please ask HR.",
-  "otCancelForbidden": "A waiting request: reject it instead."
+  "otCancelForbidden": "A waiting request: reject it instead.",
+  "otMenu": "OT",
+  "otListEmpty": "No OT requests yet",
+  "otListLoadFailed": "Could not load OT",
+  "otAllMonths": "All months",
+  "otNextDay": "(next day)",
+  "otFromPost": "From an HR post",
+  "otDidNotCome": "Did not come",
+  "otPickMonth": "Choose a month"
 }

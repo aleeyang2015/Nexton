@@ -1,0 +1,270 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/core/errors/failure.dart';
+import 'package:next_on/core/network/api_error_mapper.dart';
+import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/core/widgets/shimmer_box.dart';
+import 'package:next_on/features/overtime/domain/entities/ot_page.dart';
+import 'package:next_on/features/overtime/domain/entities/ot_request.dart';
+import 'package:next_on/features/overtime/overtime_providers.dart';
+import 'package:next_on/features/overtime/presentation/pages/ot_list_page.dart';
+import 'package:next_on/features/overtime/presentation/widgets/ot_request_row.dart';
+import 'package:next_on/l10n/generated/app_localizations.dart';
+import 'package:next_on/l10n/generated/app_localizations_en.dart';
+import 'package:next_on/l10n/generated/app_localizations_lo.dart';
+
+import '../../support/overtime_test_doubles.dart';
+
+/// The OT list page: rows with their badges, the filters, and what it says
+/// when there is nothing to show.
+void main() {
+  final en = AppLocalizationsEn();
+  final lo = AppLocalizationsLo();
+  late FakeOtRepository repository;
+
+  setUp(() => repository = FakeOtRepository());
+
+  void serve(List<OtRequest> rows, {int totalPages = 1}) =>
+      repository.myRequestsAnswer = (call) => Result.success(
+        OtPage(items: rows, page: call.page, totalPages: totalPages),
+      );
+
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    String locale = 'en',
+    bool settle = true,
+  }) async {
+    tester.view.physicalSize = const Size(900, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [otRepositoryProvider.overrideWithValue(repository)],
+        child: MaterialApp(
+          locale: Locale(locale),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: const OtListPage(),
+        ),
+      ),
+    );
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      for (var i = 0; i < 3; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+    }
+  }
+
+  group('rows', () {
+    testWidgets('date, window and pill; newest first as the server sent them',
+        (tester) async {
+      serve([
+        sampleOt('ot-14', workDate: DateTime(2026, 11, 14)),
+        sampleOt(
+          'ot-07',
+          workDate: DateTime(2026, 11, 7),
+          start: '08:00',
+          end: '12:00',
+          status: OtStatus.approved,
+          announcementId: 'post-1',
+          didNotCome: true,
+        ),
+      ]);
+
+      await pumpPage(tester, locale: 'lo');
+
+      expect(find.text('ໂອທີ'), findsOneWidget);
+      expect(find.text('14/11/2026'), findsOneWidget);
+      expect(find.text('18:00–20:00'), findsOneWidget);
+      expect(find.text('07/11/2026'), findsOneWidget);
+      expect(find.text('08:00–12:00'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('14/11/2026')).dy,
+        lessThan(tester.getTopLeft(find.text('07/11/2026')).dy),
+      );
+      // The chip and the row's pill.
+      expect(find.text('ອະນຸມັດແລ້ວ'), findsNWidgets(2));
+      expect(find.text('ຈາກປະກາດ'), findsOneWidget);
+      expect(find.text('ບໍ່ໄດ້ມາ'), findsOneWidget);
+    });
+
+    testWidgets('past midnight: (ມື້ຖັດໄປ)', (tester) async {
+      serve([sampleOt('ot-n', start: '22:00', end: '02:00', endsNextDay: true)]);
+
+      await pumpPage(tester, locale: 'lo');
+
+      expect(find.text('22:00–02:00 (ມື້ຖັດໄປ)'), findsOneWidget);
+    });
+
+    testWidgets('no badges on a plain request', (tester) async {
+      serve([sampleOt('ot-1')]);
+
+      await pumpPage(tester);
+
+      expect(find.text(en.otFromPost), findsNothing);
+      expect(find.text(en.otDidNotCome), findsNothing);
+    });
+
+    testWidgets('a row is not tappable yet', (tester) async {
+      serve([sampleOt('ot-1')]);
+
+      await pumpPage(tester);
+
+      expect(
+        find.descendant(
+          of: find.byType(OtRequestRow),
+          matching: find.byType(InkWell),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(OtRequestRow),
+          matching: find.byType(GestureDetector),
+        ),
+        findsNothing,
+      );
+    });
+  });
+
+  group('filters', () {
+    testWidgets('a chip asks with its status; All asks with none', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+
+      await tester.tap(find.text(en.leaveStatusRejected));
+      await tester.pumpAndSettle();
+      expect(repository.listCalls.last.status, OtStatus.rejected);
+
+      await tester.tap(find.text(en.leaveFilterAll));
+      await tester.pumpAndSettle();
+      expect(repository.listCalls.last.status, isNull);
+    });
+
+    testWidgets('the month button opens the picker; a month asks for it, '
+        'All months clears it', (tester) async {
+      await pumpPage(tester);
+      expect(find.text(en.otAllMonths), findsOneWidget);
+
+      await tester.tap(find.text(en.otAllMonths));
+      await tester.pumpAndSettle();
+      expect(find.text(en.otPickMonth), findsOneWidget);
+      final year = DateTime.now().year;
+      await tester.tap(find.byIcon(Icons.chevron_left));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Mar'));
+      await tester.pumpAndSettle();
+
+      expect(repository.listCalls.last.month, DateTime(year - 1, 3));
+      expect(find.text('March ${year - 1}'), findsOneWidget);
+
+      await tester.tap(find.text('March ${year - 1}'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, en.otAllMonths));
+      await tester.pumpAndSettle();
+
+      expect(repository.listCalls.last.month, isNull);
+      expect(find.text(en.otAllMonths), findsOneWidget);
+    });
+
+    testWidgets('Cancel in the picker changes nothing', (tester) async {
+      await pumpPage(tester);
+      final calls = repository.listCalls.length;
+
+      await tester.tap(find.text(en.otAllMonths));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(en.cancel));
+      await tester.pumpAndSettle();
+
+      expect(repository.listCalls, hasLength(calls));
+    });
+  });
+
+  group('nothing to show', () {
+    testWidgets('a shimmer while the first page loads', (tester) async {
+      repository.holdMyRequests = Completer<void>();
+
+      await pumpPage(tester, settle: false);
+
+      expect(find.byType(ShimmerBox), findsWidgets);
+    });
+
+    testWidgets('no requests: ຍັງບໍ່ມີຄຳຂໍໂອທີ', (tester) async {
+      await pumpPage(tester, locale: 'lo');
+
+      expect(find.text('ຍັງບໍ່ມີຄຳຂໍໂອທີ'), findsOneWidget);
+    });
+
+    testWidgets('no employee linked: #4\'s text, no Retry, no endless spinner',
+        (tester) async {
+      repository.myRequestsAnswer = (_) => const Result.failure(
+        Failure.validation(
+          message: 'employee not found',
+          code: ApiErrorCodes.employeeNotFound,
+        ),
+      );
+
+      await pumpPage(tester, locale: 'lo');
+
+      expect(find.text(lo.ruleEmployeeNotFound), findsOneWidget);
+      expect(find.text(lo.retry), findsNothing);
+      expect(find.byType(ShimmerBox), findsNothing);
+    });
+
+    testWidgets('no signal: "could not load OT" with Retry, and Retry loads',
+        (tester) async {
+      repository.myRequestsAnswer = (_) =>
+          const Result.failure(Failure.network(message: 'offline'));
+
+      await pumpPage(tester, locale: 'lo');
+      expect(find.text('ບໍ່ສາມາດໂຫຼດຂໍ້ມູນໂອທີໄດ້.'), findsOneWidget);
+
+      serve([sampleOt('ot-1')]);
+      await tester.tap(find.text(lo.retry));
+      await tester.pumpAndSettle();
+
+      expect(find.text('14/11/2026'), findsOneWidget);
+    });
+  });
+
+  group('more pages', () {
+    testWidgets('scrolling to the end loads the next page', (tester) async {
+      repository.myRequestsAnswer = (call) => pagedOt(call, total: 45);
+
+      await pumpPage(tester);
+      await tester.drag(find.byType(ListView).last, const Offset(0, -5000));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView).last, const Offset(0, -5000));
+      await tester.pumpAndSettle();
+
+      expect(repository.listCalls.map((c) => c.page), containsAllInOrder([1, 2, 3]));
+      expect(find.byType(OtRequestRow, skipOffstage: false), findsNWidgets(45));
+    });
+
+    testWidgets('pull to refresh asks for page 1 again', (tester) async {
+      serve([sampleOt('ot-1')]);
+      await pumpPage(tester);
+      final before = repository.listCalls.length;
+
+      await tester.timedDrag(
+        find.byType(RefreshIndicator),
+        // Past a quarter of the list's height: what arms the refresh.
+        const Offset(0, 600),
+        const Duration(milliseconds: 500),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      expect(repository.listCalls.length, before + 1);
+      expect(repository.listCalls.last.page, 1);
+    });
+  });
+}

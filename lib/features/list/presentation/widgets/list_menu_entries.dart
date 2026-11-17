@@ -43,6 +43,12 @@ List<ListMenuEntry> buildListMenuEntries(
     color: const Color(0xFF5B5BF0),
     onTap: () => context.push(AppRoutes.timeOff),
   ),
+  ListMenuEntry(
+    l10n.otMenu,
+    Icons.work_history_outlined,
+    color: const Color(0xFFD9468F),
+    onTap: () => context.push(AppRoutes.overtime),
+  ),
   // ListMenuEntry(l10n.delegateTaskMenu, Icons.assignment_ind_outlined),
   // ListMenuEntry(
   //   l10n.delegateTaskHistoryMenu,
