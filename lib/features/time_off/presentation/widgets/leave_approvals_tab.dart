@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../core/network/paged_list.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
@@ -8,6 +10,7 @@ import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/load_more_footer.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../approvals/presentation/widgets/approve_note_dialog.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_type.dart';
 import '../providers/leave_approvals_notifier.dart';
@@ -55,10 +58,13 @@ class LeaveApprovalsTab extends ConsumerWidget {
             value: state.pending,
             onRetry: notifier.retryPending,
             emptyMessage: l10n.leaveApprovalsPendingEmpty,
-            itemBuilder: (request) => _PendingApprovalCard(
+            itemBuilder: (request) => _OpensRequest(
               request: request,
-              deciding: state.decidingIds.contains(request.id),
-              own: state.isOwn(request),
+              child: _PendingApprovalCard(
+                request: request,
+                deciding: state.decidingIds.contains(request.id),
+                own: state.isOwn(request),
+              ),
             ),
           ),
           if (pending != null && !state.pending.isLoading)
@@ -83,9 +89,12 @@ class LeaveApprovalsTab extends ConsumerWidget {
             value: state.decided,
             onRetry: notifier.retryDecided,
             emptyMessage: l10n.leaveApprovalsHistoryEmpty,
-            itemBuilder: (request) => _DecidedApprovalRow(
+            itemBuilder: (request) => _OpensRequest(
               request: request,
-              filter: state.decidedFilter,
+              child: _DecidedApprovalRow(
+                request: request,
+                filter: state.decidedFilter,
+              ),
             ),
           ),
           if (decided != null && !state.decided.isLoading)
@@ -445,12 +454,20 @@ class _PendingApprovalCard extends ConsumerWidget {
   // whether or not this card is still on screen: a refusal reloads the list,
   // and the reload takes this card away before the answer is reported. The
   // toast does not need the card; it is shown by the App's own messenger.
+  //
+  // Approve asks first, with an optional note: on the last step the days
+  // leave the employee's balance at once.
   Future<void> _approve(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
-    final outcome = await ref
-        .read(leaveApprovalsNotifierProvider.notifier)
-        .approve(request);
-    _report(l10n, outcome);
+    final notifier = ref.read(leaveApprovalsNotifierProvider.notifier);
+    final note = await ApproveNoteDialog.show(
+      context,
+      lastStep: request.isFinalApprovalStep,
+      approveLabel: LeaveCopy.approveActionLabel(l10n, request),
+    );
+    if (note == null) return;
+
+    _report(l10n, await notifier.approve(request, note: note));
   }
 
   // Everything the reject needs is taken before the dialog opens. While the
@@ -465,10 +482,20 @@ class _PendingApprovalCard extends ConsumerWidget {
     final reason = await LeaveRejectReasonDialog.show(context);
     if (reason == null) return;
 
-    _report(l10n, await notifier.reject(request, reason));
+    _report(l10n, await notifier.reject(request, reason), rejected: true);
   }
 
-  void _report(AppLocalizations l10n, LeaveDecisionOutcome outcome) {
+  void _report(
+    AppLocalizations l10n,
+    LeaveDecisionOutcome outcome, {
+    bool rejected = false,
+  }) {
+    if (outcome.kind == LeaveDecisionKind.success && !outcome.abandoned) {
+      AppToast.success(
+        rejected ? l10n.apprRejectedToast : l10n.apprApprovedToast,
+      );
+      return;
+    }
     final text = LeaveCopy.decisionRefusal(l10n, outcome);
     if (text == null) return;
 
@@ -728,6 +755,25 @@ class _DecidedApprovalRow extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Opens the approver's page of [request] when its card is tapped, with the
+/// row for a first paint. The card's own buttons keep their taps.
+class _OpensRequest extends StatelessWidget {
+  final LeaveRequest request;
+  final Widget child;
+
+  const _OpensRequest({required this.request, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () =>
+          context.push(AppRoutes.approvalLeave(request.id), extra: request),
+      child: child,
     );
   }
 }

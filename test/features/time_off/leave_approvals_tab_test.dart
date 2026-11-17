@@ -58,6 +58,23 @@ void main() {
     await tester.pump();
   }
 
+  /// Approve asks first (#37): confirms the dialog, with no note.
+  Future<void> confirmApprove(
+    WidgetTester tester, [
+    String approveLabel = 'Approve',
+  ]) async {
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text(approveLabel),
+      ),
+    );
+    // The dialog's closing animation.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+  }
+
   /// Taps Approve with the server set to answer [failure], and lets the
   /// reload and the toast land.
   Future<void> approveRefusedWith(
@@ -67,10 +84,12 @@ void main() {
   }) async {
     repository.approveResult = Result.failure(failure);
     await tester.tap(find.text(approveLabel));
+    await confirmApprove(tester, approveLabel);
     await tester.pump();
     await tester.pump();
     await tester.pump();
   }
+
 
   testWidgets('the employee cancelled it meanwhile: "no longer waiting", and '
       'the card is gone', (tester) async {
@@ -154,34 +173,93 @@ void main() {
     expect(find.text('Approve'), findsOneWidget);
 
     slow
-      ..delay = const Duration(milliseconds: 300)
+      // Longer than the approve dialog's closing animation (#37).
+      ..delay = const Duration(milliseconds: 1000)
       ..pendingApprovalsResult = const Result.success([])
       ..approveResult = const Result.failure(
         Failure.validation(message: 'leaveInvalidStatus'),
       );
     await tester.tap(find.text('Approve'));
+    await confirmApprove(tester);
     // The refusal is in, the reload is under way: the card is gone, and
     // nothing has been said yet.
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('Approve'), findsNothing);
     expect(find.text(en.leaveApprovalNoLongerWaiting), findsNothing);
 
-    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 1200));
     await tester.pump();
 
     expect(find.text(en.leaveApprovalNoLongerWaiting), findsOneWidget);
     expect(find.text('Approve'), findsNothing);
   });
 
-  testWidgets('a decision that goes through shows no refusal', (tester) async {
+  testWidgets('a decision that goes through says "Approved", and no refusal',
+      (tester) async {
     await pumpTab(tester);
 
     await tester.tap(find.text('Approve'));
+    await confirmApprove(tester);
     await tester.pump();
     await tester.pump();
     await tester.pump();
 
-    expect(find.byType(SnackBar), findsNothing);
+    expect(find.text(en.apprApprovedToast), findsOneWidget);
+    expect(find.text(en.leaveApprovalDecideFailed), findsNothing);
+    expect(find.text(en.leaveApprovalNoLongerWaiting), findsNothing);
+  });
+
+  group('Approve asks first (#37)', () {
+    testWidgets('Cancel in the dialog sends nothing', (tester) async {
+      await pumpTab(tester);
+
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(en.cancel));
+      await tester.pumpAndSettle();
+
+      expect(repository.approveCalls, isEmpty);
+    });
+
+    testWidgets('the note typed is sent as approver_note', (tester) async {
+      await pumpTab(tester);
+
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '  ok, enjoy  ');
+      await confirmApprove(tester);
+      await tester.pump();
+
+      expect(repository.approveCalls.single.note, 'ok, enjoy');
+    });
+
+    testWidgets('no note typed: none sent', (tester) async {
+      await pumpTab(tester);
+
+      await tester.tap(find.text('Approve'));
+      await confirmApprove(tester);
+      await tester.pump();
+
+      expect(repository.approveCalls.single.note, isNull);
+    });
+
+    testWidgets('a reject that goes through says "Rejected"', (tester) async {
+      await pumpTab(tester);
+
+      await tester.tap(find.text('Reject'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Short-staffed');
+      await tester.pump();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(en.leaveRejectReasonSubmit),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.apprRejectedToast), findsOneWidget);
+    });
   });
 
   testWidgets('in Lao the refusal is in Lao', (tester) async {
@@ -280,6 +358,7 @@ void main() {
       expect(find.text('Reject'), findsOneWidget);
 
       await tester.tap(find.text('Approve'));
+      await confirmApprove(tester);
       await tester.pump();
       expect(repository.approveCalls.single.id, 'req-bee');
     });

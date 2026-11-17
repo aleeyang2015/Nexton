@@ -1314,6 +1314,28 @@ class AppLocalizationsLo extends AppLocalizations {
   String get approvalsMenu => 'ອະນຸມັດ';
 
   @override
+  String get apprApproveConfirmTitle => 'ອະນຸມັດຄຳຮ້ອງນີ້ບໍ?';
+
+  @override
+  String get apprApproveNoteHint => 'ໝາຍເຫດ (ບໍ່ບັງຄັບ)';
+
+  @override
+  String get apprApproveLastStepHint =>
+      'ນີ້ແມ່ນຂັ້ນສຸດທ້າຍ: ວັນລາຈະຖືກຫັກອອກຈາກຍອດຄົງເຫຼືອທັນທີ.';
+
+  @override
+  String get apprApprovedToast => 'ອະນຸມັດແລ້ວ';
+
+  @override
+  String get apprRejectedToast => 'ປະຕິເສດແລ້ວ';
+
+  @override
+  String get apprRequestNotFound => 'ບໍ່ພົບຄຳຮ້ອງນີ້';
+
+  @override
+  String get apprEmployeeLabel => 'ພະນັກງານ';
+
+  @override
   String get approvalsLeaveTab => 'ອະນຸມັດລາພັກ';
 
   @override

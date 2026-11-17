@@ -563,6 +563,13 @@
   "timeCorrectionApprovalsEmpty": "No correction requests",
 
   "approvalsMenu": "Approvals",
+  "apprApproveConfirmTitle": "Approve this request?",
+  "apprApproveNoteHint": "Note (optional)",
+  "apprApproveLastStepHint": "This is the last step: the days come off the balance now.",
+  "apprApprovedToast": "Approved",
+  "apprRejectedToast": "Rejected",
+  "apprRequestNotFound": "This request is not available",
+  "apprEmployeeLabel": "Employee",
   "approvalsLeaveTab": "Approve Leave",
   "approvalsTimeCorrectionTab": "Approve Corrections",
   "offsiteMenu": "Off-site Clock-in",
