@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#33 merged; #34 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#34 merged; #35 still BLOCKED; next is #36). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 
 | | |
 |---|---|
-| Last finished work order | 32 of 60: #33, overtime: see HR's OT posts and join one |
-| Next work order | **33 of 60: #34**, overtime: the clock button knows about an open OT session. IMPLEMENTED on `34-clock-open-ot` (`1c44232`, `5f53ffa`), pushed, reviewed; waits for "push issue 34 to main directly". After it: #35 (BLOCKED: OT hours) → #36 |
-| `origin/main` | `77db2c0` "Merge branch '33-ot-posts' into main" (2026-11-17) |
+| Last finished work order | 33 of 60: #34, overtime: the clock button knows about an open OT session |
+| Next work order | **35 of 60: #36**, approvals: one Approvals place, only for department heads and HR (leave moves in). Not started, no branch, no plan yet. #35 (34 of 60) skipped: still BLOCKED, re-checked 2026-11-17 |
+| `origin/main` | `55c41e7` "Merge branch '34-clock-open-ot' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -57,7 +57,7 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#34: say "push issue 34 to main directly".** Built 2026-11-17 after the owner's go.
+1. **#34 merged** (`55c41e7`) on the owner's say, 2026-11-17.
    **#33 merged** (`77db2c0`) on the owner's say, 2026-11-17.
    **#32 merged** (`c8880d6`) on the owner's say, 2026-11-17. A login whose `employee_id`
    is null (#75) sees no Edit/Cancel on its own request (the issue's "own employee only" read safely).
@@ -136,11 +136,14 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#34 (work order 33 of 60), "overtime: the clock button knows about an open OT session": IMPLEMENTED, not
-   merged.** Owner said go on 2026-11-17. Branch `34-clock-open-ot`: `1c44232` (feature), `5f53ffa` (review fixes).
-   Gates: analyze 1 warning already on `main`; `flutter test` 1,696 passed; debug APK builds. Waits for "push issue 34
-   to main directly". Next in the order: #35 is BLOCKED (OT hours on the summary; re-read its comments for a "now
-   live"), so #36 after it.
+1. **Next: #36 (work order 35 of 60), "approvals: one Approvals place, only for department heads and HR (leave moves
+   in)".** Read the issue and its comments, show a plan, wait for "go". #35 is skipped: re-checked 2026-11-17, its only
+   comment (13 Nov) still says to wait for the backend's OT hours; no "now live".
+
+   **#34 (work order 33 of 60), "overtime: the clock button knows about an open OT session": MERGED (`55c41e7`),
+   2026-11-17.** Owner said go on 2026-11-17. Branch `34-clock-open-ot`: `1c44232` (feature), `5f53ffa` (review fixes).
+   Gates: analyze 1 warning already on `main`; `flutter test` 1,696 passed; debug APK builds. Merged on the owner's
+   "push issue 34 to main directly"; gates green on the merge commit.
    - `GET /core_hr/attendance/ot-sessions/open` → `OpenOtSession` (`data: null` / no request id = none);
      `AttendanceState.openOt`; `nextAction` = Clock out when `day.isClockedIn` (#7's `pickCurrent`, kept) or an OT is
      open. `loadToday` reads both together on every trigger; only the newest load counts; the OT read gives up after
@@ -530,7 +533,7 @@ The owner's list of 2026-11-13: not to be built until the backend team confirms.
 | Issue | Waits for | Latest word on the issue | State |
 |---|---|---|---|
 | #21, #23 | the payslip month (phoudssp/Nexton-Backend#191) | "Now live", 13 Nov 12:03 UTC | built and merged on the owner's "go" |
-| #35 | OT hours on the summary and history | no "live" comment; the one comment (13 Nov) still says to wait | **BLOCKED** |
+| #35 | OT hours on the summary and history | no "live" comment; the one comment (13 Nov) still says to wait; re-checked 2026-11-17 when the order reached it | **BLOCKED** (skipped; #36 next) |
 | #55 | the unread count (phoudssp/Nexton-Backend#190) | no "live" comment; the one comment (13 Nov) says it still waits | **BLOCKED** |
 | #56 | sign-out ends the session (phoudssp/Nexton-Backend#189) | "Now live", 15 Nov 13:27 UTC: `POST /api/v1/auth/logout`, body `{"refresh_token"}`, always `204` | live on the backend; **still on the owner's list until the owner says go** |
 
@@ -573,8 +576,8 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 30 | #31 | overtime: ask for OT | `31-ot-ask` | `c3659c1`, `fdc36ec` | merged to main directly (`446a272`) | analyze: 1 warning already on `main`; `flutter test`: 1,598 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 31 | #32 | overtime: edit or cancel my OT while it waits | `32-ot-edit-cancel` | `16d741e`, `eced537` | merged to main directly (`c8880d6`) | analyze: 1 warning already on `main`; `flutter test`: 1,636 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 32 | #33 | overtime: see HR's OT posts for my department and join one | `33-ot-posts` | `ceaf702`, `6b7cadf` | merged to main directly (`77db2c0`) | analyze: 1 warning already on `main`; `flutter test`: 1,670 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 33 | #34 | overtime: the clock button knows about an open OT session | `34-clock-open-ot` | `1c44232`, `5f53ffa` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,696 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
-| 34 | #35 | attendance: show OT hours on the summary and history | | | | | BLOCKED: backend, OT hours |
+| 33 | #34 | overtime: the clock button knows about an open OT session | `34-clock-open-ot` | `1c44232`, `5f53ffa` | merged to main directly (`55c41e7`) | analyze: 1 warning already on `main`; `flutter test`: 1,696 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
+| 34 | #35 | attendance: show OT hours on the summary and history | | | | | BLOCKED: backend, OT hours (re-checked 2026-11-17, skipped) |
 | 35 | #36 | approvals: one Approvals place, only for department heads and HR (leave moves in) | | | | | NOT STARTED |
 | 36 | #37 | approvals: open a leave request to see days, files, steps and notes before deciding | | | | | NOT STARTED |
 | 37 | #38 | photos: take a photo with the camera and upload it (shared) | | | | | NOT STARTED |
