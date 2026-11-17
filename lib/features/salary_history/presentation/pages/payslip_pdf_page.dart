@@ -8,7 +8,7 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/payslip_pdf_notifier.dart';
-import '../widgets/payslip_pdf_view.dart';
+import '../../../../core/widgets/pdf_file_view.dart';
 import '../widgets/salary_error_block.dart';
 import '../widgets/salary_history_copy.dart';
 
@@ -51,7 +51,10 @@ class PayslipPdfPage extends ConsumerWidget {
                         error: pdf.error,
                         onRetry: () => ref.read(provider.notifier).retry(),
                       )
-                    : ref.watch(payslipPdfViewProvider)(path!),
+                    : ref.watch(pdfFileViewProvider)(
+                        path!,
+                        l10n.payslipPdfMakeFailed,
+                      ),
               ),
             ],
           ),

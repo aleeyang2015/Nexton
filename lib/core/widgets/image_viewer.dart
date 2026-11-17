@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Shows the evidence photo at [url] full screen, pinch-zoomable; a tap
-/// anywhere closes it. Shared by the detail and approvals pages.
-void showTimeCorrectionImage(BuildContext context, String url) {
+/// Shows the photo at [url] full screen, pinch-zoomable; a tap anywhere
+/// closes it. Shared by the "forgot to scan" and off-site pages and the
+/// leave files.
+void showImageViewer(BuildContext context, String url) {
   showDialog<void>(
     context: context,
     barrierColor: Colors.black87,

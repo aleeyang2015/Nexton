@@ -12,7 +12,7 @@ import '../../domain/entities/time_correction_detail.dart';
 import '../providers/time_correction_detail_notifier.dart';
 import '../widgets/time_correction_approval_workflow.dart';
 import '../widgets/time_correction_detail_cards.dart';
-import '../widgets/time_correction_image_viewer.dart';
+import '../../../../core/widgets/image_viewer.dart';
 
 /// "ລາຍລະອຽດຄຳຮ້ອງ" — one time-correction request in full, from
 /// `GET /attendance/correction-requests/:id`, with a cancel action while it
@@ -104,7 +104,7 @@ class _Body extends ConsumerWidget {
           TimeCorrectionAttachmentCard(
             url: attachment,
             downloading: downloading,
-            onView: () => showTimeCorrectionImage(context, attachment),
+            onView: () => showImageViewer(context, attachment),
             onDownload: () => _download(context, ref),
           ),
         ],

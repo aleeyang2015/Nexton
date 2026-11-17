@@ -10,7 +10,7 @@ import 'package:next_on/features/salary_history/domain/entities/payslip_pdf.dart
 import 'package:next_on/features/salary_history/domain/entities/payslip_record.dart';
 import 'package:next_on/features/salary_history/domain/repositories/salary_repository.dart';
 import 'package:next_on/features/salary_history/presentation/services/payslip_pdf_files.dart';
-import 'package:next_on/features/salary_history/presentation/widgets/payslip_pdf_view.dart';
+import 'package:next_on/core/widgets/pdf_file_view.dart';
 
 /// Programmable salary repository: each call returns the queued result and
 /// records the argument it was given, so a widget test can assert which
@@ -93,7 +93,7 @@ class FakeSalaryRepository implements SalaryRepository {
 /// The temp files of opened PDFs, in memory: records what was written,
 /// deleted and shared. A written file's path is
 /// `/tmp/payslips/<n>/<name>`.
-class FakePayslipPdfFiles implements PayslipPdfFiles {
+class FakePayslipPdfFiles extends PayslipPdfFiles {
   final List<PayslipPdf> writes = [];
   final List<String> deletes = [];
   final List<({String path, Rect? origin})> shares = [];
@@ -122,7 +122,7 @@ class FakePayslipPdfFiles implements PayslipPdfFiles {
   }
 
   @override
-  Future<void> share(String path, {Rect? origin}) async {
+  Future<void> share(String path, {String? mimeType, Rect? origin}) async {
     if (shareFails) throw Exception('no share sheet');
     shares.add((path: path, origin: origin));
     await holdShare?.future;
@@ -137,8 +137,8 @@ final PayslipPdf samplePayslipPdf = PayslipPdf(
 
 /// Puts a stand-in where the PDF viewer goes: the real one needs the phone's
 /// PDF renderer. It shows "PDF " and the path.
-Override fakePayslipPdfView() => payslipPdfViewProvider.overrideWithValue(
-  (path) => Text('PDF $path'),
+Override fakePayslipPdfView() => pdfFileViewProvider.overrideWithValue(
+  (path, _) => Text('PDF $path'),
 );
 
 /// A payslip as the server sends it in the year's list (totals only, no
