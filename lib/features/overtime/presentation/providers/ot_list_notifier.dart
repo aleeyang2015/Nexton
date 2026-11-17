@@ -46,12 +46,17 @@ class OtListNotifier extends AutoDisposeNotifier<OtListState> {
     _loadFirst();
   }
 
-  /// Asks for the first page again after it failed.
-  void retry() => _loadFirst();
+  /// Asks for the first page again after it failed. Does nothing while it
+  /// is already being asked for.
+  void retry() {
+    if (state.requests.isLoading) return;
+    _loadFirst();
+  }
 
   /// Pull to refresh: page 1 again with the same filters, the rows on
-  /// screen kept until it answers.
-  Future<void> refresh() => _loadFirst(keepRows: true);
+  /// screen kept until it answers. False when it failed: the rows already
+  /// on screen then stay, and the page says it could not load.
+  Future<bool> refresh() => _loadFirst(keepRows: true);
 
   /// Fetches the page after the rows shown and adds it under them. Does
   /// nothing when there is no next page, while one is on its way, or after
@@ -81,6 +86,7 @@ class OtListNotifier extends AutoDisposeNotifier<OtListState> {
             items: next.items,
             page: next.page,
             totalPages: next.totalPages,
+            keyOf: _id,
           ),
         ),
       ),
@@ -96,8 +102,10 @@ class OtListNotifier extends AutoDisposeNotifier<OtListState> {
     return loadMore();
   }
 
-  Future<void> _loadFirst({bool keepRows = false}) async {
+  /// True when the first page came, false when it failed or was overtaken.
+  Future<bool> _loadFirst({bool keepRows = false}) async {
     final loadedAs = ++_loads;
+    final shown = state.requests.valueOrNull;
     state = state.withRequests(
       keepRows
           ? const AsyncLoading<PagedList<OtRequest>>().copyWithPrevious(
@@ -107,7 +115,13 @@ class OtListNotifier extends AutoDisposeNotifier<OtListState> {
     );
 
     final result = await _fetch(1);
-    if (_disposed || loadedAs != _loads) return;
+    if (_disposed || loadedAs != _loads) return false;
+
+    // A refresh that failed keeps the rows that were on screen.
+    if (keepRows && shown != null && result.isFailure) {
+      state = state.withRequests(AsyncValue.data(shown));
+      return false;
+    }
 
     state = state.withRequests(
       result.fold(
@@ -117,11 +131,15 @@ class OtListNotifier extends AutoDisposeNotifier<OtListState> {
             items: page.items,
             page: page.page,
             totalPages: page.totalPages,
+            keyOf: _id,
           ),
         ),
       ),
     );
+    return result.isSuccess;
   }
+
+  static Object _id(OtRequest request) => request.id;
 
   Future<Result<OtPage<OtRequest>>> _fetch(int page) =>
       ref.read(getMyOtRequestsUseCaseProvider)(

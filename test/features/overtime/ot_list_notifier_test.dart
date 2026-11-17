@@ -266,6 +266,58 @@ void main() {
     });
   });
 
+  group('refresh that fails, retry twice, rows repeated', () {
+    test('a refresh that fails keeps the rows on screen and says so', () async {
+      repository.myRequestsAnswer = (call) => pagedOt(call, total: 45);
+      await settle();
+      await notifier().loadMore();
+
+      repository.myRequestsAnswer = (_) =>
+          const Result.failure(Failure.network(message: 'offline'));
+      final loaded = await notifier().refresh();
+
+      expect(loaded, isFalse);
+      expect(state().requests.hasError, isFalse);
+      expect(ids(), hasLength(40));
+    });
+
+    test('a refresh that works says so', () async {
+      await settle();
+
+      expect(await notifier().refresh(), isTrue);
+    });
+
+    test('Retry tapped twice asks once', () async {
+      repository.myRequestsAnswer = (_) =>
+          const Result.failure(Failure.network(message: 'offline'));
+      await settle();
+      repository.holdMyRequests = Completer<void>();
+
+      notifier().retry();
+      notifier().retry();
+
+      expect(repository.listCalls, hasLength(2));
+    });
+
+    test('a row repeated on the next page (one added at the top meanwhile) '
+        'is shown once', () async {
+      repository.myRequestsAnswer = (call) => Result.success(
+        OtPage(
+          items: call.page == 1
+              ? [sampleOt('ot-c'), sampleOt('ot-b')]
+              : [sampleOt('ot-b'), sampleOt('ot-a')],
+          page: call.page,
+          totalPages: 2,
+        ),
+      );
+      await settle();
+
+      await notifier().loadMore();
+
+      expect(ids(), ['ot-c', 'ot-b', 'ot-a']);
+    });
+  });
+
   group('when the list cannot load', () {
     test('no employee linked: the failure keeps its code', () async {
       repository.myRequestsAnswer = (_) => const Result.failure(

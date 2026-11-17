@@ -96,10 +96,12 @@ class PagedList<T> {
     required List<T> items,
     required int page,
     required int totalPages,
+    Object Function(T item)? keyOf,
   }) => PagedList<T>().appendNumbered(
     items: items,
     page: page,
     totalPages: totalPages,
+    keyOf: keyOf,
   );
 
   /// True when a next page may be asked for now: there is one, none is on
@@ -147,15 +149,27 @@ class PagedList<T> {
   /// It ends when [page] is the last, when the page has no rows (as
   /// [append]), or when [page] is not past the pages already loaded: asking
   /// on would fetch the same rows again.
+  ///
+  /// With [keyOf], a row whose key is already in the list is left out: a
+  /// list paged by position repeats a row when one is added at its top
+  /// between two pages.
   PagedList<T> appendNumbered({
     required List<T> items,
     required int page,
     required int totalPages,
+    Object Function(T item)? keyOf,
   }) {
     final movedOn = nextPage == null || page >= nextPage!;
     final goesOn = page < totalPages && items.isNotEmpty && movedOn;
+    final seen = keyOf == null ? null : {for (final i in this.items) keyOf(i)};
+    final added = seen == null
+        ? items
+        : [
+            for (final item in items)
+              if (seen.add(keyOf!(item))) item,
+          ];
     return PagedList(
-      items: [...this.items, ...items],
+      items: [...this.items, ...added],
       nextPage: goesOn ? page + 1 : null,
       hasMore: goesOn,
     );

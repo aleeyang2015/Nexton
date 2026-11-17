@@ -31,7 +31,15 @@ class OtMonthPickerDialog extends StatefulWidget {
 }
 
 class _OtMonthPickerDialogState extends State<OtMonthPickerDialog> {
-  late int _year = (widget.current ?? DateTime.now()).year;
+  /// The years the arrows can reach: no month outside them is a real OT
+  /// month, and the server would refuse one.
+  static const int firstYear = 2000;
+  static const int lastYear = 2200;
+
+  late int _year = (widget.current ?? DateTime.now()).year.clamp(
+    firstYear,
+    lastYear,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +63,9 @@ class _OtMonthPickerDialogState extends State<OtMonthPickerDialog> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.chevron_left),
-                  onPressed: () => setState(() => _year--),
+                  onPressed: _year <= firstYear
+                      ? null
+                      : () => setState(() => _year--),
                 ),
                 customText(
                   '$_year',
@@ -65,7 +75,9 @@ class _OtMonthPickerDialogState extends State<OtMonthPickerDialog> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.chevron_right),
-                  onPressed: () => setState(() => _year++),
+                  onPressed: _year >= lastYear
+                      ? null
+                      : () => setState(() => _year++),
                 ),
               ],
             ),

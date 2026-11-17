@@ -314,6 +314,31 @@ void main() {
       expect(failed.retryable.nextPage, 2);
     });
 
+    test('with keyOf, a row already in the list is not shown twice, and the '
+        'list still goes on', () {
+      final list = PagedList<int>.firstNumbered(
+        items: [5, 4],
+        page: 1,
+        totalPages: 3,
+        keyOf: (i) => i,
+      ).appendNumbered(items: [4, 3], page: 2, totalPages: 3, keyOf: (i) => i);
+
+      expect(list.items, [5, 4, 3]);
+      expect(list.nextPage, 3);
+    });
+
+    test('a page made only of rows already shown still moves on', () {
+      final list = PagedList<int>.firstNumbered(
+        items: [5, 4],
+        page: 1,
+        totalPages: 3,
+        keyOf: (i) => i,
+      ).appendNumbered(items: [4], page: 2, totalPages: 3, keyOf: (i) => i);
+
+      expect(list.items, [5, 4]);
+      expect(list.hasMore, isTrue);
+    });
+
     test('a cursor page appended to a cursor list leaves no page number', () {
       final list = PagedList.first(
         const CursorPage(items: [1], nextCursor: 'a', hasMore: true),

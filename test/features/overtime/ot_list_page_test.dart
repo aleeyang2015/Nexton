@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/api_error_mapper.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/core/widgets/shimmer_box.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_page.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_request.dart';
@@ -45,6 +46,7 @@ void main() {
       ProviderScope(
         overrides: [otRepositoryProvider.overrideWithValue(repository)],
         child: MaterialApp(
+          scaffoldMessengerKey: rootScaffoldMessengerKey,
           locale: Locale(locale),
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -231,6 +233,54 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('14/11/2026'), findsOneWidget);
+    });
+  });
+
+  group('pull to refresh that fails', () {
+    testWidgets('keeps the rows and says it could not load', (tester) async {
+      serve([sampleOt('ot-1')]);
+      await pumpPage(tester);
+      repository.myRequestsAnswer = (_) =>
+          const Result.failure(Failure.network(message: 'offline'));
+
+      await tester.timedDrag(
+        find.byType(RefreshIndicator),
+        const Offset(0, 600),
+        const Duration(milliseconds: 500),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('14/11/2026'), findsOneWidget);
+      expect(find.text(en.otListLoadFailed), findsOneWidget);
+      expect(find.text(en.retry), findsNothing);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+  });
+
+  group('the month picker', () {
+    testWidgets('the year stays within 2000 to 2200', (tester) async {
+      await pumpPage(tester);
+      await tester.tap(find.text(en.otAllMonths));
+      await tester.pumpAndSettle();
+
+      for (var i = 0; i < 60; i++) {
+        final back = tester.widget<IconButton>(
+          find.widgetWithIcon(IconButton, Icons.chevron_left),
+        );
+        if (back.onPressed == null) break;
+        await tester.tap(find.byIcon(Icons.chevron_left));
+        await tester.pump();
+      }
+
+      expect(find.text('2000'), findsOneWidget);
+      expect(
+        tester
+            .widget<IconButton>(find.widgetWithIcon(IconButton, Icons.chevron_left))
+            .onPressed,
+        isNull,
+      );
     });
   });
 

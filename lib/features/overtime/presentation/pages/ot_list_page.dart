@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/network/paged_list.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/load_more_footer.dart';
 import '../../../../core/widgets/shimmer_box.dart';
@@ -104,7 +105,12 @@ class _OtListPageState extends ConsumerState<OtListPage> {
               heightBx(h: 8),
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: notifier.refresh,
+                  onRefresh: () async {
+                    final loaded = await notifier.refresh();
+                    if (!loaded && context.mounted) {
+                      AppToast.error(l10n.otListLoadFailed);
+                    }
+                  },
                   child: ListView(
                     controller: _scroll,
                     physics: const AlwaysScrollableScrollPhysics(),
