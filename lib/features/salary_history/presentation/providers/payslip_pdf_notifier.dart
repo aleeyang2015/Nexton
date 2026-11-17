@@ -1,53 +1,65 @@
+import 'dart:ui' show Rect;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../salary_history_providers.dart';
-import '../services/payslip_pdf_saver.dart';
+import '../services/payslip_pdf_files.dart';
 
-/// Fetches one payslip's PDF (`GET /payroll/payslips/my/{id}/pdf`) and hands the
-/// bytes to the system save dialog. Keyed by payslip id so the history
-/// card's button and the detail page's save icon share one in-flight state.
+/// One payslip's PDF, for the PDF page: fetched from
+/// `GET /payroll/payslips/my/{id}/pdf`, written to a temp file, and the
+/// file's path as the value.
 ///
-/// The value is the saved path once a download completed, or null when
-/// nothing has been saved yet (including a dialog the user backed out of).
-/// A failed download surfaces as [AsyncError]; the page toasts it.
+/// Keyed by the payslip id and dropped when no page watches it, so a second
+/// page for the same payslip (a double tap) shares the one request, and the
+/// file is deleted as soon as the page closes: it holds salary data. A
+/// failure is the [AsyncError]; nothing is written for it.
 class PayslipPdfNotifier
-    extends AutoDisposeFamilyAsyncNotifier<String?, String> {
-  bool _disposed = false;
-
+    extends AutoDisposeFamilyAsyncNotifier<String, String> {
   @override
-  Future<String?> build(String arg) async {
-    _disposed = false;
-    ref.onDispose(() => _disposed = true);
-    return null;
-  }
-
-  /// Downloads the PDF of the payslip this notifier is keyed by.
-  /// [defaultFileName] names the saved file when the server doesn't.
-  Future<void> download({required String defaultFileName}) async {
-    if (state.isLoading) return;
-
-    // Keep the download alive while the card is collapsed or the page popped
-    // mid-flight; the link is released once the state settles.
-    final link = ref.keepAlive();
-    state = const AsyncValue<String?>.loading();
+  Future<String> build(String arg) async {
+    final files = ref.read(payslipPdfFilesProvider);
+    var disposed = false;
+    String? written;
+    ref.onDispose(() {
+      disposed = true;
+      final path = written;
+      if (path != null) files.delete(path);
+    });
 
     final result = await ref.read(downloadPayslipPdfUseCaseProvider)(arg);
+    final pdf = result.fold((failure) => throw failure, (pdf) => pdf);
 
-    final next = await result.fold(
-      (failure) async => AsyncValue<String?>.error(failure, StackTrace.current),
-      (pdf) async {
-        final path = await ref
-            .read(payslipPdfSaverProvider)
-            .save(pdf, fileName: pdf.fileName ?? defaultFileName);
-        return AsyncValue<String?>.data(path);
-      },
-    );
+    final path = await files.write(pdf);
+    if (disposed) {
+      // The page closed while the file was being written: nothing may stay
+      // behind.
+      await files.delete(path);
+    } else {
+      written = path;
+    }
+    return path;
+  }
 
-    if (!_disposed) state = next;
-    link.close();
+  /// Asks again after a failure. Does nothing while a load is running.
+  Future<void> retry() async {
+    if (state.isLoading) return;
+    ref.invalidateSelf();
+    await future.then<void>((_) {}, onError: (_) {});
+  }
+
+  /// Opens the share sheet with the loaded PDF. False when there is no file
+  /// yet, or the share sheet could not be opened.
+  Future<bool> share({Rect? origin}) async {
+    final path = state.valueOrNull;
+    if (path == null || state.isLoading) return false;
+    try {
+      await ref.read(payslipPdfFilesProvider).share(path, origin: origin);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 }
 
-final payslipPdfNotifierProvider =
-    AsyncNotifierProvider.autoDispose
-        .family<PayslipPdfNotifier, String?, String>(PayslipPdfNotifier.new);
+final payslipPdfNotifierProvider = AsyncNotifierProvider.autoDispose
+    .family<PayslipPdfNotifier, String, String>(PayslipPdfNotifier.new);

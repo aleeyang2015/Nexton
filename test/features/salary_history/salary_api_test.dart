@@ -88,12 +88,12 @@ void main() {
       expect(pdf.fileName, 'payslip-2026-08.pdf');
     });
 
-    test('no Content-Disposition → no file name', () async {
+    test('no Content-Disposition → payslip-<id>.pdf', () async {
       adapter.body = _pdfBytes;
 
       final pdf = await source.pdf('abc-123');
 
-      expect(pdf.fileName, isNull);
+      expect(pdf.fileName, 'payslip-abc-123.pdf');
     });
 
     test('an empty body is rejected as an invalid PDF', () async {

@@ -698,6 +698,26 @@ void main() {
       expect(h.sessionExpiredEvents, hasLength(1));
     });
 
+    test('TENANT_INACTIVE on a call that asked for bytes (the payslip PDF) '
+        'still ends the session', () async {
+      final h = await _Harness.create();
+      h.adapter.queue('/payroll/payslips/my/p-1/pdf', [companyOff]);
+
+      Object? thrown;
+      try {
+        await h.client.get<List<int>>(
+          '/payroll/payslips/my/p-1/pdf',
+          options: Options(responseType: ResponseType.bytes),
+        );
+      } on DioException catch (e) {
+        thrown = e.error;
+      }
+
+      expect(thrown, isA<AuthFailure>());
+      expect((thrown as AuthFailure).code, 'TENANT_INACTIVE');
+      expect(h.sessionExpiredEvents, [SessionEndReason.companyInactive]);
+    });
+
     test('a late TENANT_INACTIVE for the previous user spares the new '
         'session', () async {
       final h = await _Harness.create();

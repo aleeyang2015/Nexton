@@ -152,7 +152,7 @@
   "salaryWorkingDaysLabel": "ມື້ເຮັດວຽກ",
   "salaryOvertimeLabel": "ຊົ່ວໂມງໂອທີ",
   "salaryUnpaidLeaveLabel": "ລາພັກບໍ່ໄດ້ຮັບເງິນ (ວັນ)",
-  "salaryDownloadPdf": "ດາວໂຫລດໃບເງິນເດືອນ (PDF)",
+  "salaryDownloadPdf": "ເບິ່ງໃບເງິນເດືອນ (PDF)",
   "payslipDetailTitle": "ໃບເງິນເດືອນ",
   "salaryGrossLabel": "ລາຍຮັບລວມ",
   "salaryTotalDeductionsLabel": "ຫັກລວມ",
@@ -162,7 +162,6 @@
   "salaryHistoryEmpty": "ບໍ່ມີຂໍ້ມູນເງິນເດືອນ",
   "salaryHistoryLoadFailed": "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນເງິນເດືອນໄດ້.",
   "payslipDetailLoadFailed": "ບໍ່ສາມາດໂຫຼດໃບເງິນເດືອນໄດ້.",
-  "salaryPdfSaved": "ບັນທຶກໃບເງິນເດືອນແລ້ວ",
   "salaryPdfInvalid": "ບໍ່ສາມາດອ່ານໄຟລ໌ PDF ໃບເງິນເດືອນໄດ້.",
 
   "language": "ພາສາ",
@@ -540,5 +539,10 @@
   "payslipOtDetailsTitle": "ລາຍລະອຽດໂອທີ",
   "payslipOtNotPaidNote": "ບໍ່ໄດ້ຈ່າຍເປັນໂອທີ: ເວລານີ້ຢູ່ໃນກະວຽກ ຫຼື ບໍ່ໄດ້ສະແກນ",
   "payslipOtKipPerHour": "{amount} ກີບ/ຊມ",
-  "payslipOtTotal": "ລວມ"
+  "payslipOtTotal": "ລວມ",
+  "payslipPdfTitle": "ໃບເງິນເດືອນ (PDF)",
+  "payslipPdfLoading": "ກຳລັງສ້າງ PDF…",
+  "payslipPdfMakeFailed": "ສ້າງໄຟລ໌ PDF ບໍ່ສຳເລັດ, ກະລຸນາລອງໃໝ່",
+  "payslipPdfShare": "ແບ່ງປັນ",
+  "payslipPdfShareFailed": "ແບ່ງປັນໄຟລ໌ PDF ບໍ່ສຳເລັດ"
 }

@@ -1,14 +1,10 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
-import 'package:next_on/features/salary_history/domain/entities/payslip_pdf.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip_record.dart';
 import 'package:next_on/features/salary_history/presentation/pages/payslip_detail_page.dart';
-import 'package:next_on/features/salary_history/presentation/services/payslip_pdf_saver.dart';
 import 'package:next_on/features/salary_history/salary_history_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 import 'package:next_on/l10n/generated/app_localizations_en.dart';
@@ -20,7 +16,6 @@ import '../../support/salary_test_doubles.dart';
 void main() {
   final en = AppLocalizationsEn();
   late FakeSalaryRepository repository;
-  late FakePayslipPdfSaver saver;
 
   /// October 2026, paid on 5 November, with the sample lines. Its totals
   /// (12,800,000 / 5,373,326 / 7,426,674) are not what the lines add up to.
@@ -47,11 +42,7 @@ void main() {
 
   setUp(() {
     repository = FakeSalaryRepository()
-      ..myPayslipResult = Result.success(fullPayslip())
-      ..pdfResult = Result.success(
-        PayslipPdf(bytes: Uint8List.fromList([0x25, 0x50, 0x44, 0x46, 0x2d])),
-      );
-    saver = FakePayslipPdfSaver();
+      ..myPayslipResult = Result.success(fullPayslip());
   });
 
   Future<void> pumpPage(
@@ -70,7 +61,6 @@ void main() {
       ProviderScope(
         overrides: [
           salaryRepositoryProvider.overrideWithValue(repository),
-          payslipPdfSaverProvider.overrideWithValue(saver),
         ],
         child: MaterialApp(
           locale: Locale(locale),
@@ -799,14 +789,13 @@ void main() {
   });
 
   group('the PDF', () {
-    testWidgets('is saved under the pay month\'s name', (tester) async {
+    testWidgets('the app bar has the PDF icon, and no save icon; nothing is '
+        'asked for until it is tapped', (tester) async {
       await pumpPage(tester);
 
-      await tester.tap(find.byIcon(Icons.save_alt));
-      await tester.pumpAndSettle();
-
-      expect(repository.pdfIds, ['p-oct']);
-      expect(saver.saves.single.fileName, 'payslip-2026-10.pdf');
+      expect(find.byIcon(Icons.picture_as_pdf_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.save_alt), findsNothing);
+      expect(repository.pdfIds, isEmpty);
     });
   });
 }

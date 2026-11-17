@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,10 +7,10 @@ import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/salary_history/domain/entities/payslip_record.dart';
-import 'package:next_on/features/salary_history/domain/entities/payslip_pdf.dart';
 import 'package:next_on/features/salary_history/presentation/pages/payslip_detail_page.dart';
 import 'package:next_on/features/salary_history/presentation/pages/salary_history_page.dart';
-import 'package:next_on/features/salary_history/presentation/services/payslip_pdf_saver.dart';
+import 'package:next_on/features/salary_history/presentation/pages/payslip_pdf_page.dart';
+import 'package:next_on/features/salary_history/presentation/services/payslip_pdf_files.dart';
 import 'package:next_on/features/salary_history/salary_history_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
@@ -42,7 +41,7 @@ void main() {
   );
 
   late FakeSalaryRepository repository;
-  late FakePayslipPdfSaver saver;
+  late FakePayslipPdfFiles files;
 
   setUp(() {
     repository = FakeSalaryRepository()
@@ -51,10 +50,8 @@ void main() {
         year == now.year ? [listRow, approvedRow] : const <PayslipRecord>[],
       ))
       ..myPayslipResult = Result.success(detailRow)
-      ..pdfResult = Result.success(
-        PayslipPdf(bytes: Uint8List.fromList([0x25, 0x50, 0x44, 0x46, 0x2d])),
-      );
-    saver = FakePayslipPdfSaver();
+      ..pdfResult = Result.success(samplePayslipPdf);
+    files = FakePayslipPdfFiles();
   });
 
   Future<void> pumpPage(WidgetTester tester) async {
@@ -73,7 +70,8 @@ void main() {
       ProviderScope(
         overrides: [
           salaryRepositoryProvider.overrideWithValue(repository),
-          payslipPdfSaverProvider.overrideWithValue(saver),
+          payslipPdfFilesProvider.overrideWithValue(files),
+          fakePayslipPdfView(),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -163,22 +161,70 @@ void main() {
       expect(find.text('22'), findsOneWidget);
     });
 
-    testWidgets('the inline download button fetches this payslip\'s PDF', (
+    Future<void> openRow(WidgetTester tester) async {
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down).first);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('View payslip (PDF)'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the row\'s PDF button opens this payslip\'s PDF inside the '
+        'App', (tester) async {
+      await pumpPage(tester);
+      await openRow(tester);
+
+      await tester.tap(find.text('View payslip (PDF)'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PayslipPdfPage), findsOneWidget);
+      expect(repository.pdfIds, [listRow.id]);
+      expect(
+        find.text('PDF /tmp/payslips/1/payslip-EMP-002-2026-10.pdf'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a double tap opens one PDF page and sends one request', (
       tester,
     ) async {
       await pumpPage(tester);
+      await openRow(tester);
 
-      await tester.tap(find.byIcon(Icons.keyboard_arrow_down).first);
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Download Payslip (PDF)'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Download Payslip (PDF)'));
+      await tester.tap(find.text('View payslip (PDF)'));
+      await tester.tap(find.text('View payslip (PDF)'), warnIfMissed: false);
       await tester.pumpAndSettle();
 
+      // Counting the pages hidden under the top one too.
+      expect(
+        find.byType(PayslipPdfPage, skipOffstage: false),
+        findsOneWidget,
+      );
       expect(repository.pdfIds, [listRow.id]);
-      expect(saver.saves, hasLength(1));
-      expect(saver.saves.single.fileName, 'payslip-${now.year}-08.pdf');
-      expect(saver.saves.single.bytes.length, 5);
+    });
+
+    testWidgets('closing the PDF page deletes its file, and the button opens '
+        'it again', (tester) async {
+      await pumpPage(tester);
+      await openRow(tester);
+      await tester.tap(find.text('View payslip (PDF)'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(PayslipPdfPage),
+          matching: find.byIcon(Icons.arrow_back_ios),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PayslipPdfPage), findsNothing);
+      expect(files.live, isEmpty);
+      expect(files.deletes, hasLength(1));
+
+      await tester.tap(find.text('View payslip (PDF)'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PayslipPdfPage), findsOneWidget);
+      expect(repository.pdfIds, [listRow.id, listRow.id]);
     });
   });
 
@@ -273,34 +319,46 @@ void main() {
       expect(find.byType(SalaryHistoryPage), findsOneWidget);
     });
 
-    testWidgets('the save icon fetches this payslip\'s PDF, named for its pay '
-        'month', (tester) async {
+    testWidgets('the PDF icon opens this payslip\'s PDF inside the App', (
+      tester,
+    ) async {
       await pumpPage(tester);
 
       await tester.tap(find.text('August ${now.year}'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.save_alt));
+      await tester.tap(find.byIcon(Icons.picture_as_pdf_outlined));
       await tester.pumpAndSettle();
 
+      expect(find.byType(PayslipPdfPage), findsOneWidget);
       expect(repository.pdfIds, [listRow.id]);
-      expect(saver.saves.single.fileName, 'payslip-${now.year}-08.pdf');
     });
 
-    testWidgets('a failed PDF download leaves the page in place', (
-      tester,
-    ) async {
+    testWidgets('a PDF that could not be made says so on its page, and Back '
+        'returns to the payslip', (tester) async {
       repository.pdfResult = const Result.failure(
-        Failure.network(message: 'offline'),
+        Failure.server(message: 'boom', statusCode: 500),
       );
       await pumpPage(tester);
 
       await tester.tap(find.text('August ${now.year}'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.save_alt));
+      await tester.tap(find.byIcon(Icons.picture_as_pdf_outlined));
       await tester.pumpAndSettle();
 
-      expect(saver.saves, isEmpty);
-      expect(find.byIcon(Icons.save_alt), findsOneWidget);
+      expect(
+        find.text('Could not make the PDF. Please try again'),
+        findsOneWidget,
+      );
+      expect(files.writes, isEmpty);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(PayslipPdfPage),
+          matching: find.byIcon(Icons.arrow_back_ios),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(PayslipDetailPage), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

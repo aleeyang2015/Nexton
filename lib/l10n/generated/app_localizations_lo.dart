@@ -464,7 +464,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String get salaryUnpaidLeaveLabel => 'ລາພັກບໍ່ໄດ້ຮັບເງິນ (ວັນ)';
 
   @override
-  String get salaryDownloadPdf => 'ດາວໂຫລດໃບເງິນເດືອນ (PDF)';
+  String get salaryDownloadPdf => 'ເບິ່ງໃບເງິນເດືອນ (PDF)';
 
   @override
   String get payslipDetailTitle => 'ໃບເງິນເດືອນ';
@@ -492,9 +492,6 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get payslipDetailLoadFailed => 'ບໍ່ສາມາດໂຫຼດໃບເງິນເດືອນໄດ້.';
-
-  @override
-  String get salaryPdfSaved => 'ບັນທຶກໃບເງິນເດືອນແລ້ວ';
 
   @override
   String get salaryPdfInvalid => 'ບໍ່ສາມາດອ່ານໄຟລ໌ PDF ໃບເງິນເດືອນໄດ້.';
@@ -1735,4 +1732,19 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get payslipOtTotal => 'ລວມ';
+
+  @override
+  String get payslipPdfTitle => 'ໃບເງິນເດືອນ (PDF)';
+
+  @override
+  String get payslipPdfLoading => 'ກຳລັງສ້າງ PDF…';
+
+  @override
+  String get payslipPdfMakeFailed => 'ສ້າງໄຟລ໌ PDF ບໍ່ສຳເລັດ, ກະລຸນາລອງໃໝ່';
+
+  @override
+  String get payslipPdfShare => 'ແບ່ງປັນ';
+
+  @override
+  String get payslipPdfShareFailed => 'ແບ່ງປັນໄຟລ໌ PDF ບໍ່ສຳເລັດ';
 }

@@ -18,6 +18,7 @@ import '../../features/change_password/presentation/pages/change_password_page.d
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/salary_history/domain/entities/payslip_record.dart';
 import '../../features/salary_history/presentation/pages/payslip_detail_page.dart';
+import '../../features/salary_history/presentation/pages/payslip_pdf_page.dart';
 import '../../features/salary_history/presentation/pages/salary_history_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/time_off/domain/entities/leave_request.dart';
@@ -74,6 +75,13 @@ class AppRoutes {
   /// The location of the payslip [id], for a list row, a link or a push.
   static String payslip(String id) =>
       '/salary-history/payslip/${Uri.encodeComponent(id)}';
+
+  /// The PDF of a payslip, opened inside the App. A route pattern; build a
+  /// location with [payslipPdf].
+  static const String payslipPdfPage = '/salary-history/payslip/:id/pdf';
+
+  /// The location of the PDF of the payslip [id].
+  static String payslipPdf(String id) => '${payslip(id)}/pdf';
   static const String approvals = '/approvals';
   static const String notFound = '/404';
 }
@@ -98,6 +106,12 @@ final List<GoRoute> payslipRoutes = [
         listRow: extra is PayslipRecord && extra.id == id ? extra : null,
       );
     },
+  ),
+  GoRoute(
+    path: AppRoutes.payslipPdfPage,
+    name: 'payslipPdf',
+    builder: (context, state) =>
+        PayslipPdfPage(payslipId: state.pathParameters['id'] ?? ''),
   ),
 ];
 

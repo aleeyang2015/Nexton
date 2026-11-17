@@ -3,19 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
-import '../../../../core/errors/failure.dart';
-import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/payslip_record.dart';
 import '../../domain/payslip_lines.dart';
 import '../providers/payslip_detail_notifier.dart';
-import '../providers/payslip_pdf_notifier.dart';
 import '../widgets/payslip_line_copy.dart';
 import '../widgets/payslip_ot_items_sheet.dart';
+import '../widgets/payslip_pdf_opener.dart';
 import '../widgets/salary_error_block.dart';
 import '../widgets/salary_history_copy.dart';
 
@@ -287,10 +284,7 @@ class _DetailAppBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               GestureDetector(onTap: () => _goBack(context), child: popBack()),
-              _SaveButton(
-                payslipId: payslip.id,
-                fileName: header.pdfFileName,
-              ),
+              _PdfButton(payslipId: payslip.id),
             ],
           ),
           Padding(
@@ -346,53 +340,38 @@ class _SectionsPlaceholder extends StatelessWidget {
   }
 }
 
-/// The app bar's save icon — fetches this payslip's PDF and hands it to the
-/// system save dialog, spinning while the download runs. Shares its state
-/// with the history card's download button for the same payslip.
-class _SaveButton extends ConsumerWidget {
+/// The app bar's PDF icon: opens this payslip's PDF inside the App, once
+/// however fast it is tapped.
+class _PdfButton extends StatelessWidget {
   final String payslipId;
 
-  /// The name the saved PDF gets when the server sends none.
-  final String fileName;
-
-  const _SaveButton({required this.payslipId, required this.fileName});
+  const _PdfButton({required this.payslipId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final provider = payslipPdfNotifierProvider(payslipId);
-    final downloading = ref.watch(provider).isLoading;
 
-    ref.listen(provider, (previous, next) {
-      next.whenOrNull(
-        data: (path) {
-          if (path != null) AppToast.success(l10n.salaryPdfSaved);
-        },
-        error: (error, _) => AppToast.error(
-          error is Failure ? error.localize(l10n) : error.toString(),
+    return PayslipPdfOpener(
+      payslipId: payslipId,
+      builder: (context, open) => Semantics(
+        button: true,
+        label: l10n.salaryDownloadPdf,
+        child: GestureDetector(
+          onTap: open,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: AppColors.primaryTint,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.picture_as_pdf_outlined,
+              color: AppColors.primary,
+              size: 20,
+            ),
+          ),
         ),
-      );
-    });
-
-    return GestureDetector(
-      onTap: () =>
-          ref.read(provider.notifier).download(defaultFileName: fileName),
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: const BoxDecoration(
-          color: AppColors.primaryTint,
-          shape: BoxShape.circle,
-        ),
-        child: downloading
-            ? const Padding(
-                padding: EdgeInsets.all(11),
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.primary,
-                ),
-              )
-            : const Icon(Icons.save_alt, color: AppColors.primary, size: 20),
       ),
     );
   }
