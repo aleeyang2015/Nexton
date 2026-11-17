@@ -26,6 +26,7 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
   profilePhotoUrl: json['profile_photo_url'] as String?,
   departmentName: json['department_name'] as String?,
   positionTitle: json['position_title'] as String?,
+  isDepartmentHead: UserModel._boolOrNull(json['is_department_head']),
 );
 
 Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
@@ -41,4 +42,5 @@ Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
   'profile_photo_url': instance.profilePhotoUrl,
   'department_name': instance.departmentName,
   'position_title': instance.positionTitle,
+  'is_department_head': instance.isDepartmentHead,
 };

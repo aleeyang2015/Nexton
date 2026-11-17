@@ -8,6 +8,8 @@ import 'package:next_on/features/list/presentation/widgets/list_menu_grid.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 import 'package:next_on/l10n/generated/app_localizations_lo.dart';
 
+import '../../support/approver_access_test_doubles.dart';
+
 /// The menu the list tab and the home screen share.
 void main() {
   final lo = AppLocalizationsLo();
@@ -16,6 +18,7 @@ void main() {
     late List<ListMenuEntry> built;
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [approverAccessOf()],
         child: MaterialApp(
           locale: const Locale('lo'),
           supportedLocales: AppLocalizations.supportedLocales,
@@ -72,6 +75,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [approverAccessOf()],
         child: MaterialApp.router(
           routerConfig: router,
           locale: const Locale('lo'),

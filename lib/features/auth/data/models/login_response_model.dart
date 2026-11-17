@@ -19,11 +19,16 @@ class LoginResponseModel {
   /// `expires_at`. An unknown expiry is not an expired one.
   final DateTime? expiresAt;
 
+  /// Whether the user heads a department (`is_department_head`). `/auth/me`
+  /// sends it too, fresh, and wins; this counts when it does not say.
+  final bool isDepartmentHead;
+
   const LoginResponseModel({
     required this.accessToken,
     required this.refreshToken,
     required this.mustChangePassword,
     this.expiresAt,
+    this.isDepartmentHead = false,
   });
 
   factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
@@ -39,6 +44,7 @@ class LoginResponseModel {
       refreshToken: refreshToken,
       mustChangePassword: json['must_change_password'] == true,
       expiresAt: tokenExpiryFromUnixSeconds(json['expires_at']),
+      isDepartmentHead: json['is_department_head'] == true,
     );
   }
 

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/session_end_reason.dart';
@@ -37,6 +40,12 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
           _forceLogout(reason);
         });
     ref.onDispose(subscription.cancel);
+
+    // Back from the background, `/auth/me` is read again: someone made head
+    // of a department (or no longer) sees the Approvals place change
+    // without signing in again.
+    final lifecycle = _tryCreateLifecycleListener();
+    ref.onDispose(() => lifecycle?.dispose());
 
     final result = await ref.read(restoreSessionUseCaseProvider)();
     restoring = false;
@@ -118,20 +127,61 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
     state = const AsyncValue.data(AuthSession.unauthenticated());
   }
 
-  /// Re-reads `/auth/me`. Used to pick up a role or module change after a
-  /// token refresh — a failure leaves the current session untouched.
+  /// Guarded because this runs in plain `test()` suites too, where no
+  /// `WidgetsBinding` exists for the listener to register with.
+  AppLifecycleListener? _tryCreateLifecycleListener() {
+    try {
+      // `onShow`, not `onResume`: back from the background, not every
+      // dialog over the App (a location prompt during a punch, the
+      // notification shade).
+      return AppLifecycleListener(onShow: () => unawaited(refreshOnResume()));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// The App came back to the foreground: re-reads `/auth/me` when someone
+  /// is signed in. Nothing is asked while signed out or still starting.
+  ///
+  /// One at a time: a second return while one is on its way asks nothing.
+  Future<void> refreshOnResume() async {
+    final current = state.valueOrNull;
+    if (_refreshing ||
+        current?.user == null ||
+        current!.status == AuthStatus.unauthenticated ||
+        current.status == AuthStatus.bootstrapping) {
+      return;
+    }
+    _refreshing = true;
+    try {
+      await refreshProfile();
+    } finally {
+      _refreshing = false;
+    }
+  }
+
+  bool _refreshing = false;
+
+  /// Re-reads `/auth/me`: a role, module, permission or department-head
+  /// change. A failure leaves the current session untouched, and so does an
+  /// answer that lands after the session changed hands (signed out, or
+  /// another user signed in): it must not bring a session back. The status
+  /// stays, so a pending password change stays pending.
   Future<void> refreshProfile() async {
+    final asked = state.valueOrNull?.user?.id;
+    if (asked == null) return;
     final result = await ref.read(authRepositoryProvider).fetchProfile();
     final user = result.dataOrNull;
     if (user == null) return;
 
     final current = state.valueOrNull;
-    state = AsyncValue.data(
-      AuthSession(
-        status: current?.status ?? AuthStatus.authenticated,
-        user: user,
-      ),
-    );
+    if (current == null ||
+        current.status == AuthStatus.unauthenticated ||
+        current.user?.id != asked ||
+        user.id != asked) {
+      return;
+    }
+    state = AsyncValue.data(AuthSession(status: current.status, user: user));
   }
 
   /// User-initiated sign-out. There is no logout endpoint; this is local

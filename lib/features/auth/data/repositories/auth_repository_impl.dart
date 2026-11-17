@@ -53,7 +53,11 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       await _local.writeMustChangePassword(tokens.mustChangePassword);
 
       try {
-        final user = await _remote.fetchProfile();
+        // `/auth/me` says whether the user heads a department, and wins; an
+        // older server that does not say leaves the login answer's.
+        final user = (await _remote.fetchProfile()).withDepartmentHead(
+          tokens.isDepartmentHead,
+        );
         await _local.writeUser(user);
 
         return AuthSession.signedIn(
@@ -82,9 +86,9 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       final mustChange = await _local.readMustChangePassword();
 
       try {
-        final user = await _remote.fetchProfile(
+        final user = (await _remote.fetchProfile(
           timeout: cached == null ? bootstrapTimeout : null,
-        );
+        )).withDepartmentHead(cached?.isDepartmentHead);
         await _local.writeUser(user);
         return AuthSession.signedIn(
           user.toEntity(),
@@ -126,8 +130,18 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
   @override
   FutureResult<User> fetchProfile() {
     return guard(() async {
-      final user = await _remote.fetchProfile();
-      await _local.writeUser(user);
+      // An older server that does not say keeps what was known.
+      final cached = await _local.readUser();
+      final user = (await _remote.fetchProfile()).withDepartmentHead(
+        cached?.isDepartmentHead,
+      );
+      // Saved only while that user is still the one signed in on the phone:
+      // an answer that lands after a sign-out (or another user's sign-in)
+      // must not put the last user's profile back on disk.
+      final now = await _local.readUser();
+      if (now != null && now.id == user.id && await _local.hasTokens()) {
+        await _local.writeUser(user);
+      }
       return user.toEntity();
     });
   }

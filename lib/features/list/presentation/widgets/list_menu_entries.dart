@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../approvals/presentation/providers/approver_access_provider.dart';
 import '../../../time_off/presentation/pages/time_off_page.dart';
 import 'list_menu_grid.dart';
 
 /// The app's shortcut entries, shared by the "ລາຍການ" tab and the home screen
-/// so both always show the same menu.
+/// so both always show the same menu. Called from `build`: the Approvals
+/// tile is watched in, for department heads and HR only (decision 8).
 List<ListMenuEntry> buildListMenuEntries(
   BuildContext context,
   WidgetRef ref,
@@ -25,12 +27,13 @@ List<ListMenuEntry> buildListMenuEntries(
   //   Icons.history,
   //   onTap: () => context.push(AppRoutes.attendanceHistory),
   // ),
-  ListMenuEntry(
-    l10n.approvalsMenu,
-    Icons.fact_check_outlined,
-    color: const Color(0xFF0E9F8E),
-    onTap: () => context.push(AppRoutes.approvals),
-  ),
+  if (ref.watch(approverAccessProvider.select((a) => a.canSeeApprovals)))
+    ListMenuEntry(
+      l10n.approvalsMenu,
+      Icons.fact_check_outlined,
+      color: const Color(0xFF0E9F8E),
+      onTap: () => context.push(AppRoutes.approvals),
+    ),
   ListMenuEntry(
     l10n.leaveMenu,
     Icons.edit_calendar_outlined,

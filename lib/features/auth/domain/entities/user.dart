@@ -26,6 +26,10 @@ class User extends Equatable {
   final String? departmentName;
   final String? positionTitle;
 
+  /// True when the user heads a department: what the Approvals place hangs
+  /// on, with HR's permissions (`approvals/domain/approver_access.dart`).
+  final bool isDepartmentHead;
+
   const User({
     required this.id,
     required this.tenantId,
@@ -39,6 +43,7 @@ class User extends Equatable {
     this.profilePhotoUrl,
     this.departmentName,
     this.positionTitle,
+    this.isDepartmentHead = false,
   });
 
   /// Full name for display, falling back to the email when the profile has no
@@ -68,5 +73,6 @@ class User extends Equatable {
     profilePhotoUrl,
     departmentName,
     positionTitle,
+    isDepartmentHead,
   ];
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/approvals/approvals_page.dart';
+import '../../features/approvals/presentation/providers/approver_access_provider.dart';
 import '../../features/attendance/presentation/pages/attendance_history_page.dart';
 import '../../features/attendance/presentation/pages/camera_capture_page.dart';
 import '../../features/attendance/domain/entities/offsite_method.dart';
@@ -116,6 +117,16 @@ class AppRoutes {
   static String otRequestEditOf(String id) => '${otRequest(id)}/edit';
   static const String notFound = '/404';
 }
+
+/// `/approvals`, kept apart so a test can mount it on its own. Department
+/// heads and HR only: a deep link from anyone else finds nothing here.
+final List<GoRoute> approvalsRoutes = [
+  GoRoute(
+    path: AppRoutes.approvals,
+    name: 'approvals',
+    builder: (context, state) => const _ApprovalsGate(),
+  ),
+];
 
 /// The payslip page, opened by the payslip's id, so the salary list, a link
 /// and a push notification can all open it.
@@ -389,11 +400,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
 
       // Approvals — the "ອະນຸມັດ" menu tile
-      GoRoute(
-        path: AppRoutes.approvals,
-        name: 'approvals',
-        builder: (context, state) => const ApprovalsPage(),
-      ),
+      ...approvalsRoutes,
 
       // Time off
       GoRoute(
@@ -456,3 +463,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     navigatorKey: GlobalKey<NavigatorState>(),
   );
 });
+
+/// `/approvals`: the place for those who may see it, the not-found page for
+/// anyone else.
+class _ApprovalsGate extends ConsumerWidget {
+  const _ApprovalsGate();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) =>
+      ref.watch(approverAccessProvider.select((a) => a.canSeeApprovals))
+      ? const ApprovalsPage()
+      : const NotFoundPage();
+}
