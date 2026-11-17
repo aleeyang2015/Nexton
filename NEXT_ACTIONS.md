@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#31 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#31 merged; #32 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 | | |
 |---|---|
 | Last finished work order | 30 of 60: #31, overtime: ask for OT |
-| Next work order | **31 of 60: #32**, overtime: edit or cancel my OT while it waits. Not started, no branch, no plan yet |
+| Next work order | **31 of 60: #32**, overtime: edit or cancel my OT while it waits. IMPLEMENTED on `32-ot-edit-cancel` (`16d741e`, `eced537`), pushed, reviewed; waits for "push issue 32 to main directly". After it: #33 |
 | `origin/main` | `446a272` "Merge branch '31-ot-ask' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
@@ -57,7 +57,9 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#31 merged** (`446a272`) on the owner's say, 2026-11-17. For the backend: the reason's
+1. **#32: say "push issue 32 to main directly".** Built 2026-11-17 after the owner's go. A login whose `employee_id`
+   is null (#75) sees no Edit/Cancel on its own request (the issue's "own employee only" read safely).
+   **#31 merged** (`446a272`) on the owner's say, 2026-11-17. For the backend: the reason's
    2000 limit is kept in code points on the App side (a Lao letter is several); confirm how the server counts.
    **#30 merged** (`41c604f`) on the owner's say, 2026-11-17, after the review fixes (owner chose "fix first, then
    merge").
@@ -132,8 +134,25 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #32 (work order 31 of 60), "overtime: edit or cancel my OT while it waits".** Read the issue and its
-   comments, show a plan, wait for "go". Reuse the Ask form (#31) and `OtDetailNotifier.replace` (#30).
+1. **#32 (work order 31 of 60), "overtime: edit or cancel my OT while it waits": IMPLEMENTED, not merged.** Owner
+   said go on 2026-11-17. Branch `32-ot-edit-cancel`: `16d741e` (feature), `eced537` (review fixes). Gates: analyze
+   1 warning already on `main`; `flutter test` 1,636 passed; debug APK builds. Waits for "push issue 32 to main
+   directly". Then #33 (see HR's OT posts and join one).
+   - `OtRequestActions` (pure): Edit while pending, no step approved, not a join, day known; Cancel while pending;
+     approved → "ask your approver or HR"; nothing on someone else's request or with the own id unknown
+     (`otOwnEmployeeIdProvider`, from the session).
+   - Cancel: question (no = "ກັບຄືນ"), `OtDetailNotifier.cancel()` (one request; `replace` → list row;
+     `OT_ALREADY_DECIDED`/404 → refresh). Edit: `/overtime/request/:id/edit`, #31's form as a family
+     (`otAskNotifierProvider(request)`; null asks), prefilled (reason controller, valid times only, reason cut to
+     2000 code points), "approval starts again" note, Save (`otSaveAction`, our key). 200 → `replace`, "Saved",
+     back; too late → text, reload, back; 404 → list; others stay. Edit and Cancel guarded against double taps;
+     a link to the edit form of a gone request goes to the list, of a closed one shows the request.
+   Open after #32, none built there:
+   - nothing proves Cancel's question opens only once on a double tap (one request is proven, by the notifier);
+   - an edit within the same month keeps the row's place in the list until it reloads;
+   - the edit/cancel answers' `steps` are used as sent (handler not readable here);
+   - for #49: `OtRequestActions` returns nothing for anyone but the owner, so the head's cancel needs its own
+     branch.
 
    **#31 (work order 30 of 60), "overtime: ask for OT": MERGED (`446a272`), 2026-11-17.** Owner said go on 2026-11-17.
    Branch `31-ot-ask`: `c3659c1` (feature), `fdc36ec` (review fixes). Gates: analyze 1 warning already on `main`;
@@ -519,7 +538,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 28 | #29 | overtime: my OT list, on its own tile | `29-ot-list` | `3728c18`, `4615de2` | merged to main directly (`444929f`) | analyze: 1 warning already on `main`; `flutter test`: 1,513 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 29 | #30 | overtime: an OT request page that opens by id | `30-ot-request-page` | `d4e2f6f`, `0acf102` | merged to main directly (`41c604f`) | analyze: 1 warning already on `main`; `flutter test`: 1,552 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 30 | #31 | overtime: ask for OT | `31-ot-ask` | `c3659c1`, `fdc36ec` | merged to main directly (`446a272`) | analyze: 1 warning already on `main`; `flutter test`: 1,598 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 31 | #32 | overtime: edit or cancel my OT while it waits | | | | | NOT STARTED |
+| 31 | #32 | overtime: edit or cancel my OT while it waits | `32-ot-edit-cancel` | `16d741e`, `eced537` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,636 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
 | 32 | #33 | overtime: see HR's OT posts for my department and join one | | | | | NOT STARTED |
 | 33 | #34 | overtime: the clock button knows about an open OT session | | | | | NOT STARTED |
 | 34 | #35 | attendance: show OT hours on the summary and history | | | | | BLOCKED: backend, OT hours |
