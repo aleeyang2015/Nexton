@@ -53,6 +53,25 @@ class CorrectionRules {
     );
   }
 
+  /// Whether [date] may be corrected on [today]: inside [lookBack].
+  static bool inLookBack(DateTime date, DateTime today) {
+    final range = lookBack(today);
+    final day = DateTime(date.year, date.month, date.day);
+    return !day.isBefore(range.earliest) && !day.isAfter(range.latest);
+  }
+
+  /// A link's `YYYY-MM-DD`, read strictly: null for any other shape, or a
+  /// date that does not stay itself (`2026-10-32`, `2026-13-01`).
+  static DateTime? parseDate(String? text) {
+    final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$').firstMatch(text ?? '');
+    if (match == null) return null;
+    final y = int.parse(match[1]!);
+    final m = int.parse(match[2]!);
+    final d = int.parse(match[3]!);
+    final date = DateTime(y, m, d);
+    return date.year == y && date.month == m && date.day == d ? date : null;
+  }
+
   /// [part]'s window on [date] (its weekday row's times and minutes when
   /// HR set one): from its start less the early minutes to its end plus the
   /// late minutes. An overnight part (it ends next day, or its end is not

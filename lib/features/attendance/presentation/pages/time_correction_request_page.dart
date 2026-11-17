@@ -158,6 +158,11 @@ class _TimeCorrectionRequestPageState
     );
   }
 
+  /// Back to where the form was opened from; home when nothing is under it
+  /// (opened by a link).
+  static void _leave(BuildContext context) =>
+      context.canPop() ? context.pop() : context.go(AppRoutes.home);
+
   Future<void> _pickDate(
     BuildContext context,
     TimeCorrectionFormNotifier notifier,
@@ -185,7 +190,7 @@ class _TimeCorrectionRequestPageState
 
     if (ok) {
       AppToast.success(l10n.timeCorrectionSubmitSuccess);
-      context.pop();
+      _leave(context);
       return;
     }
 
@@ -194,7 +199,7 @@ class _TimeCorrectionRequestPageState
     if (error is ValidationFailure &&
         error.message.startsWith(CorrectionErrorCode.tokenDuplicate)) {
       await AppDialog.warning(context, message: error.localize(l10n));
-      if (context.mounted) context.pop();
+      if (context.mounted) _leave(context);
       return;
     }
     AppToast.error(error is Failure ? error.localize(l10n) : l10n.genericError);
@@ -347,11 +352,9 @@ class _ShiftSection extends ConsumerWidget {
     final value = profile.valueOrNull;
     // The profile's parts, and the history session's own when the profile
     // no longer has it (#44).
-    final profileParts = value?.shiftDetails ?? const <ShiftDetail>[];
-    final details = [
-      if (!profileParts.any((p) => p.id == detail.id)) detail,
-      ...profileParts,
-    ];
+    final details = notifier.offeredParts(
+      value?.shiftDetails ?? const <ShiftDetail>[],
+    );
     final shiftName =
         AttendanceCopy.employeeShiftName(
           locale,

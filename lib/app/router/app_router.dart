@@ -7,6 +7,7 @@ import '../../features/approvals/presentation/providers/approver_access_provider
 import '../../features/attendance/presentation/pages/attendance_history_page.dart';
 import '../../features/attendance/presentation/pages/camera_capture_page.dart';
 import '../../features/attendance/domain/entities/offsite_method.dart';
+import '../../features/attendance/domain/correction_rules.dart';
 import '../../features/attendance/domain/entities/offsite_detail.dart';
 import '../../features/attendance/presentation/pages/my_requests_page.dart';
 import '../../features/attendance/presentation/pages/offsite_request_detail_page.dart';
@@ -559,7 +560,7 @@ Widget offsiteRequestPageFor(Object? extra) => extra is OffsiteMethod
 /// history row, its session's part as [extra] (#44).
 Widget timeCorrectionRequestPageFor(Map<String, String> query, Object? extra) =>
     TimeCorrectionRequestPage(
-      date: DateTime.tryParse(query['date'] ?? ''),
+      date: CorrectionRules.parseDate(query['date']),
       partId: query['part'],
       sessionPart: extra is ShiftDetail ? extra : null,
     );

@@ -43,6 +43,28 @@ void main() {
   );
 
   group('look-back (decision 16: 30 days, no future)', () {
+    test('inLookBack: the same edges, for one day', () {
+      final today = DateTime(2026, 11, 17, 9);
+      expect(CorrectionRules.inLookBack(DateTime(2026, 10, 18), today), isTrue);
+      expect(
+        CorrectionRules.inLookBack(DateTime(2026, 10, 17), today),
+        isFalse,
+      );
+      expect(
+        CorrectionRules.inLookBack(DateTime(2026, 11, 18), today),
+        isFalse,
+      );
+    });
+
+    test('a link\'s date is read strictly: YYYY-MM-DD that stays itself', () {
+      expect(CorrectionRules.parseDate('2026-11-10'), DateTime(2026, 11, 10));
+      expect(CorrectionRules.parseDate('2026-10-32'), isNull);
+      expect(CorrectionRules.parseDate('2026-13-01'), isNull);
+      expect(CorrectionRules.parseDate('2026-1-5'), isNull);
+      expect(CorrectionRules.parseDate(''), isNull);
+      expect(CorrectionRules.parseDate(null), isNull);
+    });
+
     test('by the calendar, across a month: 30 days before 2026-03-30 is '
         '2026-02-28', () {
       expect(

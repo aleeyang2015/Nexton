@@ -10,6 +10,7 @@ import 'package:next_on/features/attendance/presentation/providers/time_correcti
 import 'package:next_on/features/profile/domain/entities/employee_profile.dart';
 import 'package:next_on/features/profile/domain/entities/shift_detail.dart';
 import 'package:next_on/features/profile/domain/entities/shift_detail_weekly.dart';
+import 'package:next_on/features/profile/presentation/providers/profile_notifier.dart';
 import 'package:next_on/features/profile/profile_providers.dart';
 
 import '../../support/attendance_test_doubles.dart';
@@ -171,5 +172,108 @@ void main() {
     await first;
 
     expect(attendance.timeCorrectionRequests, hasLength(1));
+  });
+
+  group('review fixes', () {
+    // Three days back: another weekday than today's, with its own row.
+    final otherDay = DateTime(today.year, today.month, today.day - 3);
+    final otherCode = const [
+      'MON',
+      'TUE',
+      'WED',
+      'THU',
+      'FRI',
+      'SAT',
+      'SUN',
+    ][otherDay.weekday - 1];
+    final lateOnOtherDay = ShiftDetail(
+      id: 'p-x',
+      startTime: '08:00',
+      endTime: '12:00',
+      weeklys: [ShiftDetailWeekly(weeklyDay: otherCode, startTime: '10:00')],
+    );
+
+    test(
+      'a date-only prefill: the times are that weekday\'s, not today\'s',
+      () async {
+        container = make(parts: [lateOnOtherDay]);
+        await settle();
+        expect(
+          container.read(timeCorrectionFormNotifierProvider).clockIn,
+          const TimeOfDay(hour: 8, minute: 0),
+        );
+
+        form().prefill(date: otherDay);
+
+        final state = container.read(timeCorrectionFormNotifierProvider);
+        expect(state.date, otherDay);
+        expect(state.clockIn, const TimeOfDay(hour: 10, minute: 0));
+      },
+    );
+
+    test('changing the date resets the times to that weekday\'s', () async {
+      container = make(parts: [lateOnOtherDay]);
+      await settle();
+
+      form().setDate(otherDay);
+
+      expect(
+        container.read(timeCorrectionFormNotifierProvider).clockIn,
+        const TimeOfDay(hour: 10, minute: 0),
+      );
+    });
+
+    test('a session\'s bare copy of the part gives way to the profile\'s full '
+        'one when the profile lands', () async {
+      container = make();
+      // Prefilled before the profile has loaded.
+      const bare = ShiftDetail(
+        id: 'p-am',
+        startTime: '08:00',
+        endTime: '12:00',
+      );
+      form().prefill(date: weekAgo, partId: 'p-am', sessionPart: bare);
+      await settle();
+
+      final state = container.read(timeCorrectionFormNotifierProvider);
+      expect(state.shiftDetail, morning);
+      expect(state.clockIn, const TimeOfDay(hour: 9, minute: 0));
+    });
+
+    test('a profile refresh does not undo the user\'s own pick', () async {
+      container = make();
+      await settle();
+      form().prefill(date: weekAgo, partId: 'p-am');
+      form().selectShiftDetail(afternoon);
+      form().setClockOut(const TimeOfDay(hour: 17, minute: 5));
+
+      container.invalidate(profileNotifierProvider);
+      await settle();
+
+      final state = container.read(timeCorrectionFormNotifierProvider);
+      expect(state.shiftDetail?.id, 'p-pm');
+      expect(state.clockOut, const TimeOfDay(hour: 17, minute: 5));
+    });
+
+    test(
+      'the session\'s own part stays offered after another is picked',
+      () async {
+        container = make();
+        await settle();
+        const old = ShiftDetail(
+          id: 'p-old',
+          startTime: '07:00',
+          endTime: '11:00',
+        );
+        form().prefill(date: weekAgo, partId: 'p-old', sessionPart: old);
+        form().selectShiftDetail(afternoon);
+
+        expect(form().offeredParts([morning, afternoon]).map((p) => p.id), [
+          'p-old',
+          'p-am',
+          'p-pm',
+        ]);
+      },
+    );
   });
 }

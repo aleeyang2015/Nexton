@@ -10,7 +10,6 @@ import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/presentation/providers/offsite_photo_notifier.dart';
 import 'package:next_on/features/attendance/presentation/providers/time_correction_attachment_notifier.dart';
 import 'package:next_on/features/time_off/presentation/providers/leave_request_form_notifier.dart';
-import 'package:next_on/features/time_off/presentation/services/attachment_picker.dart';
 
 class _RecordingUploads implements UploadRepository {
   final List<String?> folders = [];
@@ -25,17 +24,6 @@ class _RecordingUploads implements UploadRepository {
       UploadedAttachment(url: 'u', fileName: 'f', originalName: 'o'),
     );
   }
-}
-
-class _PicksOne extends AttachmentPicker {
-  const _PicksOne(this.file);
-
-  final LocalFile file;
-
-  @override
-  Future<LocalFile?> pickAttachment({
-    List<String> extensions = AttachmentPicker.allowedExtensions,
-  }) async => file;
 }
 
 /// Each feature sends its upload with its own `folder`, so the server keeps
@@ -55,7 +43,6 @@ void main() {
     container = ProviderContainer(
       overrides: [
         uploadRepositoryProvider.overrideWithValue(uploads),
-        attachmentPickerProvider.overrideWithValue(_PicksOne(photo)),
       ],
     );
   });

@@ -766,11 +766,8 @@ class _SessionRow extends StatelessWidget {
 }
 
 /// A day inside "forgot to scan"'s look-back (#43: 30 days, not the future).
-bool _canCorrect(DateTime date) {
-  final range = CorrectionRules.lookBack(DateTime.now());
-  final day = DateTime(date.year, date.month, date.day);
-  return !day.isBefore(range.earliest) && !day.isAfter(range.latest);
-}
+bool _canCorrect(DateTime date) =>
+    CorrectionRules.inLookBack(date, DateTime.now());
 
 /// "ລືມລົງເວລາ" under a history session (or a day with none): opens the
 /// form filled with that day and the session's part (#44).
@@ -783,22 +780,13 @@ class _CorrectionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final s = session;
-    final partId = s?.partId;
+    final part = session?.part;
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton.icon(
         onPressed: () => context.push(
-          AppRoutes.timeCorrectionRequestFor(date, partId: partId),
-          extra: s == null || partId == null
-              ? null
-              : ShiftDetail(
-                  id: partId,
-                  name: s.partName,
-                  nameLo: s.partNameLo,
-                  startTime: s.partStartTime,
-                  endTime: s.partEndTime,
-                ),
+          AppRoutes.timeCorrectionRequestFor(date, partId: part?.id),
+          extra: part,
         ),
         icon: const Icon(Icons.more_time, size: 16, color: AppColors.primary),
         label: customText(

@@ -12,6 +12,7 @@ import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/attendance/data/datasources/correction_error_code.dart';
 import 'package:next_on/features/attendance/presentation/providers/time_correction_form_notifier.dart';
+import 'package:next_on/features/attendance/domain/entities/time_correction_type.dart';
 import 'package:next_on/features/profile/domain/entities/employee_profile.dart';
 import 'package:next_on/features/profile/domain/entities/shift_detail.dart';
 import 'package:next_on/features/profile/profile_providers.dart';
@@ -160,5 +161,93 @@ void main() {
     expect(find.text(en.uploadTakePhoto), findsOneWidget);
     expect(find.text(en.uploadPickPhoto), findsOneWidget);
     expect(find.text(en.uploadPickFile), findsOneWidget);
+  });
+
+  testWidgets('each type shows only the times it needs', (tester) async {
+    final container = await open(tester, AppRoutes.timeCorrectionRequest);
+    final notifier = container.read(
+      timeCorrectionFormNotifierProvider.notifier,
+    );
+
+    notifier.setType(TimeCorrectionType.forgotClockIn);
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining(en.timeCorrectionClockInLabel, findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining(en.timeCorrectionClockOutLabel, findRichText: true),
+      findsNothing,
+    );
+
+    notifier.setType(TimeCorrectionType.forgotClockOut);
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining(en.timeCorrectionClockInLabel, findRichText: true),
+      findsNothing,
+    );
+    expect(
+      find.textContaining(en.timeCorrectionClockOutLabel, findRichText: true),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('"already asked" with nothing underneath (a link): home, no '
+      'error', (tester) async {
+    tester.view.physicalSize = const Size(700, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final attendance = FakeAttendanceRepository()
+      ..timeCorrectionResult = Result.failure(
+        Failure.validation(
+          message: CorrectionErrorCode.encode(
+            CorrectionErrorCode.tokenDuplicate,
+          ),
+          code: 'DUPLICATE',
+        ),
+      );
+    final profiles = FakeProfileRepository()
+      ..profile = const Result.success(
+        EmployeeProfile(id: 'e1', fullName: 'Noy', shiftDetails: [office]),
+      );
+    final router = GoRouter(
+      initialLocation: AppRoutes.timeCorrectionRequest,
+      routes: [
+        GoRoute(
+          path: AppRoutes.home,
+          builder: (_, _) => const Scaffold(body: Text('HOME')),
+        ),
+        GoRoute(
+          path: AppRoutes.timeCorrectionRequest,
+          builder: (_, state) => timeCorrectionRequestPageFor(
+            state.uri.queryParameters,
+            state.extra,
+          ),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          attendanceRepositoryProvider.overrideWithValue(attendance),
+          profileRepositoryProvider.overrideWithValue(profiles),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Forgot');
+    await tester.tap(find.text(en.timeCorrectionSubmit));
+    await tester.pumpAndSettle();
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('HOME'), findsOneWidget);
   });
 }

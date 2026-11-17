@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../profile/domain/entities/shift_detail.dart';
 
 /// Which punch the employee owes next. The card's slide action reads this to
 /// decide its label and which endpoint to hit.
@@ -41,12 +42,13 @@ class AttendanceSession extends Equatable {
   final String? method;
   final String? locationLabel;
 
-  /// When this session's shift part starts and ends, as the company's wall
-  /// clock reads (`HH:MM` or `HH:MM:SS`). Null when the record carries no
-  /// shift part for the session.
   /// The part's id (`shift_detail.id`): what a "forgot to scan" request
   /// for this session sends as `shift_detail_id` (#44).
   final String? partId;
+
+  /// When this session's shift part starts and ends, as the company's wall
+  /// clock reads (`HH:MM` or `HH:MM:SS`). Null when the record carries no
+  /// shift part for the session.
   final String? partStartTime;
   final String? partEndTime;
 
@@ -99,6 +101,19 @@ class AttendanceSession extends Equatable {
   }
 
   bool get isComplete => clockIn != null && clockOut != null;
+
+  /// This session's part as far as the record knows it (#44): its id,
+  /// names and times; the profile's part, when it has one, knows more (the
+  /// weekday rows and the minutes). Null when the record names no part.
+  ShiftDetail? get part => partId == null
+      ? null
+      : ShiftDetail(
+          id: partId,
+          name: partName,
+          nameLo: partNameLo,
+          startTime: partStartTime,
+          endTime: partEndTime,
+        );
 
   @override
   List<Object?> get props => [

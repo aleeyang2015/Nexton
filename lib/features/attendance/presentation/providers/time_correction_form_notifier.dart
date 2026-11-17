@@ -25,11 +25,15 @@ class TimeCorrectionFormNotifier
     // segment once it lands, unless the user has picked one already.
     ref.listen(profileNotifierProvider, (_, next) {
       final profile = next.valueOrNull;
-      // The part asked for (a history row's) wins once the profile has it.
+      // The part asked for (a history row's) lands once the profile has it:
+      // the profile's own, full (weekday rows, minutes), also in place of a
+      // session's bare copy already chosen. Then it is forgotten, so a later
+      // refresh cannot undo the user's own pick.
       final wanted = _wantedPartId;
       final match = wanted == null ? null : _partWithId(profile, wanted);
-      if (match != null && state.shiftDetail?.id != wanted) {
-        selectShiftDetail(match);
+      if (match != null) {
+        _wantedPartId = null;
+        if (state.shiftDetail != match) state = _withShiftDetail(state, match);
         return;
       }
       final detail = _firstDetail(profile);
@@ -46,36 +50,59 @@ class TimeCorrectionFormNotifier
     return detail == null ? initial : _withShiftDetail(initial, detail);
   }
 
-  void setDate(DateTime date) =>
-      state = state.copyWith(date: DateTime(date.year, date.month, date.day));
+  /// The day to correct. With a part chosen, the times become that
+  /// weekday's (the window under them moves to that day too).
+  void setDate(DateTime date) {
+    final next = state.copyWith(
+      date: DateTime(date.year, date.month, date.day),
+    );
+    final part = next.shiftDetail;
+    state = part == null ? next : _withShiftDetail(next, part);
+  }
 
   /// Fills the form for a day and part (#44): from a history row, or a link
   /// (`?date=&part=`). A date outside the look-back is not taken. The part is
   /// the profile's with [partId], else [sessionPart] (the history row's own,
   /// when the profile no longer has it); its times are that weekday's.
   void prefill({DateTime? date, String? partId, ShiftDetail? sessionPart}) {
-    if (date != null) {
-      final range = CorrectionRules.lookBack(DateTime.now());
-      final day = DateTime(date.year, date.month, date.day);
-      if (!day.isBefore(range.earliest) && !day.isAfter(range.latest)) {
-        state = state.copyWith(date: day);
-      }
+    if (date != null && CorrectionRules.inLookBack(date, DateTime.now())) {
+      setDate(date);
     }
     if (partId == null) return;
-    _wantedPartId = partId;
-    final part =
-        _partWithId(ref.read(profileNotifierProvider).valueOrNull, partId) ??
-        (sessionPart?.id == partId ? sessionPart : null);
-    if (part != null) selectShiftDetail(part);
+    if (sessionPart?.id == partId) _sessionPart = sessionPart;
+    final fromProfile = _partWithId(
+      ref.read(profileNotifierProvider).valueOrNull,
+      partId,
+    );
+    // Not in the profile yet (still loading): its listener lands on it.
+    if (fromProfile == null) _wantedPartId = partId;
+    final part = fromProfile ?? _sessionPart;
+    if (part != null) state = _withShiftDetail(state, part);
   }
+
+  /// The parts to offer: the history session's own part when the profile
+  /// does not have it, then the profile's [profileParts].
+  List<ShiftDetail> offeredParts(List<ShiftDetail> profileParts) {
+    final own = _sessionPart;
+    return [
+      if (own != null && !profileParts.any((p) => p.id == own.id)) own,
+      ...profileParts,
+    ];
+  }
+
+  /// The history session's part a prefill was given.
+  ShiftDetail? _sessionPart;
 
   /// The part a prefill asked for, kept until the profile has loaded.
   String? _wantedPartId;
 
   void setType(TimeCorrectionType type) => state = state.copyWith(type: type);
 
-  void selectShiftDetail(ShiftDetail detail) =>
-      state = _withShiftDetail(state, detail);
+  /// The user's own pick: it outranks a part a prefill still waits for.
+  void selectShiftDetail(ShiftDetail detail) {
+    _wantedPartId = null;
+    state = _withShiftDetail(state, detail);
+  }
 
   void setClockIn(TimeOfDay time) => state = state.copyWith(clockIn: time);
 
