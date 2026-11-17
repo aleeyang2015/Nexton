@@ -17,8 +17,9 @@ class OtPiece extends Equatable {
   final OtPayType payType;
 
   /// A whole percent of the hourly pay (150), or whole kip per hour (20000),
-  /// by [payType].
-  final int payValue;
+  /// by [payType]. Null when the server sent no whole number: a rate is
+  /// never made up.
+  final int? payValue;
 
   const OtPiece({
     required this.id,
@@ -26,7 +27,7 @@ class OtPiece extends Equatable {
     this.startsAt,
     this.endsAt,
     required this.payType,
-    required this.payValue,
+    this.payValue,
   });
 
   @override

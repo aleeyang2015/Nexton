@@ -13,7 +13,9 @@ enum OtStatus { pending, approved, rejected, cancelled, unknown }
 /// Times come in two kinds. [workDate] is a calendar day (the day the OT
 /// starts); [startTime] and [endTime] are the company's `HH:MM`, shown as
 /// sent. [startsAt] and [endsAt] are moments; [createdAt], [updatedAt] and
-/// [paidByHandAt] are Lao wall-clock times. All are on the phone's clock.
+/// [paidByHandAt] are Lao wall-clock times. All are on the phone's clock,
+/// but on a phone outside Laos the two kinds are not on the same clock:
+/// never compare or sort a wall-clock field against a moment.
 ///
 /// The employee's department is not here: the server never fills it for
 /// OT. Who paid by hand is a user id and is not kept.

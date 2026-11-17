@@ -7,10 +7,21 @@ import 'ot_request_model.dart';
 /// Reads an open HR OT post (`OTOpenAnnouncement`).
 ///
 /// Tolerant, as [OtRequestModel]: the one thing refused is a post with no
-/// id ([FormatException]). A `my_join` that is not a request with an id is
-/// read as "not joined".
+/// id ([FormatException]). A `my_join` object that cannot be read as a
+/// request still counts as joined ([OtPost.joined]); only a missing or
+/// null `my_join` is "not joined".
 class OtPostModel {
   OtPostModel._();
+
+  /// [fromJson], or null for a row that cannot be read: a list skips it
+  /// rather than losing the whole page.
+  static OtPost? tryFromJson(Map<String, dynamic> json) {
+    try {
+      return fromJson(json);
+    } on FormatException {
+      return null;
+    }
+  }
 
   static OtPost fromJson(Map<String, dynamic> json) {
     final id = OtJson.nonEmpty(json['id']);
@@ -42,16 +53,13 @@ class OtPostModel {
       full: OtJson.boolOf(json['full']),
       joinOpen: OtJson.boolOf(json['join_open']),
       myJoin: _myJoin(json['my_join']),
+      joined: json['my_join'] is Map,
     );
   }
 
   static OtRequest? _myJoin(dynamic value) {
     final json = OtJson.object(value);
     if (json == null) return null;
-    try {
-      return OtRequestModel.fromJson(json);
-    } on FormatException {
-      return null;
-    }
+    return OtRequestModel.tryFromJson(json);
   }
 }

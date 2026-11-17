@@ -35,16 +35,30 @@ class OtJson {
   /// A calendar day (`YYYY-MM-DD`), kept as that day with no time and no
   /// zone shift. Only the date part is read, so a day sent with a time and
   /// an offset is still its own day on any phone.
+  ///
+  /// A day that does not exist (`2026-02-30`, `2026-13-45`) is null, not
+  /// rolled over into another one.
   static DateTime? date(dynamic value) {
     final text = nonEmpty(value);
     if (text == null || text.length < 10) return null;
-    final head = text.substring(0, 10);
-    if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(head)) return null;
-    final parsed = DateTime.tryParse(head);
-    return parsed == null
-        ? null
-        : DateTime(parsed.year, parsed.month, parsed.day);
+    final match = _day.firstMatch(text.substring(0, 10));
+    if (match == null) return null;
+    final year = int.parse(match[1]!);
+    final month = int.parse(match[2]!);
+    final day = int.parse(match[3]!);
+    final parsed = DateTime(year, month, day);
+    final real =
+        parsed.year == year && parsed.month == month && parsed.day == day;
+    return real ? parsed : null;
   }
+
+  static final _day = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
+
+  /// The wall-clock parts of a time with no zone, to check that what was
+  /// read is what was written.
+  static final _wallClock = RegExp(
+    r'^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?',
+  );
 
   /// A moment, RFC 3339 with its offset, on the phone's clock.
   static DateTime? instant(dynamic value) {
@@ -55,14 +69,39 @@ class OtJson {
   /// `2026-11-11 09:30:00`, Lao wall-clock time with no zone: read as that
   /// time on the phone's clock (09:30 stays 09:30), never as UTC. A value
   /// that does carry a zone is read as that moment instead.
+  ///
+  /// A time that does not exist (`25:99`, `24:00`, 30 February) is null,
+  /// not rolled over.
+  ///
+  /// On a phone outside Laos this clock and [instant]'s are not the same:
+  /// never compare or sort a wall-clock field against a moment.
   static DateTime? wallClock(dynamic value) {
     final text = nonEmpty(value);
     if (text == null) return null;
     final parsed = DateTime.tryParse(text);
     if (parsed == null) return null;
-    // No zone in the text: Dart reads it as local time already. With one,
-    // it comes back as UTC and is moved to the phone's clock.
-    return parsed.isUtc ? parsed.toLocal() : parsed;
+    // With a zone it comes back as UTC: that moment, on the phone's clock.
+    if (parsed.isUtc) return parsed.toLocal();
+
+    // No zone: Dart reads it as local time already. Only keep it when it
+    // is the time written, not one rolled over from an impossible value.
+    final match = _wallClock.firstMatch(text);
+    if (match == null) return null;
+    final written = [
+      for (var i = 1; i <= 6; i++) int.parse(match[i] ?? '0'),
+    ];
+    final read = [
+      parsed.year,
+      parsed.month,
+      parsed.day,
+      parsed.hour,
+      parsed.minute,
+      parsed.second,
+    ];
+    for (var i = 0; i < 6; i++) {
+      if (written[i] != read[i]) return null;
+    }
+    return parsed;
   }
 
   /// A JSON object, or null.

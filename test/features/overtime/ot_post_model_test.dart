@@ -70,10 +70,43 @@ void main() {
     expect(post.myJoin!.createdAt, DateTime(2026, 11, 11, 9, 30));
   });
 
-  test('a my_join that is not a request (no id, or not an object) is none',
-      () {
-    expect(read({...otPostJson(), 'my_join': 'yes'}).myJoin, isNull);
-    expect(read({...otPostJson(), 'my_join': <String, dynamic>{}}).myJoin, isNull);
+  test('not joined: my_join null or missing', () {
+    expect(read(otPostJson()).joined, isFalse);
+    expect(read(otPostJson()..remove('my_join')).joined, isFalse);
+  });
+
+  test('joined: my_join set, read as a request', () {
+    final post = read({
+      ...otPostJson(),
+      'my_join': {...otRequestJson(), 'id': 'ot-join'},
+    });
+
+    expect(post.joined, isTrue);
+  });
+
+  test('a my_join object that cannot be read still counts as joined: Join '
+      'is never offered again', () {
+    final post = read({
+      ...otPostJson(),
+      'my_join': {...otRequestJson(), 'id': 7},
+    });
+
+    expect(post.myJoin, isNull);
+    expect(post.joined, isTrue);
+    expect(read({...otPostJson(), 'my_join': <String, dynamic>{}}).joined,
+        isTrue);
+  });
+
+  test('a my_join that is not an object is not a join', () {
+    final post = read({...otPostJson(), 'my_join': 'yes'});
+
+    expect(post.myJoin, isNull);
+    expect(post.joined, isFalse);
+  });
+
+  test('tryFromJson: a row with no id is null, for a list to skip', () {
+    expect(OtPostModel.tryFromJson(otPostJson()), isNotNull);
+    expect(OtPostModel.tryFromJson(otPostJson()..remove('id')), isNull);
   });
 
   test('a cancelled post, and a status the App does not know', () {

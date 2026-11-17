@@ -27,6 +27,20 @@ void main() {
       );
     });
 
+    test('a time that does not exist is null, not rolled over', () {
+      expect(OtJson.wallClock('2026-11-11 25:99:00'), isNull);
+      expect(OtJson.wallClock('2026-11-11 24:00:00'), isNull);
+      expect(OtJson.wallClock('2026-02-30 09:00:00'), isNull);
+    });
+
+    test('without seconds, or with a T, it is still read', () {
+      expect(OtJson.wallClock('2026-11-11 09:30'), DateTime(2026, 11, 11, 9, 30));
+      expect(
+        OtJson.wallClock('2026-11-11T09:30:00'),
+        DateTime(2026, 11, 11, 9, 30),
+      );
+    });
+
     test('null, empty, garbage and a number are null', () {
       expect(OtJson.wallClock(null), isNull);
       expect(OtJson.wallClock(''), isNull);
@@ -62,6 +76,13 @@ void main() {
 
     test('a day sent with a time and an offset keeps its own date', () {
       expect(OtJson.date('2026-11-14T23:30:00+07:00'), DateTime(2026, 11, 14));
+    });
+
+    test('a day that does not exist is null, not rolled over', () {
+      expect(OtJson.date('2026-02-30'), isNull);
+      expect(OtJson.date('2026-02-29'), isNull);
+      expect(OtJson.date('2026-13-45'), isNull);
+      expect(OtJson.date('2028-02-29'), DateTime(2028, 2, 29));
     });
 
     test('null, garbage and a number are null', () {

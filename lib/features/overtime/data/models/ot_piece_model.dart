@@ -11,6 +11,6 @@ class OtPieceModel {
     startsAt: OtJson.instant(json['starts_at']),
     endsAt: OtJson.instant(json['ends_at']),
     payType: OtPayType.fromWire(json['pay_type']),
-    payValue: OtJson.intOf(json['pay_value']) ?? 0,
+    payValue: OtJson.intOf(json['pay_value']),
   );
 }

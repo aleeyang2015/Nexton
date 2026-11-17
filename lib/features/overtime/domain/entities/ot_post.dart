@@ -42,8 +42,12 @@ class OtPost extends Equatable {
   final bool joinOpen;
 
   /// The caller's own request for this post, or null when they have not
-  /// joined.
+  /// joined, or when what the server sent could not be read.
   final OtRequest? myJoin;
+
+  /// True when the server says the caller has joined (`my_join` set), even
+  /// when [myJoin] could not be read: a joined post never offers Join.
+  final bool joined;
 
   const OtPost({
     required this.id,
@@ -67,7 +71,8 @@ class OtPost extends Equatable {
     this.full = false,
     this.joinOpen = false,
     this.myJoin,
-  });
+    bool? joined,
+  }) : joined = joined ?? myJoin != null;
 
   /// False when anyone may join, however many.
   bool get hasSeatLimit => seats != null;
@@ -95,5 +100,6 @@ class OtPost extends Equatable {
     full,
     joinOpen,
     myJoin,
+    joined,
   ];
 }

@@ -13,6 +13,16 @@ import 'ot_step_model.dart';
 class OtRequestModel {
   OtRequestModel._();
 
+  /// [fromJson], or null for a row that cannot be read: a list skips it
+  /// rather than losing the whole page.
+  static OtRequest? tryFromJson(Map<String, dynamic> json) {
+    try {
+      return fromJson(json);
+    } on FormatException {
+      return null;
+    }
+  }
+
   static OtRequest fromJson(Map<String, dynamic> json) {
     final id = OtJson.nonEmpty(json['id']);
     if (id == null) {
@@ -23,7 +33,9 @@ class OtRequestModel {
     return OtRequest(
       id: id,
       employeeId:
-          OtJson.str(json['employee_id']) ?? OtJson.str(employee?['id']) ?? '',
+          OtJson.nonEmpty(json['employee_id']) ??
+          OtJson.nonEmpty(employee?['id']) ??
+          '',
       employeeName: OtJson.nonEmpty(employee?['name']),
       employeeNumber: OtJson.nonEmpty(employee?['employee_number']),
       announcementId: OtJson.nonEmpty(json['announcement_id']),

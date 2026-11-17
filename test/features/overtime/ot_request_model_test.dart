@@ -210,7 +210,34 @@ void main() {
       expect(ot.createdAt, isNull);
       expect(ot.steps, isEmpty);
       expect(ot.pieces.single.pieceNo, 0);
-      expect(ot.pieces.single.payValue, 0);
+      // Not a whole number: no rate, never a made-up 0.
+      expect(ot.pieces.single.payValue, isNull);
+    });
+
+    test('an empty employee_id falls back to employee.id', () {
+      final ot = read({...otRequestJson(), 'employee_id': ''});
+
+      expect(ot.employeeId, 'emp-noy');
+    });
+
+    test('an impossible work_date or created_at is null, not another day',
+        () {
+      final ot = read({
+        ...otRequestJson(),
+        'work_date': '2026-02-30',
+        'created_at': '2026-11-11 25:99:00',
+      });
+
+      expect(ot.workDate, isNull);
+      expect(ot.createdAt, isNull);
+    });
+
+    test('tryFromJson: a row with no id is null, for a list to skip', () {
+      expect(OtRequestModel.tryFromJson(otRequestJson()), isNotNull);
+      expect(
+        OtRequestModel.tryFromJson(otRequestJson()..remove('id')),
+        isNull,
+      );
     });
 
     test('a request with no id is refused: nothing could open it', () {
