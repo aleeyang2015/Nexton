@@ -24,9 +24,6 @@ import '../../domain/next_punch.dart';
 class AttendanceCopy {
   AttendanceCopy._();
 
-  /// "ສະແກນອອກພາຍໃນ 23:00" under the clock while an OT clock-in is open,
-  /// from its `clock_out_until` on the phone's clock; null when there is
-  /// none to show.
   /// The card's line for an off-site scan still waiting for approval
   /// (#41): the check-in's time when it is the one to clock out of, or that
   /// both wait. Null for a normal punch.
@@ -39,11 +36,17 @@ class AttendanceCopy {
         NormalClockIn() || NormalClockOut() => null,
       };
 
-  /// `HH:mm` of a wall-clock time as the server sent it.
-  static String _hhmm(DateTime time) =>
-      '${time.hour.toString().padLeft(2, '0')}:'
-      '${time.minute.toString().padLeft(2, '0')}';
+  /// `HH:mm` in the phone's time: a wall-clock time as it is, an instant
+  /// sent in UTC (`created_at`) turned local.
+  static String _hhmm(DateTime time) {
+    final local = time.toLocal();
+    return '${local.hour.toString().padLeft(2, '0')}:'
+        '${local.minute.toString().padLeft(2, '0')}';
+  }
 
+  /// "ສະແກນອອກພາຍໃນ 23:00" under the clock while an OT clock-in is open,
+  /// from its `clock_out_until` on the phone's clock; null when there is
+  /// none to show.
   static String? otClockOutBy(AppLocalizations l10n, OpenOtSession? openOt) {
     final until = openOt?.clockOutUntil?.toLocal();
     if (until == null) return null;

@@ -50,6 +50,7 @@ void main() {
     final night = waitingOffsite(
       method: OffsiteMethod.checkIn,
       at: DateTime(2026, 11, 16, 22),
+      shift: nightShift,
     );
     expect(
       decide([night], now: DateTime(2026, 11, 17, 6)),
@@ -81,6 +82,7 @@ void main() {
     final inMon = waitingOffsite(
       method: OffsiteMethod.checkIn,
       at: DateTime(2026, 11, 16, 22),
+      shift: nightShift,
     );
     final outTue = waitingOffsite(
       id: 'off-2',
@@ -123,9 +125,51 @@ void main() {
       at: DateTime(2026, 11, 18, 8),
     );
     expect(
-      decide([inMon, outWed], now: DateTime(2026, 11, 17, 9)),
+      decide([inMon, outWed], now: DateTime(2026, 11, 16, 9)),
       isA<OffsiteClockOut>(),
     );
+  });
+
+  test('yesterday\'s day-shift check-in never closed: today is a normal '
+      'clock-in, not a day stuck on "clock out"', () {
+    final dayMon = waitingOffsite(
+      method: OffsiteMethod.checkIn,
+      at: DateTime(2026, 11, 16, 8),
+      shift: dayShift,
+    );
+    expect(
+      decide([dayMon], now: DateTime(2026, 11, 17, 8)),
+      isA<NormalClockIn>(),
+    );
+  });
+
+  test('yesterday\'s check-in with no shift known: a normal clock-in (the '
+      'server decides)', () {
+    final unknown = waitingOffsite(
+      method: OffsiteMethod.checkIn,
+      at: DateTime(2026, 11, 16, 22),
+    );
+    expect(
+      decide([unknown], now: DateTime(2026, 11, 17, 6)),
+      isA<NormalClockIn>(),
+    );
+  });
+
+  test('a time sent as UTC (created_at, no scan time) is compared as local',
+      () {
+    final inLocal = waitingOffsite(
+      method: OffsiteMethod.checkIn,
+      at: DateTime(2026, 11, 17, 8),
+    );
+    // Sent at 09:00 local, as an instant in UTC.
+    final outUtc = waitingOffsite(
+      id: 'off-2',
+      method: OffsiteMethod.checkOut,
+      at: DateTime(2026, 11, 17, 9),
+      noScanTime: true,
+      submittedAt: DateTime(2026, 11, 17, 9).toUtc(),
+    );
+    expect(decide([inLocal, outUtc]), isA<WaitingBoth>());
   });
 
   test('a decided check-in (approved, rejected) is not waiting', () {

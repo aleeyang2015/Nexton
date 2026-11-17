@@ -223,6 +223,23 @@ void main() {
       );
     });
 
+    test('no scan time: the time it was sent, in local time, not UTC', () {
+      final sent = DateTime(2026, 11, 17, 8, 5);
+      final utc = waitingOffsite(
+        method: OffsiteMethod.checkIn,
+        at: sent,
+        noScanTime: true,
+        submittedAt: sent.toUtc(),
+      );
+      expect(
+        AttendanceCopy.offsiteWaiting(
+          AppLocalizationsEn(),
+          OffsiteClockOut(utc),
+        ),
+        'Check-in outside the area at 08:05: waiting for approval',
+      );
+    });
+
     test('both waiting: says so', () {
       expect(
         AttendanceCopy.offsiteWaiting(

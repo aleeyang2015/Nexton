@@ -46,13 +46,14 @@ class PunchFlow {
     // An off-site check-in still waits for approval (#41): the server has
     // no session to close, so the clock-out goes as an off-site request too
     // (it pairs it with the check-in). The punch endpoint is not called; the
-    // form reads the position itself. Today is read again on the way back.
+    // form reads the position itself. Today is read again on the way back,
+    // unless the form did it already (it filed, or learned today changed).
     if (state.next is OffsiteClockOut) {
-      await context.push(
+      final reloaded = await context.push<bool>(
         AppRoutes.offsiteRequest,
         extra: OffsiteMethod.checkOut,
       );
-      unawaited(notifier.loadToday());
+      if (reloaded != true) unawaited(notifier.loadToday());
       return;
     }
 

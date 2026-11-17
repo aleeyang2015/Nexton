@@ -314,21 +314,36 @@ OffsiteRequestDetail waitingOffsite({
   String id = 'off-1',
   int sessionOrder = 1,
   TimeCorrectionStatus status = TimeCorrectionStatus.pending,
+  TimeCorrectionShift? shift,
+  DateTime? submittedAt,
+  bool noScanTime = false,
 }) => OffsiteRequestDetail(
   id: id,
   employee: const TimeCorrectionEmployee(name: 'Somchai'),
   method: method,
   latitude: 17.9757,
   longitude: 102.6331,
-  scanTimestamp: at,
+  scanTimestamp: noScanTime ? null : at,
   scanDate: DateTime(at.year, at.month, at.day),
   sessionOrder: sessionOrder,
-  shift: null,
+  shift: shift,
   attachmentUrl: 'https://files.nexton.work/uploads/shop.jpg',
   reason: 'Client visit',
   status: status,
   currentStepNo: 1,
   attendanceRecordId: null,
   steps: const [],
-  submittedAt: at,
+  submittedAt: submittedAt ?? at,
+);
+
+/// A night shift, 22:00 to 06:00: it crosses midnight.
+const nightShift = TimeCorrectionShift(
+  start: Duration(hours: 22),
+  end: Duration(hours: 6),
+);
+
+/// A day shift, 08:00 to 17:00.
+const dayShift = TimeCorrectionShift(
+  start: Duration(hours: 8),
+  end: Duration(hours: 17),
 );

@@ -80,4 +80,72 @@ void main() {
     await tester.pumpAndSettle();
     expect(attendance.todayCalls, greaterThan(todayBefore));
   });
+
+  testWidgets('a check-out filed: the form already read today again, so the '
+      'slide does not read it a second time', (tester) async {
+    final now = DateTime.now();
+    final attendance = FakeAttendanceRepository();
+    final offsite = FakeOffsiteRepository()
+      ..waitingResult = Result.success([
+        waitingOffsite(
+          method: OffsiteMethod.checkIn,
+          at: DateTime(now.year, now.month, now.day, 8),
+        ),
+      ]);
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) {
+                ref.watch(attendanceNotifierProvider);
+                return TextButton(
+                  onPressed: () => PunchFlow.start(context, ref),
+                  child: const Text('PUNCH'),
+                );
+              },
+            ),
+          ),
+        ),
+        // The form: filed, it closes saying so.
+        GoRoute(
+          path: AppRoutes.offsiteRequest,
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => context.pop(true),
+              child: const Text('FILED'),
+            ),
+          ),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          attendanceRepositoryProvider.overrideWithValue(attendance),
+          offsiteRepositoryProvider.overrideWithValue(offsite),
+          punchLocationSourceProvider.overrideWithValue(
+            FakePunchLocationSource(),
+          ),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('PUNCH'));
+    await tester.pumpAndSettle();
+    final todayBefore = attendance.todayCalls;
+
+    await tester.tap(find.text('FILED'));
+    await tester.pumpAndSettle();
+
+    expect(attendance.todayCalls, todayBefore);
+  });
 }

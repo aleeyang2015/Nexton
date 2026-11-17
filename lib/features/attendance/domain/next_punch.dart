@@ -41,8 +41,12 @@ class WaitingBoth extends NextPunch {
 /// 1. an open session in today's record ([clockedIn], #7's rule) → normal
 ///    clock-out;
 /// 2. an open OT clock-in ([otOpen], #34) → normal clock-out;
-/// 3. a waiting off-site check-in scanned [today] or the day before, with no
-///    waiting check-out paired to it → off-site clock-out;
+/// 3. a waiting off-site check-in scanned [today] — or the day before when
+///    its shift crosses midnight (a night shift still running) — with no
+///    waiting check-out paired to it → off-site clock-out. A day shift's
+///    check-in from yesterday that was never closed does not hold today's
+///    slide on "clock out": today starts with a normal clock-in, and the
+///    server decides (an unknown shift is treated the same);
 /// 4. one with its check-out also waiting → [WaitingBoth];
 /// 5. else a normal clock-in.
 ///
@@ -62,9 +66,9 @@ NextPunch nextPunch({
   final checkIns = [
     for (final r in waiting)
       if (_waitingAs(r, OffsiteMethod.checkIn) &&
-          (r.scanDate == null
-              ? false
-              : _date(r.scanDate!) == day || _date(r.scanDate!) == yesterday))
+          r.scanDate != null &&
+          (_date(r.scanDate!) == day ||
+              (_date(r.scanDate!) == yesterday && _crossesMidnight(r))))
         r,
   ]..sort((a, b) => _when(b).compareTo(_when(a)));
   final checkOuts = [
@@ -97,7 +101,16 @@ bool _pairs(OffsiteRequestDetail checkIn, OffsiteRequestDetail out) {
   return !_when(out).isBefore(_when(checkIn));
 }
 
-/// When the scan was made: its time, or when it was sent.
-DateTime _when(OffsiteRequestDetail r) => r.scanTimestamp ?? r.submittedAt;
+/// When the scan was made: its time, or when it was sent; in local time
+/// (a time sent as an instant in UTC is turned into the phone's).
+DateTime _when(OffsiteRequestDetail r) =>
+    (r.scanTimestamp ?? r.submittedAt).toLocal();
+
+/// The scan's shift ends at or before it starts: it runs past midnight.
+bool _crossesMidnight(OffsiteRequestDetail r) {
+  final start = r.shift?.start;
+  final end = r.shift?.end;
+  return start != null && end != null && end <= start;
+}
 
 DateTime _date(DateTime t) => DateTime(t.year, t.month, t.day);

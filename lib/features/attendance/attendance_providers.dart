@@ -190,12 +190,14 @@ final readOffsiteLocationUseCaseProvider = Provider<ReadOffsiteLocationUseCase>(
   (ref) => ReadOffsiteLocationUseCase(ref.watch(punchLocationSourceProvider)),
 );
 
-/// The employee's own off-site requests, for the history page in front of the
-/// request form.
+/// The caller's off-site scans still waiting for a decision, for today's
+/// card (#41).
 final getWaitingOffsiteUseCaseProvider = Provider<GetWaitingOffsiteUseCase>(
   (ref) => GetWaitingOffsiteUseCase(ref.watch(offsiteRepositoryProvider)),
 );
 
+/// The employee's own off-site requests, for the history page in front of the
+/// request form.
 final getOffsiteHistoryUseCaseProvider = Provider<GetOffsiteHistoryUseCase>(
   (ref) => GetOffsiteHistoryUseCase(ref.watch(offsiteRepositoryProvider)),
 );
