@@ -146,7 +146,7 @@ Decided by the owner on 2026-11-16, during the work:
 
 1. **#43 (work order 42 of 60), "attendance: "forgot to scan" — rules and sending (no screen)": IMPLEMENTED, not
    merged.** Owner said go on 2026-11-17. Branch `43-correction-rules`: `3bb78d8` (feature), `3bffdd0` (review fixes). Gates:
-   analyze 1 warning already on `main`; `flutter test` 1,920 passed; debug APK builds. Waits for "push issue 43 to main
+   analyze 1 warning already on `main`; `flutter test` 1,921 passed; debug APK builds. Waits for "push issue 43 to main
    directly".
    - Look-back 30 days (was 90; decision 16), rule + picker + text. Profile parts read early/late minutes (part and
      weekly rows). `domain/correction_rules.dart`: window = start − early … end + late on that weekday, overnight by the
@@ -724,7 +724,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 39 | #40 | attendance: after a clock-in or clock-out refused for the area, scan outside the area with a photo and reason | `40-offsite-after-refusal` | `90823eb`, `7b616b4` | merged to main directly (`01bf4be`) | analyze: 1 warning already on `main`; `flutter test`: 1,843 passed, 0 failed; debug APK builds | MERGED, phone check pending |
 | 40 | #41 | attendance: the card shows a waiting off-site check-in, and clock-out goes as off-site too | `41-waiting-offsite` | `f6a1a8d`, `c45b99f` | merged to main directly (`a205629`) | analyze: 1 warning already on `main`; `flutter test`: 1,871 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 41 | #42 | attendance: my off-site requests — list, detail, cancel | `42-my-offsite-requests` | `47cc6b0`, `8733133` | merged to main directly (`2385f00`) | analyze: 1 warning already on `main`; `flutter test`: 1,892 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 42 | #43 | attendance: "forgot to scan" — rules and sending (no screen) | `43-correction-rules` | `3bb78d8`, `3bffdd0` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,920 passed, 0 failed; debug APK builds | IMPLEMENTED |
+| 42 | #43 | attendance: "forgot to scan" — rules and sending (no screen) | `43-correction-rules` | `3bb78d8`, `3bffdd0` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,921 passed, 0 failed; debug APK builds | IMPLEMENTED |
 | 43 | #44 | attendance: "forgot to scan" form, from a history day or the menu | | | | | NOT STARTED |
 | 44 | #45 | attendance: my "forgot to scan" requests — list, detail, cancel | | | | | NOT STARTED |
 | 45 | #46 | approvals: off-site scans for heads and HR | | | | | NOT STARTED |
