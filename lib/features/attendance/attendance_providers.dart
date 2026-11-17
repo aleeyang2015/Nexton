@@ -93,6 +93,13 @@ final clockOutUseCaseProvider = Provider<ClockOutUseCase>((ref) {
   return ClockOutUseCase(ref.watch(attendanceRepositoryProvider));
 });
 
+/// How long the card waits for `ot-sessions/open` before going by today's
+/// record alone: a slow OT read must not hold the slide locked for the
+/// network's full timeout. A provider so a test can shorten it.
+final openOtSessionTimeoutProvider = Provider<Duration>(
+  (ref) => const Duration(seconds: 5),
+);
+
 final getOpenOtSessionUseCaseProvider = Provider<GetOpenOtSessionUseCase>(
   (ref) => GetOpenOtSessionUseCase(ref.watch(attendanceRepositoryProvider)),
 );

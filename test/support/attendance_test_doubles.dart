@@ -51,6 +51,12 @@ class FakeAttendanceRepository implements AttendanceRepository {
 
   /// How many times the open OT session was asked for.
   int openOtCalls = 0;
+
+  /// When set, the next `todayRecord()` / `openOtSession()` waits for it
+  /// (taken by the call that sees it). Its answer is the one set when the
+  /// call was made.
+  Completer<void>? holdToday;
+  Completer<void>? holdOpenOt;
   final List<PunchRequest> clockInRequests = [];
   final List<PunchRequest> clockOutRequests = [];
   final List<DateRange> recordsRanges = [];
@@ -59,13 +65,21 @@ class FakeAttendanceRepository implements AttendanceRepository {
   @override
   FutureResult<AttendanceDay> todayRecord() async {
     todayCalls++;
-    return today;
+    final answer = today;
+    final hold = holdToday;
+    holdToday = null;
+    await hold?.future;
+    return answer;
   }
 
   @override
   FutureResult<OpenOtSession?> openOtSession() async {
     openOtCalls++;
-    return openOt;
+    final answer = openOt;
+    final hold = holdOpenOt;
+    holdOpenOt = null;
+    await hold?.future;
+    return answer;
   }
 
   @override
