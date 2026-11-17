@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#24 merged; #25 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#25 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 
 | | |
 |---|---|
-| Last finished work order | 23 of 60: #24, tap the OT line to see what each OT paid |
-| Next work order | **24 of 60: #25**, payslip: open the PDF in the App and share it. IMPLEMENTED on `25-payslip-pdf-viewer` (`de4324b`, `1a59b20`), pushed, reviewed; waits for "push issue 25 to main directly". After it: #26 |
-| `origin/main` | `2d744c4` "Merge branch '24-payslip-ot-items' into main" (2026-11-17) |
+| Last finished work order | 24 of 60: #25, the payslip PDF opens in the App, with Share |
+| Next work order | **25 of 60: #26**, payslip: the summary card shows the latest payslip. Not started, no branch, no plan yet |
+| `origin/main` | `9515eee` "Merge branch '25-payslip-pdf-viewer' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -57,7 +57,7 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#25: say "push issue 25 to main directly".** Built 2026-11-17 after the owner's go and package approval.
+1. **#25 merged** (`9515eee`) on the owner's say, 2026-11-17.
    **#24 merged** (`2d744c4`) on the owner's say, 2026-11-17. Still open: which Flutter version does the team use? The local `dart format` rewrites ~20
    salary files this change does not touch (reverted, not committed).
 10. **#75** (new, 17 Nov): docs only. `/auth/me` finds `employee_id` a new way; `lib/features/auth/auth.md` lines 24
@@ -115,10 +115,13 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#25 (work order 24 of 60), "payslip: open the PDF in the App and share it": IMPLEMENTED, not merged.**
+1. **Next: #26 (work order 25 of 60), "payslip: the summary card shows the latest payslip".** Read the issue and its
+   comments, show a plan, wait for "go".
+
+   **#25 (work order 24 of 60), "payslip: open the PDF in the App and share it": MERGED (`9515eee`), 2026-11-17.**
    Owner said go and approved the packages on 2026-11-17. Branch `25-payslip-pdf-viewer`: `de4324b` (feature),
    `1a59b20` (review fixes). Gates: analyze 1 warning already on `main`; `flutter test` 1,340 passed; debug APK builds.
-   Waits for "push issue 25 to main directly". Then #26.
+   Merged on the owner's "push issue 25 to main directly"; gates green on the merge commit (1,340 tests).
    - Packages: `share_plus ^12.0.2` (not 13: 13 needs `win32` 6, `file_picker` 11 allows only 5), `pdfx ^2.11.0`,
      `path_provider ^2.1.5` (was transitive at 2.1.5). The lock only gains the new packages.
    - Both PDF buttons open `/salary-history/payslip/:id/pdf`: the PDF in the App (pdfx), Share (share_plus, iPad
@@ -374,7 +377,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 21 | #22 | payslip: name, group and caption every payslip line | `22-payslip-line-names` | `123e7d3`, `c8626d5` | merged to main directly (`e9496d6`) | analyze clean, 1,225 tests, debug APK | MERGED — functions and strings only; no screen uses them until #23 |
 | 22 | #23 | payslip: the payslip page opens by id and shows the real lines | `23-payslip-page-by-id` | `61e9f13`, `5c3f1b5` | merged to main directly (`b55b1ed`) | analyze clean, 1,261 tests, debug APK | MERGED, phone check on `nexton-demo` pending — was on the owner's BLOCKED list; built after the backend's "now live" comment (13 Nov) and the owner's go |
 | 23 | #24 | payslip: tap the OT line to see what each OT paid | `24-payslip-ot-items` | `0e0962b`, `1d51810` | merged to main directly (`2d744c4`) | analyze: 1 warning already on `main`; `flutter test`: 1,284 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 24 | #25 | payslip: open the PDF in the App and share it | `25-payslip-pdf-viewer` | `de4324b`, `1a59b20` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,340 passed, 0 failed; debug APK builds; phone check (Android and iOS) on `nexton-demo` pending | IMPLEMENTED |
+| 24 | #25 | payslip: open the PDF in the App and share it | `25-payslip-pdf-viewer` | `de4324b`, `1a59b20` | merged to main directly (`9515eee`) | analyze: 1 warning already on `main`; `flutter test`: 1,340 passed, 0 failed; debug APK builds | MERGED, phone check (Android and iOS) on `nexton-demo` pending |
 | 25 | #26 | payslip: the summary card shows the latest payslip | | | | | NOT STARTED |
 | 26 | #27 | overtime: OT types and JSON reading (no screen yet) | | | | | NOT STARTED |
 | 27 | #28 | overtime: OT calls, error codes and Lao text | | | | | NOT STARTED |
