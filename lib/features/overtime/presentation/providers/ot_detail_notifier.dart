@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failure.dart';
+import '../../../../core/utils/result.dart';
+import '../../data/datasources/ot_error_code.dart';
 import '../../domain/entities/ot_request.dart';
 import '../../overtime_providers.dart';
 import 'ot_list_notifier.dart';
@@ -78,6 +80,38 @@ class OtDetailNotifier extends AutoDisposeFamilyAsyncNotifier<OtRequest, String>
       },
     );
   }
+
+  bool _cancelling = false;
+
+  /// Cancels the request (`PUT /ot-requests/:id/cancel`) and returns the
+  /// server's answer, for the page to say what happened; null when a cancel
+  /// was already on its way (a double tap sends one).
+  ///
+  /// On success the cancelled request the server sent back is shown at
+  /// once. A refusal that means the page is out of date (already decided)
+  /// or the request is gone (`404`) reloads it, so the buttons go, or the
+  /// page learns it is gone.
+  Future<Result<OtRequest>?> cancel() async {
+    if (_cancelling) return null;
+    _cancelling = true;
+    try {
+      final result = await ref.read(cancelOtUseCaseProvider)(arg);
+      if (_disposed) return result;
+      await result.fold(
+        (failure) async {
+          if (isGone(failure) || _isAlreadyDecided(failure)) await refresh();
+        },
+        (request) async => replace(request),
+      );
+      return result;
+    } finally {
+      _cancelling = false;
+    }
+  }
+
+  static bool _isAlreadyDecided(Failure failure) =>
+      failure is ValidationFailure &&
+      failure.message == OtErrorCode.tokenAlreadyDecided;
 
   /// Shows [request], an answer an action already gave (#32, #49), with no
   /// second request. A copy of another request is ignored.

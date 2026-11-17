@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/features/overtime/data/datasources/ot_error_code.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_request.dart';
 import 'package:next_on/features/overtime/overtime_providers.dart';
 import 'package:next_on/features/overtime/presentation/providers/ot_detail_notifier.dart';
@@ -149,5 +150,71 @@ void main() {
     }
 
     expect(container.read(provider).valueOrNull?.status, OtStatus.cancelled);
+  });
+
+  group('cancel', () {
+    test('cancels, and shows the cancelled request the server sent back, '
+        'with no second load', () async {
+      await load();
+
+      final result = await container.read(provider.notifier).cancel();
+
+      expect(result?.isSuccess, isTrue);
+      expect(repository.cancels, ['ot-1']);
+      expect(container.read(provider).valueOrNull?.status, OtStatus.cancelled);
+      expect(repository.requestIds, ['ot-1']);
+    });
+
+    test('a second cancel while one is on its way sends nothing', () async {
+      await load();
+      final hold = Completer<void>();
+      repository.holdCancel = hold;
+
+      final first = container.read(provider.notifier).cancel();
+      final second = await container.read(provider.notifier).cancel();
+      hold.complete();
+      await first;
+
+      expect(second, isNull);
+      expect(repository.cancels, hasLength(1));
+    });
+
+    test('already decided: says so, and the page reloads (the buttons go)',
+        () async {
+      await load();
+      repository.cancelAnswer = (_) => const Result.failure(
+        Failure.validation(message: OtErrorCode.tokenAlreadyDecided),
+      );
+      repository.requestAnswer = (id) =>
+          Result.success(sampleOt(id, status: OtStatus.approved));
+
+      final result = await container.read(provider.notifier).cancel();
+
+      expect(result?.failureOrNull?.message, OtErrorCode.tokenAlreadyDecided);
+      expect(repository.requestIds, ['ot-1', 'ot-1']);
+      expect(container.read(provider).valueOrNull?.status, OtStatus.approved);
+    });
+
+    test('gone (404): the page learns it, for the toast and the way back',
+        () async {
+      await load();
+      repository.cancelAnswer = (_) => const Result.failure(gone);
+      repository.requestAnswer = (_) => const Result.failure(gone);
+
+      await container.read(provider.notifier).cancel();
+
+      expect(container.read(provider).error, gone);
+    });
+
+    test('no signal: the request stays as it was', () async {
+      await load();
+      repository.cancelAnswer = (_) => const Result.failure(offline);
+
+      final result = await container.read(provider.notifier).cancel();
+
+      expect(result?.failureOrNull, offline);
+      expect(container.read(provider).valueOrNull?.status, OtStatus.pending);
+      expect(repository.requestIds, ['ot-1']);
+    });
   });
 }

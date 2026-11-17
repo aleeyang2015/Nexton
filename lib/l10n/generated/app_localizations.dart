@@ -3499,6 +3499,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clock OT with this App, not the door scanner. A forgotten OT clock-out pays nothing.'**
   String get otClockHintThisApp;
+
+  /// No description provided for @otEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get otEditAction;
+
+  /// No description provided for @otCancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get otCancelAction;
+
+  /// No description provided for @otAskApproverToChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Need a change or to cancel? Ask your approver or HR.'**
+  String get otAskApproverToChange;
+
+  /// No description provided for @otEditRestartsApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'When you save, the approval starts again from the first step.'**
+  String get otEditRestartsApproval;
+
+  /// No description provided for @otSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get otSaved;
+
+  /// No description provided for @otSaveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get otSaveAction;
+
+  /// No description provided for @otCancelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this OT request?'**
+  String get otCancelConfirm;
+
+  /// No description provided for @otCancelledToast.
+  ///
+  /// In en, this message translates to:
+  /// **'OT request cancelled'**
+  String get otCancelledToast;
 }
 
 class _AppLocalizationsDelegate

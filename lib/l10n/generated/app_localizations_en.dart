@@ -1913,4 +1913,30 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get otClockHintThisApp =>
       'Clock OT with this App, not the door scanner. A forgotten OT clock-out pays nothing.';
+
+  @override
+  String get otEditAction => 'Edit';
+
+  @override
+  String get otCancelAction => 'Cancel';
+
+  @override
+  String get otAskApproverToChange =>
+      'Need a change or to cancel? Ask your approver or HR.';
+
+  @override
+  String get otEditRestartsApproval =>
+      'When you save, the approval starts again from the first step.';
+
+  @override
+  String get otSaved => 'Saved';
+
+  @override
+  String get otSaveAction => 'Save';
+
+  @override
+  String get otCancelConfirm => 'Cancel this OT request?';
+
+  @override
+  String get otCancelledToast => 'OT request cancelled';
 }

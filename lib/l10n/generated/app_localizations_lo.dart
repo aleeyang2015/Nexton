@@ -1898,4 +1898,30 @@ class AppLocalizationsLo extends AppLocalizations {
   @override
   String get otClockHintThisApp =>
       'ສະແກນໂອທີດ້ວຍແອັບນີ້ ບໍ່ແມ່ນເຄື່ອງສະແກນທີ່ປະຕູ. ລືມສະແກນອອກ: ໂອທີນັ້ນບໍ່ໄດ້ຈ່າຍ.';
+
+  @override
+  String get otEditAction => 'ແກ້ໄຂ';
+
+  @override
+  String get otCancelAction => 'ຍົກເລີກ';
+
+  @override
+  String get otAskApproverToChange =>
+      'ຢາກປ່ຽນ ຫຼື ຍົກເລີກ? ກະລຸນາຖາມຜູ້ອະນຸມັດ ຫຼື ຝ່າຍບຸກຄະລາກອນ.';
+
+  @override
+  String get otEditRestartsApproval =>
+      'ເມື່ອບັນທຶກ, ຄຳຂໍຈະເລີ່ມອະນຸມັດໃໝ່ຕັ້ງແຕ່ຕົ້ນ.';
+
+  @override
+  String get otSaved => 'ບັນທຶກແລ້ວ';
+
+  @override
+  String get otSaveAction => 'ບັນທຶກ';
+
+  @override
+  String get otCancelConfirm => 'ຍົກເລີກຄຳຂໍໂອທີນີ້ບໍ?';
+
+  @override
+  String get otCancelledToast => 'ຍົກເລີກຄຳຂໍໂອທີແລ້ວ';
 }

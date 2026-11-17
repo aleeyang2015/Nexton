@@ -6,6 +6,7 @@ import 'package:next_on/features/overtime/domain/entities/ot_draft.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_page.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_post.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_request.dart';
+import 'package:next_on/features/overtime/domain/entities/ot_step.dart';
 import 'package:next_on/features/overtime/domain/repositories/ot_repository.dart';
 
 /// One `myRequests` call, as the fake saw it.
@@ -42,6 +43,34 @@ class FakeOtRepository implements OtRepository {
 
   /// When set, an ask waits for it (taken by the call that sees it).
   Completer<void>? holdAsk;
+
+  /// Every edit sent: the request's id and the new draft.
+  final List<({String id, OtDraft draft})> edits = [];
+
+  /// The answer to an edit; by default the request with the new day and
+  /// times, its steps started again.
+  Result<OtRequest> Function(String id, OtDraft draft) editAnswer =
+      (id, draft) => Result.success(
+        sampleOt(
+          id,
+          workDate: draft.workDate,
+          start: draft.startTime,
+          end: draft.endTime,
+        ),
+      );
+
+  /// When set, an edit waits for it (taken by the call that sees it).
+  Completer<void>? holdEdit;
+
+  /// The ids cancel was asked for, in order.
+  final List<String> cancels = [];
+
+  /// The answer to a cancel; by default the request, cancelled.
+  Result<OtRequest> Function(String id) cancelAnswer = (id) =>
+      Result.success(sampleOt(id, status: OtStatus.cancelled));
+
+  /// When set, a cancel waits for it (taken by the call that sees it).
+  Completer<void>? holdCancel;
 
   /// The ids the detail call was asked for, in order.
   final List<String> requestIds = [];
@@ -90,10 +119,24 @@ class FakeOtRepository implements OtRepository {
   }
 
   @override
-  FutureResult<OtRequest> edit(String id, OtDraft draft) => _unused();
+  FutureResult<OtRequest> edit(String id, OtDraft draft) async {
+    edits.add((id: id, draft: draft));
+    final answer = editAnswer(id, draft);
+    final hold = holdEdit;
+    holdEdit = null;
+    await hold?.future;
+    return answer;
+  }
 
   @override
-  FutureResult<OtRequest> cancel(String id) => _unused();
+  FutureResult<OtRequest> cancel(String id) async {
+    cancels.add(id);
+    final answer = cancelAnswer(id);
+    final hold = holdCancel;
+    holdCancel = null;
+    await hold?.future;
+    return answer;
+  }
 
   @override
   FutureResult<OtPage<OtPost>> openPosts({
@@ -119,9 +162,14 @@ OtRequest sampleOt(
   OtStatus status = OtStatus.pending,
   String? announcementId,
   bool didNotCome = false,
+  String employeeId = 'emp-noy',
+  String? reason,
+  List<OtStep> steps = const [],
 }) => OtRequest(
   id: id,
-  employeeId: 'emp-noy',
+  employeeId: employeeId,
+  reason: reason,
+  steps: steps,
   workDate: workDate ?? DateTime(2026, 11, 14),
   startTime: start,
   endTime: end,

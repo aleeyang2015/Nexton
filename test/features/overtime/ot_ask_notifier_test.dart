@@ -10,6 +10,7 @@ import 'package:next_on/features/overtime/data/datasources/ot_error_code.dart';
 import 'package:next_on/features/overtime/overtime_providers.dart';
 import 'package:next_on/features/overtime/presentation/providers/ot_ask_notifier.dart';
 import 'package:next_on/features/overtime/presentation/providers/ot_ask_state.dart';
+import 'package:next_on/features/overtime/presentation/providers/ot_detail_notifier.dart';
 import 'package:next_on/features/overtime/presentation/providers/ot_list_notifier.dart';
 
 import '../../support/overtime_test_doubles.dart';
@@ -32,11 +33,11 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-    container.listen(otAskNotifierProvider, (_, _) {});
+    container.listen(otAskNotifierProvider(null), (_, _) {});
   });
 
-  OtAskState state() => container.read(otAskNotifierProvider);
-  OtAskNotifier form() => container.read(otAskNotifierProvider.notifier);
+  OtAskState state() => container.read(otAskNotifierProvider(null));
+  OtAskNotifier form() => container.read(otAskNotifierProvider(null).notifier);
 
   void fill({
     DateTime? date,
@@ -282,12 +283,134 @@ void main() {
       ],
     );
     addTearDown(moving.dispose);
-    moving.listen(otAskNotifierProvider, (_, _) {});
-    expect(moving.read(otAskNotifierProvider).isPastDate, isFalse);
+    moving.listen(otAskNotifierProvider(null), (_, _) {});
+    expect(moving.read(otAskNotifierProvider(null)).isPastDate, isFalse);
 
     clock = DateTime(2026, 11, 12, 0, 5);
-    moving.read(otAskNotifierProvider.notifier).setStart(18, 0);
+    moving.read(otAskNotifierProvider(null).notifier).setStart(18, 0);
 
-    expect(moving.read(otAskNotifierProvider).isPastDate, isTrue);
+    expect(moving.read(otAskNotifierProvider(null)).isPastDate, isTrue);
+  });
+
+  group('changing a waiting request', () {
+    final waiting = sampleOt(
+      'ot-7',
+      workDate: DateTime(2026, 11, 14),
+      reason: 'Stock count',
+    );
+    final edit = otAskNotifierProvider(waiting);
+
+    OtAskState editState() => container.read(edit);
+    OtAskNotifier editForm() => container.read(edit.notifier);
+
+    setUp(() => container.listen(edit, (_, _) {}));
+
+    test('the form starts with the request\'s day, times and reason', () {
+      expect(editState().workDate, DateTime(2026, 11, 14));
+      expect(editState().startTime, '18:00');
+      expect(editState().endTime, '20:00');
+      expect(editState().reason, 'Stock count');
+      expect(editState().canSend, isTrue);
+    });
+
+    test('a time sent with seconds (18:00:00) is read as 18:00', () {
+      final withSeconds = otAskNotifierProvider(
+        sampleOt('ot-8', start: '18:00:00', end: 'later'),
+      );
+      container.listen(withSeconds, (_, _) {});
+
+      expect(container.read(withSeconds).startTime, '18:00');
+      // Not a time: left for the user to pick.
+      expect(container.read(withSeconds).endTime, isNull);
+    });
+
+    test('an impossible time (25:99) is left for the user to pick', () {
+      final odd = otAskNotifierProvider(sampleOt('ot-9', start: '25:99'));
+      container.listen(odd, (_, _) {});
+
+      expect(container.read(odd).startTime, isNull);
+      expect(container.read(odd).canSend, isFalse);
+    });
+
+    test('a reason the server sends over 2000 code points is cut to 2000', () {
+      final long = otAskNotifierProvider(
+        sampleOt('ot-10', reason: 'ກໍ່' * 1000),
+      );
+      container.listen(long, (_, _) {});
+
+      expect(container.read(long).reason.runes.length, 2000);
+    });
+
+    test('Save sends the change to that request, not a new ask', () async {
+      editForm()
+        ..setStart(19, 0)
+        ..setEnd(21, 0);
+
+      final saved = await editForm().submit();
+
+      expect(repository.asked, isEmpty);
+      expect(repository.edits.single.id, 'ot-7');
+      expect(repository.edits.single.draft.startTime, '19:00');
+      expect(repository.edits.single.draft.endTime, '21:00');
+      expect(repository.edits.single.draft.reason, 'Stock count');
+      expect(saved?.startTime, '19:00');
+    });
+
+    test('saved: the request page underneath shows the answer, with no '
+        'second load', () async {
+      final detail = otDetailNotifierProvider('ot-7');
+      container.listen(detail, (_, _) {});
+      await container.read(detail.future);
+      editForm().setEnd(21, 0);
+
+      await editForm().submit();
+
+      expect(container.read(detail).valueOrNull?.endTime, '21:00');
+      expect(repository.requestIds, ['ot-7']);
+    });
+
+    test('decided meanwhile: the refusal, and the request page reloads',
+        () async {
+      final detail = otDetailNotifierProvider('ot-7');
+      container.listen(detail, (_, _) {});
+      await container.read(detail.future);
+      repository.editAnswer = (_, _) => const Result.failure(
+        Failure.validation(message: OtErrorCode.tokenAlreadyDecided),
+      );
+
+      await editForm().submit();
+
+      expect(OtAskNotifier.isTooLate(editState().refusal), isTrue);
+      expect(repository.requestIds, ['ot-7', 'ot-7']);
+    });
+
+    test('an ask refusal keeps the form, and reloads nothing', () async {
+      repository.editAnswer = (_, _) => const Result.failure(
+        Failure.validation(message: OtErrorCode.tokenOverlapsShift),
+      );
+      editForm().setStart(16, 0);
+
+      await editForm().submit();
+
+      expect(editState().refusal?.message, OtErrorCode.tokenOverlapsShift);
+      expect(editState().startTime, '16:00');
+      expect(OtAskNotifier.isTooLate(editState().refusal), isFalse);
+      expect(repository.requestIds, isEmpty);
+    });
+
+    test('OT_ANNOUNCED counts as too late; a 404 as gone', () {
+      expect(
+        OtAskNotifier.isTooLate(
+          const Failure.validation(message: OtErrorCode.tokenAnnounced),
+        ),
+        isTrue,
+      );
+      expect(
+        OtAskNotifier.isGone(
+          const Failure.network(message: 'not found', statusCode: 404),
+        ),
+        isTrue,
+      );
+    });
   });
 }
