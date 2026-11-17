@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#29 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#30 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 
 | | |
 |---|---|
-| Last finished work order | 28 of 60: #29, overtime: my OT list, on its own tile |
-| Next work order | **29 of 60: #30**, overtime: an OT request page that opens by id. Not started, no branch, no plan yet |
-| `origin/main` | `444929f` "Merge branch '29-ot-list' into main" (2026-11-17) |
+| Last finished work order | 29 of 60: #30, overtime: an OT request page that opens by id |
+| Next work order | **30 of 60: #31**, overtime: ask for OT. Not started, no branch, no plan yet |
+| `origin/main` | `41c604f` "Merge branch '30-ot-request-page' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -57,7 +57,9 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#29 merged** (`444929f`) on the owner's say, 2026-11-17. A Lao speaker to check
+1. **#30 merged** (`41c604f`) on the owner's say, 2026-11-17, after the review fixes (owner chose "fix first, then
+   merge").
+   **#29 merged** (`444929f`) on the owner's say, 2026-11-17. A Lao speaker to check
    `otPickMonth` "ເລືອກເດືອນ" (not from the issue).
    **#28 merged** (`c8ccd35`) on the owner's say, 2026-11-17. Still to confirm with the backend: cancel answers `403 FORBIDDEN` as "a waiting request: reject it instead" (the issue's table). If the
    server also sends `FORBIDDEN` when an employee cancels a request that is not theirs, that employee would read
@@ -128,8 +130,28 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #30 (work order 29 of 60), "overtime: an OT request page that opens by id".** Read the issue and its
-   comments, show a plan, wait for "go". Rows in `OtRequestRow` become tappable; reuse `otPayLabel` (#24).
+1. **Next: #31 (work order 30 of 60), "overtime: ask for OT".** Read the issue and its comments, show a plan, wait
+   for "go". After an ask, open `AppRoutes.otRequest(id)`; `OtListNotifier.showRow` / `refresh` keep the list right.
+
+   **#30 (work order 29 of 60), "overtime: an OT request page that opens by id": MERGED (`41c604f`), 2026-11-17.**
+   Branch `30-ot-request-page`: `d4e2f6f` (feature), `0acf102` (review fixes). Gates on the merge commit: analyze 1
+   warning already on `main`; `flutter test` 1,552 passed; debug APK builds.
+   - `/overtime/request/:id` (`overtimeRoutes`, list row as `extra` when the id matches). `OtDetailNotifier`
+     (autoDispose family; refresh keeps the copy except on 404; late answers and the first load never undo a
+     newer `replace`; keeps the list's row in step: `OtListNotifier.showRow` / `dropRow`, so going back asks for
+     nothing and loaded pages stay). Page: header, "ລໍຖ້າ: …", reason or —, leave timeline via `OtStepAdapter`
+     with the shared `LeaveStepNote` (role • approver, note; moved out of the leave page), pieces with
+     `otPayLabel`, "HR sets…" while pending, HR's note, the four notes only when set, "paid on your payslip" when
+     approved; never an amount. 404: toast + back (to `/overtime` when nothing underneath). Retry shows the spinner.
+   Open after #30, none built there:
+   - a 404 goes back to whatever is underneath: from a #53 push over another screen it returns there, not to the
+     list;
+   - a piece past midnight shows `22:00–06:00` with no "(next day)" marker;
+   - `pendingStep` takes the first pending step in list order, not by `stepNo`;
+   - one leave test (`leave_approvals_card_test.dart`) did not complete once during the work and passed on two
+     reruns: watch for a flaky test.
+
+   **#29 (work order 28 of 60), "overtime: my OT list, on its own tile": MERGED (`444929f`), 2026-11-17.** Owner said go
 
    **#29 (work order 28 of 60), "overtime: my OT list, on its own tile": MERGED (`444929f`), 2026-11-17.** Owner said go
    on 2026-11-17. Branch `29-ot-list`: `3728c18` (feature), `4615de2` (review fixes). Gates: analyze 1 warning
@@ -477,7 +499,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 26 | #27 | overtime: OT types and JSON reading (no screen yet) | `27-overtime-models` | `ef5fe9c`, `5ff8a06` | merged to main directly (`9a871bb`) | analyze: 1 warning already on `main`; `flutter test`: 1,416 passed, 0 failed; debug APK builds | MERGED, a real `nexton-demo` request and post to be checked against the reader |
 | 27 | #28 | overtime: OT calls, error codes and Lao text | `28-overtime-calls` | `09944a4`, `7dbfb73` | merged to main directly (`c8ccd35`) | analyze: 1 warning already on `main`; `flutter test`: 1,459 passed, 0 failed; debug APK builds | MERGED |
 | 28 | #29 | overtime: my OT list, on its own tile | `29-ot-list` | `3728c18`, `4615de2` | merged to main directly (`444929f`) | analyze: 1 warning already on `main`; `flutter test`: 1,513 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 29 | #30 | overtime: an OT request page that opens by id | | | | | NOT STARTED |
+| 29 | #30 | overtime: an OT request page that opens by id | `30-ot-request-page` | `d4e2f6f`, `0acf102` | merged to main directly (`41c604f`) | analyze: 1 warning already on `main`; `flutter test`: 1,552 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 30 | #31 | overtime: ask for OT | | | | | NOT STARTED |
 | 31 | #32 | overtime: edit or cancel my OT while it waits | | | | | NOT STARTED |
 | 32 | #33 | overtime: see HR's OT posts for my department and join one | | | | | NOT STARTED |
