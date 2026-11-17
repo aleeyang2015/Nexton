@@ -1,0 +1,55 @@
+import '../../domain/entities/ot_request.dart';
+import 'ot_parse.dart';
+import 'ot_piece_model.dart';
+import 'ot_step_model.dart';
+
+/// Reads an OT request (`OTRequestResponse`).
+///
+/// Tolerant: a field missing or of the wrong type gets its empty value, so
+/// one odd field never loses the request. The one thing refused is a
+/// request with no id ([FormatException]): nothing could open it. Keys the
+/// App does not use (`warnings` on a decision, `paid_by_hand_by`,
+/// `employee.department`) are ignored.
+class OtRequestModel {
+  OtRequestModel._();
+
+  static OtRequest fromJson(Map<String, dynamic> json) {
+    final id = OtJson.nonEmpty(json['id']);
+    if (id == null) {
+      throw const FormatException('An OT request without an id');
+    }
+    final employee = OtJson.object(json['employee']);
+
+    return OtRequest(
+      id: id,
+      employeeId:
+          OtJson.str(json['employee_id']) ?? OtJson.str(employee?['id']) ?? '',
+      employeeName: OtJson.nonEmpty(employee?['name']),
+      employeeNumber: OtJson.nonEmpty(employee?['employee_number']),
+      announcementId: OtJson.nonEmpty(json['announcement_id']),
+      workDate: OtJson.date(json['work_date']),
+      startTime: OtJson.str(json['start_time']) ?? '',
+      endTime: OtJson.str(json['end_time']) ?? '',
+      endsNextDay: OtJson.boolOf(json['ends_next_day']),
+      startsAt: OtJson.instant(json['starts_at']),
+      endsAt: OtJson.instant(json['ends_at']),
+      reason: OtJson.nonEmpty(json['reason']),
+      agreementNote: OtJson.nonEmpty(json['agreement_note']),
+      status: switch (json['status']) {
+        'pending' => OtStatus.pending,
+        'approved' => OtStatus.approved,
+        'rejected' => OtStatus.rejected,
+        'cancelled' => OtStatus.cancelled,
+        _ => OtStatus.unknown,
+      },
+      currentStepNo: OtJson.intOf(json['current_step_no']) ?? 0,
+      hrOnly: OtJson.boolOf(json['hr_only']),
+      didNotCome: OtJson.boolOf(json['did_not_come']),
+      paidByHandAt: OtJson.wallClock(json['paid_by_hand_at']),
+      createdAt: OtJson.wallClock(json['created_at']),
+      updatedAt: OtJson.wallClock(json['updated_at']),
+      steps: OtJson.objects(json['steps']).map(OtStepModel.fromJson).toList(),
+      pieces: OtJson.objects(json['pieces']).map(OtPieceModel.fromJson).toList(),
+    );
+  }
+}
