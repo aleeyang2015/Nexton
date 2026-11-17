@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#32 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#32 merged; #33 built, waiting for the owner's merge say). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 | | |
 |---|---|
 | Last finished work order | 31 of 60: #32, overtime: edit or cancel my OT while it waits |
-| Next work order | **32 of 60: #33**, overtime: see HR's OT posts for my department and join one. Not started, no branch, no plan yet |
+| Next work order | **32 of 60: #33**, overtime: see HR's OT posts and join one. IMPLEMENTED on `33-ot-posts` (`ceaf702`, `6b7cadf`), pushed, reviewed; waits for "push issue 33 to main directly". After it: #34 |
 | `origin/main` | `c8880d6` "Merge branch '32-ot-edit-cancel' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
@@ -57,7 +57,8 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#32 merged** (`c8880d6`) on the owner's say, 2026-11-17. A login whose `employee_id`
+1. **#33: say "push issue 33 to main directly".** Built 2026-11-17 after the owner's go.
+   **#32 merged** (`c8880d6`) on the owner's say, 2026-11-17. A login whose `employee_id`
    is null (#75) sees no Edit/Cancel on its own request (the issue's "own employee only" read safely).
    **#31 merged** (`446a272`) on the owner's say, 2026-11-17. For the backend: the reason's
    2000 limit is kept in code points on the App side (a Lao letter is several); confirm how the server counts.
@@ -134,9 +135,20 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #33 (work order 32 of 60), "overtime: see HR's OT posts for my department and join one".** Read the
-   issue and its comments, show a plan, wait for "go". `OtPost.joined`, `OtPostModel.tryFromJson`, the join call and
-   `otRequest(id)` are ready.
+1. **#33 (work order 32 of 60), "overtime: see HR's OT posts for my department and join one": IMPLEMENTED, not
+   merged.** Owner said go on 2026-11-17. Branch `33-ot-posts`: `ceaf702` (feature), `6b7cadf` (review fixes). Gates:
+   analyze 1 warning already on `main`; `flutter test` 1,670 passed; debug APK builds. Waits for "push issue 33 to
+   main directly". Then #34 (the clock button knows about an open OT session).
+   - `/overtime/posts` (entry ປະກາດໂອທີ at the top of the OT list). `OtPostButton` (pure, the guide's rule 1.5;
+     an unreadable `my_join` never offers Join). `OtPostsNotifier`: page-number paging, refresh that keeps posts
+     (and their load-more) on failure, join one at a time across cards, refused when the card no longer offers
+     Join; the posts reload after every join answer; the OT list reloads after a join even if the page closed.
+     Card: day, window, pieces + pay, places left (≥ 0) / no limit, closes (deadline, else start), reason.
+     Join asks first (Back for no). Coming back from my join's page reloads the posts.
+   - Also fixed in #29's OT list: a failed refresh during a load-more left the footer spinning for ever.
+   Open after #33, none built there:
+   - the closing time and piece times are in the phone's time zone (the two-clocks question);
+   - nothing proves Join's question cannot open twice (a double tap opens one without the guard here).
 
    **#32 (work order 31 of 60), "overtime: edit or cancel my OT while it waits": MERGED (`c8880d6`), 2026-11-17.** Owner
    said go on 2026-11-17. Branch `32-ot-edit-cancel`: `16d741e` (feature), `eced537` (review fixes). Gates: analyze
@@ -543,7 +555,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 29 | #30 | overtime: an OT request page that opens by id | `30-ot-request-page` | `d4e2f6f`, `0acf102` | merged to main directly (`41c604f`) | analyze: 1 warning already on `main`; `flutter test`: 1,552 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 30 | #31 | overtime: ask for OT | `31-ot-ask` | `c3659c1`, `fdc36ec` | merged to main directly (`446a272`) | analyze: 1 warning already on `main`; `flutter test`: 1,598 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 31 | #32 | overtime: edit or cancel my OT while it waits | `32-ot-edit-cancel` | `16d741e`, `eced537` | merged to main directly (`c8880d6`) | analyze: 1 warning already on `main`; `flutter test`: 1,636 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 32 | #33 | overtime: see HR's OT posts for my department and join one | | | | | NOT STARTED |
+| 32 | #33 | overtime: see HR's OT posts for my department and join one | `33-ot-posts` | `ceaf702`, `6b7cadf` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,670 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
 | 33 | #34 | overtime: the clock button knows about an open OT session | | | | | NOT STARTED |
 | 34 | #35 | attendance: show OT hours on the summary and history | | | | | BLOCKED: backend, OT hours |
 | 35 | #36 | approvals: one Approvals place, only for department heads and HR (leave moves in) | | | | | NOT STARTED |
