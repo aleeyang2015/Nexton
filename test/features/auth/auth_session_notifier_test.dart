@@ -254,6 +254,22 @@ void main() {
       expect(current().status, AuthStatus.authenticated);
     });
 
+    test('returning twice while one is on its way: one /auth/me', () async {
+      repository.restoreResult = Result.success(AuthSession.signedIn(testUser()));
+      await session();
+      final slow = Completer<void>();
+      repository.holdProfile = slow;
+      final notifier = container.read(authSessionProvider.notifier);
+
+      final first = notifier.refreshOnResume();
+      await notifier.refreshOnResume();
+      slow.complete();
+      await first;
+      await notifier.refreshOnResume();
+
+      expect(repository.fetchProfileCalls, 2);
+    });
+
     test('signed out: nothing is asked', () async {
       await session();
 

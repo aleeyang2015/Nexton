@@ -63,9 +63,18 @@ class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   Future<UserModel> fetchProfile({Duration? timeout}) async {
     profileCalls++;
     lastProfileTimeout = timeout;
-    if (profileError != null) throw profileError!;
-    return profile!;
+    final answer = profile;
+    final error = profileError;
+    final hold = holdProfile;
+    holdProfile = null;
+    await hold?.future;
+    if (error != null) throw error;
+    return answer!;
   }
+
+  /// When set, the next [fetchProfile] waits for it before answering with
+  /// what was set when it was called.
+  Completer<void>? holdProfile;
 
   @override
   Future<void> changePassword({

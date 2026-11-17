@@ -135,7 +135,13 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       final user = (await _remote.fetchProfile()).withDepartmentHead(
         cached?.isDepartmentHead,
       );
-      await _local.writeUser(user);
+      // Saved only while that user is still the one signed in on the phone:
+      // an answer that lands after a sign-out (or another user's sign-in)
+      // must not put the last user's profile back on disk.
+      final now = await _local.readUser();
+      if (now != null && now.id == user.id && await _local.hasTokens()) {
+        await _local.writeUser(user);
+      }
       return user.toEntity();
     });
   }

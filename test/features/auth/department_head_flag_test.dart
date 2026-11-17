@@ -157,6 +157,40 @@ void main() {
       expect(user.dataOrNull?.isDepartmentHead, isTrue);
     });
 
+    test('a refresh answering after sign-out is not saved on the phone',
+        () async {
+      await loginHead(loginSays: true, meSays: true);
+      final slow = Completer<void>();
+      remote.holdProfile = slow;
+
+      final refresh = repository.fetchProfile();
+      await repository.logout();
+      slow.complete();
+      await refresh;
+
+      expect(await local.readUser(), isNull);
+    });
+
+    test('a refresh answering after another user signed in does not '
+        'overwrite their saved profile', () async {
+      await loginHead(loginSays: true, meSays: true);
+      final slow = Completer<void>();
+      remote.holdProfile = slow;
+
+      final refresh = repository.fetchProfile();
+      await repository.logout();
+      remote
+        ..loginResponse = testTokens()
+        ..profile = testUserModel(id: 'someone-else', isDepartmentHead: false);
+      await repository.login(email: 'b@c.la', password: 'p');
+      slow.complete();
+      await refresh;
+
+      final saved = await local.readUser();
+      expect(saved?.id, 'someone-else');
+      expect(saved?.isDepartmentHead, isFalse);
+    });
+
     test('sign-out drops it: the next login on the phone starts clean',
         () async {
       await loginHead(loginSays: true, meSays: true);

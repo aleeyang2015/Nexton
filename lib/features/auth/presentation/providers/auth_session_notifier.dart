@@ -131,9 +131,10 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
   /// `WidgetsBinding` exists for the listener to register with.
   AppLifecycleListener? _tryCreateLifecycleListener() {
     try {
-      return AppLifecycleListener(
-        onResume: () => unawaited(refreshOnResume()),
-      );
+      // `onShow`, not `onResume`: back from the background, not every
+      // dialog over the App (a location prompt during a punch, the
+      // notification shade).
+      return AppLifecycleListener(onShow: () => unawaited(refreshOnResume()));
     } catch (_) {
       return null;
     }
@@ -141,15 +142,25 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
 
   /// The App came back to the foreground: re-reads `/auth/me` when someone
   /// is signed in. Nothing is asked while signed out or still starting.
+  ///
+  /// One at a time: a second return while one is on its way asks nothing.
   Future<void> refreshOnResume() async {
     final current = state.valueOrNull;
-    if (current?.user == null ||
+    if (_refreshing ||
+        current?.user == null ||
         current!.status == AuthStatus.unauthenticated ||
         current.status == AuthStatus.bootstrapping) {
       return;
     }
-    await refreshProfile();
+    _refreshing = true;
+    try {
+      await refreshProfile();
+    } finally {
+      _refreshing = false;
+    }
   }
+
+  bool _refreshing = false;
 
   /// Re-reads `/auth/me`: a role, module, permission or department-head
   /// change. A failure leaves the current session untouched, and so does an
