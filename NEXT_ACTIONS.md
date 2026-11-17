@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-17 (#34 merged; #35 still BLOCKED; next is #36). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-17 (#36 built, waiting for the owner's merge say; #35 still BLOCKED). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-16.
 | | |
 |---|---|
 | Last finished work order | 33 of 60: #34, overtime: the clock button knows about an open OT session |
-| Next work order | **35 of 60: #36**, approvals: one Approvals place, only for department heads and HR (leave moves in). Not started, no branch, no plan yet. #35 (34 of 60) skipped: still BLOCKED, re-checked 2026-11-17 |
+| Next work order | **35 of 60: #36**, approvals: one Approvals place, only for department heads and HR. IMPLEMENTED on `36-approvals-heads-hr` (`d62a2bf`, `04b85ee`), pushed, reviewed; waits for "push issue 36 to main directly". #35 (34 of 60) skipped: still BLOCKED, re-checked 2026-11-17 |
 | `origin/main` | `55c41e7` "Merge branch '34-clock-open-ot' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `23-…`, `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote and contained in `origin/main`. None is ahead or behind |
@@ -57,7 +57,8 @@ adversarial one (one reviewer for the tests-only #13), then merged to `main` wit
 
 ### Waiting for the owner
 
-1. **#34 merged** (`55c41e7`) on the owner's say, 2026-11-17.
+1. **#36: say "push issue 36 to main directly".** Built 2026-11-17 after the owner's go.
+   **#34 merged** (`55c41e7`) on the owner's say, 2026-11-17.
    **#33 merged** (`77db2c0`) on the owner's say, 2026-11-17.
    **#32 merged** (`c8880d6`) on the owner's say, 2026-11-17. A login whose `employee_id`
    is null (#75) sees no Edit/Cancel on its own request (the issue's "own employee only" read safely).
@@ -136,9 +137,21 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #36 (work order 35 of 60), "approvals: one Approvals place, only for department heads and HR (leave moves
-   in)".** Read the issue and its comments, show a plan, wait for "go". #35 is skipped: re-checked 2026-11-17, its only
-   comment (13 Nov) still says to wait for the backend's OT hours; no "now live".
+1. **#36 (work order 35 of 60), "approvals: one Approvals place, only for department heads and HR": IMPLEMENTED, not
+   merged.** Owner said go on 2026-11-17. Branch `36-approvals-heads-hr`: `d62a2bf` (feature), `04b85ee` (review
+   fixes). Gates: analyze 1 warning already on `main`; `flutter test` 1,738 passed; debug APK builds. Waits for "push
+   issue 36 to main directly". #35 skipped (BLOCKED: OT hours, re-checked 2026-11-17).
+   - `is_department_head` from login and `/auth/me` (live 14 Nov; `/auth/me` wins, missing = keep login/cached value);
+     kept on the cached user (no separate secure-storage key), cleared on sign-out. `/auth/me` re-read on `onShow`, one at
+     a time; a late answer is neither shown nor saved for a session that changed hands.
+   - `approvals/domain/approver_access.dart` (admin roles count as HR; staff record required); tile, `/approvals` gate
+     (`approvalsRoutes`, not-found otherwise), tabs per rule. Leave files not moved (optional). No new strings: kept
+     "ອະນຸມັດ" over the issue's "ການອະນຸມັດ" (owner to confirm).
+   Open after #36, none built there:
+   - phone check on `nexton-demo` with a head login (ask the lead) and a plain login;
+   - `/attendance/time-correction/approvals` still ungated (not linked in the App) — follow-up issue?;
+   - page open while sections change keeps the tab number, not the section (cosmetic);
+   - a late 401 on a stale request and the interceptor's refresh (not new here).
 
    **#34 (work order 33 of 60), "overtime: the clock button knows about an open OT session": MERGED (`55c41e7`),
    2026-11-17.** Owner said go on 2026-11-17. Branch `34-clock-open-ot`: `1c44232` (feature), `5f53ffa` (review fixes).
@@ -578,7 +591,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 32 | #33 | overtime: see HR's OT posts for my department and join one | `33-ot-posts` | `ceaf702`, `6b7cadf` | merged to main directly (`77db2c0`) | analyze: 1 warning already on `main`; `flutter test`: 1,670 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 33 | #34 | overtime: the clock button knows about an open OT session | `34-clock-open-ot` | `1c44232`, `5f53ffa` | merged to main directly (`55c41e7`) | analyze: 1 warning already on `main`; `flutter test`: 1,696 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 34 | #35 | attendance: show OT hours on the summary and history | | | | | BLOCKED: backend, OT hours (re-checked 2026-11-17, skipped) |
-| 35 | #36 | approvals: one Approvals place, only for department heads and HR (leave moves in) | | | | | NOT STARTED |
+| 35 | #36 | approvals: one Approvals place, only for department heads and HR (leave moves in) | `36-approvals-heads-hr` | `d62a2bf`, `04b85ee` | none yet: waits for the owner's say | analyze: 1 warning already on `main`; `flutter test`: 1,738 passed, 0 failed; debug APK builds; phone check on `nexton-demo` pending | IMPLEMENTED |
 | 36 | #37 | approvals: open a leave request to see days, files, steps and notes before deciding | | | | | NOT STARTED |
 | 37 | #38 | photos: take a photo with the camera and upload it (shared) | | | | | NOT STARTED |
 | 38 | #39 | leave: attach a photo when the type needs a file, and open attached files | | | | | NOT STARTED |
