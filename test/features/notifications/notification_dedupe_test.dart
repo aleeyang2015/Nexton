@@ -57,17 +57,42 @@ void main() {
     );
   });
 
-  test('each row is matched with the one just before it: a chain of copies '
-      '40 s apart is one row', () {
+  test('a run never chains past the window: identical pushes 40 s apart '
+      'collapse only into a row within 60 s of them', () {
     expect(
       ids(
         collapseRepeats([
           n('a'),
           n('b', after: seconds(40)),
           n('c', after: seconds(80)),
+          n('d', after: seconds(120)),
         ]),
       ),
-      ['a'],
+      ['a', 'c'],
+    );
+  });
+
+  test('copies interleaved with another push\'s copies collapse too', () {
+    AppNotification ot(String id, {Duration after = Duration.zero}) =>
+        AppNotification(
+          id: id,
+          type: 'overtime_announcement',
+          title: 'New OT post',
+          body: 'b',
+          data: const {'reference_type': 'overtime_announcement'},
+          status: NotificationSendStatus.sent,
+          createdAt: at.subtract(after),
+        );
+    expect(
+      ids(
+        collapseRepeats([
+          n('a1'),
+          ot('b1'),
+          n('a2', after: seconds(1)),
+          ot('b2', after: seconds(1)),
+        ]),
+      ),
+      ['a1', 'b1'],
     );
   });
 
@@ -100,7 +125,7 @@ void main() {
     );
   });
 
-  test('only the row just before counts: a copy after another push stays', () {
+  test('a copy after another push, within the window, still collapses', () {
     final other = AppNotification(
       id: 'x',
       type: 'overtime_request',
@@ -110,7 +135,7 @@ void main() {
       status: NotificationSendStatus.sent,
       createdAt: at,
     );
-    expect(ids(collapseRepeats([n('a'), other, n('b')])), ['a', 'x', 'b']);
+    expect(ids(collapseRepeats([n('a'), other, n('b')])), ['a', 'x']);
   });
 
   test('nothing in, nothing out', () {

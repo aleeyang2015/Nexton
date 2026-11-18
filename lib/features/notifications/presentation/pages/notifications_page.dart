@@ -19,11 +19,29 @@ import '../widgets/notification_row.dart';
 /// "ແຈ້ງເຕືອນ" (#54): the user's recent pushes, newest first, a page at a
 /// time. A row opens what its push opens (#53). Opened from the bell on
 /// Home and from Profile.
-class NotificationsPage extends ConsumerWidget {
+class NotificationsPage extends ConsumerStatefulWidget {
   const NotificationsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NotificationsPage> createState() => _NotificationsPageState();
+}
+
+class _NotificationsPageState extends ConsumerState<NotificationsPage> {
+  /// A row's page is opening: a second tap meanwhile opens nothing more.
+  bool _opening = false;
+
+  Future<void> _open(PushTarget target) async {
+    if (_opening) return;
+    _opening = true;
+    try {
+      await ref.read(pushOpenerProvider)(target);
+    } finally {
+      if (mounted) _opening = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final state = ref.watch(notificationsNotifierProvider);
     final notifier = ref.read(notificationsNotifierProvider.notifier);
@@ -49,13 +67,7 @@ class NotificationsPage extends ConsumerWidget {
         ),
       ];
     } else {
-      body = [
-        for (final row in state.visible)
-          NotificationRow(
-            notification: row,
-            onTap: _opensSomething(row) ? () => _open(ref, row) : null,
-          ),
-      ];
+      body = [for (final row in state.visible) _row(row)];
     }
 
     return Container(
@@ -108,13 +120,13 @@ class NotificationsPage extends ConsumerWidget {
     );
   }
 
-  /// A row whose push has nowhere of its own to open (an unknown kind, or
-  /// one missing its id) would only open this list again.
-  static bool _opensSomething(AppNotification row) =>
-      pushTarget(row.routeData) is! NotificationsTarget;
-
-  static void _open(WidgetRef ref, AppNotification row) =>
-      ref.read(pushOpenerProvider)(pushTarget(row.routeData));
+  Widget _row(AppNotification row) {
+    final target = row.target;
+    return NotificationRow(
+      notification: row,
+      onTap: target == null ? null : () => _open(target),
+    );
+  }
 }
 
 class _Loading extends StatelessWidget {

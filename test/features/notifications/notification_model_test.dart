@@ -81,6 +81,13 @@ void main() {
     expect(n.routeData['notification_type'], 'overtime_request');
   });
 
+  test('no top-level type: the data\'s own is kept for the tap', () {
+    final n = NotificationModel.fromJson(row({'notification_type': null}))!;
+    expect(n.type, isEmpty);
+    expect(n.routeData['notification_type'], 'leave_request');
+    expect(n.target, isNotNull);
+  });
+
   test('no id or no readable created_at: cannot be listed', () {
     expect(NotificationModel.fromJson(row({'id': null})), isNull);
     expect(NotificationModel.fromJson(row({'id': ''})), isNull);

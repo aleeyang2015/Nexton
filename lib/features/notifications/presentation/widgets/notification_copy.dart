@@ -12,7 +12,7 @@ abstract final class NotificationCopy {
     PushTypes.leaveRequest => l10n.leaveMenu,
     PushTypes.correction => l10n.forgotClockInMenu,
     PushTypes.offsite => l10n.offsiteTitle,
-    PushTypes.otAnnouncement || PushTypes.otRequest => l10n.otMenu,
+    _ when _isOt(type) => l10n.otMenu,
     _ => l10n.notifications,
   };
 
@@ -20,9 +20,12 @@ abstract final class NotificationCopy {
     PushTypes.leaveRequest => Icons.event_note_outlined,
     PushTypes.correction => Icons.edit_calendar_outlined,
     PushTypes.offsite => Icons.location_off_outlined,
-    PushTypes.otAnnouncement || PushTypes.otRequest => Icons.more_time,
+    _ when _isOt(type) => Icons.more_time,
     _ => Icons.notifications_outlined,
   };
+
+  /// Every OT kind, today's and any the server adds (`overtime_*`).
+  static bool _isOt(String type) => type.startsWith('overtime_');
 
   /// "18 ພ.ຈ. 2026 14:05" / "18 Nov 2026 14:05", on the phone's clock.
   static String when(AppLocalizations l10n, DateTime at) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -62,7 +64,7 @@ void main() {
       ProviderScope(
         overrides: [
           notificationsRepositoryProvider.overrideWithValue(repository),
-          pushOpenerProvider.overrideWithValue(opened.add),
+          pushOpenerProvider.overrideWithValue((t) async => opened.add(t)),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -147,6 +149,56 @@ void main() {
     expect(opened, [const LeaveRequestTarget('lr-1'), const HomeTarget()]);
   });
 
+  testWidgets('two quick taps on a row open one page', (tester) async {
+    repository.pages[1] = NumberedPage(
+      items: [row('a')],
+      page: 1,
+      totalPages: 1,
+    );
+    final closing = Completer<void>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          notificationsRepositoryProvider.overrideWithValue(repository),
+          pushOpenerProvider.overrideWithValue((t) {
+            opened.add(t);
+            // The opened page stays until it is closed.
+            return closing.future;
+          }),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: const NotificationsPage(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Title a'));
+    await tester.tap(find.text('Title a'));
+    expect(opened, hasLength(1));
+
+    // Back on the list: a tap opens it again.
+    closing.complete();
+    await tester.pump();
+    await tester.tap(find.text('Title a'));
+    expect(opened, hasLength(2));
+  });
+
+  testWidgets('any OT kind, today\'s or a new one, is labelled OT', (
+    tester,
+  ) async {
+    repository.pages[1] = NumberedPage(
+      items: [row('a', type: 'overtime_reminder', data: const {})],
+      page: 1,
+      totalPages: 1,
+    );
+    await pumpPage(tester);
+    expect(find.text(en.otMenu), findsOneWidget);
+  });
+
   testWidgets('a row with nowhere of its own to open does nothing', (
     tester,
   ) async {
@@ -226,6 +278,94 @@ void main() {
       await tester.tap(find.text(en.notifications));
       await tester.pumpAndSettle();
       expect(find.text('BELL LIST'), findsOneWidget);
+    });
+  });
+
+  group('a push for the bell list (#53\'s opener)', () {
+    late GoRouter router;
+
+    Future<ProviderContainer> start(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(390, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, _) => const Text('HOME')),
+          GoRoute(
+            path: AppRoutes.notifications,
+            builder: (_, _) => const NotificationsPage(),
+          ),
+          GoRoute(
+            path: '/detail',
+            builder: (_, _) => const Scaffold(body: Text('DETAIL')),
+          ),
+        ],
+      );
+      final container = ProviderContainer(
+        overrides: [
+          notificationsRepositoryProvider.overrideWithValue(repository),
+          appRouterProvider.overrideWithValue(router),
+        ],
+      );
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    testWidgets('the list already on top: read again, not pushed over itself', (
+      tester,
+    ) async {
+      final container = await start(tester);
+      unawaited(router.push(AppRoutes.notifications));
+      await tester.pumpAndSettle();
+      expect(repository.asked, [1]);
+
+      unawaited(
+        container.read(pushOpenerProvider)(const NotificationsTarget()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(repository.asked, [1, 1]);
+      router.pop();
+      await tester.pumpAndSettle();
+      expect(find.text('HOME'), findsOneWidget);
+    });
+
+    testWidgets('the list open under another page: the list on top shows the '
+        'rows read again', (tester) async {
+      final container = await start(tester);
+      repository.pages[1] = NumberedPage(
+        items: [row('old')],
+        page: 1,
+        totalPages: 1,
+      );
+      unawaited(router.push(AppRoutes.notifications));
+      await tester.pumpAndSettle();
+      unawaited(router.push('/detail'));
+      await tester.pumpAndSettle();
+
+      repository.pages[1] = NumberedPage(
+        items: [row('new'), row('old')],
+        page: 1,
+        totalPages: 1,
+      );
+      unawaited(
+        container.read(pushOpenerProvider)(const NotificationsTarget()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Title new'), findsOneWidget);
     });
   });
 }

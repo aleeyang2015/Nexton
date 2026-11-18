@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../push_route.dart';
+
 /// How far the server got sending a push (#54). A `failed` row is still a
 /// notification the user should see (the server tried; before
 /// Nexton-Backend#187 it fails when it has no Firebase key).
@@ -52,8 +54,18 @@ class AppNotification extends Equatable {
   });
 
   /// What a tap reads to know where to go (#53's `pushTarget`): the data,
-  /// with the row's own type.
-  Map<String, String> get routeData => {...data, 'notification_type': type};
+  /// with the row's own type (the data's, when the row's is missing).
+  Map<String, String> get routeData => {
+    ...data,
+    if (type.isNotEmpty) 'notification_type': type,
+  };
+
+  /// Where a tap on this row goes (#53), or null when it has nowhere of its
+  /// own to go: the bell list it is in.
+  PushTarget? get target {
+    final target = pushTarget(routeData);
+    return target is NotificationsTarget ? null : target;
+  }
 
   @override
   List<Object?> get props => [

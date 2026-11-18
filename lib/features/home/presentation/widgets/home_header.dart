@@ -206,16 +206,20 @@ class _BellButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = AppLocalizations.of(context)!.notifications;
-    return Tooltip(
-      message: label,
-      child: Semantics(
-        button: true,
-        label: label,
-        excludeSemantics: true,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => context.push(AppRoutes.notifications),
-          child: _tile(),
+    // One label for screen readers: the tooltip's own is left out.
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: label,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => context.push(AppRoutes.notifications),
+            child: _tile(),
+          ),
         ),
       ),
     );
