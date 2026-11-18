@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#61 implemented on `61-hide-unbought-modules`, `80b36da` + `9301c94`, waiting for "push issue 61 to main directly"). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#61 merged, `4d3161c`; every work order but #55 is merged; #55 waits on Nexton-Backend#190). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,8 +13,8 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 
 | | |
 |---|---|
-| Last finished work order | 59 of 60: #60, sign-in: "forgot password" says ask HR, and "remember my email" works |
-| Next work order | **60 of 60: #61**, app: hide what the company has not bought. IMPLEMENTED on `61-hide-unbought-modules` (`80b36da`, `9301c94`), both reviews done and fixed; waiting for the owner's merge word. (#55 stays BLOCKED on Nexton-Backend#190.) |
+| Last finished work order | 60 of 60: #61, app: hide what the company has not bought |
+| Next work order | **54 of 60: #55**, notifications: unread dots and a count on the bell. BLOCKED on Nexton-Backend#190 (read/unread and the unread count). Every other work order is merged. Open follow-ups are listed under "Now". |
 | `origin/main` | `adad453` "Merge branch '51-push-setup' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -185,8 +185,16 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Now: #61 (work order 60 of 60, the last), "app: hide what the company has not bought": IMPLEMENTED** on
-   `61-hide-unbought-modules` (`80b36da`, review fixes `9301c94`), pushed, not merged. Gates: analyze 1 warning already on
+1. **Now: every work order but #55 is merged.** #55 (unread dots and a count on the bell) waits on
+   Nexton-Backend#190; when it lands, read #55 and its comments, plan, wait for "go". Follow-ups the owner may want as
+   issues: a photo package that shrinks photos and converts HEIC (#59: 5 MB and iPhone-gallery refusals); a pull to
+   refresh that keeps the last good profile offline (#58); the debug log printing the whole profile body (#58); a
+   spinner on the sign-out button (#56, up to ~13 s on a very slow connection); the 44 x 44 forgot-password target
+   height (#60, cosmetic); the `_ShiftHoursLine` analyzer warning on `main`. Device checks are pending for #45 to
+   #61 (each one's list is under its entry).
+
+   **#61 (work order 60 of 60): MERGED (`4d3161c`)** on the owner's say, 2026-11-18, from `61-hide-unbought-modules`
+   (`80b36da`, review fixes `9301c94`). Gates: analyze 1 warning already on
    `main`; `flutter test` 2,398 passed; debug APK built. `core_hr` / `payroll` (Payroll needs Core HR; an empty list
    allows nothing) gate the menu tiles, Home's clock card and summary, and Profile's Personal row, pencil and stats.
    Without Core HR the header's own refusal says "not turned on" once. Push targets (leave, correction, OT) can still
@@ -1085,7 +1093,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 57 | #58 | profile: see my personal information (read-only) | `58-personal-info` | `dff359e`, `1792a0c` | merged to main directly (`2c35513`) | analyze: 1 warning already on `main`; `flutter test`: 2,339 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 58 | #59 | profile: change my own photo | `59-profile-photo` | `13cb98c`, `371cea0` | merged to main directly (`08b8864`) | analyze: 1 warning already on `main`; `flutter test`: 2,368 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 59 | #60 | sign-in: "forgot password" says ask HR, and "remember my email" works | `60-login-forgot-remember` | `e88628d`, `27fd6a2` | merged to main directly (`1ffb410`) | analyze: 1 warning already on `main`; `flutter test`: 2,383 passed, 0 failed; debug APK | MERGED, device checks pending |
-| 60 | #61 | app: hide what the company has not bought | `61-hide-unbought-modules` | `80b36da`, `9301c94` | not merged | analyze: 1 warning already on `main`; `flutter test`: 2,398 passed, 0 failed; debug APK | IMPLEMENTED, waiting for merge word |
+| 60 | #61 | app: hide what the company has not bought | `61-hide-unbought-modules` | `80b36da`, `9301c94` | merged to main directly (`4d3161c`) | analyze: 1 warning already on `main`; `flutter test`: 2,398 passed, 0 failed; debug APK | MERGED, device checks pending |
 
 ## Outside the work order
 
