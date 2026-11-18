@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#47 IMPLEMENTED on its branch, waiting for the owner's say to merge; #46 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#47 merged, `227a9b3`; next is #48, not started). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 
 | | |
 |---|---|
-| Last finished work order | 45 of 60: #46, approvals: off-site scans for heads and HR |
-| Next work order | **46 of 60: #47**, approvals: "forgot to scan" requests for heads and HR. IMPLEMENTED on `47-correction-approvals` (`3192f3e`, `9a86936`), pushed, reviewed; waiting for the owner's say to merge. Then 47 of 60: #48 |
-| `origin/main` | `afedb4f` "Merge branch '46-offsite-approvals' into main" (2026-11-18) |
+| Last finished work order | 46 of 60: #47, approvals: "forgot to scan" requests for heads and HR |
+| Next work order | **47 of 60: #48**, approvals: OT waiting and decided lists for heads. Not started, no branch, no plan shown yet |
+| `origin/main` | `227a9b3` "Merge branch '47-correction-approvals' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -74,7 +74,9 @@ issue N to main directly". Test count went from 1,261 to 1,944. Day log: `WORK_L
 
 ### Waiting for the owner
 
-1. **#46 merged** (`afedb4f`) on the owner's say, 2026-11-18. Check a real `my-approvals?status=pending` payload on
+1. **#47 merged** (`227a9b3`) on the owner's say, 2026-11-18. Item 11's direct link to
+   `/attendance/time-correction/approvals` is settled (Approvals tab, behind the gate).
+   **#46 merged** (`afedb4f`) on the owner's say, 2026-11-18. Check a real `my-approvals?status=pending` payload on
    `nexton-demo`: does a waiting dept-head step carry `approver.id` (an employee id)?
    **#45 merged** (`0aa9eb1`) on the owner's say, 2026-11-18. Check on `nexton-demo` whether the detail carries the
    employee's id (Cancel's "own" check, for #47) and `attendance_record`'s time format.
@@ -175,8 +177,12 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#47 (work order 46 of 60), "approvals: "forgot to scan" requests for heads and HR": IMPLEMENTED, 2026-11-18,
-   waiting for the owner's say to merge.** Owner said go on 2026-11-18 to the plan's three recommendations (shared bases,
+1. **Next: #48 (work order 47 of 60), "approvals: OT waiting and decided lists for heads".** Not started: no branch,
+   no plan shown yet. Read the issue and its comments, plan, wait for "go".
+
+   **#47 (work order 46 of 60), "approvals: "forgot to scan" requests for heads and HR": MERGED (`227a9b3`), 2026-11-18.**
+   Merged on the owner's "push issue 47 to main directly"; gates green on the merge commit (analyze 1 warning already on
+   `main`; 2,067 tests passed; debug APK builds). Owner said go on 2026-11-18 to the plan's three recommendations (shared bases,
    the old page to the Approvals tab, the page stays after approving). Branch `47-correction-approvals` (pushed):
    `3192f3e` (feature), `9a86936` (review fixes). Gates on `9a86936`: analyze 1 warning already on `main`; `flutter test`
    2,067 passed; debug APK builds.
@@ -857,7 +863,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 43 | #44 | attendance: "forgot to scan" form, from a history day or the menu | `44-correction-form-entries` | `fdc11a7`, `a2ba160` | merged to main directly (`56b6c75`) | analyze: 1 warning already on `main`; `flutter test`: 1,944 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 44 | #45 | attendance: my "forgot to scan" requests — list, detail, cancel | `45-my-correction-requests` | `60fe12f`, `f0d87d0` | merged to main directly (`0aa9eb1`) | analyze: 1 warning already on `main`; `flutter test`: 1,987 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 45 | #46 | approvals: off-site scans for heads and HR | `46-offsite-approvals` | `9aa91f0`, `961cfb5` | merged to main directly (`afedb4f`) | analyze: 1 warning already on `main`; `flutter test`: 2,031 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 46 | #47 | approvals: "forgot to scan" requests for heads and HR | `47-correction-approvals` | `3192f3e`, `9a86936` | none yet | analyze: 1 warning already on `main`; `flutter test`: 2,067 passed, 0 failed; debug APK builds | IMPLEMENTED, waiting for the owner's say to merge; phone check on `nexton-demo` pending |
+| 46 | #47 | approvals: "forgot to scan" requests for heads and HR | `47-correction-approvals` | `3192f3e`, `9a86936` | merged to main directly (`227a9b3`) | analyze: 1 warning already on `main`; `flutter test`: 2,067 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 47 | #48 | approvals: OT waiting and decided lists for heads | | | | | NOT STARTED |
 | 48 | #49 | approvals: approve or reject OT, and cancel an approved OT before it starts | | | | | NOT STARTED |
 | 49 | #50 | approvals: my team's leave and "forgot to scan" history (read-only) | | | | | NOT STARTED |
