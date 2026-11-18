@@ -2108,4 +2108,10 @@ class AppLocalizationsLo extends AppLocalizations {
   String attOtClockOutBy(String time) {
     return 'ສະແກນອອກພາຍໃນ $time';
   }
+
+  @override
+  String get notificationsEmpty => 'ຍັງບໍ່ມີແຈ້ງເຕືອນ';
+
+  @override
+  String get notificationsLoadFailed => 'ບໍ່ສາມາດໂຫຼດແຈ້ງເຕືອນໄດ້.';
 }

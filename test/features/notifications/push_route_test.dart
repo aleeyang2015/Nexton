@@ -68,7 +68,7 @@ void main() {
     expect(AppRoutes.otRequest('ot-1'), '/overtime/request/ot-1');
   });
 
-  group('anything else: Home', () {
+  group('anything else: the bell list (#54)', () {
     for (final (label, data) in <(String, Map<String, Object?>)>[
       ('an unknown type', push('payslip_ready', 'payslip', 'p-1')),
       ('no data at all', const {}),
@@ -87,8 +87,22 @@ void main() {
         push('leave_request', 'overtime_request', 'x'),
       ),
     ]) {
-      test(label, () => expect(pushTarget(data), const HomeTarget()));
+      test(label, () => expect(pushTarget(data), const NotificationsTarget()));
     }
+  });
+
+  test('the bell list\'s location', () {
+    expect(
+      PushRouter.locationOf(const NotificationsTarget()),
+      '/notifications',
+    );
+  });
+
+  test('an off-site push opens Home whatever it points at', () {
+    expect(
+      pushTarget(push('attendance_offsite', 'something_new', 'x')),
+      const HomeTarget(),
+    );
   });
 
   test('an id is used as sent, made safe in the location', () {

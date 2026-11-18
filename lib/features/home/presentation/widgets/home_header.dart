@@ -198,12 +198,30 @@ class _PositionLine extends StatelessWidget {
   }
 }
 
-/// The notification bell on a white rounded tile.
+/// The notification bell on a white rounded tile: opens the bell list
+/// (#54).
 class _BellButton extends StatelessWidget {
   const _BellButton();
 
   @override
   Widget build(BuildContext context) {
+    final label = AppLocalizations.of(context)!.notifications;
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        label: label,
+        excludeSemantics: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => context.push(AppRoutes.notifications),
+          child: _tile(),
+        ),
+      ),
+    );
+  }
+
+  Widget _tile() {
     return Container(
       width: 44,
       height: 44,

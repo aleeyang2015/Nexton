@@ -6,8 +6,12 @@ import 'data/datasources/device_local_data_source.dart';
 import 'data/datasources/device_remote_data_source.dart';
 import 'data/datasources/firebase_messaging_data_source.dart';
 import 'data/datasources/local_notification_data_source.dart';
+import 'data/datasources/notifications_remote_data_source.dart';
+import 'data/repositories/notifications_repository_impl.dart';
 import 'data/repositories/push_notification_repository_impl.dart';
+import 'domain/repositories/notifications_repository.dart';
 import 'domain/repositories/push_notification_repository.dart';
+import 'domain/usecases/get_notifications_usecase.dart';
 import 'domain/usecases/register_device_usecase.dart';
 
 // Composition root for the notifications feature: the one place the data
@@ -49,4 +53,20 @@ final pushNotificationRepositoryProvider = Provider<PushNotificationRepository>(
 
 final registerDeviceUseCaseProvider = Provider<RegisterDeviceUseCase>(
   (ref) => RegisterDeviceUseCase(ref.watch(pushNotificationRepositoryProvider)),
+);
+
+/// The bell list's rows (#54).
+final notificationsRemoteDataSourceProvider =
+    Provider<NotificationsRemoteDataSource>(
+      (ref) => NotificationsRemoteDataSourceImpl(ref.watch(apiClientProvider)),
+    );
+
+final notificationsRepositoryProvider = Provider<NotificationsRepository>(
+  (ref) => NotificationsRepositoryImpl(
+    ref.watch(notificationsRemoteDataSourceProvider),
+  ),
+);
+
+final getNotificationsUseCaseProvider = Provider<GetNotificationsUseCase>(
+  (ref) => GetNotificationsUseCase(ref.watch(notificationsRepositoryProvider)),
 );

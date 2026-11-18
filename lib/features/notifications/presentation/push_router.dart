@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/router/app_router.dart';
 import '../domain/push_route.dart';
 
-/// The one place a [PushTarget] becomes an App location (#53). #54 reuses
-/// it for taps in the bell list.
+/// The one place a [PushTarget] becomes an App location (#53); the bell
+/// list's rows (#54) open through it too.
 abstract final class PushRouter {
   static String locationOf(PushTarget target) => switch (target) {
     LeaveRequestTarget(:final id) => AppRoutes.timeOffRequest(id),
@@ -13,6 +13,7 @@ abstract final class PushRouter {
     OtPostsTarget() => AppRoutes.otPosts,
     MyOtTarget() => AppRoutes.overtime,
     HomeTarget() => AppRoutes.home,
+    NotificationsTarget() => AppRoutes.notifications,
   };
 }
 

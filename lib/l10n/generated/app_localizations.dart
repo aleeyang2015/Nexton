@@ -3865,6 +3865,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clock out by {time}'**
   String attOtClockOutBy(String time);
+
+  /// No description provided for @notificationsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get notificationsEmpty;
+
+  /// No description provided for @notificationsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load notifications.'**
+  String get notificationsLoadFailed;
 }
 
 class _AppLocalizationsDelegate

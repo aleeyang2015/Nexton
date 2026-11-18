@@ -60,10 +60,15 @@ final class MyOtTarget extends PushTarget {
   const MyOtTarget();
 }
 
-/// Home: the clock card, or anything this App does not know yet (#54 moves
-/// that to the bell list).
+/// Home: the clock card (a punch refused outside every area).
 final class HomeTarget extends PushTarget {
   const HomeTarget();
+}
+
+/// The bell list (#54): a push this App does not know, or one missing the
+/// id it needs.
+final class NotificationsTarget extends PushTarget {
+  const NotificationsTarget();
 }
 
 /// The push's `notification_type` and `reference_type` values the backend
@@ -87,7 +92,7 @@ PushTarget pushTarget(Map<String, Object?> data) {
   final id = read('reference_id');
 
   PushTarget byId(PushTarget Function(String id) target) =>
-      id.isEmpty ? const HomeTarget() : target(id);
+      id.isEmpty ? const NotificationsTarget() : target(id);
 
   return switch ((type, reference)) {
     (PushTypes.leaveRequest, PushTypes.leaveRequest) => byId(
@@ -98,6 +103,7 @@ PushTarget pushTarget(Map<String, Object?> data) {
     (PushTypes.otAnnouncement, PushTypes.otAnnouncement) =>
       const OtPostsTarget(),
     (PushTypes.otRequest, PushTypes.otAnnouncement) => const MyOtTarget(),
-    _ => const HomeTarget(),
+    (PushTypes.offsite, _) => const HomeTarget(),
+    _ => const NotificationsTarget(),
   };
 }

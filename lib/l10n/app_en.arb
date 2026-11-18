@@ -847,5 +847,7 @@
   "attCorrectionWindowHint": "Accepted times: {from}–{to}",
   "@attCorrectionWindowHint": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
   "attOtClockOutBy": "Clock out by {time}",
-  "@attOtClockOutBy": {"placeholders": {"time": {"type": "String"}}}
+  "@attOtClockOutBy": {"placeholders": {"time": {"type": "String"}}},
+  "notificationsEmpty": "No notifications yet",
+  "notificationsLoadFailed": "Could not load notifications."
 }

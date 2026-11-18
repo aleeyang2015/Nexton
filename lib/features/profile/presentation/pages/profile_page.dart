@@ -504,11 +504,7 @@ class _MenuCard extends ConsumerWidget {
             icon: Icons.notifications_outlined,
             color: AppColors.warning,
             label: l10n.notifications,
-            onTap: () => _openComingSoon(
-              context,
-              l10n.notifications,
-              Icons.notifications_outlined,
-            ),
+            onTap: () => context.push(AppRoutes.notifications),
           ),
           _menuDivider(),
           _MenuRow(
