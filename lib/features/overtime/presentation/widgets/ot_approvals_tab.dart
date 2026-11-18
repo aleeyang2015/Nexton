@@ -17,6 +17,7 @@ import '../../domain/entities/ot_request.dart';
 import '../providers/ot_approvals_notifier.dart';
 import 'ot_approval_row.dart';
 import 'ot_copy.dart';
+import 'ot_decision_buttons.dart';
 
 /// The approvals page's OT tab (#48), for department heads: the requests
 /// waiting at their step, then "decided by me" with its two chips, each a
@@ -189,6 +190,9 @@ class _OtList extends ConsumerWidget {
             request: request,
             waiting: waiting,
             now: now,
+            // Approve / Reject on a waiting row whose step is the head's
+            // (#49); the buttons decide for themselves whether to show.
+            actions: waiting ? OtDecisionButtons(request: request) : null,
             onTap: () =>
                 context.push(AppRoutes.otRequest(request.id), extra: request),
           ),

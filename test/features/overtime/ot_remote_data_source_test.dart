@@ -538,4 +538,85 @@ void main() {
       expect(none.departmentName, isNull);
     });
   });
+
+  group('a head decides (#49)', () {
+    test('approve: step_id always, comment when typed, never pieces; the '
+        'answer is read and its warnings ignored', () async {
+      adapter.body = {
+        'success': true,
+        'data': {...otRequestJson(), 'warnings': ['over the monthly cap']},
+      };
+
+      final request = (await repository.approve(
+        'ot-1',
+        stepId: 'step-1',
+        comment: '  ok  ',
+      )).dataOrNull;
+      expect(adapter.lastRequest!.method, 'PUT');
+      expect(adapter.lastRequest!.path, endsWith('ot-requests/ot-1/approve'));
+      expect(jsonDecode(adapter.lastBody!), {'step_id': 'step-1', 'comment': 'ok'});
+      expect(request, isNotNull);
+
+      await repository.approve('ot-1', stepId: 'step-1', comment: ' ');
+      expect(jsonDecode(adapter.lastBody!), {'step_id': 'step-1'});
+    });
+
+    test('reject: step_id and comment, never pieces', () async {
+      answer(200, otRequestJson());
+      await repository.reject('ot-1', stepId: 'step-1', comment: ' No stock ');
+      expect(adapter.lastRequest!.path, endsWith('ot-requests/ot-1/reject'));
+      final body = jsonDecode(adapter.lastBody!) as Map;
+      expect(body, {'step_id': 'step-1', 'comment': 'No stock'});
+      expect(body.containsKey('pieces'), isFalse);
+    });
+
+    test('reject without a reason (422 errors.comment): "Write a reason"',
+        () async {
+      refuse(422, 'VALIDATION_ERROR', 'invalid', {
+        'comment': ['required'],
+      });
+      final failure = (await repository.reject(
+        'ot-1',
+        stepId: 'step-1',
+        comment: '',
+      )).failureOrNull;
+      expect(
+        (failure as ValidationFailure).message,
+        OtErrorCode.tokenReasonRequired,
+      );
+    });
+
+    test('every refusal keeps #28\'s token; a 403 is not Failure.auth',
+        () async {
+      for (final (status, code, token) in [
+        (409, 'STEP_CHANGED', OtErrorCode.tokenStepChanged),
+        (409, 'OT_ALREADY_DECIDED', OtErrorCode.tokenAlreadyDecided),
+        (403, 'NOT_APPROVER', OtErrorCode.tokenNotApprover),
+        (409, 'OT_DISABLED', OtErrorCode.tokenDisabled),
+        (409, 'OT_NOT_ELIGIBLE', OtErrorCode.tokenNotEligible),
+      ]) {
+        refuse(status, code);
+        final failure = (await repository.approve(
+          'ot-1',
+          stepId: 'step-1',
+        )).failureOrNull;
+        expect(failure, isA<ValidationFailure>(), reason: code);
+        expect((failure! as ValidationFailure).message, token, reason: code);
+      }
+    });
+
+    test('cancel by a head: OT_STARTED, OT_ALREADY_PAID, OT_PAID_BY_HAND, '
+        'and FORBIDDEN says "reject it instead"', () async {
+      for (final (status, code, token) in [
+        (409, 'OT_STARTED', OtErrorCode.tokenStarted),
+        (409, 'OT_ALREADY_PAID', OtErrorCode.tokenAlreadyPaid),
+        (409, 'OT_PAID_BY_HAND', OtErrorCode.tokenPaidByHand),
+        (403, 'FORBIDDEN', OtErrorCode.tokenCancelForbidden),
+      ]) {
+        refuse(status, code);
+        final failure = (await repository.cancel('ot-1')).failureOrNull;
+        expect((failure! as ValidationFailure).message, token, reason: code);
+      }
+    });
+  });
 }

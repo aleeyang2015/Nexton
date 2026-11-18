@@ -20,6 +20,8 @@ class OtPaths {
   // request goes out.
   static String request(String id) => '$requests/${_segment(id)}';
   static String cancel(String id) => '${request(id)}/cancel';
+  static String approve(String id) => '${request(id)}/approve';
+  static String reject(String id) => '${request(id)}/reject';
   static String join(String postId) =>
       '$_prefix/ot-announcements/${_segment(postId)}/join';
 

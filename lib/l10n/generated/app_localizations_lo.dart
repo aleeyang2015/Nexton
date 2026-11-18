@@ -1323,6 +1323,22 @@ class AppLocalizationsLo extends AppLocalizations {
   String get apprRequestNotFound => 'ບໍ່ພົບຄຳຮ້ອງນີ້';
 
   @override
+  String get apprReasonRequired => 'ກະລຸນາຂຽນເຫດຜົນ';
+
+  @override
+  String get otApprovedToast => 'ອະນຸມັດໂອທີແລ້ວ';
+
+  @override
+  String get otRejectedToast => 'ປະຕິເສດໂອທີແລ້ວ';
+
+  @override
+  String get otCancelApprovedAction => 'ຍົກເລີກໂອທີ';
+
+  @override
+  String get otCancelApprovedConfirm =>
+      'ຍົກເລີກໂອທີທີ່ອະນຸມັດແລ້ວນີ້ບໍ? ພະນັກງານຈະໄດ້ຮັບແຈ້ງເຕືອນ.';
+
+  @override
   String get apprSectionOt => 'ໂອທີ';
 
   @override

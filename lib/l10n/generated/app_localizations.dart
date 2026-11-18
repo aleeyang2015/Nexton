@@ -2492,6 +2492,36 @@ abstract class AppLocalizations {
   /// **'This request is not available'**
   String get apprRequestNotFound;
 
+  /// No description provided for @apprReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a reason'**
+  String get apprReasonRequired;
+
+  /// No description provided for @otApprovedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'OT approved'**
+  String get otApprovedToast;
+
+  /// No description provided for @otRejectedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'OT rejected'**
+  String get otRejectedToast;
+
+  /// No description provided for @otCancelApprovedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this OT'**
+  String get otCancelApprovedAction;
+
+  /// No description provided for @otCancelApprovedConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this approved OT? The employee is told.'**
+  String get otCancelApprovedConfirm;
+
   /// No description provided for @apprSectionOt.
   ///
   /// In en, this message translates to:

@@ -148,6 +148,21 @@ class OtApprovalsNotifier extends AutoDisposeNotifier<OtApprovalsState> {
     _loadFirst(_decidedList);
   }
 
+  /// Takes request [id] out of the waiting list at once: decided (#49).
+  /// The reload after it says the rest.
+  void dropWaiting(String id) {
+    final list = state.pending.valueOrNull;
+    if (_disposed || list == null) return;
+    state = state.copyWith(
+      pending: AsyncValue.data(
+        list.withItems([
+          for (final r in list.items)
+            if (r.id != id) r,
+        ]),
+      ),
+    );
+  }
+
   Future<void> retryPending() => _loadFirst(_pendingList);
   Future<void> retryDecided() => _loadFirst(_decidedList);
   Future<void> loadMorePending() => _loadMore(_pendingList);

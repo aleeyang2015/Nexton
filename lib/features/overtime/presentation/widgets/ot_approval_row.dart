@@ -17,7 +17,10 @@ class OtApprovalRow extends StatelessWidget {
     required this.waiting,
     required this.now,
     this.onTap,
+    this.actions,
   });
+
+  /// The head's buttons under the row (#49), when there are any.
 
   final OtRequest request;
 
@@ -27,6 +30,7 @@ class OtApprovalRow extends StatelessWidget {
   /// The phone's clock, for how long it has waited.
   final DateTime now;
   final VoidCallback? onTap;
+  final Widget? actions;
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +100,7 @@ class OtApprovalRow extends StatelessWidget {
                     maxLine: 2,
                   ),
                 ],
+                if (actions != null) ...[heightBx(h: 12), actions!],
               ],
             ),
           ),
