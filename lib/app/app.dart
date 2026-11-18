@@ -7,6 +7,7 @@ import '../core/theme/app_theme.dart';
 import '../core/widgets/app_toast.dart';
 import '../features/notifications/data/datasources/firebase_messaging_data_source.dart';
 import '../features/notifications/presentation/providers/push_notifications_notifier.dart';
+import '../features/notifications/presentation/providers/push_open_notifier.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'router/app_router.dart';
 
@@ -22,6 +23,8 @@ class App extends ConsumerWidget {
     // Keeps push registration alive for the app's lifetime without rebuilding
     // the app each time it changes.
     ref.listen(pushNotificationsProvider, (_, _) {});
+    // Opens the item a tapped push is about (#53).
+    ref.listen(pushOpenProvider, (_, _) {});
 
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,

@@ -11,6 +11,8 @@ import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../approvals/presentation/widgets/approver_hand_over.dart';
+import '../../../auth/presentation/providers/auth_session_notifier.dart';
 import '../../data/datasources/leave_error_code.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_status.dart';
@@ -65,7 +67,15 @@ class LeaveRequestDetailPage extends ConsumerWidget {
       }
     });
 
-    return Container(
+    // Someone else's request (opened from a push, #53): the approver's page
+    // instead, with the copy loaded.
+    return ApproverHandOver<LeaveRequest>(
+      loaded: leaveRequestDetailNotifierProvider(
+        requestId,
+      ).select((value) => value.valueOrNull),
+      ownerOf: (request) => request.employeeId,
+      location: AppRoutes.approvalLeave(requestId),
+      child: Container(
       color: Colors.white,
       child: SafeArea(
         child: Scaffold(
@@ -109,6 +119,7 @@ class LeaveRequestDetailPage extends ConsumerWidget {
                 ),
         ),
       ),
+    ),
     );
   }
 
@@ -148,7 +159,14 @@ class _RequestBodyState extends ConsumerState<_RequestBody> {
     // The phone's date. The server goes by the company's; where the two
     // differ around midnight, its refusal decides.
     final today = ref.watch(clockProvider)();
-    final canCancel = request.canCancelInApp(today);
+    // Someone else's request (a push, #53): no owner's actions here.
+    final theirs = request.isSomeoneElses(
+      ref.watch(
+        authSessionProvider.select((s) => s.valueOrNull?.user?.employeeId),
+      ),
+    );
+    final canEdit = !theirs && request.canEdit;
+    final canCancel = !theirs && request.canCancelInApp(today);
     final started = request.hasStartedOn(today);
 
     return ListView(
@@ -161,11 +179,11 @@ class _RequestBodyState extends ConsumerState<_RequestBody> {
           heightBx(h: 12),
           _StartedNotice(message: l10n.leaveStartedContactHr),
         ],
-        if (request.canEdit || canCancel) ...[
+        if (canEdit || canCancel) ...[
           heightBx(h: 20),
-          if (request.canEdit)
+          if (canEdit)
             button(_edit, l10n.leaveEditAction),
-          if (request.canEdit && canCancel) heightBx(h: 10),
+          if (canEdit && canCancel) heightBx(h: 10),
           if (canCancel)
             OutlinedButton(
               onPressed: cancelling ? null : _cancel,

@@ -13,6 +13,7 @@ import '../../../../core/widgets/image_viewer.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../approvals/domain/approver_access.dart';
+import '../../../approvals/presentation/widgets/approver_hand_over.dart';
 import '../../../auth/presentation/providers/auth_session_notifier.dart';
 import '../../attendance_providers.dart';
 import '../../domain/attendance_failure_x.dart';
@@ -78,7 +79,7 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
         : detail.valueOrNull ?? (detail.hasError ? null : preview);
     final notLinked = error is Failure && error.isEmployeeNotLinked;
 
-    return Container(
+    final page = Container(
       color: Colors.white,
       child: SafeArea(
         bottom: false,
@@ -126,6 +127,17 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
           ),
         ),
       ),
+    );
+
+    // Someone else's request on the employee's own page (opened from a
+    // push, #53): the approver's page instead, with the copy loaded.
+    if (approver || readOnly) return page;
+    return ApproverHandOver<TimeCorrectionDetail>(
+      loaded: provider.select((s) => s.detail.valueOrNull),
+      ownerOf: (request) => request.employee.id,
+      location: AppRoutes.approvalCorrection(id),
+      attendance: true,
+      child: page,
     );
   }
 

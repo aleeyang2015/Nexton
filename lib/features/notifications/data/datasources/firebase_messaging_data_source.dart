@@ -22,6 +22,13 @@ abstract class FirebaseMessagingDataSource {
   /// Kills this phone's FCM token (#52, at sign-out): a push the server
   /// still sends to it is refused, and the next sign-in gets a new one.
   Future<void> deleteToken();
+
+  /// The push whose tap started the App, if any (#53).
+  Future<PushMessage?> initialMessage();
+
+  /// A push tapped while the App was in the background (#53); on iOS also
+  /// the alert shown while it was open.
+  Stream<PushMessage> get onMessageOpenedApp;
 }
 
 /// Runs in its own isolate when a push arrives while the app is in the
@@ -99,11 +106,21 @@ class FirebaseMessagingDataSourceImpl implements FirebaseMessagingDataSource {
   Future<void> deleteToken() => _messaging.deleteToken();
 
   @override
-  Stream<PushMessage> get onMessage => FirebaseMessaging.onMessage.map(
-    (message) => PushMessage(
-      title: message.notification?.title,
-      body: message.notification?.body,
-      data: message.data,
-    ),
+  Stream<PushMessage> get onMessage => FirebaseMessaging.onMessage.map(_toPush);
+
+  @override
+  Future<PushMessage?> initialMessage() async {
+    final message = await _messaging.getInitialMessage();
+    return message == null ? null : _toPush(message);
+  }
+
+  @override
+  Stream<PushMessage> get onMessageOpenedApp =>
+      FirebaseMessaging.onMessageOpenedApp.map(_toPush);
+
+  static PushMessage _toPush(RemoteMessage message) => PushMessage(
+    title: message.notification?.title,
+    body: message.notification?.body,
+    data: message.data,
   );
 }

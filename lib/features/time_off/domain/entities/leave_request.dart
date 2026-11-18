@@ -71,6 +71,17 @@ class LeaveRequest extends Equatable {
   /// Editable only while still pending (leave-request-flutter.md §3.4).
   bool get canEdit => status == LeaveStatus.pending;
 
+  /// Known to be someone else's than the employee [ownEmployeeId] (#53: a
+  /// push can open another's request on this page, e.g. for an HR login
+  /// with no staff record). An unknown owner or user is not "someone
+  /// else's": the page has always treated it as the user's own.
+  bool isSomeoneElses(String? ownEmployeeId) {
+    final owner = employeeId;
+    if (owner == null || owner.isEmpty) return false;
+    if (ownEmployeeId == null || ownEmployeeId.isEmpty) return true;
+    return owner != ownEmployeeId;
+  }
+
   /// What the cancel endpoint accepts by status alone: pending or approved.
   /// Whether the App offers it also depends on the date; see
   /// [canCancelInApp].

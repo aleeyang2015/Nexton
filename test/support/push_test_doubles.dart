@@ -14,14 +14,31 @@ import 'approver_access_test_doubles.dart';
 
 /// A session a push test can sign in and out (#51, #52).
 class FakePushSession extends AuthSessionNotifier {
-  FakePushSession({required this.signedIn});
+  FakePushSession({
+    required this.signedIn,
+    this.restoring,
+    this.mustChangeAtStart = false,
+  });
 
   final bool signedIn;
 
+  /// The restored session is held on the forced password change.
+  final bool mustChangeAtStart;
+
+  /// When set, the cold start stays bootstrapping until it completes
+  /// (#53: a tap that started the App waits for the session).
+  final Completer<void>? restoring;
+
   @override
-  Future<AuthSession> build() async => signedIn
-      ? AuthSession.signedIn(approverTestUser())
-      : const AuthSession.unauthenticated();
+  Future<AuthSession> build() async {
+    await restoring?.future;
+    if (!signedIn) return const AuthSession.unauthenticated();
+    return AuthSession.signedIn(
+      approverTestUser(),
+      mustChangePassword: mustChangeAtStart,
+    );
+  }
+
 
   void signIn() =>
       state = AsyncValue.data(AuthSession.signedIn(approverTestUser()));
@@ -71,6 +88,18 @@ class FakeMessaging implements FirebaseMessagingDataSource {
     tokenDeletes++;
     if (deleteFails) throw Exception('SERVICE_NOT_AVAILABLE');
   }
+
+  /// The push whose tap started the App (#53).
+  PushMessage? launchedBy;
+
+  /// Pushes tapped while the App was in the background (#53).
+  final opened = StreamController<PushMessage>.broadcast();
+
+  @override
+  Future<PushMessage?> initialMessage() async => launchedBy;
+
+  @override
+  Stream<PushMessage> get onMessageOpenedApp => opened.stream;
 }
 
 /// The backend's device calls, recorded; each can be made to fail.
@@ -137,8 +166,20 @@ class FailingDeviceStore implements DeviceLocalDataSource {
   Future<void> markPermissionAsked() async => throw Exception('prefs');
 }
 
-/// No pop-ups in tests.
+/// No pop-ups in tests; a tap on one can be played (#53).
 class NoPopups implements LocalNotificationDataSource {
+  /// The banner whose tap started the App.
+  Map<String, String>? launchedBy;
+
+  /// Banner taps while the App runs.
+  final taps = StreamController<Map<String, String>>.broadcast();
+
   @override
   Future<void> show(PushMessage message) async {}
+
+  @override
+  Stream<Map<String, String>> get onTap => taps.stream;
+
+  @override
+  Future<Map<String, String>?> launchTap() async => launchedBy;
 }
