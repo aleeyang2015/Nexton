@@ -10,4 +10,11 @@ class PushConstants {
 
   /// SharedPreferences key for the app-generated device id.
   static const String deviceIdKey = 'push_device_id';
+
+  /// The notification permission was asked once (#51).
+  static const String permissionAskedKey = 'push_permission_asked';
+
+  /// The white-on-transparent tray icon (`res/drawable`), for the system's
+  /// pushes and the App's own pop-up.
+  static const String androidSmallIcon = '@drawable/ic_stat_nexton';
 }

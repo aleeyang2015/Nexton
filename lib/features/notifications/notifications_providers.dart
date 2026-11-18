@@ -1,4 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,9 +12,14 @@ import 'domain/usecases/register_device_usecase.dart';
 
 /// Composition root for the notifications feature: the one place the data
 /// layer is constructed and bound to the domain contracts.
+/// Whether Firebase started (`AppInitializer.initialize`, set in
+/// `main.dart`). False by default: a test or a phone where it failed gets
+/// no push, never a crash (#51).
+final pushAvailableProvider = Provider<bool>((ref) => false);
+
 final firebaseMessagingDataSourceProvider =
     Provider<FirebaseMessagingDataSource>(
-      (ref) => FirebaseMessagingDataSourceImpl(FirebaseMessaging.instance),
+      (ref) => FirebaseMessagingDataSourceImpl.instance(),
     );
 
 final localNotificationDataSourceProvider =

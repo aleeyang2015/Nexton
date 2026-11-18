@@ -19,6 +19,8 @@ class PushNotificationsNotifier extends Notifier<bool> {
 
   @override
   bool build() {
+    // Firebase did not start: no push at all, and nothing touches it (#51).
+    if (!ref.watch(pushAvailableProvider)) return false;
     final repository = ref.watch(pushNotificationRepositoryProvider);
 
     final foreground = repository.onForegroundMessage.listen(
