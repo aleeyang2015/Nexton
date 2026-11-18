@@ -139,6 +139,12 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.leaveRequestGone;
     case 'offsiteRequestGone':
       return l10n.apprRequestNotFound;
+    // "Forgot to scan" requests (#45), from the attendance datasource
+    // (`CorrectionErrorCode`): the off-site ones' texts say the same thing.
+    case 'correctionRequestGone':
+      return l10n.apprRequestNotFound;
+    case 'correctionCannotCancel':
+      return l10n.offsiteCannotCancel;
     case 'leaveRequiresAttachmentBlocked':
       return l10n.leaveRequiresAttachmentBlocked;
     case 'leaveStartedContactHr':

@@ -68,6 +68,11 @@ void main() {
             state.extra,
           ),
         ),
+        GoRoute(
+          path: AppRoutes.myCorrectionRequestDetail,
+          builder: (_, state) =>
+              Scaffold(body: Text('DETAIL:${state.pathParameters['id']}')),
+        ),
       ],
     );
     final container = ProviderContainer(
@@ -149,6 +154,33 @@ void main() {
     await tester.tapAt(const Offset(5, 5));
     await tester.pumpAndSettle();
     expect(find.text('HOME'), findsOneWidget);
+  });
+
+  testWidgets('"View" on the sent toast opens the new request (#45)', (
+    tester,
+  ) async {
+    await open(tester, AppRoutes.timeCorrectionRequest);
+    attendance.timeCorrectionResult = const Result.success('tc-9');
+    await tester.enterText(find.byType(TextField).first, 'Forgot');
+    await tester.tap(find.text(en.timeCorrectionSubmit));
+    await tester.pumpAndSettle();
+    expect(find.text('HOME'), findsOneWidget);
+
+    await tester.tap(find.text(en.attView));
+    await tester.pumpAndSettle();
+
+    expect(find.text('DETAIL:tc-9'), findsOneWidget);
+  });
+
+  testWidgets('sent, but the answer carried no id: no "View"', (tester) async {
+    await open(tester, AppRoutes.timeCorrectionRequest);
+    attendance.timeCorrectionResult = const Result.success(null);
+    await tester.enterText(find.byType(TextField).first, 'Forgot');
+    await tester.tap(find.text(en.timeCorrectionSubmit));
+    await tester.pumpAndSettle();
+
+    expect(find.text(en.timeCorrectionSubmitSuccess), findsOneWidget);
+    expect(find.text(en.attView), findsNothing);
   });
 
   testWidgets('"choose file" offers camera, photos and an image file (#38\'s '

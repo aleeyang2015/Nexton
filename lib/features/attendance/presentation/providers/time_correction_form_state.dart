@@ -33,7 +33,9 @@ class TimeCorrectionFormState with _$TimeCorrectionFormState {
     @Default(TimeOfDay(hour: 17, minute: 0)) TimeOfDay clockOut,
     @Default('') String reason,
     @Default(false) bool showErrors,
-    @Default(AsyncValue<void>.data(null)) AsyncValue<void> submission,
+    /// How the last send went; once sent, the new request's id (null when
+    /// the answer carried none, or before any send).
+    @Default(AsyncValue<String?>.data(null)) AsyncValue<String?> submission,
   }) = _TimeCorrectionFormState;
 
   /// The form as the domain request it submits.

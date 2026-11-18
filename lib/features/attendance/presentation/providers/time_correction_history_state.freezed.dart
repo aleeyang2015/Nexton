@@ -17,7 +17,7 @@ final _privateConstructorUsedError = UnsupportedError(
 
 /// @nodoc
 mixin _$TimeCorrectionHistoryState {
-  AsyncValue<List<TimeCorrectionRecord>> get records =>
+  AsyncValue<PagedList<TimeCorrectionRecord>> get records =>
       throw _privateConstructorUsedError;
   TimeCorrectionStatus? get filter => throw _privateConstructorUsedError;
 
@@ -38,7 +38,7 @@ abstract class $TimeCorrectionHistoryStateCopyWith<$Res> {
       >;
   @useResult
   $Res call({
-    AsyncValue<List<TimeCorrectionRecord>> records,
+    AsyncValue<PagedList<TimeCorrectionRecord>> records,
     TimeCorrectionStatus? filter,
   });
 }
@@ -64,7 +64,7 @@ class _$TimeCorrectionHistoryStateCopyWithImpl<
             records: null == records
                 ? _value.records
                 : records // ignore: cast_nullable_to_non_nullable
-                      as AsyncValue<List<TimeCorrectionRecord>>,
+                      as AsyncValue<PagedList<TimeCorrectionRecord>>,
             filter: freezed == filter
                 ? _value.filter
                 : filter // ignore: cast_nullable_to_non_nullable
@@ -85,7 +85,7 @@ abstract class _$$TimeCorrectionHistoryStateImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    AsyncValue<List<TimeCorrectionRecord>> records,
+    AsyncValue<PagedList<TimeCorrectionRecord>> records,
     TimeCorrectionStatus? filter,
   });
 }
@@ -111,7 +111,7 @@ class __$$TimeCorrectionHistoryStateImplCopyWithImpl<$Res>
         records: null == records
             ? _value.records
             : records // ignore: cast_nullable_to_non_nullable
-                  as AsyncValue<List<TimeCorrectionRecord>>,
+                  as AsyncValue<PagedList<TimeCorrectionRecord>>,
         filter: freezed == filter
             ? _value.filter
             : filter // ignore: cast_nullable_to_non_nullable
@@ -125,13 +125,13 @@ class __$$TimeCorrectionHistoryStateImplCopyWithImpl<$Res>
 
 class _$TimeCorrectionHistoryStateImpl extends _TimeCorrectionHistoryState {
   const _$TimeCorrectionHistoryStateImpl({
-    this.records = const AsyncValue<List<TimeCorrectionRecord>>.loading(),
+    this.records = const AsyncValue<PagedList<TimeCorrectionRecord>>.loading(),
     this.filter,
   }) : super._();
 
   @override
   @JsonKey()
-  final AsyncValue<List<TimeCorrectionRecord>> records;
+  final AsyncValue<PagedList<TimeCorrectionRecord>> records;
   @override
   final TimeCorrectionStatus? filter;
 
@@ -164,13 +164,13 @@ class _$TimeCorrectionHistoryStateImpl extends _TimeCorrectionHistoryState {
 
 abstract class _TimeCorrectionHistoryState extends TimeCorrectionHistoryState {
   const factory _TimeCorrectionHistoryState({
-    final AsyncValue<List<TimeCorrectionRecord>> records,
+    final AsyncValue<PagedList<TimeCorrectionRecord>> records,
     final TimeCorrectionStatus? filter,
   }) = _$TimeCorrectionHistoryStateImpl;
   const _TimeCorrectionHistoryState._() : super._();
 
   @override
-  AsyncValue<List<TimeCorrectionRecord>> get records;
+  AsyncValue<PagedList<TimeCorrectionRecord>> get records;
   @override
   TimeCorrectionStatus? get filter;
   @override

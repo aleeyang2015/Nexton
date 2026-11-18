@@ -23,7 +23,7 @@ class TimeCorrectionDetailModel {
 
     return TimeCorrectionDetail(
       id: id,
-      employee: _employee(json['employee']),
+      employee: _employee(json['employee'], json),
       requestDate: requestDate,
       type: type,
       clockIn: TimeCorrectionJson.timeOfDay(json['requested_clock_in']),
@@ -37,13 +37,45 @@ class TimeCorrectionDetailModel {
       currentStepNo: LeaveJson.intOf(json['current_step_no']) ?? 0,
       steps: steps,
       submittedAt: LeaveJson.dateTime(json['created_at']) ?? requestDate,
+      result: _result(json['attendance_record'], requestDate),
     );
   }
 
-  static TimeCorrectionEmployee _employee(dynamic value) {
+  /// `attendance_record`, set once the request was approved (#45). Its
+  /// times are the company's wall clock (`TimeCorrectionJson.wallClock`).
+  /// The corrected part (`session`) gives the times when it is there.
+  static TimeCorrectionResult? _result(dynamic value, DateTime requestDate) {
+    if (value is! Map) return null;
+    final date = LeaveJson.date(value['date']) ?? requestDate;
+    final session = value['session'];
+    final times = session is Map ? session : value;
+    return TimeCorrectionResult(
+      date: date,
+      clockIn: TimeCorrectionJson.wallClock(times['clock_in'], day: date),
+      clockOut: TimeCorrectionJson.wallClock(times['clock_out'], day: date),
+      status: LeaveJson.nonEmpty(value['status']),
+      workHours: _number(value['work_hours']),
+      isLate: LeaveJson.boolOf(value['is_late']),
+      lateMinutes: _number(value['late_minutes'])?.toInt(),
+    );
+  }
+
+  /// A number, or null for anything else (never a throw over one field).
+  static double? _number(dynamic value) =>
+      value is num ? value.toDouble() : null;
+
+  /// [parent] is the request: its `employee_id` stands in when the
+  /// `employee` object has no id.
+  static TimeCorrectionEmployee _employee(
+    dynamic value,
+    Map<String, dynamic> parent,
+  ) {
     final json = value is Map ? Map<String, dynamic>.from(value) : const {};
     final department = json['department'];
     return TimeCorrectionEmployee(
+      id:
+          TimeCorrectionJson.text(json['id']) ??
+          TimeCorrectionJson.text(parent['employee_id']),
       name: LeaveJson.nonEmpty(json['name']) ?? '',
       employeeNumber: LeaveJson.nonEmpty(json['employee_number']),
       departmentName: department is Map

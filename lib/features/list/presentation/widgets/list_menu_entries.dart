@@ -69,13 +69,8 @@ List<ListMenuEntry> buildListMenuEntries(
     color: const Color(0xFFE9A23B),
     onTap: () => context.push(AppRoutes.timeCorrectionRequest),
   ),
-  ListMenuEntry(
-    l10n.timeCorrectionHistoryMenu,
-    Icons.manage_history,
-    color: const Color(0xFF8B5CF6),
-    onTap: () => context.push(AppRoutes.timeCorrectionHistory),
-  ),
-  // "My requests" (#42): the off-site requests filed, and their state.
+  // "My requests" (#42, #45): the off-site and "forgot to scan" requests
+  // filed, and their state. It took the place of the separate history tile.
   ListMenuEntry(
     l10n.attMyRequestsMenu,
     Icons.assignment_outlined,

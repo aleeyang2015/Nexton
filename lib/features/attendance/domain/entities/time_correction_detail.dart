@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../time_off/domain/entities/leave_approval_step.dart';
+import 'attendance_day.dart';
 import 'time_correction_status.dart';
 import 'time_correction_type.dart';
 
@@ -29,6 +30,10 @@ class TimeCorrectionDetail extends Equatable {
   final List<TimeCorrectionApprovalStep> steps;
   final DateTime submittedAt;
 
+  /// The day as it stands once the request was approved
+  /// (`attendance_record`, #45); null until then.
+  final TimeCorrectionResult? result;
+
   const TimeCorrectionDetail({
     required this.id,
     required this.employee,
@@ -43,10 +48,25 @@ class TimeCorrectionDetail extends Equatable {
     required this.currentStepNo,
     required this.steps,
     required this.submittedAt,
+    this.result,
   });
 
   /// Only an undecided request can be withdrawn.
   bool get canCancel => status == TimeCorrectionStatus.pending;
+
+  /// Whether the login with [ownEmployeeId] may withdraw it: pending, and
+  /// not someone else's. Without an id on either side the server decides
+  /// (it refuses anyone else's with `CANNOT_CANCEL`), so the button stays:
+  /// the employee's own list must never lose it for a field the answer
+  /// leaves out.
+  bool canCancelBy(String? ownEmployeeId) {
+    if (!canCancel) return false;
+    final owner = employee.id;
+    if (owner == null || ownEmployeeId == null || ownEmployeeId.isEmpty) {
+      return true;
+    }
+    return owner == ownEmployeeId;
+  }
 
   /// The step awaiting a decision right now, if any — its id goes with an
   /// approve/reject call as `step_id`, so the backend can refuse a decision
@@ -81,16 +101,73 @@ class TimeCorrectionDetail extends Equatable {
     currentStepNo,
     steps,
     submittedAt,
+    result,
+  ];
+}
+
+/// The corrected day, as `attendance_record` holds it once HR approved the
+/// request: the times are the company's wall clock, read as written.
+///
+/// [clockIn] and [clockOut] are the corrected part's (`session`) when the
+/// answer names it, else the day's first clock-in and last clock-out.
+class TimeCorrectionResult extends Equatable {
+  final DateTime? date;
+  final DateTime? clockIn;
+  final DateTime? clockOut;
+
+  /// The day's status as the backend rolls it up (`present`, `late`, ...).
+  final String? status;
+  final double? workHours;
+  final bool isLate;
+  final int? lateMinutes;
+
+  const TimeCorrectionResult({
+    this.date,
+    this.clockIn,
+    this.clockOut,
+    this.status,
+    this.workHours,
+    this.isLate = false,
+    this.lateMinutes,
+  });
+
+  /// The same figures as a history day, so the status pill is #10's own.
+  AttendanceDay get asDay => AttendanceDay(
+    date: date,
+    status: status,
+    totalWorkHours: workHours,
+    sessions: [
+      AttendanceSession(
+        clockIn: clockIn,
+        clockOut: clockOut,
+        isLate: isLate,
+        lateMinutes: lateMinutes,
+      ),
+    ],
+  );
+
+  @override
+  List<Object?> get props => [
+    date,
+    clockIn,
+    clockOut,
+    status,
+    workHours,
+    isLate,
+    lateMinutes,
   ];
 }
 
 class TimeCorrectionEmployee extends Equatable {
+  /// The employee record's id, when the answer carries one.
+  final String? id;
   final String name;
   final String? employeeNumber;
   final String? departmentName;
   final String? departmentNameLo;
 
   const TimeCorrectionEmployee({
+    this.id,
     required this.name,
     this.employeeNumber,
     this.departmentName,
@@ -99,6 +176,7 @@ class TimeCorrectionEmployee extends Equatable {
 
   @override
   List<Object?> get props => [
+    id,
     name,
     employeeNumber,
     departmentName,

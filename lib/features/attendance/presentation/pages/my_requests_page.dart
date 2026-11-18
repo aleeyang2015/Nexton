@@ -6,19 +6,26 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../widgets/offsite_requests_tab.dart';
+import '../widgets/time_correction_requests_tab.dart';
+
+/// The tabs of "My requests", in their order on screen.
+enum MyRequestsTab { offsite, correction }
 
 /// "ຄຳຮ້ອງຂອງຂ້ອຍ" (#42): the requests the employee has filed, one tab per
-/// kind. Off-site scans for now; #45 adds "forgot to scan". The tab bar
-/// shows with one tab too, so the place looks the same when more arrive.
+/// kind: off-site scans (#42) and "forgot to scan" (#45). [initialTab] is
+/// the one it opens on (the old history addresses open their own).
 class MyRequestsPage extends StatelessWidget {
-  const MyRequestsPage({super.key});
+  const MyRequestsPage({super.key, this.initialTab = MyRequestsTab.offsite});
+
+  final MyRequestsTab initialTab;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
     return DefaultTabController(
-      length: 1,
+      length: MyRequestsTab.values.length,
+      initialIndex: initialTab.index,
       child: Container(
         color: Colors.white,
         child: SafeArea(
@@ -50,10 +57,15 @@ class MyRequestsPage extends StatelessWidget {
                 labelColor: AppColors.primary,
                 unselectedLabelColor: AppColors.subTitle,
                 indicatorColor: AppColors.primary,
-                tabs: [Tab(text: l10n.attOffsiteTab)],
+                tabs: [
+                  Tab(text: l10n.attOffsiteTab),
+                  Tab(text: l10n.attCorrectionTab),
+                ],
               ),
             ),
-            body: const TabBarView(children: [OffsiteRequestsTab()]),
+            body: const TabBarView(
+              children: [OffsiteRequestsTab(), TimeCorrectionRequestsTab()],
+            ),
           ),
         ),
       ),

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import '../../../../core/network/paged_list.dart';
 import '../../../../core/utils/result.dart';
 import '../entities/attendance_day.dart';
 import '../entities/open_ot_session.dart';
@@ -47,12 +48,16 @@ abstract class AttendanceRepository {
   FutureResult<AttendanceSummary> summary(DateRange range);
 
   /// `POST /attendance/correction-requests` — files a "ລືມລົງເວລາ" request
-  /// for a manager to approve.
-  FutureResult<Unit> submitTimeCorrection(TimeCorrectionRequest request);
+  /// for a manager to approve. The new request's id, when the answer
+  /// carries one.
+  FutureResult<String?> submitTimeCorrection(TimeCorrectionRequest request);
 
-  /// `GET /attendance/correction-requests/my` — the employee's filed
-  /// requests, newest first.
-  FutureResult<List<TimeCorrectionRecord>> myTimeCorrections();
+  /// `GET /attendance/correction-requests/my` — one page of the employee's
+  /// filed requests, of [status] (all when null), from [cursor].
+  FutureResult<CursorPage<TimeCorrectionRecord>> myTimeCorrections({
+    TimeCorrectionStatus? status,
+    String? cursor,
+  });
 
   /// `GET /attendance/correction-requests/:id` — one request in full.
   FutureResult<TimeCorrectionDetail> timeCorrectionDetail(String id);

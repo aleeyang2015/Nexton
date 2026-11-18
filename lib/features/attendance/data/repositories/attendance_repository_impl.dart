@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import '../../../../core/network/paged_list.dart';
 import '../../../../core/utils/base_repository.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/attendance_day.dart';
@@ -54,15 +55,16 @@ class AttendanceRepositoryImpl extends BaseRepository
       guard(() => _remote.summary(range));
 
   @override
-  FutureResult<Unit> submitTimeCorrection(TimeCorrectionRequest request) =>
-      guard(() async {
-        await _remote.submitTimeCorrection(request);
-        return Unit.instance;
-      });
+  FutureResult<String?> submitTimeCorrection(TimeCorrectionRequest request) =>
+      guard(() => _remote.submitTimeCorrection(request));
 
   @override
-  FutureResult<List<TimeCorrectionRecord>> myTimeCorrections() =>
-      guard(() => _remote.myTimeCorrections());
+  FutureResult<CursorPage<TimeCorrectionRecord>> myTimeCorrections({
+    TimeCorrectionStatus? status,
+    String? cursor,
+  }) => guard(
+    () => _remote.myTimeCorrections(status: status, cursor: cursor),
+  );
 
   @override
   FutureResult<TimeCorrectionDetail> timeCorrectionDetail(String id) =>

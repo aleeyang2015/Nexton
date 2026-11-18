@@ -24,7 +24,10 @@ mixin _$TimeCorrectionFormState {
   TimeOfDay get clockOut => throw _privateConstructorUsedError;
   String get reason => throw _privateConstructorUsedError;
   bool get showErrors => throw _privateConstructorUsedError;
-  AsyncValue<void> get submission => throw _privateConstructorUsedError;
+
+  /// How the last send went; once sent, the new request's id (null when
+  /// the answer carried none, or before any send).
+  AsyncValue<String?> get submission => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $TimeCorrectionFormStateCopyWith<TimeCorrectionFormState> get copyWith =>
@@ -46,7 +49,7 @@ abstract class $TimeCorrectionFormStateCopyWith<$Res> {
     TimeOfDay clockOut,
     String reason,
     bool showErrors,
-    AsyncValue<void> submission,
+    AsyncValue<String?> submission,
   });
 }
 
@@ -108,7 +111,7 @@ class _$TimeCorrectionFormStateCopyWithImpl<
             submission: null == submission
                 ? _value.submission
                 : submission // ignore: cast_nullable_to_non_nullable
-                      as AsyncValue<void>,
+                      as AsyncValue<String?>,
           )
           as $Val,
     );
@@ -132,7 +135,7 @@ abstract class _$$TimeCorrectionFormStateImplCopyWith<$Res>
     TimeOfDay clockOut,
     String reason,
     bool showErrors,
-    AsyncValue<void> submission,
+    AsyncValue<String?> submission,
   });
 }
 
@@ -194,7 +197,7 @@ class __$$TimeCorrectionFormStateImplCopyWithImpl<$Res>
         submission: null == submission
             ? _value.submission
             : submission // ignore: cast_nullable_to_non_nullable
-                  as AsyncValue<void>,
+                  as AsyncValue<String?>,
       ),
     );
   }
@@ -211,7 +214,7 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
     this.clockOut = const TimeOfDay(hour: 17, minute: 0),
     this.reason = '',
     this.showErrors = false,
-    this.submission = const AsyncValue<void>.data(null),
+    this.submission = const AsyncValue<String?>.data(null),
   }) : super._();
 
   @override
@@ -233,9 +236,12 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
   @override
   @JsonKey()
   final bool showErrors;
+
+  /// How the last send went; once sent, the new request's id (null when
+  /// the answer carried none, or before any send).
   @override
   @JsonKey()
-  final AsyncValue<void> submission;
+  final AsyncValue<String?> submission;
 
   @override
   String toString() {
@@ -293,7 +299,7 @@ abstract class _TimeCorrectionFormState extends TimeCorrectionFormState {
     final TimeOfDay clockOut,
     final String reason,
     final bool showErrors,
-    final AsyncValue<void> submission,
+    final AsyncValue<String?> submission,
   }) = _$TimeCorrectionFormStateImpl;
   const _TimeCorrectionFormState._() : super._();
 
@@ -312,7 +318,9 @@ abstract class _TimeCorrectionFormState extends TimeCorrectionFormState {
   @override
   bool get showErrors;
   @override
-  AsyncValue<void> get submission;
+  /// How the last send went; once sent, the new request's id (null when
+  /// the answer carried none, or before any send).
+  AsyncValue<String?> get submission;
   @override
   @JsonKey(ignore: true)
   _$$TimeCorrectionFormStateImplCopyWith<_$TimeCorrectionFormStateImpl>

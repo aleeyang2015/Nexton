@@ -111,11 +111,14 @@ class FakeAttendanceRepository implements AttendanceRepository {
         const Result.failure(Failure.unknown(message: 'no clock-out queued'));
   }
 
-  Result<Unit> timeCorrectionResult = const Result.success(Unit.instance);
+  /// The submit's answer: the new request's id by default.
+  Result<String?> timeCorrectionResult = const Result.success('tc-new');
   final List<TimeCorrectionRequest> timeCorrectionRequests = [];
 
   @override
-  FutureResult<Unit> submitTimeCorrection(TimeCorrectionRequest request) async {
+  FutureResult<String?> submitTimeCorrection(
+    TimeCorrectionRequest request,
+  ) async {
     timeCorrectionRequests.add(request);
     final answer = timeCorrectionResult;
     final hold = holdTimeCorrection;
@@ -127,19 +130,40 @@ class FakeAttendanceRepository implements AttendanceRepository {
   /// When set, the next correction submit waits for it.
   Completer<void>? holdTimeCorrection;
 
-  Result<List<TimeCorrectionRecord>> timeCorrectionHistoryResult =
-      const Result.success([]);
+  /// Answers to `correction-requests/my`, one per call in order; the last
+  /// one repeats. One empty page by default.
+  List<Result<CursorPage<TimeCorrectionRecord>>> timeCorrectionHistoryResults =
+      [const Result.success(CursorPage.single([]))];
+
+  /// What each call asked for, in order.
+  final List<({TimeCorrectionStatus? status, String? cursor})>
+  timeCorrectionHistoryCalls = [];
 
   @override
-  FutureResult<List<TimeCorrectionRecord>> myTimeCorrections() async =>
-      timeCorrectionHistoryResult;
+  FutureResult<CursorPage<TimeCorrectionRecord>> myTimeCorrections({
+    TimeCorrectionStatus? status,
+    String? cursor,
+  }) async {
+    timeCorrectionHistoryCalls.add((status: status, cursor: cursor));
+    final i = timeCorrectionHistoryCalls.length - 1;
+    final answers = timeCorrectionHistoryResults;
+    return answers[i < answers.length ? i : answers.length - 1];
+  }
 
-  Result<TimeCorrectionDetail> timeCorrectionDetailResult =
-      const Result.failure(Failure.unknown(message: 'unset'));
+  /// Answers to `correction-requests/:id`, one per call in order; the last
+  /// one repeats.
+  List<Result<TimeCorrectionDetail>> timeCorrectionDetailResults = const [
+    Result.failure(Failure.unknown(message: 'unset')),
+  ];
+  final List<String> timeCorrectionDetailCalls = [];
 
   @override
-  FutureResult<TimeCorrectionDetail> timeCorrectionDetail(String id) async =>
-      timeCorrectionDetailResult;
+  FutureResult<TimeCorrectionDetail> timeCorrectionDetail(String id) async {
+    timeCorrectionDetailCalls.add(id);
+    final i = timeCorrectionDetailCalls.length - 1;
+    final answers = timeCorrectionDetailResults;
+    return answers[i < answers.length ? i : answers.length - 1];
+  }
 
   Result<Unit> cancelTimeCorrectionResult = const Result.success(Unit.instance);
   final List<String> cancelledTimeCorrectionIds = [];

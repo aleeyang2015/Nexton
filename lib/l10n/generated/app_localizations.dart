@@ -2768,6 +2768,24 @@ abstract class AppLocalizations {
   /// **'View'**
   String get attView;
 
+  /// No description provided for @attCorrectionTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot to scan'**
+  String get attCorrectionTab;
+
+  /// No description provided for @attCorrectionResult.
+  ///
+  /// In en, this message translates to:
+  /// **'After the correction'**
+  String get attCorrectionResult;
+
+  /// No description provided for @attCorrectionRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested time'**
+  String get attCorrectionRequested;
+
   /// No description provided for @attOffsiteDetailTitle.
   ///
   /// In en, this message translates to:
