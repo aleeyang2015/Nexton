@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#56 merged, `f3cb794`; next is #57, not started; #55 stays blocked on the backend). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#57 implemented on `57-app-gate`, `d1a026a` + `5ccaa11`, waiting for "push issue 57 to main directly"). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 | | |
 |---|---|
 | Last finished work order | 55 of 60: #56, sign-in: signing out ends the session on the server |
-| Next work order | **56 of 60: #57**, app: ask for an update when this version is too old, and show maintenance. Not started, no branch, no plan shown yet. (#55 stays BLOCKED on Nexton-Backend#190.) |
+| Next work order | **56 of 60: #57**, app: ask for an update when this version is too old, and show maintenance. IMPLEMENTED on `57-app-gate` (`d1a026a`, `5ccaa11`), both reviews done and fixed; waiting for the owner's merge word. (#55 stays BLOCKED on Nexton-Backend#190.) |
 | `origin/main` | `adad453` "Merge branch '51-push-setup' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -185,9 +185,17 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #57 (work order 56 of 60), "app: ask for an update when this version is too old, and show maintenance".**
-   Not started: no branch, no plan shown yet. Read the issue and its comments, plan, wait for "go". #55 stays blocked
-   on Nexton-Backend#190.
+1. **Now: #57 (work order 56 of 60), "app: ask for an update when this version is too old, and show maintenance":
+   IMPLEMENTED** on `57-app-gate` (`d1a026a`, review fixes `5ccaa11`), pushed, not merged. Gates: analyze 1 warning
+   already on `main`; `flutter test` 2,320 passed; debug APK built. Owner decisions: `package_info_plus` (already
+   transitive, now direct) and `url_launcher` (new) approved; a failed check keeps the last status; an unreadable
+   version skips the check; Play fallback `id=next.on.hr.com`; texts say "NEXTON". `AppConstants.appVersion` is gone:
+   `AppVersion` (set in `main`) feeds the User-Agent, the login footer and push registration. Open: the gate shares
+   the `/mobile` 60-a-minute-per-IP limit with push sign-up and the bell list (a 429 just carries on); whether
+   `/mobile/app-info` stays up while the backend is in maintenance is unverified (backend repo private). Device
+   checks pending (never by changing the live record): `--build-name=0.9.0` against `nexton-demo` shows the update
+   screen before login and after sign-in, the Play button opens `next.on.hr.com`; a normal build and flight mode
+   start as before; the call works on `app.nexton.work`. #55 stays blocked on Nexton-Backend#190.
 
    **#56 (work order 55 of 60): MERGED (`f3cb794`)** on the owner's say, 2026-11-18, from `56-server-logout`
    (`abba477`, review fixes `7564f53`). Owner's go 2026-11-18. Sign-out:
@@ -1035,7 +1043,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 53 | #54 | notifications: the bell shows recent pushes | `54-notifications-list` | `8ffe783`, `9678f08` | merged to main directly (`748e760`) | analyze: 1 warning already on `main`; `flutter test`: 2,267 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 54 | #55 | notifications: unread dots and a count on the bell | | | | | BLOCKED: backend, unread count |
 | 55 | #56 | sign-in: signing out ends the session on the server | `56-server-logout` | `abba477`, `7564f53` | merged to main directly (`f3cb794`) | analyze: 1 warning already on `main`; `flutter test`: 2,283 passed, 0 failed; debug APK | MERGED, device checks pending |
-| 56 | #57 | app: ask for an update when this version is too old, and show maintenance | | | | | NOT STARTED |
+| 56 | #57 | app: ask for an update when this version is too old, and show maintenance | `57-app-gate` | `d1a026a`, `5ccaa11` | not merged | analyze: 1 warning already on `main`; `flutter test`: 2,320 passed, 0 failed; debug APK | IMPLEMENTED, waiting for merge word |
 | 57 | #58 | profile: see my personal information (read-only) | | | | | NOT STARTED |
 | 58 | #59 | profile: change my own photo | | | | | NOT STARTED |
 | 59 | #60 | sign-in: "forgot password" says ask HR, and "remember my email" works | | | | | NOT STARTED |
