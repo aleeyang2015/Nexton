@@ -44,3 +44,26 @@ OffsiteRequestDetail offsiteForApproval({
   ],
   submittedAt: DateTime(2026, 11, 18, 8, 15),
 );
+
+/// The same scan with [steps] in place of its own.
+extension OffsiteStepsCopy on OffsiteRequestDetail {
+  OffsiteRequestDetail copyWithSteps(List<TimeCorrectionApprovalStep> steps) =>
+      OffsiteRequestDetail(
+        id: id,
+        employee: employee,
+        method: method,
+        latitude: latitude,
+        longitude: longitude,
+        scanTimestamp: scanTimestamp,
+        scanDate: scanDate,
+        sessionOrder: sessionOrder,
+        shift: shift,
+        attachmentUrl: attachmentUrl,
+        reason: reason,
+        status: status,
+        currentStepNo: currentStepNo,
+        attendanceRecordId: attendanceRecordId,
+        steps: steps,
+        submittedAt: submittedAt,
+      );
+}

@@ -27,6 +27,10 @@ mixin _$OffsiteApprovalsState {
   /// (`CHECKIN_NOT_APPROVED`): they can only be rejected, so Approve goes.
   Set<String> get rejectOnlyIds => throw _privateConstructorUsedError;
 
+  /// Requests whose step turned out not to be the approver's
+  /// (`NOT_APPROVER`): no buttons.
+  Set<String> get notMineIds => throw _privateConstructorUsedError;
+
   @JsonKey(ignore: true)
   $OffsiteApprovalsStateCopyWith<OffsiteApprovalsState> get copyWith =>
       throw _privateConstructorUsedError;
@@ -44,6 +48,7 @@ abstract class $OffsiteApprovalsStateCopyWith<$Res> {
     AsyncValue<PagedList<OffsiteRequestDetail>> decided,
     TimeCorrectionStatus decidedFilter,
     Set<String> rejectOnlyIds,
+    Set<String> notMineIds,
   });
 }
 
@@ -67,6 +72,7 @@ class _$OffsiteApprovalsStateCopyWithImpl<
     Object? decided = null,
     Object? decidedFilter = null,
     Object? rejectOnlyIds = null,
+    Object? notMineIds = null,
   }) {
     return _then(
       _value.copyWith(
@@ -85,6 +91,10 @@ class _$OffsiteApprovalsStateCopyWithImpl<
             rejectOnlyIds: null == rejectOnlyIds
                 ? _value.rejectOnlyIds
                 : rejectOnlyIds // ignore: cast_nullable_to_non_nullable
+                      as Set<String>,
+            notMineIds: null == notMineIds
+                ? _value.notMineIds
+                : notMineIds // ignore: cast_nullable_to_non_nullable
                       as Set<String>,
           )
           as $Val,
@@ -106,6 +116,7 @@ abstract class _$$OffsiteApprovalsStateImplCopyWith<$Res>
     AsyncValue<PagedList<OffsiteRequestDetail>> decided,
     TimeCorrectionStatus decidedFilter,
     Set<String> rejectOnlyIds,
+    Set<String> notMineIds,
   });
 }
 
@@ -126,6 +137,7 @@ class __$$OffsiteApprovalsStateImplCopyWithImpl<$Res>
     Object? decided = null,
     Object? decidedFilter = null,
     Object? rejectOnlyIds = null,
+    Object? notMineIds = null,
   }) {
     return _then(
       _$OffsiteApprovalsStateImpl(
@@ -145,6 +157,10 @@ class __$$OffsiteApprovalsStateImplCopyWithImpl<$Res>
             ? _value._rejectOnlyIds
             : rejectOnlyIds // ignore: cast_nullable_to_non_nullable
                   as Set<String>,
+        notMineIds: null == notMineIds
+            ? _value._notMineIds
+            : notMineIds // ignore: cast_nullable_to_non_nullable
+                  as Set<String>,
       ),
     );
   }
@@ -158,7 +174,9 @@ class _$OffsiteApprovalsStateImpl extends _OffsiteApprovalsState {
     this.decided = const AsyncValue<PagedList<OffsiteRequestDetail>>.loading(),
     this.decidedFilter = TimeCorrectionStatus.approved,
     final Set<String> rejectOnlyIds = const <String>{},
+    final Set<String> notMineIds = const <String>{},
   }) : _rejectOnlyIds = rejectOnlyIds,
+       _notMineIds = notMineIds,
        super._();
 
   @override
@@ -185,9 +203,23 @@ class _$OffsiteApprovalsStateImpl extends _OffsiteApprovalsState {
     return EqualUnmodifiableSetView(_rejectOnlyIds);
   }
 
+  /// Requests whose step turned out not to be the approver's
+  /// (`NOT_APPROVER`): no buttons.
+  final Set<String> _notMineIds;
+
+  /// Requests whose step turned out not to be the approver's
+  /// (`NOT_APPROVER`): no buttons.
+  @override
+  @JsonKey()
+  Set<String> get notMineIds {
+    if (_notMineIds is EqualUnmodifiableSetView) return _notMineIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableSetView(_notMineIds);
+  }
+
   @override
   String toString() {
-    return 'OffsiteApprovalsState(pending: $pending, decided: $decided, decidedFilter: $decidedFilter, rejectOnlyIds: $rejectOnlyIds)';
+    return 'OffsiteApprovalsState(pending: $pending, decided: $decided, decidedFilter: $decidedFilter, rejectOnlyIds: $rejectOnlyIds, notMineIds: $notMineIds)';
   }
 
   @override
@@ -202,6 +234,10 @@ class _$OffsiteApprovalsStateImpl extends _OffsiteApprovalsState {
             const DeepCollectionEquality().equals(
               other._rejectOnlyIds,
               _rejectOnlyIds,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._notMineIds,
+              _notMineIds,
             ));
   }
 
@@ -212,6 +248,7 @@ class _$OffsiteApprovalsStateImpl extends _OffsiteApprovalsState {
     decided,
     decidedFilter,
     const DeepCollectionEquality().hash(_rejectOnlyIds),
+    const DeepCollectionEquality().hash(_notMineIds),
   );
 
   @JsonKey(ignore: true)
@@ -231,6 +268,7 @@ abstract class _OffsiteApprovalsState extends OffsiteApprovalsState {
     final AsyncValue<PagedList<OffsiteRequestDetail>> decided,
     final TimeCorrectionStatus decidedFilter,
     final Set<String> rejectOnlyIds,
+    final Set<String> notMineIds,
   }) = _$OffsiteApprovalsStateImpl;
   const _OffsiteApprovalsState._() : super._();
 
@@ -244,6 +282,10 @@ abstract class _OffsiteApprovalsState extends OffsiteApprovalsState {
   /// Check-outs whose check-in was rejected or cancelled
   /// (`CHECKIN_NOT_APPROVED`): they can only be rejected, so Approve goes.
   Set<String> get rejectOnlyIds;
+  @override
+  /// Requests whose step turned out not to be the approver's
+  /// (`NOT_APPROVER`): no buttons.
+  Set<String> get notMineIds;
   @override
   @JsonKey(ignore: true)
   _$$OffsiteApprovalsStateImplCopyWith<_$OffsiteApprovalsStateImpl>

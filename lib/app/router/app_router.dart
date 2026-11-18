@@ -208,6 +208,7 @@ final List<GoRoute> approvalsRoutes = [
       final id = state.pathParameters['id'] ?? '';
       final extra = state.extra;
       return _ApprovalsGate(
+        attendanceOnly: true,
         child: OffsiteRequestDetailPage(
           requestId: id,
           approver: true,
@@ -596,13 +597,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 /// A page of the Approvals place for those who may see it, the not-found
 /// page for anyone else.
 class _ApprovalsGate extends ConsumerWidget {
-  const _ApprovalsGate({required this.child});
+  const _ApprovalsGate({required this.child, this.attendanceOnly = false});
 
   final Widget child;
 
+  /// Only for attendance approvers too (an off-site scan, #46).
+  final bool attendanceOnly;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) =>
-      ref.watch(approverAccessProvider.select((a) => a.canSeeApprovals))
+      ref.watch(
+        approverAccessProvider.select(
+          (a) =>
+              a.canSeeApprovals &&
+              (!attendanceOnly || a.canApproveAttendance),
+        ),
+      )
       ? child
       : const NotFoundPage();
 }

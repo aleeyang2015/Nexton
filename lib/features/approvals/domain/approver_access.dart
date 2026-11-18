@@ -119,12 +119,24 @@ class ApproverAccess extends Equatable {
       return false;
     }
     if (isOwnOffsite(request, employeeId)) return false;
+    // Already approved an earlier step: never the next one too (the server
+    // leaves such a request out of "waiting on me", and refuses it).
+    final approvedEarlier = request.steps.any(
+      (s) =>
+          s.stepNo < step.stepNo &&
+          s.status == LeaveStepStatus.approved &&
+          s.approverId == employeeId,
+    );
+    if (approvedEarlier) return false;
     final access = ApproverAccess.of(user);
+    final named = step.approverId;
     return switch (step.role) {
       LeaveStepRole.hr => access.isAdmin || access.canManageAttendance,
       // `dept_head`, and `specific` (read as unknown): the named employee.
-      LeaveStepRole.deptHead ||
-      LeaveStepRole.unknown => step.approverId == employeeId,
+      // A step that names no one yet (the guide: `approver` may be null
+      // until acted) is left to the server, whose refusal hides the buttons.
+      LeaveStepRole.deptHead || LeaveStepRole.unknown =>
+        named == null || named == employeeId,
     };
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/features/approvals/domain/approver_access.dart';
+import 'package:next_on/features/attendance/domain/entities/time_correction_detail.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_status.dart';
 import 'package:next_on/features/auth/domain/entities/user.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
@@ -241,6 +242,44 @@ void main() {
           reason: '$role',
         );
       }
+    });
+
+    test('a step that names no one yet is left to the server', () {
+      final scan = offsiteForApproval(role: LeaveStepRole.deptHead);
+      expect(ApproverAccess.canDecideOffsite(scan, user(head: true)), isTrue);
+    });
+
+    test('not after approving an earlier step (a head who is also HR)', () {
+      final scan = offsiteForApproval().copyWithSteps([
+        const TimeCorrectionApprovalStep(
+          id: 's-1',
+          stepNo: 1,
+          role: LeaveStepRole.deptHead,
+          approverId: 'emp-1',
+          status: LeaveStepStatus.approved,
+        ),
+        const TimeCorrectionApprovalStep(
+          id: 's-2',
+          stepNo: 2,
+          role: LeaveStepRole.hr,
+          status: LeaveStepStatus.pending,
+        ),
+      ]);
+      expect(
+        ApproverAccess.canDecideOffsite(
+          scan,
+          user(head: true, permissions: [attendanceHr]),
+        ),
+        isFalse,
+      );
+      // Someone else's earlier approval does not count.
+      expect(
+        ApproverAccess.canDecideOffsite(
+          scan,
+          user(permissions: [attendanceHr], employeeId: 'emp-2'),
+        ),
+        isTrue,
+      );
     });
 
     test('never one\'s own request, even as HR', () {

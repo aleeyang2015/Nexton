@@ -133,10 +133,11 @@ void main() {
         'asks for its own list', (tester) async {
       final repository = await pumpTab(tester, [pendingScan()]);
 
-      expect(repository.approvalsCalls, unorderedEquals([
+      // The exact calls are the notifier test's; here, which lists.
+      expect(repository.approvalsCalls.toSet(), {
         (status: TimeCorrectionStatus.pending, cursor: null),
         (status: TimeCorrectionStatus.approved, cursor: null),
-      ]));
+      });
 
       await tester.tap(find.text('I rejected'));
       await tester.pumpAndSettle();

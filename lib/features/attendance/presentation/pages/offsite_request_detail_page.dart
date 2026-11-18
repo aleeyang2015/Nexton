@@ -174,8 +174,7 @@ class _ApproverBody extends ConsumerWidget {
     final user = ref.watch(
       authSessionProvider.select((s) => s.valueOrNull?.user),
     );
-    final deciding = ref.watch(offsiteDecisionNotifierProvider(request.id));
-    final rejectOnly = ref.watch(offsiteRejectOnlyProvider(request.id));
+    final decision = ref.watch(offsiteDecisionNotifierProvider(request.id));
     final photo = request.attachmentUrl;
 
     return Column(
@@ -183,10 +182,12 @@ class _ApproverBody extends ConsumerWidget {
       children: [
         OffsiteApprovalCard(
           request: request,
-          deciding: deciding,
-          canDecide: ApproverAccess.canDecideOffsite(request, user),
+          deciding: decision.deciding,
+          canDecide:
+              !decision.notMine &&
+              ApproverAccess.canDecideOffsite(request, user),
           own: ApproverAccess.isOwnOffsite(request, user?.employeeId),
-          rejectOnly: rejectOnly,
+          rejectOnly: decision.rejectOnly,
           onApprove: () => _decided(
             context,
             OffsiteDecisionFlow.approve(context, ref, request),

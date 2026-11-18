@@ -136,6 +136,7 @@ void main() {
 
       expect(result!.isSuccess, isTrue);
       expect(repository.approved, [(id: 'o-1', stepId: 'step-1', note: 'fine')]);
+      await pumpEventQueue();
       expect(repository.approvalsCalls.length, before + 2);
     });
 
@@ -168,6 +169,77 @@ void main() {
 
       expect(result!.isFailure, isTrue);
       expect(callsFor(TimeCorrectionStatus.pending), before + 1);
+    });
+
+    test('NOT_PENDING takes the row out at once, even when the reload '
+        'after it fails (no signal)', () async {
+      repository.approvalsPages![TimeCorrectionStatus.pending] = [
+        Result.success(page([offsiteForApproval()])),
+        const Result.failure(Failure.network(message: 'offline')),
+      ];
+      await start();
+      repository.decisionResult = const Result.failure(
+        Failure.validation(
+          message: OffsiteErrorCode.tokenAlreadyDecided,
+          code: 'NOT_PENDING',
+        ),
+      );
+
+      await decision('o-1').approve(offsiteForApproval());
+      await pumpEventQueue();
+
+      final pending = container.read(offsiteApprovalsNotifierProvider).pending;
+      expect(pending.hasError, isTrue);
+      expect(pending.value!.items, isEmpty);
+    });
+
+    test('a decision takes the row out at once; a failed reload keeps the '
+        'rest', () async {
+      repository.approvalsPages![TimeCorrectionStatus.pending] = [
+        Result.success(
+          page([offsiteForApproval(), offsiteForApproval(id: 'o-2')]),
+        ),
+        const Result.failure(Failure.network(message: 'offline')),
+      ];
+      await start();
+
+      await decision('o-1').approve(offsiteForApproval());
+      await pumpEventQueue();
+
+      expect(
+        container
+            .read(offsiteApprovalsNotifierProvider)
+            .pending
+            .value!
+            .items
+            .map((r) => r.id),
+        ['o-2'],
+      );
+    });
+
+    test('NOT_APPROVER: the step is not mine after all, so no buttons, on '
+        'the row and on the page opened from it', () async {
+      await start();
+      repository.decisionResult = const Result.failure(
+        Failure.validation(
+          message: OffsiteErrorCode.tokenAnotherApprover,
+          code: 'NOT_APPROVER',
+        ),
+      );
+
+      await decision('o-1').approve(offsiteForApproval());
+
+      expect(
+        container.read(offsiteApprovalsNotifierProvider).notMineIds,
+        {'o-1'},
+      );
+      // Another decision notifier for the same request (the page) starts
+      // from the list's marks.
+      container.invalidate(offsiteDecisionNotifierProvider('o-1'));
+      expect(
+        container.read(offsiteDecisionNotifierProvider('o-1')).notMine,
+        isTrue,
+      );
     });
 
     test('STEP_CHANGED reads the lists again too', () async {
@@ -219,6 +291,12 @@ void main() {
         container.read(offsiteApprovalsNotifierProvider).rejectOnlyIds,
         {'o-1'},
       );
+      // The page opened from the row starts from it.
+      container.invalidate(offsiteDecisionNotifierProvider('o-1'));
+      expect(
+        container.read(offsiteDecisionNotifierProvider('o-1')).rejectOnly,
+        isTrue,
+      );
     });
 
     test('NOT_APPROVER on the approver\'s own request says "your own"; on '
@@ -254,13 +332,19 @@ void main() {
 
       final first = notifier.approve(offsiteForApproval());
       final second = await notifier.approve(offsiteForApproval());
-      expect(container.read(offsiteDecisionNotifierProvider('o-1')), isTrue);
+      expect(
+        container.read(offsiteDecisionNotifierProvider('o-1')).deciding,
+        isTrue,
+      );
       hold.complete();
       await first;
 
       expect(second, isNull);
       expect(repository.approved, hasLength(1));
-      expect(container.read(offsiteDecisionNotifierProvider('o-1')), isFalse);
+      expect(
+        container.read(offsiteDecisionNotifierProvider('o-1')).deciding,
+        isFalse,
+      );
     });
   });
 }

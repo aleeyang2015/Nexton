@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failure.dart';
@@ -10,23 +12,62 @@ import '../../domain/entities/offsite_detail.dart';
 import 'offsite_approvals_notifier.dart';
 import 'offsite_detail_notifier.dart';
 
+/// Where a decision on one off-site scan stands (#46).
+class OffsiteDecisionState {
+  const OffsiteDecisionState({
+    this.deciding = false,
+    this.rejectOnly = false,
+    this.notMine = false,
+  });
+
+  /// A decision is on its way: the buttons are off.
+  final bool deciding;
+
+  /// `CHECKIN_NOT_APPROVED`: the check-in was turned down, so Reject only.
+  final bool rejectOnly;
+
+  /// `NOT_APPROVER`: the step is not this approver's after all; no buttons.
+  final bool notMine;
+
+  OffsiteDecisionState copyWith({
+    bool? deciding,
+    bool? rejectOnly,
+    bool? notMine,
+  }) => OffsiteDecisionState(
+    deciding: deciding ?? this.deciding,
+    rejectOnly: rejectOnly ?? this.rejectOnly,
+    notMine: notMine ?? this.notMine,
+  );
+}
+
 /// Approve or reject one off-site scan, by its id (#46), from its row in the
 /// approvals tab or from its own page: one decision at a time for the
-/// request, wherever it was tapped. The state is true while one is on its
-/// way, so the buttons switch off and a second tap sends nothing.
+/// request, wherever it was tapped.
 ///
-/// After a decision, and after a refusal that means the request moved on
-/// (decided by someone else, the step changed, gone), the tab's lists and
-/// the request's page are read again when open. `CHECKIN_NOT_APPROVED`
-/// leaves the request with Reject only.
-class OffsiteDecisionNotifier extends AutoDisposeFamilyNotifier<bool, String> {
+/// A decision, or a refusal that means the request moved on (decided by
+/// someone else, the step changed, gone), takes it out of the waiting list
+/// at once and reads the lists again; after a refusal the request's page is
+/// read again too (after a decision it closes). `CHECKIN_NOT_APPROVED`
+/// leaves Reject only; `NOT_APPROVER` leaves no buttons. Both marks are
+/// also kept on the tab's list, so the row and the page agree.
+class OffsiteDecisionNotifier
+    extends AutoDisposeFamilyNotifier<OffsiteDecisionState, String> {
   bool _disposed = false;
 
   @override
-  bool build(String arg) {
+  OffsiteDecisionState build(String arg) {
     _disposed = false;
     ref.onDispose(() => _disposed = true);
-    return false;
+    // What a refusal from the row left, for the request's page opened from
+    // it. Read, not watched: the page never loads the list itself.
+    if (!ref.exists(offsiteApprovalsNotifierProvider)) {
+      return const OffsiteDecisionState();
+    }
+    final lists = ref.read(offsiteApprovalsNotifierProvider);
+    return OffsiteDecisionState(
+      rejectOnly: lists.rejectOnlyIds.contains(arg),
+      notMine: lists.notMineIds.contains(arg),
+    );
   }
 
   /// Approves the waiting step, with [note] when one was typed. Null when a
@@ -58,8 +99,8 @@ class OffsiteDecisionNotifier extends AutoDisposeFamilyNotifier<bool, String> {
     OffsiteRequestDetail request,
     Future<Result<Unit>> Function() action,
   ) async {
-    if (state) return null;
-    state = true;
+    if (state.deciding) return null;
+    state = state.copyWith(deciding: true);
     // Kept until the answer is handled: the approver may go back while it
     // is on its way, and the list underneath must still be read again.
     final keep = ref.keepAlive();
@@ -67,18 +108,22 @@ class OffsiteDecisionNotifier extends AutoDisposeFamilyNotifier<bool, String> {
       final result = await action();
       final failure = result.failureOrNull;
       if (failure == null) {
-        await _reload();
+        // The page closes now: only the lists are read again, not waited on.
+        _leaveWaiting();
         return result;
       }
       final token = _tokenOf(failure);
       if (token == OffsiteErrorCode.tokenCheckinNotApproved) {
-        _markRejectOnly();
+        _mark(rejectOnly: true);
+      } else if (token == OffsiteErrorCode.tokenAnotherApprover) {
+        _mark(notMine: true);
       } else if (OffsiteErrorCode.staleTokens.contains(token)) {
-        await _reload();
+        _leaveWaiting();
+        await _reloadPage();
       }
       return Result.failure(_said(failure, token, request));
     } finally {
-      if (!_disposed) state = false;
+      if (!_disposed) state = state.copyWith(deciding: false);
       keep.close();
     }
   }
@@ -99,34 +144,38 @@ class OffsiteDecisionNotifier extends AutoDisposeFamilyNotifier<bool, String> {
     _ => null,
   };
 
-  /// The tab's lists and the request's page, when open.
-  Future<void> _reload() async {
-    if (_disposed) return;
-    final pending = <Future<void>>[];
-    if (ref.exists(offsiteApprovalsNotifierProvider)) {
-      pending.add(
-        ref.read(offsiteApprovalsNotifierProvider.notifier).refresh(),
-      );
-    }
-    final detail = offsiteDetailNotifierProvider(arg);
-    if (ref.exists(detail)) {
-      pending.add(ref.read(detail.notifier).refresh());
-    }
-    await Future.wait(pending);
+  /// Out of the waiting list at once, then both lists read again (not
+  /// waited on: a slow or failed reload never holds the answer back).
+  void _leaveWaiting() {
+    if (_disposed || !ref.exists(offsiteApprovalsNotifierProvider)) return;
+    final lists = ref.read(offsiteApprovalsNotifierProvider.notifier);
+    lists.dropWaiting(arg);
+    unawaited(lists.refresh());
   }
 
-  void _markRejectOnly() {
-    ref.read(offsiteRejectOnlyProvider(arg).notifier).state = true;
+  /// The request's own page, when open, as it now is.
+  Future<void> _reloadPage() async {
+    final detail = offsiteDetailNotifierProvider(arg);
+    if (_disposed || !ref.exists(detail)) return;
+    await ref.read(detail.notifier).refresh();
+  }
+
+  void _mark({bool rejectOnly = false, bool notMine = false}) {
+    if (!_disposed) {
+      state = state.copyWith(
+        rejectOnly: rejectOnly || state.rejectOnly,
+        notMine: notMine || state.notMine,
+      );
+    }
     if (ref.exists(offsiteApprovalsNotifierProvider)) {
-      ref.read(offsiteApprovalsNotifierProvider.notifier).markRejectOnly(arg);
+      ref
+          .read(offsiteApprovalsNotifierProvider.notifier)
+          .mark(arg, rejectOnly: rejectOnly, notMine: notMine);
     }
   }
 }
 
 final offsiteDecisionNotifierProvider = NotifierProvider.autoDispose
-    .family<OffsiteDecisionNotifier, bool, String>(OffsiteDecisionNotifier.new);
-
-/// True once the request [String] can only be rejected
-/// (`CHECKIN_NOT_APPROVED`), for its own page.
-final offsiteRejectOnlyProvider = StateProvider.autoDispose
-    .family<bool, String>((ref, id) => false);
+    .family<OffsiteDecisionNotifier, OffsiteDecisionState, String>(
+      OffsiteDecisionNotifier.new,
+    );

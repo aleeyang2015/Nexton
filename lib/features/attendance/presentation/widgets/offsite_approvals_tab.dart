@@ -70,6 +70,7 @@ class _OffsiteApprovalsTabState extends ConsumerState<OffsiteApprovalsTab>
               onRetry: notifier.retryPending,
               emptyMessage: l10n.leaveApprovalsPendingEmpty,
               rejectOnlyIds: state.rejectOnlyIds,
+              notMineIds: state.notMineIds,
             ),
             if (pending != null && !state.pending.isLoading)
               PagedListEnd(
@@ -94,6 +95,7 @@ class _OffsiteApprovalsTabState extends ConsumerState<OffsiteApprovalsTab>
               onRetry: notifier.retryDecided,
               emptyMessage: l10n.leaveApprovalsHistoryEmpty,
               rejectOnlyIds: state.rejectOnlyIds,
+              notMineIds: state.notMineIds,
             ),
             if (decided != null && !state.decided.isLoading)
               PagedListEnd(
@@ -146,12 +148,14 @@ class _ScanList extends StatelessWidget {
   final VoidCallback onRetry;
   final String emptyMessage;
   final Set<String> rejectOnlyIds;
+  final Set<String> notMineIds;
 
   const _ScanList({
     required this.value,
     required this.onRetry,
     required this.emptyMessage,
     required this.rejectOnlyIds,
+    required this.notMineIds,
   });
 
   @override
@@ -198,6 +202,7 @@ class _ScanList extends StatelessWidget {
             child: _ScanRow(
               request: request,
               rejectOnly: rejectOnlyIds.contains(request.id),
+              notMine: notMineIds.contains(request.id),
             ),
           ),
       ],
@@ -210,15 +215,20 @@ class _ScanList extends StatelessWidget {
 class _ScanRow extends ConsumerWidget {
   final OffsiteRequestDetail request;
   final bool rejectOnly;
+  final bool notMine;
 
-  const _ScanRow({required this.request, required this.rejectOnly});
+  const _ScanRow({
+    required this.request,
+    required this.rejectOnly,
+    required this.notMine,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(
       authSessionProvider.select((s) => s.valueOrNull?.user),
     );
-    final deciding = ref.watch(offsiteDecisionNotifierProvider(request.id));
+    final decision = ref.watch(offsiteDecisionNotifierProvider(request.id));
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -226,13 +236,20 @@ class _ScanRow extends ConsumerWidget {
           context.push(AppRoutes.approvalOffsite(request.id), extra: request),
       child: OffsiteApprovalCard(
         request: request,
-        deciding: deciding,
-        canDecide: ApproverAccess.canDecideOffsite(request, user),
+        deciding: decision.deciding,
+        canDecide:
+            !notMine &&
+            !decision.notMine &&
+            ApproverAccess.canDecideOffsite(request, user),
         own: ApproverAccess.isOwnOffsite(request, user?.employeeId),
-        rejectOnly: rejectOnly,
+        rejectOnly: rejectOnly || decision.rejectOnly,
         onApprove: () => OffsiteDecisionFlow.approve(context, ref, request),
         onReject: () => OffsiteDecisionFlow.reject(context, ref, request),
-        onViewImage: (url) => showImageViewer(context, url),
+        onViewImage: (url) => showImageViewer(
+          context,
+          url,
+          errorText: AppLocalizations.of(context)!.leaveFileOpenFailed,
+        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/paged_list.dart';
+import '../../../auth/presentation/providers/auth_session_notifier.dart';
 import '../../attendance_providers.dart';
 import '../../domain/entities/offsite_detail.dart';
 import '../../domain/entities/time_correction_status.dart';
@@ -21,6 +22,10 @@ class OffsiteApprovalsNotifier
 
   @override
   OffsiteApprovalsState build() {
+    // Another login starts from nothing.
+    ref.watch(
+      authSessionProvider.select((s) => s.valueOrNull?.user?.employeeId),
+    );
     _disposed = false;
     ref.onDispose(() => _disposed = true);
     Future.microtask(refresh);
@@ -49,10 +54,31 @@ class OffsiteApprovalsNotifier
   Future<void> retryLoadMorePending() => _retryLoadMore(_pendingList);
   Future<void> retryLoadMoreDecided() => _retryLoadMore(_decidedList);
 
-  /// A check-out that can only be rejected now (`CHECKIN_NOT_APPROVED`).
-  void markRejectOnly(String id) {
+  /// What a refusal left for request [id]: Reject only
+  /// (`CHECKIN_NOT_APPROVED`), or no buttons (`NOT_APPROVER`).
+  void mark(String id, {bool rejectOnly = false, bool notMine = false}) {
     if (_disposed) return;
-    state = state.copyWith(rejectOnlyIds: {...state.rejectOnlyIds, id});
+    state = state.copyWith(
+      rejectOnlyIds: rejectOnly
+          ? {...state.rejectOnlyIds, id}
+          : state.rejectOnlyIds,
+      notMineIds: notMine ? {...state.notMineIds, id} : state.notMineIds,
+    );
+  }
+
+  /// Takes request [id] out of the waiting list at once: decided, or moved
+  /// on without this approver. The reload after it says the rest.
+  void dropWaiting(String id) {
+    final list = state.pending.valueOrNull;
+    if (_disposed || list == null) return;
+    state = state.copyWith(
+      pending: AsyncValue.data(
+        list.withItems([
+          for (final r in list.items)
+            if (r.id != id) r,
+        ]),
+      ),
+    );
   }
 
   late final _OffsiteList _pendingList = _OffsiteList(
@@ -83,9 +109,13 @@ class OffsiteApprovalsNotifier
       cursor: null,
     ));
     if (_disposed || load != list.currentLoad()) return;
+    // A failure keeps the rows already shown.
     list.write(
       result.fold(
-        (failure) => AsyncValue.error(failure, StackTrace.current),
+        (failure) => AsyncValue<PagedList<OffsiteRequestDetail>>.error(
+          failure,
+          StackTrace.current,
+        ).copyWithPrevious(list.read()),
         (page) => AsyncValue.data(PagedList.first(page)),
       ),
     );

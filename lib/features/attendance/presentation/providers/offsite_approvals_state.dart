@@ -29,6 +29,10 @@ class OffsiteApprovalsState with _$OffsiteApprovalsState {
     /// Check-outs whose check-in was rejected or cancelled
     /// (`CHECKIN_NOT_APPROVED`): they can only be rejected, so Approve goes.
     @Default(<String>{}) Set<String> rejectOnlyIds,
+
+    /// Requests whose step turned out not to be the approver's
+    /// (`NOT_APPROVER`): no buttons.
+    @Default(<String>{}) Set<String> notMineIds,
   }) = _OffsiteApprovalsState;
 
   /// The two chips under "decided by me", in order.
