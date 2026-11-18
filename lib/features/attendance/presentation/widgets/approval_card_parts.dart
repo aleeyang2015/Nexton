@@ -74,7 +74,8 @@ class ApprovalEmployeeRow extends StatelessWidget {
                   ),
                   if (number != null) ...[
                     widthBx(w: 8),
-                    TimeCorrectionTag(label: number),
+                    // Gives way too, so the status pill fits on a phone.
+                    Flexible(child: TimeCorrectionTag(label: number)),
                   ],
                 ],
               ),
@@ -337,11 +338,16 @@ class ApprovalDecisionRow extends StatelessWidget {
   final VoidCallback onApprove;
   final VoidCallback onReject;
 
+  /// False when the request can only be rejected (an off-site check-out
+  /// whose check-in was turned down, #46).
+  final bool showApprove;
+
   const ApprovalDecisionRow({
     super.key,
     required this.enabled,
     required this.onApprove,
     required this.onReject,
+    this.showApprove = true,
   });
 
   @override
@@ -360,17 +366,19 @@ class ApprovalDecisionRow extends StatelessWidget {
             onTap: onReject,
           ),
         ),
-        widthBx(w: 10),
-        Expanded(
-          child: _DecisionButton(
-            label: l10n.timeCorrectionApprovalApprove,
-            icon: Icons.check_circle_outline,
-            background: AppColors.primaryDark,
-            foreground: Colors.white,
-            enabled: enabled,
-            onTap: onApprove,
+        if (showApprove) ...[
+          widthBx(w: 10),
+          Expanded(
+            child: _DecisionButton(
+              label: l10n.timeCorrectionApprovalApprove,
+              icon: Icons.check_circle_outline,
+              background: AppColors.primaryDark,
+              foreground: Colors.white,
+              enabled: enabled,
+              onTap: onApprove,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

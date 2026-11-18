@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/core/errors/failure.dart';
+import 'package:next_on/core/network/paged_list.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/core/widgets/app_toast.dart';
+import 'package:next_on/features/attendance/data/datasources/offsite_error_code.dart';
+import 'package:next_on/features/auth/domain/entities/user.dart';
 import 'package:next_on/features/approvals/approvals_page.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/attendance/domain/entities/offsite_detail.dart';
@@ -25,9 +30,11 @@ void main() {
     double? latitude = 17.9757,
     double? longitude = 102.6331,
     TimeCorrectionStatus status = TimeCorrectionStatus.pending,
+    String employeeId = 'e-noy',
   }) => OffsiteRequestDetail(
     id: id,
     employee: TimeCorrectionEmployee(
+      id: employeeId,
       name: employeeName,
       employeeNumber: 'EMP-001',
       departmentName: 'Sales',
@@ -55,19 +62,47 @@ void main() {
     submittedAt: DateTime(2026, 10, 2, 8, 15),
   );
 
-  /// Mounts the tab on its own with [requests] queued behind the repository.
-  /// English, so the assertions read as the copy they check.
+  /// HR, by the attendance permission: the HR steps of [pendingScan] are
+  /// theirs to decide.
+  final hr = approverTestUser(
+    head: false,
+    permissions: const ['corehr:attendanceRecord:manage'],
+    employeeId: 'e-hr',
+  );
+
+  /// Mounts the tab on its own with [requests] waiting and nothing decided,
+  /// signed in as [user] (HR by default). English, so the assertions read as
+  /// the copy they check.
   Future<FakeOffsiteRepository> pumpTab(
     WidgetTester tester,
-    List<OffsiteRequestDetail> requests,
-  ) async {
+    List<OffsiteRequestDetail> requests, {
+    List<OffsiteRequestDetail> decided = const [],
+    User? user,
+  }) async {
+    tester.view.physicalSize = const Size(420, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final repository = FakeOffsiteRepository()
-      ..approvalsResult = Result.success(requests);
+      ..approvalsPages = {
+        TimeCorrectionStatus.pending: [
+          Result.success(CursorPage.single(requests)),
+        ],
+        TimeCorrectionStatus.approved: [
+          Result.success(CursorPage.single(decided)),
+        ],
+        TimeCorrectionStatus.rejected: [
+          const Result.success(CursorPage.single([])),
+        ],
+      };
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [offsiteRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          offsiteRepositoryProvider.overrideWithValue(repository),
+          signedInAs(user ?? hr),
+        ],
         child: MaterialApp(
+          scaffoldMessengerKey: rootScaffoldMessengerKey,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           locale: const Locale('en'),
@@ -94,16 +129,22 @@ void main() {
       expect(find.text('Reject'), findsOneWidget);
     });
 
-    testWidgets('fetches one list per status the dropdown offers', (
-      tester,
-    ) async {
+    testWidgets('waiting and "I approved" load together; the other chip '
+        'asks for its own list', (tester) async {
       final repository = await pumpTab(tester, [pendingScan()]);
 
-      expect(repository.approvalsStatuses, [
-        TimeCorrectionStatus.pending,
-        TimeCorrectionStatus.approved,
-        TimeCorrectionStatus.rejected,
-      ]);
+      // The exact calls are the notifier test's; here, which lists.
+      expect(repository.approvalsCalls.toSet(), {
+        (status: TimeCorrectionStatus.pending, cursor: null),
+        (status: TimeCorrectionStatus.approved, cursor: null),
+      });
+
+      await tester.tap(find.text('I rejected'));
+      await tester.pumpAndSettle();
+      expect(repository.approvalsCalls.last, (
+        status: TimeCorrectionStatus.rejected,
+        cursor: null,
+      ));
     });
 
     testWidgets('a request with no position says so instead of "0, 0"', (
@@ -119,30 +160,84 @@ void main() {
     ) async {
       await pumpTab(tester, []);
 
-      expect(find.text('No off-site clock-in requests'), findsOneWidget);
+      expect(find.text('Nothing needs your approval'), findsOneWidget);
       expect(find.text('Approve'), findsNothing);
     });
 
-    testWidgets('approving names the step the card showed as pending', (
-      tester,
-    ) async {
+    testWidgets('Approve asks first, with an optional note; it sends the '
+        'waiting step and the note', (tester) async {
       final repository = await pumpTab(tester, [pendingScan()]);
 
       await tester.tap(find.text('Approve'));
       await tester.pumpAndSettle();
+      expect(repository.approved, isEmpty);
+      await tester.enterText(find.byType(TextField).last, 'OK, client visit');
+      await tester.tap(find.text('Approve').last);
+      await tester.pumpAndSettle();
 
-      expect(repository.approved, [(id: 'o-1', stepId: 'step-1')]);
+      expect(repository.approved, [
+        (id: 'o-1', stepId: 'step-1', note: 'OK, client visit'),
+      ]);
+      expect(find.text('Request approved'), findsOneWidget);
+    });
+
+    testWidgets('the approver\'s own request: a line, no buttons', (
+      tester,
+    ) async {
+      await pumpTab(tester, [pendingScan(employeeId: 'e-hr')]);
+
+      expect(
+        find.text('This is your own request. Someone else must decide it.'),
+        findsOneWidget,
+      );
+      expect(find.text('Approve'), findsNothing);
+    });
+
+    testWidgets('a step that is not the approver\'s: no buttons', (
+      tester,
+    ) async {
+      // A plain head on an HR step.
+      await pumpTab(tester, [pendingScan()], user: approverTestUser());
+
+      expect(find.text('Approve'), findsNothing);
+      expect(find.text('Reject'), findsNothing);
     });
 
     testWidgets('a decided request carries no decision buttons', (
       tester,
     ) async {
-      await pumpTab(tester, [
+      await pumpTab(tester, [], decided: [
         pendingScan(status: TimeCorrectionStatus.approved),
       ]);
 
+      expect(find.text('Noy Phommachanh'), findsOneWidget);
       expect(find.text('Approve'), findsNothing);
       expect(find.text('Reject'), findsNothing);
+    });
+
+    testWidgets('the check-in was turned down (CHECKIN_NOT_APPROVED): says '
+        'so, and only Reject is left', (tester) async {
+      final repository = await pumpTab(tester, [pendingScan()]);
+      repository.decisionResult = const Result.failure(
+        Failure.validation(
+          message: OffsiteErrorCode.tokenCheckinNotApproved,
+          code: 'CHECKIN_NOT_APPROVED',
+        ),
+      );
+
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Approve').last);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'The check-in was rejected or cancelled; this can only be rejected',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Approve'), findsNothing);
+      expect(find.text('Reject'), findsOneWidget);
     });
   });
 
@@ -205,7 +300,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(OffsiteApprovalsTab), findsOneWidget);
-      expect(find.text('No off-site clock-in requests'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(OffsiteApprovalsTab),
+          matching: find.text('Nothing needs your approval'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('can be opened straight on the off-site tab', (tester) async {
@@ -239,7 +340,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('No off-site clock-in requests'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(OffsiteApprovalsTab),
+          matching: find.text('Nothing needs your approval'),
+        ),
+        findsOneWidget,
+      );
     });
   });
 }

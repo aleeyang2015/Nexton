@@ -12,15 +12,24 @@ part of 'offsite_approvals_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$OffsiteApprovalsState {
-  AsyncValue<Map<TimeCorrectionStatus, List<OffsiteRequestDetail>>>
-      get requests => throw _privateConstructorUsedError;
-  TimeCorrectionStatus get filter => throw _privateConstructorUsedError;
-  String get query => throw _privateConstructorUsedError;
-  Set<String> get decidingIds => throw _privateConstructorUsedError;
+  AsyncValue<PagedList<OffsiteRequestDetail>> get pending =>
+      throw _privateConstructorUsedError;
+  AsyncValue<PagedList<OffsiteRequestDetail>> get decided =>
+      throw _privateConstructorUsedError;
+  TimeCorrectionStatus get decidedFilter => throw _privateConstructorUsedError;
+
+  /// Check-outs whose check-in was rejected or cancelled
+  /// (`CHECKIN_NOT_APPROVED`): they can only be rejected, so Approve goes.
+  Set<String> get rejectOnlyIds => throw _privateConstructorUsedError;
+
+  /// Requests whose step turned out not to be the approver's
+  /// (`NOT_APPROVER`): no buttons.
+  Set<String> get notMineIds => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $OffsiteApprovalsStateCopyWith<OffsiteApprovalsState> get copyWith =>
@@ -29,21 +38,25 @@ mixin _$OffsiteApprovalsState {
 
 /// @nodoc
 abstract class $OffsiteApprovalsStateCopyWith<$Res> {
-  factory $OffsiteApprovalsStateCopyWith(OffsiteApprovalsState value,
-          $Res Function(OffsiteApprovalsState) then) =
-      _$OffsiteApprovalsStateCopyWithImpl<$Res, OffsiteApprovalsState>;
+  factory $OffsiteApprovalsStateCopyWith(
+    OffsiteApprovalsState value,
+    $Res Function(OffsiteApprovalsState) then,
+  ) = _$OffsiteApprovalsStateCopyWithImpl<$Res, OffsiteApprovalsState>;
   @useResult
-  $Res call(
-      {AsyncValue<Map<TimeCorrectionStatus, List<OffsiteRequestDetail>>>
-          requests,
-      TimeCorrectionStatus filter,
-      String query,
-      Set<String> decidingIds});
+  $Res call({
+    AsyncValue<PagedList<OffsiteRequestDetail>> pending,
+    AsyncValue<PagedList<OffsiteRequestDetail>> decided,
+    TimeCorrectionStatus decidedFilter,
+    Set<String> rejectOnlyIds,
+    Set<String> notMineIds,
+  });
 }
 
 /// @nodoc
-class _$OffsiteApprovalsStateCopyWithImpl<$Res,
-        $Val extends OffsiteApprovalsState>
+class _$OffsiteApprovalsStateCopyWithImpl<
+  $Res,
+  $Val extends OffsiteApprovalsState
+>
     implements $OffsiteApprovalsStateCopyWith<$Res> {
   _$OffsiteApprovalsStateCopyWithImpl(this._value, this._then);
 
@@ -55,30 +68,37 @@ class _$OffsiteApprovalsStateCopyWithImpl<$Res,
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? requests = null,
-    Object? filter = null,
-    Object? query = null,
-    Object? decidingIds = null,
+    Object? pending = null,
+    Object? decided = null,
+    Object? decidedFilter = null,
+    Object? rejectOnlyIds = null,
+    Object? notMineIds = null,
   }) {
-    return _then(_value.copyWith(
-      requests: null == requests
-          ? _value.requests
-          : requests // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<
-                  Map<TimeCorrectionStatus, List<OffsiteRequestDetail>>>,
-      filter: null == filter
-          ? _value.filter
-          : filter // ignore: cast_nullable_to_non_nullable
-              as TimeCorrectionStatus,
-      query: null == query
-          ? _value.query
-          : query // ignore: cast_nullable_to_non_nullable
-              as String,
-      decidingIds: null == decidingIds
-          ? _value.decidingIds
-          : decidingIds // ignore: cast_nullable_to_non_nullable
-              as Set<String>,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            pending: null == pending
+                ? _value.pending
+                : pending // ignore: cast_nullable_to_non_nullable
+                      as AsyncValue<PagedList<OffsiteRequestDetail>>,
+            decided: null == decided
+                ? _value.decided
+                : decided // ignore: cast_nullable_to_non_nullable
+                      as AsyncValue<PagedList<OffsiteRequestDetail>>,
+            decidedFilter: null == decidedFilter
+                ? _value.decidedFilter
+                : decidedFilter // ignore: cast_nullable_to_non_nullable
+                      as TimeCorrectionStatus,
+            rejectOnlyIds: null == rejectOnlyIds
+                ? _value.rejectOnlyIds
+                : rejectOnlyIds // ignore: cast_nullable_to_non_nullable
+                      as Set<String>,
+            notMineIds: null == notMineIds
+                ? _value.notMineIds
+                : notMineIds // ignore: cast_nullable_to_non_nullable
+                      as Set<String>,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -86,92 +106,120 @@ class _$OffsiteApprovalsStateCopyWithImpl<$Res,
 abstract class _$$OffsiteApprovalsStateImplCopyWith<$Res>
     implements $OffsiteApprovalsStateCopyWith<$Res> {
   factory _$$OffsiteApprovalsStateImplCopyWith(
-          _$OffsiteApprovalsStateImpl value,
-          $Res Function(_$OffsiteApprovalsStateImpl) then) =
-      __$$OffsiteApprovalsStateImplCopyWithImpl<$Res>;
+    _$OffsiteApprovalsStateImpl value,
+    $Res Function(_$OffsiteApprovalsStateImpl) then,
+  ) = __$$OffsiteApprovalsStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {AsyncValue<Map<TimeCorrectionStatus, List<OffsiteRequestDetail>>>
-          requests,
-      TimeCorrectionStatus filter,
-      String query,
-      Set<String> decidingIds});
+  $Res call({
+    AsyncValue<PagedList<OffsiteRequestDetail>> pending,
+    AsyncValue<PagedList<OffsiteRequestDetail>> decided,
+    TimeCorrectionStatus decidedFilter,
+    Set<String> rejectOnlyIds,
+    Set<String> notMineIds,
+  });
 }
 
 /// @nodoc
 class __$$OffsiteApprovalsStateImplCopyWithImpl<$Res>
-    extends _$OffsiteApprovalsStateCopyWithImpl<$Res,
-        _$OffsiteApprovalsStateImpl>
+    extends
+        _$OffsiteApprovalsStateCopyWithImpl<$Res, _$OffsiteApprovalsStateImpl>
     implements _$$OffsiteApprovalsStateImplCopyWith<$Res> {
-  __$$OffsiteApprovalsStateImplCopyWithImpl(_$OffsiteApprovalsStateImpl _value,
-      $Res Function(_$OffsiteApprovalsStateImpl) _then)
-      : super(_value, _then);
+  __$$OffsiteApprovalsStateImplCopyWithImpl(
+    _$OffsiteApprovalsStateImpl _value,
+    $Res Function(_$OffsiteApprovalsStateImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? requests = null,
-    Object? filter = null,
-    Object? query = null,
-    Object? decidingIds = null,
+    Object? pending = null,
+    Object? decided = null,
+    Object? decidedFilter = null,
+    Object? rejectOnlyIds = null,
+    Object? notMineIds = null,
   }) {
-    return _then(_$OffsiteApprovalsStateImpl(
-      requests: null == requests
-          ? _value.requests
-          : requests // ignore: cast_nullable_to_non_nullable
-              as AsyncValue<
-                  Map<TimeCorrectionStatus, List<OffsiteRequestDetail>>>,
-      filter: null == filter
-          ? _value.filter
-          : filter // ignore: cast_nullable_to_non_nullable
-              as TimeCorrectionStatus,
-      query: null == query
-          ? _value.query
-          : query // ignore: cast_nullable_to_non_nullable
-              as String,
-      decidingIds: null == decidingIds
-          ? _value._decidingIds
-          : decidingIds // ignore: cast_nullable_to_non_nullable
-              as Set<String>,
-    ));
+    return _then(
+      _$OffsiteApprovalsStateImpl(
+        pending: null == pending
+            ? _value.pending
+            : pending // ignore: cast_nullable_to_non_nullable
+                  as AsyncValue<PagedList<OffsiteRequestDetail>>,
+        decided: null == decided
+            ? _value.decided
+            : decided // ignore: cast_nullable_to_non_nullable
+                  as AsyncValue<PagedList<OffsiteRequestDetail>>,
+        decidedFilter: null == decidedFilter
+            ? _value.decidedFilter
+            : decidedFilter // ignore: cast_nullable_to_non_nullable
+                  as TimeCorrectionStatus,
+        rejectOnlyIds: null == rejectOnlyIds
+            ? _value._rejectOnlyIds
+            : rejectOnlyIds // ignore: cast_nullable_to_non_nullable
+                  as Set<String>,
+        notMineIds: null == notMineIds
+            ? _value._notMineIds
+            : notMineIds // ignore: cast_nullable_to_non_nullable
+                  as Set<String>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$OffsiteApprovalsStateImpl extends _OffsiteApprovalsState {
-  const _$OffsiteApprovalsStateImpl(
-      {this.requests = const AsyncValue<
-          Map<TimeCorrectionStatus, List<OffsiteRequestDetail>>>.loading(),
-      this.filter = TimeCorrectionStatus.pending,
-      this.query = '',
-      final Set<String> decidingIds = const <String>{}})
-      : _decidingIds = decidingIds,
-        super._();
+  const _$OffsiteApprovalsStateImpl({
+    this.pending = const AsyncValue<PagedList<OffsiteRequestDetail>>.loading(),
+    this.decided = const AsyncValue<PagedList<OffsiteRequestDetail>>.loading(),
+    this.decidedFilter = TimeCorrectionStatus.approved,
+    final Set<String> rejectOnlyIds = const <String>{},
+    final Set<String> notMineIds = const <String>{},
+  }) : _rejectOnlyIds = rejectOnlyIds,
+       _notMineIds = notMineIds,
+       super._();
 
   @override
   @JsonKey()
-  final AsyncValue<Map<TimeCorrectionStatus, List<OffsiteRequestDetail>>>
-      requests;
+  final AsyncValue<PagedList<OffsiteRequestDetail>> pending;
   @override
   @JsonKey()
-  final TimeCorrectionStatus filter;
+  final AsyncValue<PagedList<OffsiteRequestDetail>> decided;
   @override
   @JsonKey()
-  final String query;
-  final Set<String> _decidingIds;
+  final TimeCorrectionStatus decidedFilter;
+
+  /// Check-outs whose check-in was rejected or cancelled
+  /// (`CHECKIN_NOT_APPROVED`): they can only be rejected, so Approve goes.
+  final Set<String> _rejectOnlyIds;
+
+  /// Check-outs whose check-in was rejected or cancelled
+  /// (`CHECKIN_NOT_APPROVED`): they can only be rejected, so Approve goes.
   @override
   @JsonKey()
-  Set<String> get decidingIds {
-    if (_decidingIds is EqualUnmodifiableSetView) return _decidingIds;
+  Set<String> get rejectOnlyIds {
+    if (_rejectOnlyIds is EqualUnmodifiableSetView) return _rejectOnlyIds;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableSetView(_decidingIds);
+    return EqualUnmodifiableSetView(_rejectOnlyIds);
+  }
+
+  /// Requests whose step turned out not to be the approver's
+  /// (`NOT_APPROVER`): no buttons.
+  final Set<String> _notMineIds;
+
+  /// Requests whose step turned out not to be the approver's
+  /// (`NOT_APPROVER`): no buttons.
+  @override
+  @JsonKey()
+  Set<String> get notMineIds {
+    if (_notMineIds is EqualUnmodifiableSetView) return _notMineIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableSetView(_notMineIds);
   }
 
   @override
   String toString() {
-    return 'OffsiteApprovalsState(requests: $requests, filter: $filter, query: $query, decidingIds: $decidingIds)';
+    return 'OffsiteApprovalsState(pending: $pending, decided: $decided, decidedFilter: $decidedFilter, rejectOnlyIds: $rejectOnlyIds, notMineIds: $notMineIds)';
   }
 
   @override
@@ -179,46 +227,67 @@ class _$OffsiteApprovalsStateImpl extends _OffsiteApprovalsState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$OffsiteApprovalsStateImpl &&
-            (identical(other.requests, requests) ||
-                other.requests == requests) &&
-            (identical(other.filter, filter) || other.filter == filter) &&
-            (identical(other.query, query) || other.query == query) &&
-            const DeepCollectionEquality()
-                .equals(other._decidingIds, _decidingIds));
+            (identical(other.pending, pending) || other.pending == pending) &&
+            (identical(other.decided, decided) || other.decided == decided) &&
+            (identical(other.decidedFilter, decidedFilter) ||
+                other.decidedFilter == decidedFilter) &&
+            const DeepCollectionEquality().equals(
+              other._rejectOnlyIds,
+              _rejectOnlyIds,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._notMineIds,
+              _notMineIds,
+            ));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, requests, filter, query,
-      const DeepCollectionEquality().hash(_decidingIds));
+  int get hashCode => Object.hash(
+    runtimeType,
+    pending,
+    decided,
+    decidedFilter,
+    const DeepCollectionEquality().hash(_rejectOnlyIds),
+    const DeepCollectionEquality().hash(_notMineIds),
+  );
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$OffsiteApprovalsStateImplCopyWith<_$OffsiteApprovalsStateImpl>
-      get copyWith => __$$OffsiteApprovalsStateImplCopyWithImpl<
-          _$OffsiteApprovalsStateImpl>(this, _$identity);
+  get copyWith =>
+      __$$OffsiteApprovalsStateImplCopyWithImpl<_$OffsiteApprovalsStateImpl>(
+        this,
+        _$identity,
+      );
 }
 
 abstract class _OffsiteApprovalsState extends OffsiteApprovalsState {
-  const factory _OffsiteApprovalsState(
-      {final AsyncValue<Map<TimeCorrectionStatus, List<OffsiteRequestDetail>>>
-          requests,
-      final TimeCorrectionStatus filter,
-      final String query,
-      final Set<String> decidingIds}) = _$OffsiteApprovalsStateImpl;
+  const factory _OffsiteApprovalsState({
+    final AsyncValue<PagedList<OffsiteRequestDetail>> pending,
+    final AsyncValue<PagedList<OffsiteRequestDetail>> decided,
+    final TimeCorrectionStatus decidedFilter,
+    final Set<String> rejectOnlyIds,
+    final Set<String> notMineIds,
+  }) = _$OffsiteApprovalsStateImpl;
   const _OffsiteApprovalsState._() : super._();
 
   @override
-  AsyncValue<Map<TimeCorrectionStatus, List<OffsiteRequestDetail>>>
-      get requests;
+  AsyncValue<PagedList<OffsiteRequestDetail>> get pending;
   @override
-  TimeCorrectionStatus get filter;
+  AsyncValue<PagedList<OffsiteRequestDetail>> get decided;
   @override
-  String get query;
+  TimeCorrectionStatus get decidedFilter;
   @override
-  Set<String> get decidingIds;
+  /// Check-outs whose check-in was rejected or cancelled
+  /// (`CHECKIN_NOT_APPROVED`): they can only be rejected, so Approve goes.
+  Set<String> get rejectOnlyIds;
+  @override
+  /// Requests whose step turned out not to be the approver's
+  /// (`NOT_APPROVER`): no buttons.
+  Set<String> get notMineIds;
   @override
   @JsonKey(ignore: true)
   _$$OffsiteApprovalsStateImplCopyWith<_$OffsiteApprovalsStateImpl>
-      get copyWith => throw _privateConstructorUsedError;
+  get copyWith => throw _privateConstructorUsedError;
 }

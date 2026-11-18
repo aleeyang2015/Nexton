@@ -1348,6 +1348,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get apprRequestNotFound => 'This request is not available';
 
   @override
+  String get apprAlreadyDecided => 'Someone already decided this request';
+
+  @override
+  String get apprCannotDecideOwn => 'You can\'t decide your own request';
+
+  @override
+  String get apprAnotherApprover => 'Another approver must decide this step';
+
+  @override
+  String get apprApproveCheckinFirst => 'Approve this person\'s check-in first';
+
+  @override
+  String get apprCheckinNotApproved =>
+      'The check-in was rejected or cancelled; this can only be rejected';
+
+  @override
   String get apprEmployeeLabel => 'Employee';
 
   @override

@@ -10,7 +10,7 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../../time_off/domain/entities/leave_request.dart';
 import '../../../time_off/presentation/providers/leave_approvals_state.dart';
 import '../../../time_off/presentation/widgets/leave_copy.dart';
-import '../../../time_off/presentation/widgets/leave_reject_reason_dialog.dart';
+import 'reject_reason_dialog.dart';
 import '../providers/leave_approval_decision_notifier.dart';
 import 'approve_note_dialog.dart';
 
@@ -97,7 +97,7 @@ class LeaveApprovalActions extends ConsumerWidget {
     final notifier = ref.read(
       leaveApprovalDecisionNotifierProvider(request.id).notifier,
     );
-    final reason = await LeaveRejectReasonDialog.show(context);
+    final reason = await RejectReasonDialog.show(context);
     if (reason == null || !context.mounted) return;
 
     final outcome = await notifier.reject(request, reason);

@@ -7,7 +7,7 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../time_off/presentation/widgets/leave_reject_reason_dialog.dart';
+import '../../../approvals/presentation/widgets/reject_reason_dialog.dart';
 import '../../domain/entities/time_correction_detail.dart';
 import '../providers/time_correction_approvals_notifier.dart';
 import '../providers/time_correction_approvals_state.dart';
@@ -154,7 +154,7 @@ class _RequestsList extends ConsumerWidget {
     TimeCorrectionDetail request,
   ) async {
     final l10n = AppLocalizations.of(context)!;
-    final reason = await LeaveRejectReasonDialog.show(context);
+    final reason = await RejectReasonDialog.show(context);
     if (reason == null || !context.mounted) return;
 
     final failure = await ref

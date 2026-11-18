@@ -119,6 +119,9 @@ class TimeCorrectionDetailModel {
       id: LeaveJson.nonEmpty(json['id']),
       stepNo: LeaveJson.intOf(json['step_no']) ?? 0,
       role: LeaveApprovalStep.roleFromWire(LeaveJson.str(json['step_role'])),
+      approverId: approver is Map
+          ? TimeCorrectionJson.text(approver['id'])
+          : null,
       approverName: approver is Map
           ? LeaveJson.nonEmpty(approver['name'])
           : null,

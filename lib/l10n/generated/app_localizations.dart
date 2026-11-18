@@ -2522,6 +2522,36 @@ abstract class AppLocalizations {
   /// **'This request is not available'**
   String get apprRequestNotFound;
 
+  /// No description provided for @apprAlreadyDecided.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone already decided this request'**
+  String get apprAlreadyDecided;
+
+  /// No description provided for @apprCannotDecideOwn.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t decide your own request'**
+  String get apprCannotDecideOwn;
+
+  /// No description provided for @apprAnotherApprover.
+  ///
+  /// In en, this message translates to:
+  /// **'Another approver must decide this step'**
+  String get apprAnotherApprover;
+
+  /// No description provided for @apprApproveCheckinFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve this person\'s check-in first'**
+  String get apprApproveCheckinFirst;
+
+  /// No description provided for @apprCheckinNotApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'The check-in was rejected or cancelled; this can only be rejected'**
+  String get apprCheckinNotApproved;
+
   /// No description provided for @apprEmployeeLabel.
   ///
   /// In en, this message translates to:

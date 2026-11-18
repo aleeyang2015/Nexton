@@ -103,6 +103,17 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
     // (`attendance/data/datasources/offsite_error_code.dart`).
     case 'offsiteTooEarlyCheckin':
       return l10n.offsiteTooEarlyCheckin;
+    // An approver's decision on an off-site scan (#46).
+    case 'offsiteAlreadyDecided':
+      return l10n.apprAlreadyDecided;
+    case 'offsiteAnotherApprover':
+      return l10n.apprAnotherApprover;
+    case 'offsiteCannotDecideOwn':
+      return l10n.apprCannotDecideOwn;
+    case 'offsiteApproveCheckinFirst':
+      return l10n.apprApproveCheckinFirst;
+    case 'offsiteCheckinNotApproved':
+      return l10n.apprCheckinNotApproved;
     // Off-site withdrawal — §9's one refusal, raised by the same datasource.
     case 'offsiteCannotCancel':
       return l10n.offsiteCannotCancel;

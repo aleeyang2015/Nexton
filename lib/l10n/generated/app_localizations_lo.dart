@@ -1339,6 +1339,23 @@ class AppLocalizationsLo extends AppLocalizations {
   String get apprRequestNotFound => 'ບໍ່ພົບຄຳຮ້ອງນີ້';
 
   @override
+  String get apprAlreadyDecided => 'ມີຄົນຕັດສິນຄຳຮ້ອງນີ້ແລ້ວ';
+
+  @override
+  String get apprCannotDecideOwn => 'ທ່ານຕັດສິນຄຳຮ້ອງຂອງຕົນເອງບໍ່ໄດ້';
+
+  @override
+  String get apprAnotherApprover => 'ຂັ້ນຕອນນີ້ຕ້ອງໃຫ້ຜູ້ອະນຸມັດຄົນອື່ນຕັດສິນ';
+
+  @override
+  String get apprApproveCheckinFirst =>
+      'ກະລຸນາອະນຸມັດການລົງເວລາເຂົ້າຂອງຄົນນີ້ກ່ອນ';
+
+  @override
+  String get apprCheckinNotApproved =>
+      'ການລົງເວລາເຂົ້າຖືກປະຕິເສດ ຫຼື ຍົກເລີກແລ້ວ, ລາຍການນີ້ປະຕິເສດໄດ້ຢ່າງດຽວ';
+
+  @override
   String get apprEmployeeLabel => 'ພະນັກງານ';
 
   @override

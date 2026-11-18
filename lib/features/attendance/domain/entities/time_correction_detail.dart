@@ -251,6 +251,10 @@ class TimeCorrectionApprovalStep extends Equatable {
 
   final int stepNo;
   final LeaveStepRole role;
+
+  /// The employee record named on the step (`approver.id`); a dept-head or
+  /// `specific` step is theirs to decide (#46). Null on an HR step.
+  final String? approverId;
   final String? approverName;
   final LeaveStepStatus status;
   final String? note;
@@ -264,6 +268,7 @@ class TimeCorrectionApprovalStep extends Equatable {
     required this.stepNo,
     required this.role,
     required this.status,
+    this.approverId,
     this.approverName,
     this.note,
     this.createdAt,
@@ -275,6 +280,7 @@ class TimeCorrectionApprovalStep extends Equatable {
     id,
     stepNo,
     role,
+    approverId,
     approverName,
     status,
     note,

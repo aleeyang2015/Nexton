@@ -1,65 +1,43 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/network/paged_list.dart';
 import '../../domain/entities/offsite_detail.dart';
 import '../../domain/entities/time_correction_status.dart';
 
 part 'offsite_approvals_state.freezed.dart';
 
-/// What the approvals page's off-site tab renders from: one list per status the
-/// dropdown offers, the status picked, the search text, and which requests have
-/// a decision in flight so their buttons disable individually.
+/// What the approvals page's off-site tab renders from (#46), in #19's shape:
+/// the scans waiting at the approver's step, then the ones they decided, one
+/// of the two chips at a time. Each list is its own, a page at a time.
 ///
-/// The lists are kept apart for the same reason the correction approvals keep
-/// theirs apart: `my-approvals` answers each status from the caller's own step
-/// (§5), and `pending` — what still waits on *this* approver — can't be
-/// re-derived from one unfiltered list, since a request they already cleared
-/// stays `pending` overall while it sits with HR.
+/// `my-approvals` answers each status from the caller's own step: `pending`
+/// is what still waits on *this* approver (a request they cleared stays
+/// pending overall while it sits with HR), `approved` / `rejected` a step
+/// they decided. So each list is the server's, never filtered here.
 @freezed
 class OffsiteApprovalsState with _$OffsiteApprovalsState {
   const OffsiteApprovalsState._();
 
   const factory OffsiteApprovalsState({
-    @Default(
-      AsyncValue<Map<TimeCorrectionStatus, List<OffsiteRequestDetail>>>
-      .loading(),
-    )
-    AsyncValue<Map<TimeCorrectionStatus, List<OffsiteRequestDetail>>> requests,
-    @Default(TimeCorrectionStatus.pending) TimeCorrectionStatus filter,
-    @Default('') String query,
-    @Default(<String>{}) Set<String> decidingIds,
+    @Default(AsyncValue<PagedList<OffsiteRequestDetail>>.loading())
+    AsyncValue<PagedList<OffsiteRequestDetail>> pending,
+    @Default(AsyncValue<PagedList<OffsiteRequestDetail>>.loading())
+    AsyncValue<PagedList<OffsiteRequestDetail>> decided,
+    @Default(TimeCorrectionStatus.approved) TimeCorrectionStatus decidedFilter,
+
+    /// Check-outs whose check-in was rejected or cancelled
+    /// (`CHECKIN_NOT_APPROVED`): they can only be rejected, so Approve goes.
+    @Default(<String>{}) Set<String> rejectOnlyIds,
+
+    /// Requests whose step turned out not to be the approver's
+    /// (`NOT_APPROVER`): no buttons.
+    @Default(<String>{}) Set<String> notMineIds,
   }) = _OffsiteApprovalsState;
 
-  /// The statuses an approver filters by, in dropdown order. There is no "all"
-  /// — one status is fetched at a time — and `cancelled` is the employee's own
-  /// business (§9), so neither is offered.
-  static const List<TimeCorrectionStatus> statuses = [
-    TimeCorrectionStatus.pending,
+  /// The two chips under "decided by me", in order.
+  static const List<TimeCorrectionStatus> decidedStatuses = [
     TimeCorrectionStatus.approved,
     TimeCorrectionStatus.rejected,
   ];
-
-  Map<TimeCorrectionStatus, List<OffsiteRequestDetail>> get _loaded =>
-      requests.valueOrNull ?? const {};
-
-  /// The requests of the picked status that match the search text, which is a
-  /// case-insensitive match on the employee's name or number.
-  List<OffsiteRequestDetail> get visible {
-    final needle = query.trim().toLowerCase();
-    final bucket = _loaded[filter] ?? const <OffsiteRequestDetail>[];
-    if (needle.isEmpty) return bucket;
-    return bucket.where((r) => _matches(r, needle)).toList();
-  }
-
-  /// How many requests [status] holds; every one of them when it is null. Zero
-  /// until the lists have loaded.
-  int countOf(TimeCorrectionStatus? status) => status == null
-      ? _loaded.values.fold(0, (total, list) => total + list.length)
-      : (_loaded[status]?.length ?? 0);
-
-  static bool _matches(OffsiteRequestDetail request, String needle) {
-    final employee = request.employee;
-    return employee.name.toLowerCase().contains(needle) ||
-        (employee.employeeNumber?.toLowerCase().contains(needle) ?? false);
-  }
 }

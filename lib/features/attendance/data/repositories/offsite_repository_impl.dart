@@ -40,13 +40,15 @@ class OffsiteRepositoryImpl extends BaseRepository
       guard(() => _remote.waiting(month: month));
 
   @override
-  FutureResult<List<OffsiteRequestDetail>> approvals({
+  FutureResult<CursorPage<OffsiteRequestDetail>> approvals({
     TimeCorrectionStatus? status,
-  }) => guard(() => _remote.approvals(status: status));
+    String? cursor,
+  }) => guard(() => _remote.approvals(status: status, cursor: cursor));
 
   @override
-  FutureResult<Unit> approve(String id, {String? stepId}) => guard(() async {
-    await _remote.approve(id, stepId: stepId);
+  FutureResult<Unit> approve(String id, {String? stepId, String? note}) =>
+      guard(() async {
+    await _remote.approve(id, stepId: stepId, note: note);
     return Unit.instance;
   });
 
