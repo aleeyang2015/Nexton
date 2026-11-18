@@ -9,6 +9,7 @@ import 'domain/usecases/approve_leave_step_usecase.dart';
 import 'domain/usecases/cancel_leave_request_usecase.dart';
 import 'domain/usecases/get_company_days_off_usecase.dart';
 import 'domain/usecases/get_leave_approvals_usecase.dart';
+import 'domain/usecases/get_team_leave_usecase.dart';
 import 'domain/usecases/get_leave_balances_usecase.dart';
 import 'domain/usecases/get_leave_history_usecase.dart';
 import 'domain/usecases/get_leave_request_detail_usecase.dart';
@@ -78,6 +79,10 @@ final leaveOwnEmployeeIdProvider = Provider<String?>(
       (session) => session.valueOrNull?.user?.employeeId,
     ),
   ),
+);
+
+final getTeamLeaveUseCaseProvider = Provider<GetTeamLeaveUseCase>(
+  (ref) => GetTeamLeaveUseCase(ref.watch(leaveRepositoryProvider)),
 );
 
 final getLeaveApprovalsUseCaseProvider = Provider<GetLeaveApprovalsUseCase>(

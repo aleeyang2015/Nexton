@@ -81,6 +81,26 @@ class FakeLeaveRepository implements LeaveRepository {
 
   /// The cursor each approvals call was made with, in order.
   final List<String?> myApprovalsCursors = [];
+
+  /// Answers `teamRequests` (#50); by default one empty page.
+  FutureResult<CursorPage<LeaveRequest>> Function(
+    LeaveStatus? status,
+    String? cursor,
+  )
+  teamPage = (status, cursor) async =>
+      const Result.success(CursorPage.single(<LeaveRequest>[]));
+
+  /// What each team call asked for, in order.
+  final List<({LeaveStatus? status, String? cursor})> teamCalls = [];
+
+  @override
+  FutureResult<CursorPage<LeaveRequest>> teamRequests({
+    LeaveStatus? status,
+    String? cursor,
+  }) {
+    teamCalls.add((status: status, cursor: cursor));
+    return teamPage(status, cursor);
+  }
   Result<LeaveRequest> approveResult = Result.success(
     sampleLeaveRequest(status: LeaveStatus.approved),
   );
@@ -256,6 +276,7 @@ LeaveRequest sampleLeaveRequest({
   String employeeName = 'Noy Phommachanh',
   String? employeeNumber,
   String? departmentName,
+  String? departmentId,
   DateTime? createdAt,
   LeaveType? leaveType,
   List<DateTime>? requestDays,
@@ -281,6 +302,7 @@ LeaveRequest sampleLeaveRequest({
     employeeName: employeeName,
     employeeNumber: employeeNumber,
     departmentName: departmentName,
+    departmentId: departmentId,
     createdAt: createdAt,
     leaveType: leaveType ?? sampleLeaveType(),
     startDate: sorted.first,

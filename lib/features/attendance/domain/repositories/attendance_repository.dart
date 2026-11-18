@@ -59,6 +59,13 @@ abstract class AttendanceRepository {
     String? cursor,
   });
 
+  /// `GET /attendance/correction-requests/team` — one page of the head's
+  /// team's requests (#50), by number.
+  FutureResult<NumberedPage<TimeCorrectionDetail>> teamTimeCorrections({
+    TimeCorrectionStatus? status,
+    int page = 1,
+  });
+
   /// `GET /attendance/correction-requests/:id` — one request in full.
   FutureResult<TimeCorrectionDetail> timeCorrectionDetail(String id);
 

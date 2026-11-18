@@ -19,6 +19,7 @@ class AttendancePaths {
   static const String correctionRequests = '$_prefix/correction-requests';
 
   static const String myCorrectionRequests = '$correctionRequests/my';
+  static const String teamCorrectionRequests = '$correctionRequests/team';
 
   /// The requests awaiting (or already given) the caller's decision — the
   /// same `my-approvals` convention as `LeavePaths.myApprovals`.

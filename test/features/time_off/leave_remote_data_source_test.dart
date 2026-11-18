@@ -717,4 +717,48 @@ void main() {
       expect(await source.pendingRequest(), isNull);
     });
   });
+
+  group('my team (#50)', () {
+    test('GET leave/requests/team with limit, the status and the cursor',
+        () async {
+      answerList();
+      await source.teamRequests(status: LeaveStatus.pending, cursor: 'c1');
+
+      final request = adapter.lastRequest!;
+      expect(request.path, endsWith('/core_hr/leave/requests/team'));
+      expect(request.queryParameters['limit'], 20);
+      expect(request.queryParameters['status'], 'pending');
+      expect(request.queryParameters['cursor'], 'c1');
+    });
+
+    test('every status: no status sent; the first page: no cursor', () async {
+      answerList();
+      await source.teamRequests();
+      expect(adapter.lastRequest!.queryParameters.containsKey('status'), false);
+      expect(adapter.lastRequest!.queryParameters.containsKey('cursor'), false);
+    });
+
+    test('a row reads its employee\'s department id', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            {
+              ..._requestJson,
+              'employee': {
+                'id': 'e-1',
+                'name': 'Noy',
+                'department': {'id': 'd-sales', 'name': 'Sales'},
+              },
+            },
+          ],
+        };
+
+      final page = await source.teamRequests();
+
+      expect(page.items.single.departmentId, 'd-sales');
+      expect(page.items.single.departmentName, 'Sales');
+    });
+  });
 }

@@ -61,6 +61,12 @@ class LeaveRepositoryImpl extends BaseRepository implements LeaveRepository {
   }) => guard(() => _remote.myApprovals(status: status, cursor: cursor));
 
   @override
+  FutureResult<CursorPage<LeaveRequest>> teamRequests({
+    LeaveStatus? status,
+    String? cursor,
+  }) => guard(() => _remote.teamRequests(status: status, cursor: cursor));
+
+  @override
   FutureResult<LeaveRequest> approve({
     required String id,
     String? stepId,

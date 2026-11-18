@@ -70,6 +70,15 @@ abstract class AttendanceRemoteDataSource {
     String? cursor,
   });
 
+  /// One page of the "forgot to scan" requests of the head's team (#50,
+  /// `GET correction-requests/team`), by page number: `page` and
+  /// `per_page`, never `limit` (the server pages by number only).
+  Future<NumberedPage<TimeCorrectionDetail>> teamTimeCorrections({
+    TimeCorrectionStatus? status,
+    int page = 1,
+    int perPage = 20,
+  });
+
   /// One request in full. A 404 (gone, or not the caller's to see) is
   /// `CorrectionErrorCode.tokenRequestGone`.
   Future<TimeCorrectionDetail> timeCorrectionDetail(String id);
@@ -322,6 +331,27 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
       nextCursor: page.nextCursor,
       hasMore: page.hasMore,
     );
+  }
+
+  @override
+  Future<NumberedPage<TimeCorrectionDetail>> teamTimeCorrections({
+    TimeCorrectionStatus? status,
+    int page = 1,
+    int perPage = myCorrectionsPageSize,
+  }) async {
+    final response = await _client.get<dynamic>(
+      AttendancePaths.teamCorrectionRequests,
+      queryParameters: {
+        if (status != null) 'status': status.wireValue,
+        'page': page,
+        'per_page': perPage,
+      },
+    );
+    _debugLog(
+      'GET ${AttendancePaths.teamCorrectionRequests} response',
+      response.data,
+    );
+    return NumberedPage.fromBody(response.data, page, _approvalOrNull);
   }
 
   @override

@@ -48,12 +48,18 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
   /// The approver list's row, shown while the request loads (#47).
   final TimeCorrectionDetail? preview;
 
+  /// A head's read-only view of a team member's request (#50, with
+  /// [approver]): no buttons; a `404` on the page's own read (moved
+  /// department) keeps the row's copy, with no error.
+  final bool readOnly;
+
   const TimeCorrectionHistoryDetailPage({
     super.key,
     required this.id,
     this.initial,
     this.approver = false,
     this.preview,
+    this.readOnly = false,
   });
 
   @override
@@ -64,9 +70,12 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
     final detail = state.detail;
     // The list row while the page's own copy loads (approver, #47); a load
     // that failed says so rather than leave the row passing for it.
-    final shown = detail.valueOrNull ?? (detail.hasError ? null : preview);
     final error = detail.error;
     final gone = TimeCorrectionDetailNotifier.isGone(error);
+    final keepRow = readOnly && gone && preview != null;
+    final shown = keepRow
+        ? preview
+        : detail.valueOrNull ?? (detail.hasError ? null : preview);
     final notLinked = error is Failure && error.isEmployeeNotLinked;
 
     return Container(
@@ -77,7 +86,7 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
           backgroundColor: AppColors.homeBackground,
           body: Column(
             children: [
-              _Header(approver: approver),
+              _Header(approver: approver || readOnly),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () => _refresh(context, ref),
@@ -85,10 +94,11 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(15, 12, 15, 32),
                     children: [
-                      if (shown != null && !gone)
+                      if (shown != null && (!gone || keepRow))
                         _Body(
                           id: id,
-                          approver: approver,
+                          approver: approver && !readOnly,
+                          readOnlyView: readOnly,
                           detail: shown,
                           cancelling: state.cancelling,
                           downloading: state.downloading,
@@ -134,6 +144,9 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
 class _Body extends ConsumerWidget {
   final String id;
   final bool approver;
+
+  /// A head's read-only view (#50): no Cancel, no buttons, no contact note.
+  final bool readOnlyView;
   final TimeCorrectionDetail detail;
   final bool cancelling;
   final bool downloading;
@@ -141,6 +154,7 @@ class _Body extends ConsumerWidget {
   const _Body({
     required this.id,
     required this.approver,
+    this.readOnlyView = false,
     required this.detail,
     required this.cancelling,
     required this.downloading,
@@ -153,6 +167,7 @@ class _Body extends ConsumerWidget {
     final result = detail.result;
     final canCancel =
         !approver &&
+        !readOnlyView &&
         detail.canCancelBy(ref.watch(attendanceOwnEmployeeIdProvider));
 
     return Column(
@@ -200,7 +215,7 @@ class _Body extends ConsumerWidget {
           ),
         ],
         if (approver) ...[heightBx(h: 24), _ApproverActions(detail: detail)],
-        if (!approver) ...[
+        if (!approver && !readOnlyView) ...[
           heightBx(h: 16),
           customText(
             l10n.timeCorrectionContactNote,

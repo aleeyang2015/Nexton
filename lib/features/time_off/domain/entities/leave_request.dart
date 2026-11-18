@@ -21,6 +21,10 @@ class LeaveRequest extends Equatable {
   final String employeeName;
   final String? employeeNumber;
   final String? departmentName;
+
+  /// The employee's department id (`employee.department.id`): "My team"
+  /// keeps an HR-head's rows to the departments they head (#50).
+  final String? departmentId;
   final LeaveType leaveType;
   final DateTime startDate;
   final DateTime endDate;
@@ -46,6 +50,7 @@ class LeaveRequest extends Equatable {
     required this.employeeName,
     this.employeeNumber,
     this.departmentName,
+    this.departmentId,
     required this.leaveType,
     required this.startDate,
     required this.endDate,
@@ -162,6 +167,7 @@ class LeaveRequest extends Equatable {
     employeeName,
     employeeNumber,
     departmentName,
+    departmentId,
     leaveType,
     startDate,
     endDate,

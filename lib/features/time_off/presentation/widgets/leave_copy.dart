@@ -179,6 +179,48 @@ class LeaveCopy {
         '${daysLabel(l10n, totalDays)}';
   }
 
+  /// The days of a team row (#50): the date line for days in a row, else
+  /// the days themselves, grouped by month: "1, 15 ກ.ຍ. 2026" / "1, 15 Sep
+  /// 2026"; "28 Aug 2026, 2 Sep 2026" across months.
+  static String teamDays(AppLocalizations l10n, LeaveRequest request) {
+    // A day listed twice is one day.
+    final days = {
+      for (final d in request.requestDays) DateTime(d.year, d.month, d.day),
+    }.toList()..sort();
+    final inARow = days.length < 2 ||
+        [
+          for (var i = 1; i < days.length; i++)
+            DateTime(days[i].year, days[i].month, days[i].day)
+                .difference(
+                  DateTime(days[i - 1].year, days[i - 1].month, days[i - 1].day),
+                )
+                .inDays,
+        ].every((gap) => gap == 1);
+    if (inARow) {
+      return dateLine(
+        l10n,
+        startDate: request.startDate,
+        endDate: request.endDate,
+        totalDays: request.totalDays,
+      );
+    }
+    final groups = <String>[];
+    var i = 0;
+    while (i < days.length) {
+      final month = days[i];
+      final sameMonth = <int>[];
+      while (i < days.length &&
+          days[i].year == month.year &&
+          days[i].month == month.month) {
+        sameMonth.add(days[i].day);
+        i++;
+      }
+      final last = shortDate(l10n, DateTime(month.year, month.month, sameMonth.last));
+      groups.add([...sameMonth.take(sameMonth.length - 1), last].join(', '));
+    }
+    return '${groups.join(', ')} • ${daysLabel(l10n, request.totalDays)}';
+  }
+
   static String durationLabel(
     AppLocalizations l10n,
     LeaveDurationType duration,

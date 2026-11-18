@@ -174,6 +174,28 @@ class FakeAttendanceRepository implements AttendanceRepository {
     return cancelTimeCorrectionResult;
   }
 
+  /// Answers `teamTimeCorrections` (#50); by default one empty page.
+  Result<NumberedPage<TimeCorrectionDetail>> Function(
+    TimeCorrectionStatus? status,
+    int page,
+  )
+  teamCorrectionsAnswer = (status, page) => const Result.success(
+    NumberedPage(items: [], page: 1, totalPages: 1),
+  );
+
+  /// What each team call asked for, in order.
+  final List<({TimeCorrectionStatus? status, int page})> teamCorrectionCalls =
+      [];
+
+  @override
+  FutureResult<NumberedPage<TimeCorrectionDetail>> teamTimeCorrections({
+    TimeCorrectionStatus? status,
+    int page = 1,
+  }) async {
+    teamCorrectionCalls.add((status: status, page: page));
+    return teamCorrectionsAnswer(status, page);
+  }
+
   /// The approvals inbox: every status answers [timeCorrectionApprovalsResult]
   /// as one page, unless [timeCorrectionApprovalsPages] names pages for it
   /// (in call order, the last one repeating).

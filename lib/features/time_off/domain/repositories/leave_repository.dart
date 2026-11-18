@@ -56,6 +56,13 @@ abstract class LeaveRepository {
     String? cursor,
   });
 
+  /// `GET /leave/requests/team` — one page of the head's team's requests
+  /// (#50), any status unless [status].
+  FutureResult<CursorPage<LeaveRequest>> teamRequests({
+    LeaveStatus? status,
+    String? cursor,
+  });
+
   /// `PUT /leave/requests/:id/approve` — approves the current step.
   FutureResult<LeaveRequest> approve({
     required String id,

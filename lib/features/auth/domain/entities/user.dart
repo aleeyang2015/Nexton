@@ -30,6 +30,11 @@ class User extends Equatable {
   /// on, with HR's permissions (`approvals/domain/approver_access.dart`).
   final bool isDepartmentHead;
 
+  /// The departments this login heads now (`headed_department_ids`, live on
+  /// login and `/auth/me` since 15 Nov); empty when none or not said. "My
+  /// team" keeps an HR-head's leave to these (decision 29, #50).
+  final List<String> headedDepartmentIds;
+
   const User({
     required this.id,
     required this.tenantId,
@@ -44,6 +49,7 @@ class User extends Equatable {
     this.departmentName,
     this.positionTitle,
     this.isDepartmentHead = false,
+    this.headedDepartmentIds = const [],
   });
 
   /// Full name for display, falling back to the email when the profile has no
@@ -74,5 +80,6 @@ class User extends Equatable {
     departmentName,
     positionTitle,
     isDepartmentHead,
+    headedDepartmentIds,
   ];
 }
