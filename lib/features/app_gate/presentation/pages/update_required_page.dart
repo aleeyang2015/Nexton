@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../app_gate_providers.dart';
@@ -29,10 +30,11 @@ class UpdateRequiredPage extends ConsumerWidget {
       body: l10n.updateRequiredBody,
       actions: [
         if (link != null)
-          button(
-            () => ref.read(storeLauncherProvider)(link),
-            l10n.updateRequiredButton,
-          )
+          button(() async {
+            final opened = await ref.read(storeLauncherProvider)(link);
+            // A dead end otherwise: this screen has no way past it.
+            if (!opened) AppToast.error(l10n.genericError);
+          }, l10n.updateRequiredButton)
         else
           customText(
             l10n.updateFromAppStore,

@@ -7,6 +7,7 @@ import 'package:next_on/features/app_gate/presentation/pages/maintenance_page.da
 import 'package:next_on/features/app_gate/presentation/pages/update_required_page.dart';
 import 'package:next_on/features/app_gate/presentation/providers/app_gate_notifier.dart';
 import 'package:next_on/features/app_gate/presentation/providers/store_launcher_provider.dart';
+import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 import 'package:next_on/l10n/generated/app_localizations_en.dart';
 
@@ -20,6 +21,7 @@ void main() {
     required AppGateStatus status,
     String platform = 'android',
     List<Uri>? opened,
+    bool opens = true,
     _GateFake? gate,
   }) async {
     await tester.pumpWidget(
@@ -29,13 +31,14 @@ void main() {
           appPlatformProvider.overrideWithValue(platform),
           storeLauncherProvider.overrideWithValue((link) async {
             opened?.add(link);
-            return true;
+            return opens;
           }),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
+          scaffoldMessengerKey: rootScaffoldMessengerKey,
           home: page,
         ),
       ),
@@ -68,6 +71,20 @@ void main() {
     );
     await tester.tap(find.text(en.updateRequiredButton));
     expect(opened, [Uri.parse('https://example.com/app')]);
+  });
+
+  testWidgets('the store does not open: said so, not a dead tap', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      const UpdateRequiredPage(),
+      status: const AppGateUpdateRequired(),
+      opens: false,
+    );
+    await tester.tap(find.text(en.updateRequiredButton));
+    await tester.pump();
+    expect(find.text(en.genericError), findsOneWidget);
   });
 
   testWidgets('update on iOS with no link: the App Store line, no button', (

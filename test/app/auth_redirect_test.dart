@@ -124,7 +124,7 @@ void main() {
           expect(
             gated(session, location, update),
             AppRoutes.updateRequired,
-            reason: '\$session at \$location',
+            reason: '$session at $location',
           );
         }
         expect(gated(session, AppRoutes.updateRequired, update), isNull);

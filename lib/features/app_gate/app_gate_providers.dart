@@ -15,9 +15,14 @@ final appPlatformProvider = Provider<String>(
 );
 
 /// A Dio of its own, with the App's base options and no auth interceptor,
-/// like the refresh client: the check is public.
+/// like the refresh client: the check is public. It connects within the
+/// check's own limit, so a check never takes much longer than that.
 final appInfoClientProvider = Provider<Dio>(
-  (ref) => Dio(ApiClient.buildBaseOptions()),
+  (ref) => Dio(
+    ApiClient.buildBaseOptions().copyWith(
+      connectTimeout: AppInfoRemoteDataSource.timeout,
+    ),
+  ),
 );
 
 final appInfoRemoteDataSourceProvider = Provider<AppInfoRemoteDataSource>(

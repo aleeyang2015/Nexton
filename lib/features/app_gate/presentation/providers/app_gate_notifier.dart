@@ -58,7 +58,12 @@ class AppGateNotifier extends Notifier<AppGateStatus> {
     if (running != null) return running;
     final now = ref.read(clockProvider)();
     final last = _lastCheck;
-    if (!force && last != null && now.difference(last) < checkEvery) {
+    // A clock moved back (`now` before the last check) asks again: it would
+    // otherwise wait until the clock caught up, on a screen with no way past.
+    if (!force &&
+        last != null &&
+        !now.isBefore(last) &&
+        now.difference(last) < checkEvery) {
       return Future.value();
     }
     _lastCheck = now;
@@ -84,6 +89,8 @@ class AppGateNotifier extends Notifier<AppGateStatus> {
         state = AppGateStatus.from(info, ref.read(localeProvider).languageCode);
       },
       failure: (failure) {
+        // The next return to the foreground asks again, without the wait.
+        _lastCheck = null;
         if (kDebugMode) debugPrint('App gate check skipped: $failure');
       },
     );

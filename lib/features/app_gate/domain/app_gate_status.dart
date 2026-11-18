@@ -13,7 +13,9 @@ sealed class AppGateStatus extends Equatable {
     if (info.isMaintenance) {
       final lo = _text(info.maintenanceMessageLo);
       final en = _text(info.maintenanceMessage);
-      return AppGateMaintenance(languageCode == 'lo' ? lo ?? en : en ?? lo);
+      // Lao: the Lao text, else the English one. English: the English text
+      // only; else the screen's own default words.
+      return AppGateMaintenance(languageCode == 'lo' ? lo ?? en : en);
     }
     if (info.forceUpdate) return AppGateUpdateRequired(_text(info.updateUrl));
     return const AppGateOk();
@@ -41,11 +43,16 @@ final class AppGateUpdateRequired extends AppGateStatus {
   const AppGateUpdateRequired([this.url]);
 
   /// Where the Update button goes on [platform] (`android` / `ios`): the
-  /// server's link, else the Play page on Android; null on iOS with no link
-  /// (no App Store id yet: the screen says to update from the App Store).
+  /// server's link when it is a web address, else the Play page on Android;
+  /// null on iOS with none (no App Store id yet: the screen says to update
+  /// from the App Store).
   Uri? storeLink(String platform) {
-    final link = url;
-    if (link != null) return Uri.tryParse(link);
+    final link = url == null ? null : Uri.tryParse(url!);
+    if (link != null &&
+        (link.scheme == 'https' || link.scheme == 'http') &&
+        link.host.isNotEmpty) {
+      return link;
+    }
     if (platform == 'android') return Uri.parse(playStorePage);
     return null;
   }

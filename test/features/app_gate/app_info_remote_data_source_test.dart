@@ -31,6 +31,7 @@ void main() {
       expect(dio.interceptors.whereType<AuthInterceptor>(), isEmpty);
       expect(sent.sendTimeout, const Duration(seconds: 5));
       expect(sent.receiveTimeout, const Duration(seconds: 5));
+      expect(sent.connectTimeout, const Duration(seconds: 5));
       expect(info.forceUpdate, isTrue);
     },
   );

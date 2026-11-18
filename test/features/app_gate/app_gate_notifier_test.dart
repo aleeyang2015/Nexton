@@ -129,6 +129,21 @@ void main() {
     });
 
     test(
+      'English with only a Lao text: the default words, never Lao',
+      () async {
+        repository.answer = const Result.success(
+          AppInfo(
+            forceUpdate: false,
+            isMaintenance: true,
+            maintenanceMessageLo: 'ກັບມາເວລາ 10:00',
+          ),
+        );
+        await start(language: 'en');
+        expect(gate(), const AppGateMaintenance());
+      },
+    );
+
+    test(
       'no text at all: the default (null here, the screen\'s words)',
       () async {
         repository.answer = const Result.success(
@@ -185,6 +200,30 @@ void main() {
     expect(repository.asked, hasLength(2));
   });
 
+  test(
+    'a phone clock moved back: asked again, not held until it catches up',
+    () async {
+      await start();
+      now = now.subtract(const Duration(days: 1));
+      await container.read(appGateProvider.notifier).check();
+      expect(repository.asked, hasLength(2));
+    },
+  );
+
+  test('a failed check does not hold the next one for a minute', () async {
+    repository.answer = const Result.failure(
+      Failure.network(message: 'offline'),
+    );
+    await start();
+    repository.answer = const Result.success(
+      AppInfo(forceUpdate: true, isMaintenance: false),
+    );
+    now = now.add(const Duration(seconds: 5));
+    await container.read(appGateProvider.notifier).check();
+    expect(repository.asked, hasLength(2));
+    expect(gate(), const AppGateUpdateRequired());
+  });
+
   test('Retry asks now, and the gate opens when maintenance ends', () async {
     repository.answer = const Result.success(
       AppInfo(forceUpdate: false, isMaintenance: true),
@@ -211,6 +250,24 @@ void main() {
         Uri.parse('https://example.com/app'),
       );
     });
+
+    test(
+      'a server link that is not a web address: the Play page on Android',
+      () {
+        for (final bad in [
+          'http://[bad',
+          'play.google.com/store',
+          'market://x',
+        ]) {
+          expect(
+            AppGateUpdateRequired(bad).storeLink('android'),
+            Uri.parse(AppGateUpdateRequired.playStorePage),
+            reason: bad,
+          );
+          expect(AppGateUpdateRequired(bad).storeLink('ios'), isNull);
+        }
+      },
+    );
 
     test('no link: the Play page on Android, nothing on iOS', () {
       expect(
