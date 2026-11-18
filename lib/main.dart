@@ -11,12 +11,13 @@ import 'core/network/token_storage.dart';
 import 'core/upload/domain/local_file.dart';
 import 'core/upload/presentation/file_capture.dart';
 import 'core/upload/upload_providers.dart';
+import 'features/notifications/notifications_providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize app services
-  await AppInitializer.initialize();
+  // Initialize app services; push stays off when Firebase could not start.
+  final pushAvailable = await AppInitializer.initialize();
 
   // Opened once here so every provider downstream can stay synchronous.
   final prefs = await SharedPreferences.getInstance();
@@ -31,6 +32,7 @@ void main() async {
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
+        pushAvailableProvider.overrideWithValue(pushAvailable),
         secureStoreProvider.overrideWithValue(secureStore),
         // The shared photo/file picker opens the App's own camera screen.
         fileCaptureProvider.overrideWithValue(

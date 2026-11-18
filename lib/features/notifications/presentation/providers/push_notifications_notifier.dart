@@ -19,6 +19,8 @@ class PushNotificationsNotifier extends Notifier<bool> {
 
   @override
   bool build() {
+    // Firebase did not start: no push at all, and nothing touches it (#51).
+    if (!ref.watch(pushAvailableProvider)) return false;
     final repository = ref.watch(pushNotificationRepositoryProvider);
 
     final foreground = repository.onForegroundMessage.listen(
@@ -67,7 +69,9 @@ class PushNotificationsNotifier extends Notifier<bool> {
     // Not worth bothering the user over: the next sign-in or token refresh
     // tries again.
     final failure = result.failureOrNull;
-    if (failure != null) debugPrint('Push registration failed: $failure');
+    if (failure != null && kDebugMode) {
+      debugPrint('Push registration failed: $failure');
+    }
   }
 }
 

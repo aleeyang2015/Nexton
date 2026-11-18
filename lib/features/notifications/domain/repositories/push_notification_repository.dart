@@ -7,6 +7,10 @@ abstract class PushNotificationRepository {
   /// Asks the user to allow notifications. Success carries whether they did.
   FutureResult<bool> requestPermission();
 
+  /// Whether the permission was already asked on this phone (#51).
+  bool get permissionAsked;
+  FutureResult<Unit> markPermissionAsked();
+
   /// Sends this device's current FCM token to the backend.
   FutureResult<Unit> registerDevice();
 

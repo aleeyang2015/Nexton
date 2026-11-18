@@ -1,11 +1,14 @@
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../domain/entities/push_message.dart';
 
 /// Thin wrapper over [FirebaseMessaging] so the repository never touches the
-/// plugin's static API directly.
+/// plugin's static API directly. The only file that imports
+/// `firebase_messaging` (#51): the rest of the App, and its tests, see this
+/// abstract class (a fake in tests).
 abstract class FirebaseMessagingDataSource {
   /// True when the user allowed notifications (or chose provisional on iOS).
   Future<bool> requestPermission();
@@ -17,7 +20,25 @@ abstract class FirebaseMessagingDataSource {
   Stream<PushMessage> get onMessage;
 }
 
+/// Runs in its own isolate when a push arrives while the app is in the
+/// background or closed. The system already shows a push that carries a
+/// `notification` block, so there is nothing to display here — the handler
+/// only has to exist and bring Firebase up for the plugin.
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
+
 class FirebaseMessagingDataSourceImpl implements FirebaseMessagingDataSource {
+  /// The plugin's own instance; Firebase must have started.
+  factory FirebaseMessagingDataSourceImpl.instance() =>
+      FirebaseMessagingDataSourceImpl(FirebaseMessaging.instance);
+
+  /// Registers [firebaseMessagingBackgroundHandler]: before `runApp`, so a
+  /// push that wakes a closed app has somewhere to go.
+  static void registerBackgroundHandler() =>
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
   /// How long to wait for APNs to hand iOS its token after launch.
   static const int _apnsAttempts = 5;
   static const Duration _apnsRetryDelay = Duration(seconds: 1);
@@ -31,9 +52,10 @@ class FirebaseMessagingDataSourceImpl implements FirebaseMessagingDataSource {
     final settings = await _messaging.requestPermission();
 
     // iOS shows a push that arrives in the foreground only when told to.
+    // No number on the App icon (decision 28).
     await _messaging.setForegroundNotificationPresentationOptions(
       alert: true,
-      badge: true,
+      badge: false,
       sound: true,
     );
 

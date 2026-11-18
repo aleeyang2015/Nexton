@@ -57,6 +57,12 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="nexton_push" />
+        <!-- The tray icon for those pushes (#51): white on transparent, so
+             the status bar does not show the colour launcher icon as a
+             white square. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_nexton" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

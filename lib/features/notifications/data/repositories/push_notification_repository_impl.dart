@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/utils/base_repository.dart';
@@ -33,6 +35,15 @@ class PushNotificationRepositoryImpl extends BaseRepository
   FutureResult<bool> requestPermission() => guard(_messaging.requestPermission);
 
   @override
+  bool get permissionAsked => _local.permissionAsked();
+
+  @override
+  FutureResult<Unit> markPermissionAsked() => guard(() async {
+    await _local.markPermissionAsked();
+    return Unit.instance;
+  });
+
+  @override
   FutureResult<Unit> registerDevice() {
     return guard(() async {
       final token = await _messaging.getToken();
@@ -41,6 +52,9 @@ class PushNotificationRepositoryImpl extends BaseRepository
         // Notifications capability missing from the signing profile.
         throw const Failure.unknown(message: 'No FCM token available');
       }
+      // For testers to paste into the Firebase console's test message.
+      // Debug builds only: never in a release log.
+      if (kDebugMode) debugPrint('[Push] FCM token: $token');
 
       await _remote.register(
         DeviceRegistrationModel(
