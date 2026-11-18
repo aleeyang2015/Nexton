@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#56 implemented on `56-server-logout`, `abba477` + `7564f53`, waiting for "push issue 56 to main directly"). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#56 merged, `f3cb794`; next is #57, not started; #55 stays blocked on the backend). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,8 +13,8 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 
 | | |
 |---|---|
-| Last finished work order | 53 of 60: #54, notifications: the bell shows recent pushes |
-| Next work order | **55 of 60: #56**, sign-in: signing out ends the session on the server. IMPLEMENTED on `56-server-logout`, both reviews done and fixed; waiting for the owner's merge word. (#55 stays BLOCKED on Nexton-Backend#190; #57 is next after this.) |
+| Last finished work order | 55 of 60: #56, sign-in: signing out ends the session on the server |
+| Next work order | **56 of 60: #57**, app: ask for an update when this version is too old, and show maintenance. Not started, no branch, no plan shown yet. (#55 stays BLOCKED on Nexton-Backend#190.) |
 | `origin/main` | `adad453` "Merge branch '51-push-setup' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -185,8 +185,12 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Now: #56 (work order 55 of 60), "sign-in: signing out ends the session on the server": IMPLEMENTED** on
-   `56-server-logout` (`abba477`, review fixes `7564f53`), pushed, not merged. Owner's go 2026-11-18. Sign-out:
+1. **Next: #57 (work order 56 of 60), "app: ask for an update when this version is too old, and show maintenance".**
+   Not started: no branch, no plan shown yet. Read the issue and its comments, plan, wait for "go". #55 stays blocked
+   on Nexton-Backend#190.
+
+   **#56 (work order 55 of 60): MERGED (`f3cb794`)** on the owner's say, 2026-11-18, from `56-server-logout`
+   (`abba477`, review fixes `7564f53`). Owner's go 2026-11-18. Sign-out:
    push row (#52), then `POST /auth/logout` (refresh token in the body, no bearer, 5 s, failures ignored), then the
    local clear. A refresh answer without `refresh_token` keeps the saved one (no rotation on the server). A late
    refresh answer for an ended sign-in writes and clears nothing; a paused sign-out never ends the next user's
@@ -1030,7 +1034,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 52 | #53 | push: tapping a push opens the right screen | `53-push-open` | `9df2051`, `862cb98` | merged to main directly (`dcb056c`) | analyze: 1 warning already on `main`; `flutter test`: 2,226 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 53 | #54 | notifications: the bell shows recent pushes | `54-notifications-list` | `8ffe783`, `9678f08` | merged to main directly (`748e760`) | analyze: 1 warning already on `main`; `flutter test`: 2,267 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 54 | #55 | notifications: unread dots and a count on the bell | | | | | BLOCKED: backend, unread count |
-| 55 | #56 | sign-in: signing out ends the session on the server | `56-server-logout` | `abba477`, `7564f53` | not merged | analyze: 1 warning already on `main`; `flutter test`: 2,283 passed, 0 failed; debug APK | IMPLEMENTED, waiting for merge word |
+| 55 | #56 | sign-in: signing out ends the session on the server | `56-server-logout` | `abba477`, `7564f53` | merged to main directly (`f3cb794`) | analyze: 1 warning already on `main`; `flutter test`: 2,283 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 56 | #57 | app: ask for an update when this version is too old, and show maintenance | | | | | NOT STARTED |
 | 57 | #58 | profile: see my personal information (read-only) | | | | | NOT STARTED |
 | 58 | #59 | profile: change my own photo | | | | | NOT STARTED |
