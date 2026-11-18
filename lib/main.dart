@@ -11,7 +11,9 @@ import 'core/network/token_storage.dart';
 import 'core/upload/domain/local_file.dart';
 import 'core/upload/presentation/file_capture.dart';
 import 'core/upload/upload_providers.dart';
+import 'features/auth/auth_providers.dart';
 import 'features/notifications/notifications_providers.dart';
+import 'features/notifications/presentation/providers/push_notifications_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +35,10 @@ void main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         pushAvailableProvider.overrideWithValue(pushAvailable),
+        // Sign-out signs this phone off for push first (#52).
+        beforeSignOutProvider.overrideWith(
+          (ref) => ref.watch(signOutThisDeviceProvider),
+        ),
         secureStoreProvider.overrideWithValue(secureStore),
         // The shared photo/file picker opens the App's own camera screen.
         fileCaptureProvider.overrideWithValue(

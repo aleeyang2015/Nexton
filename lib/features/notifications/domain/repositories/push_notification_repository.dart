@@ -11,8 +11,20 @@ abstract class PushNotificationRepository {
   bool get permissionAsked;
   FutureResult<Unit> markPermissionAsked();
 
-  /// Sends this device's current FCM token to the backend.
-  FutureResult<Unit> registerDevice();
+  /// Sends this device's current FCM token to the backend, with its name,
+  /// versions and the App's language [languageCode] (#52).
+  FutureResult<Unit> registerDevice({required String languageCode});
+
+  /// A new FCM token: `PUT` it; a server with no active row for this phone
+  /// gets the full registration instead (#52).
+  FutureResult<Unit> updateDeviceToken({required String languageCode});
+
+  /// Signs this phone off (#52): `DELETE` the backend's row (a `404` counts
+  /// as done).
+  FutureResult<Unit> unregisterDevice();
+
+  /// Kills this phone's FCM token (#52).
+  FutureResult<Unit> deleteToken();
 
   /// Fires with each new token FCM issues; the backend must be told again.
   Stream<String> get onTokenRefresh;

@@ -68,6 +68,12 @@ class _Unreachable extends _RefreshOutcome {
 class AuthInterceptor extends Interceptor {
   static const String _retriedFlag = 'auth_retried';
 
+  /// A request marked with this in `extra` gets its `401` as it is: no
+  /// refresh, and no session ended. The push sign-off at sign-out (#52)
+  /// uses it: a refresh still on its way after the sign-out cleared the
+  /// tokens would write the old user's tokens back.
+  static const String noRefreshFlag = 'auth_no_refresh';
+
   final TokenStorage _tokenStorage;
   final Dio _refreshClient;
   final _sessionExpired = StreamController<SessionEndReason>.broadcast();
@@ -129,6 +135,10 @@ class AuthInterceptor extends Interceptor {
     }
 
     if (err.response?.statusCode != 401) {
+      return handler.next(err);
+    }
+
+    if (request.extra[noRefreshFlag] == true) {
       return handler.next(err);
     }
 

@@ -1,4 +1,3 @@
-import '../../../../core/utils/base_usecase.dart';
 import '../../../../core/utils/result.dart';
 import '../repositories/push_notification_repository.dart';
 
@@ -6,7 +5,7 @@ import '../repositories/push_notification_repository.dart';
 /// (#51): a refusal is never asked again — then registers the device with
 /// the backend. A refused permission still registers: the user can turn
 /// notifications on later in system settings, and the token stays valid.
-class RegisterDeviceUseCase implements NoParamsUseCase<Unit> {
+class RegisterDeviceUseCase {
   final PushNotificationRepository _repository;
 
   /// The prompt on its way, if any: a token refresh that comes meanwhile
@@ -15,12 +14,12 @@ class RegisterDeviceUseCase implements NoParamsUseCase<Unit> {
 
   RegisterDeviceUseCase(this._repository);
 
-  @override
-  FutureResult<Unit> call() async {
+  /// [languageCode]: the App's language, for the server's push text (#52).
+  FutureResult<Unit> call({required String languageCode}) async {
     if (!_repository.permissionAsked) {
       await (_asking ??= _askOnce().whenComplete(() => _asking = null));
     }
-    return _repository.registerDevice();
+    return _repository.registerDevice(languageCode: languageCode);
   }
 
   /// Asked (allowed or refused): not again. A prompt that could not be

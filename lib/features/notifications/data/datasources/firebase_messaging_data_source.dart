@@ -18,6 +18,10 @@ abstract class FirebaseMessagingDataSource {
   Stream<String> get onTokenRefresh;
 
   Stream<PushMessage> get onMessage;
+
+  /// Kills this phone's FCM token (#52, at sign-out): a push the server
+  /// still sends to it is refused, and the next sign-in gets a new one.
+  Future<void> deleteToken();
 }
 
 /// Runs in its own isolate when a push arrives while the app is in the
@@ -87,6 +91,12 @@ class FirebaseMessagingDataSourceImpl implements FirebaseMessagingDataSource {
   // Paired with getToken above; see the note there.
   // ignore: deprecated_member_use
   Stream<String> get onTokenRefresh => _messaging.onTokenRefresh;
+
+  @override
+  // Paired with getToken above: the registration token the backend sends
+  // to is the one to kill (unregister() works on the Installation ID).
+  // ignore: deprecated_member_use
+  Future<void> deleteToken() => _messaging.deleteToken();
 
   @override
   Stream<PushMessage> get onMessage => FirebaseMessaging.onMessage.map(

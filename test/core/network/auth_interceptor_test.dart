@@ -327,6 +327,27 @@ void main() {
       expect(h.sessionExpiredEvents, isEmpty);
     });
 
+    test('a request marked no-refresh gets its 401 as it is: no refresh, no '
+        'session ended, the tokens untouched (#52)', () async {
+      final h = await _Harness.create();
+      const path = '/mobile/devices/dev-1';
+      h.adapter.queue(path, [_unauthorized]);
+      h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+      final before = await h.tokens.readAccessToken();
+
+      await expectLater(
+        h.client.delete<dynamic>(
+          path,
+          options: Options(extra: {AuthInterceptor.noRefreshFlag: true}),
+        ),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(h.requestsTo(ApiPaths.refresh), isEmpty);
+      expect(h.sessionExpiredEvents, isEmpty);
+      expect(await h.tokens.readAccessToken(), before);
+    });
+
     test('a failed refresh clears the session and signals expiry', () async {
       final h = await _Harness.create();
       h.adapter.queue(ApiPaths.me, [_unauthorized]);
