@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#50 merged, `79a134a`; next is #51, not started). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#51 IMPLEMENTED on its branch, waiting for the owner's say to merge; #50 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 | | |
 |---|---|
 | Last finished work order | 49 of 60: #50, approvals: my team's leave and "forgot to scan" history (read-only) |
-| Next work order | **50 of 60: #51**, push: Firebase set up for nexton.hr on Android and iOS. Not started, no branch, no plan shown yet |
+| Next work order | **50 of 60: #51**, push: Firebase set up (app id `next.on.hr.com`). IMPLEMENTED on `51-push-setup` (`d4a2b38`, `8f41b6d`), pushed, reviewed; waiting for the owner's say to merge. Then 51 of 60: #52 |
 | `origin/main` | `79a134a` "Merge branch '50-team-history' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -183,9 +183,29 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #51 (work order 50 of 60), "push: Firebase set up for nexton.hr on Android and iOS".** Not started: no
-   branch, no plan shown yet. Read the issue and its comments, plan, wait for "go". (Likely needs the lead's Firebase
-   project and files; check what can be done from here.)
+1. **#51 (work order 50 of 60), "push: Firebase set up for nexton.hr on Android and iOS": IMPLEMENTED, 2026-11-18,
+   waiting for the owner's say to merge.** Owner said go on 2026-11-18 (app id `next.on.hr.com`; a white placeholder tray
+   icon; keep `flutter_local_notifications`; stays in `lib/features/notifications/`). Branch `51-push-setup` (pushed):
+   `d4a2b38` (feature), `8f41b6d` (review fixes). Gates on `8f41b6d`: analyze 1 warning already on `main`; `flutter test`
+   2,150 passed; debug APK builds; `flutter build ios --simulator --debug` builds. `pubspec.lock` unchanged (packages
+   were on `main`).
+   - `AppInitializer.initialize()` returns whether push started: Firebase and the background handler in a `try` (debug
+     log only); `main.dart` passes it as `pushAvailableProvider` (default false), and the push notifier does nothing
+     without it.
+   - One file imports `package:firebase_messaging`: `firebase_messaging_data_source.dart` (background handler, instance,
+     registration moved in; `push_background_handler.dart` gone).
+   - Permission asked once on this phone, after sign-in: remembered in SharedPreferences (`push_permission_asked`),
+     never again after a refusal; one prompt at a time (a token refresh waits); the save through `guard`. Registration
+     still every sign-in.
+   - Debug builds print the FCM token; nothing push-related logs in release. iOS `badge: false`.
+   - Tray icon: `res/drawable/ic_stat_nexton.xml` (white placeholder ring and dot) + `default_notification_icon`
+     meta-data; the local pop-up uses it.
+   Open after #51, none built there:
+   - device checks: console test message on an Android 13+ phone and an iPhone (closed, background; iOS also open); the
+     tray icon; an iOS start with no plist;
+   - **the designer's Nexton glyph** replaces `ic_stat_nexton.xml`;
+   - the prompt may show over the splash on a cold start with a saved session (minor);
+   - live pushes from the server wait for the backend's new key (phoudssp/Nexton-Backend#187).
 
    **#50 (work order 49 of 60), "approvals: my team's leave and "forgot to scan" history (read-only)": MERGED
    (`79a134a`), 2026-11-18.** Merged on the owner's "push issue 50 to main directly"; gates green on the merge commit
@@ -955,7 +975,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 47 | #48 | approvals: OT waiting and decided lists for heads | `48-ot-approvals-lists` | `11db106`, `e1cd94d` | merged to main directly (`fbeb16e`) | analyze: 1 warning already on `main`; `flutter test`: 2,089 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 48 | #49 | approvals: approve or reject OT, and cancel an approved OT before it starts | `49-ot-decisions` | `1110d2d`, `bbefe8b` | merged to main directly (`5960973`) | analyze: 1 warning already on `main`; `flutter test`: 2,118 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 49 | #50 | approvals: my team's leave and "forgot to scan" history (read-only) | `50-team-history` | `f00dd81`, `c02e491` | merged to main directly (`79a134a`) | analyze: 1 warning already on `main`; `flutter test`: 2,142 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 50 | #51 | push: Firebase set up for nexton.hr on Android and iOS | | | | | NOT STARTED |
+| 50 | #51 | push: Firebase set up (app id next.on.hr.com) | `51-push-setup` | `d4a2b38`, `8f41b6d` | none yet | analyze: 1 warning already on `main`; `flutter test`: 2,150 passed, 0 failed; debug APK and iOS simulator build | IMPLEMENTED, waiting for the owner's say to merge; device checks pending |
 | 51 | #52 | push: register this phone after sign-in, remove it before sign-out | | | | | NOT STARTED |
 | 52 | #53 | push: tapping a push opens the right screen | | | | | NOT STARTED |
 | 53 | #54 | notifications: the bell shows recent pushes | | | | | NOT STARTED |
