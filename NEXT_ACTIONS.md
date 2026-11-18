@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#54 implemented on `54-notifications-list`, `8ffe783` + `9678f08`, waiting for "push issue 54 to main directly"). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#54 merged, `748e760`; #55 is blocked on the backend, #56 needs the owner's go, so the next buildable is #57). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,8 +13,8 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 
 | | |
 |---|---|
-| Last finished work order | 52 of 60: #53, push: tapping a push opens the right screen |
-| Next work order | **53 of 60: #54**, notifications: the bell shows recent pushes. IMPLEMENTED on `54-notifications-list` (`8ffe783`, `9678f08`), both reviews done and fixed; waiting for the owner's merge word |
+| Last finished work order | 53 of 60: #54, notifications: the bell shows recent pushes |
+| Next work order | **54 of 60: #55** is BLOCKED (backend: unread count, Nexton-Backend#190); **55 of 60: #56** needs the owner's go; the next buildable is **56 of 60: #57**, app: ask for an update when this version is too old, and show maintenance. Not started |
 | `origin/main` | `adad453` "Merge branch '51-push-setup' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -185,8 +185,13 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Now: #54 (work order 53 of 60), "notifications: the bell shows recent pushes": IMPLEMENTED** on
-   `54-notifications-list` (`8ffe783`, review fixes `9678f08`), pushed, not merged. Gates: analyze 1 warning already
+1. **Next: #55 is blocked on the backend (unread count, Nexton-Backend#190), and #56 (sign-out ends the session on the
+   server) waits for the owner's go. The next buildable is #57 (work order 56 of 60), "app: ask for an update when this
+   version is too old, and show maintenance".** Not started: ask the owner which of #56 or #57 comes first, then read
+   the issue, plan, wait for "go".
+
+   **#54 (work order 53 of 60): MERGED (`748e760`)** on the owner's say, 2026-11-18, from `54-notifications-list`
+   (`8ffe783`, review fixes `9678f08`). Gates: analyze 1 warning already
    on `main`; `flutter test` 2,267 passed; debug APK built. Owner decisions: the list in `lib/features/notifications/`;
    OT reuses `otMenu` (no `notificationKindOt`); #53's fallback (unknown push, or one missing its id) now opens the
    bell list, `attendance_offsite` still Home; a row with nowhere of its own to open does nothing. Copies from two
@@ -1013,7 +1018,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 50 | #51 | push: Firebase set up (app id next.on.hr.com) | `51-push-setup` | `d4a2b38`, `8f41b6d` | merged to main directly (`adad453`) | analyze: 1 warning already on `main`; `flutter test`: 2,150 passed, 0 failed; debug APK and iOS simulator build | MERGED, device checks pending |
 | 51 | #52 | push: register this phone after sign-in, remove it before sign-out | `52-device-registration` | `1e4d192`, `91b31f7` | merged to main directly (`f0c7a6c`) | analyze: 1 warning already on `main`; `flutter test`: 2,177 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 52 | #53 | push: tapping a push opens the right screen | `53-push-open` | `9df2051`, `862cb98` | merged to main directly (`dcb056c`) | analyze: 1 warning already on `main`; `flutter test`: 2,226 passed, 0 failed; debug APK | MERGED, device checks pending |
-| 53 | #54 | notifications: the bell shows recent pushes | `54-notifications-list` | `8ffe783`, `9678f08` | not merged | analyze: 1 warning already on `main`; `flutter test`: 2,267 passed, 0 failed; debug APK | IMPLEMENTED, waiting for merge word |
+| 53 | #54 | notifications: the bell shows recent pushes | `54-notifications-list` | `8ffe783`, `9678f08` | merged to main directly (`748e760`) | analyze: 1 warning already on `main`; `flutter test`: 2,267 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 54 | #55 | notifications: unread dots and a count on the bell | | | | | BLOCKED: backend, unread count |
 | 55 | #56 | sign-in: signing out ends the session on the server | | | | | BLOCKED on the owner's list; the backend said "now live" on 15 Nov. Needs the owner's go |
 | 56 | #57 | app: ask for an update when this version is too old, and show maintenance | | | | | NOT STARTED |
