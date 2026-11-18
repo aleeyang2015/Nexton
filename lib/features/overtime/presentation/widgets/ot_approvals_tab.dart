@@ -6,6 +6,7 @@ import '../../../../app/router/app_router.dart';
 import '../../../../core/network/paged_list.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/clock_provider.dart';
+import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/paged_list_end.dart';
 import '../../../../core/widgets/shimmer_box.dart';
@@ -15,6 +16,7 @@ import '../../../time_off/presentation/widgets/leave_filter_chip.dart';
 import '../../domain/entities/ot_request.dart';
 import '../providers/ot_approvals_notifier.dart';
 import 'ot_approval_row.dart';
+import 'ot_copy.dart';
 
 /// The approvals page's OT tab (#48), for department heads: the requests
 /// waiting at their step, then "decided by me" with its two chips, each a
@@ -47,7 +49,13 @@ class _OtApprovalsTabState extends ConsumerState<OtApprovalsTab>
     return Container(
       color: AppColors.homeBackground,
       child: RefreshIndicator(
-        onRefresh: notifier.refresh,
+        onRefresh: () async {
+          final failure = await notifier.refresh();
+          // The rows already shown stay; say why they were not renewed.
+          if (failure != null && context.mounted) {
+            AppToast.error(OtCopy.approvalsError(l10n, failure).message);
+          }
+        },
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(15, 15, 15, 40),
@@ -145,18 +153,24 @@ class _OtList extends ConsumerWidget {
     if (value.isLoading && list == null) return const _Loading();
 
     if (value.hasError && list == null) {
+      final error = OtCopy.approvalsError(l10n, value.error);
       return RequestsListMessage(
         icon: Icons.error_outline,
-        text: l10n.otListLoadFailed,
-        onRetry: onRetry,
+        text: error.message,
+        onRetry: error.canRetry ? onRetry : null,
       );
     }
 
+    if (rows.isEmpty && list != null && list.hasMore) {
+      // The pages so far held only HR steps: more are on their way, or the
+      // next one failed (its Retry is in the footer below). Never "none"
+      // while the list has not ended.
+      return list.loadMoreError == null
+          ? const _Loading()
+          : const SizedBox.shrink();
+    }
+
     if (rows.isEmpty) {
-      // The pages so far held only HR steps: more are on their way.
-      if (list != null && (list.loadingMore || list.canLoadMore)) {
-        return const _Loading();
-      }
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: customText(

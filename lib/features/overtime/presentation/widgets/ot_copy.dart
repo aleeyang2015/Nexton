@@ -212,6 +212,19 @@ class OtCopy {
   ///   filter) → its own text, no Retry: asking again cannot change it;
   /// * anything else (no signal, a server error) → "could not load OT", with
   ///   Retry.
+  /// The head's OT lists failing (#48): no staff record says so (#28's
+  /// text) with nothing to retry; anything else — a 422 included, the App's
+  /// own bug — is the shared load error with Retry.
+  static ({String message, bool canRetry}) approvalsError(
+    AppLocalizations l10n,
+    Object? error,
+  ) {
+    if (error is ValidationFailure && error.code == 'EMPLOYEE_NOT_FOUND') {
+      return (message: error.localize(l10n), canRetry: false);
+    }
+    return (message: l10n.otListLoadFailed, canRetry: true);
+  }
+
   static ({String message, bool canRetry}) listError(
     AppLocalizations l10n,
     Object? error,

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/failure.dart';
 import '../../../../core/network/api_client.dart';
@@ -96,15 +97,24 @@ class OtRemoteDataSourceImpl implements OtRemoteDataSource {
     int page = 1,
     int perPage = OtPage.defaultPerPage,
   }) => _business(() async {
-    final response = await _client.get<dynamic>(
-      OtPaths.myApprovals,
-      queryParameters: {
-        'status': status.name,
-        'page': page,
-        'per_page': perPage,
-      },
-    );
-    return _page(response.data, page, OtRequestModel.tryFromJson);
+    try {
+      final response = await _client.get<dynamic>(
+        OtPaths.myApprovals,
+        queryParameters: {
+          'status': status.name,
+          'page': page,
+          'per_page': perPage,
+        },
+      );
+      return _page(response.data, page, OtRequestModel.tryFromJson);
+    } on DioException catch (error) {
+      // A 422 here is the App's bug (a status or month it should never
+      // send): say so in the log; the tab shows the shared load error.
+      if (kDebugMode && error.response?.statusCode == 422) {
+        debugPrint('[OT approvals] 422 for $status: ${error.response?.data}');
+      }
+      rethrow;
+    }
   });
 
   @override

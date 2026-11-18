@@ -99,6 +99,9 @@ class _ApprovalsScaffold extends StatelessWidget {
               ),
             ),
             bottom: TabBar(
+              // Four sections do not fit a small phone in Lao: they scroll.
+              isScrollable: tabs.length > 3,
+              tabAlignment: tabs.length > 3 ? TabAlignment.start : null,
               labelColor: AppColors.primary,
               unselectedLabelColor: AppColors.subTitle,
               indicatorColor: AppColors.primary,

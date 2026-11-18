@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/failure.dart';
 import '../../../../core/network/paged_list.dart';
 import '../../../../core/utils/result.dart';
 import '../../../auth/presentation/providers/auth_session_notifier.dart';
@@ -46,27 +47,30 @@ class OtApprovalsState {
   ];
 
   /// Whether [request], from the [status] list, shows: an HR step never
-  /// does. A request whose step cannot be found shows (the server put it in
-  /// this list).
+  /// does.
+  ///
+  /// Waiting: the step waiting now is not HR's (none found: it shows, the
+  /// server put it in this list). Decided: the step I decided is not HR's;
+  /// when no step can be matched to me (no id, or the server names the
+  /// approver another way), it shows only if no step decided that way is
+  /// HR's — never an HR decision by mistake.
   static bool keeps(
     OtRequest request,
     OtApprovalStatus status,
     String? employeeId,
   ) {
-    final OtStep? step = switch (status) {
-      OtApprovalStatus.pending => request.pendingStep,
-      OtApprovalStatus.approved => _decidedBy(
-        request,
-        employeeId,
-        OtStepStatus.approved,
-      ),
-      OtApprovalStatus.rejected => _decidedBy(
-        request,
-        employeeId,
-        OtStepStatus.rejected,
-      ),
+    final stepStatus = switch (status) {
+      OtApprovalStatus.pending => null,
+      OtApprovalStatus.approved => OtStepStatus.approved,
+      OtApprovalStatus.rejected => OtStepStatus.rejected,
     };
-    return step?.role != OtStepRole.hr;
+    if (stepStatus == null) {
+      return request.pendingStep?.role != OtStepRole.hr;
+    }
+    final mine = _decidedBy(request, employeeId, stepStatus);
+    if (mine != null) return mine.role != OtStepRole.hr;
+    final decided = request.steps.where((s) => s.status == stepStatus);
+    return decided.isNotEmpty && decided.every((s) => s.role != OtStepRole.hr);
   }
 
   static OtStep? _decidedBy(
@@ -113,14 +117,24 @@ class OtApprovalsNotifier extends AutoDisposeNotifier<OtApprovalsState> {
     );
     _disposed = false;
     ref.onDispose(() => _disposed = true);
-    Future.microtask(refresh);
+    // Not before the session says who is signed in: the lists depend on it
+    // (and the Approvals place needs a staff record anyway).
+    if (employeeId != null && employeeId.isNotEmpty) {
+      Future.microtask(refresh);
+    }
     return OtApprovalsState(employeeId: employeeId);
   }
 
   /// Both lists from their first page: pull to refresh. Rows already shown
-  /// stay while they load.
-  Future<void> refresh() =>
-      Future.wait([_loadFirst(_pendingList), _loadFirst(_decidedList)]);
+  /// stay while they load; a failure is returned for the tab to say.
+  Future<Failure?> refresh() async {
+    await Future.wait([_loadFirst(_pendingList), _loadFirst(_decidedList)]);
+    for (final list in [state.pending, state.decided]) {
+      final error = list.error;
+      if (error is Failure) return error;
+    }
+    return null;
+  }
 
   /// The "decided by me" chip: that list from its first page.
   void selectDecided(OtApprovalStatus status) {

@@ -233,6 +233,65 @@ void main() {
     expect(read().pending.hasError, isTrue);
   });
 
+  group('review fixes', () {
+    test('a decided step that cannot be matched to me: an HR decision never '
+        'shows; a head-only decision does', () {
+      final hrUnmatched = sampleOt(
+        'hr',
+        status: OtStatus.approved,
+        steps: [
+          step(1, OtStepRole.deptHead, OtStepStatus.approved, approverId: 'x'),
+          step(2, OtStepRole.hr, OtStepStatus.approved),
+        ],
+      );
+      final headUnmatched = sampleOt(
+        'head',
+        steps: [
+          step(1, OtStepRole.deptHead, OtStepStatus.approved, approverId: 'x'),
+          step(2, OtStepRole.hr, OtStepStatus.pending),
+        ],
+      );
+      for (final id in [me, null]) {
+        expect(
+          OtApprovalsState.keeps(hrUnmatched, OtApprovalStatus.approved, id),
+          isFalse,
+        );
+        expect(
+          OtApprovalsState.keeps(headUnmatched, OtApprovalStatus.approved, id),
+          isTrue,
+        );
+      }
+    });
+
+    test(
+      'nothing is asked for before the session names the employee',
+      () async {
+        await start(user: approverTestUser(employeeId: null));
+        expect(repository.approvalCalls, isEmpty);
+      },
+    );
+
+    test('a failed pull to refresh is returned, the rows kept', () async {
+      var fail = false;
+      repository.approvalsAnswer = (status, n) => fail
+          ? const Result.failure(Failure.network(message: 'offline'))
+          : Result.success(
+              status == OtApprovalStatus.pending
+                  ? page([atHead('a')], 1, 1)
+                  : page([], 1, 1),
+            );
+      await start();
+      fail = true;
+
+      final failure = await container
+          .read(otApprovalsNotifierProvider.notifier)
+          .refresh();
+
+      expect(failure, isNotNull);
+      expect(read().pendingRows.map((r) => r.id), ['a']);
+    });
+  });
+
   group('the tab', () {
     Future<void> pumpTab(WidgetTester tester, {bool settle = true}) async {
       tester.view.physicalSize = const Size(420, 2400);
@@ -335,6 +394,33 @@ void main() {
       page2.complete();
       await tester.pumpAndSettle();
       expect(find.text('Stocktake'), findsOneWidget);
+    });
+
+    testWidgets('pages of HR steps, then the next page fails: its Retry, '
+        'never "none"', (tester) async {
+      repository.approvalsAnswer = (status, n) =>
+          status != OtApprovalStatus.pending
+          ? Result.success(page([], 1, 1))
+          : n == 1
+          ? Result.success(page([atHr('hr-1'), atHr('hr-2')], 1, 3))
+          : const Result.failure(Failure.network(message: 'offline'));
+      await pumpTab(tester);
+
+      expect(find.text(en.apprOtWaitingEmpty), findsNothing);
+      expect(find.text(en.retry), findsOneWidget);
+    });
+
+    testWidgets('no staff record: #28\'s text, no Retry', (tester) async {
+      repository.approvalsAnswer = (status, n) => const Result.failure(
+        Failure.validation(
+          message: 'otEmployeeNotFound',
+          code: 'EMPLOYEE_NOT_FOUND',
+        ),
+      );
+      await pumpTab(tester);
+
+      expect(find.text(en.otListLoadFailed), findsNothing);
+      expect(find.text(en.retry), findsNothing);
     });
 
     testWidgets('nothing waiting: "No OT is waiting for you"', (tester) async {

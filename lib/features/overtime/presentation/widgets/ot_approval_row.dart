@@ -61,7 +61,7 @@ class OtApprovalRow extends StatelessWidget {
                   children: [
                     Expanded(
                       child: customText(
-                        request.employeeName ?? '',
+                        request.employeeName ?? request.employeeNumber ?? '',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,

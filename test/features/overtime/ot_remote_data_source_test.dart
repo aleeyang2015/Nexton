@@ -503,6 +503,8 @@ void main() {
         status: OtApprovalStatus.pending,
       )).failureOrNull;
       expect(failure, isA<ValidationFailure>());
+      // The tab tells it apart by this code (#28's text, no Retry).
+      expect((failure! as ValidationFailure).code, 'EMPLOYEE_NOT_FOUND');
     });
   });
 
