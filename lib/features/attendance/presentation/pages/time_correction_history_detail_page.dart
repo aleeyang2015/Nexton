@@ -78,6 +78,22 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
         : detail.valueOrNull ?? (detail.hasError ? null : preview);
     final notLinked = error is Failure && error.isEmployeeNotLinked;
 
+    // Someone else's request on the employee's own page (opened from a
+    // push, #53): the approver's page instead, with the copy just loaded.
+    if (!approver && !readOnly) {
+      ref.listen(provider.select((s) => s.detail.valueOrNull), (_, loaded) {
+        if (loaded == null) return;
+        final user = ref.read(authSessionProvider).valueOrNull?.user;
+        if (ApproverAccess.opensAsApprover(
+          ownerId: loaded.employee.id,
+          user: user,
+          attendance: true,
+        )) {
+          context.replace(AppRoutes.approvalCorrection(id), extra: loaded);
+        }
+      });
+    }
+
     return Container(
       color: Colors.white,
       child: SafeArea(

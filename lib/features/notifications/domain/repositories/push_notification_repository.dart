@@ -35,4 +35,11 @@ abstract class PushNotificationRepository {
   /// Shows [message] as a banner. Only Android needs this — iOS presents
   /// foreground pushes itself.
   FutureResult<Unit> showForeground(PushMessage message);
+
+  /// The `data` of each push the user taps while the App runs (#53): the
+  /// system's push from the background, or the App's own banner.
+  Stream<Map<String, String>> get openedPushes;
+
+  /// The `data` of the push whose tap started the App, if any (#53).
+  FutureResult<Map<String, String>?> launchPush();
 }

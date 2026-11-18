@@ -11,6 +11,8 @@ import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../approvals/domain/approver_access.dart';
+import '../../../auth/presentation/providers/auth_session_notifier.dart';
 import '../../data/datasources/leave_error_code.dart';
 import '../../domain/entities/leave_request.dart';
 import '../../domain/entities/leave_status.dart';
@@ -50,6 +52,23 @@ class LeaveRequestDetailPage extends ConsumerWidget {
         error is Failure &&
         LeaveErrorCode.isRequestGone(error);
     final request = gone ? null : (loaded.valueOrNull ?? initial);
+
+    // Someone else's request (opened from a push, #53): the approver's page
+    // instead, with the copy just loaded.
+    ref.listen(leaveRequestDetailNotifierProvider(requestId), (_, next) {
+      final loadedRequest = next.valueOrNull;
+      if (loadedRequest == null || next.isLoading) return;
+      final user = ref.read(authSessionProvider).valueOrNull?.user;
+      if (ApproverAccess.opensAsApprover(
+        ownerId: loadedRequest.employeeId,
+        user: user,
+      )) {
+        context.replace(
+          AppRoutes.approvalLeave(requestId),
+          extra: loadedRequest,
+        );
+      }
+    });
 
     // The copy handed in is on screen and the page's own load failed: say
     // so, or the old copy would pass for the current one.

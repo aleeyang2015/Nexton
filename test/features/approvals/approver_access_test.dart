@@ -8,6 +8,7 @@ import 'package:next_on/features/overtime/domain/entities/ot_step.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
 
+import '../../support/approver_access_test_doubles.dart';
 import '../../support/leave_test_doubles.dart';
 import '../../support/correction_approval_test_doubles.dart';
 import '../../support/offsite_approval_test_doubles.dart';
@@ -528,5 +529,76 @@ void main() {
         );
       });
     });
+  });
+
+  group('opensAsApprover: a push opened someone else\'s request (#53)', () {
+    const me = 'b3f1-employees-uuid';
+
+    for (final (label, owner, user, attendance, expected)
+        in <(String, String?, User?, bool, bool)>[
+          (
+            'a head, someone else\'s leave',
+            'other',
+            approverTestUser(),
+            false,
+            true,
+          ),
+          ('a head, my own leave', me, approverTestUser(), false, false),
+          (
+            'a head, someone else\'s correction',
+            'other',
+            approverTestUser(),
+            true,
+            true,
+          ),
+          ('no owner in the answer', null, approverTestUser(), false, false),
+          ('an empty owner', '', approverTestUser(), false, false),
+          ('no one signed in', 'other', null, false, false),
+          (
+            'a login with no staff record',
+            'other',
+            approverTestUser(employeeId: null),
+            false,
+            false,
+          ),
+          (
+            'a plain employee',
+            'other',
+            approverTestUser(head: false),
+            false,
+            false,
+          ),
+          (
+            'leave HR on a correction',
+            'other',
+            approverTestUser(
+              head: false,
+              permissions: const [ApproverAccess.leaveManagePermission],
+            ),
+            true,
+            false,
+          ),
+          (
+            'leave HR on leave',
+            'other',
+            approverTestUser(
+              head: false,
+              permissions: const [ApproverAccess.leaveManagePermission],
+            ),
+            false,
+            true,
+          ),
+        ]) {
+      test(label, () {
+        expect(
+          ApproverAccess.opensAsApprover(
+            ownerId: owner,
+            user: user,
+            attendance: attendance,
+          ),
+          expected,
+        );
+      });
+    }
   });
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -147,4 +148,41 @@ class PushNotificationRepositoryImpl extends BaseRepository
       return Unit.instance;
     });
   }
+
+  @override
+  Stream<Map<String, String>> get openedPushes {
+    // Both sources as one stream, without a package for it.
+    late final StreamController<Map<String, String>> out;
+    final subs = <StreamSubscription<Object?>>[];
+    out = StreamController<Map<String, String>>(
+      onListen: () {
+        subs
+          ..add(
+            _messaging.onMessageOpenedApp.listen(
+              (m) => out.add(_stringData(m.data)),
+              onError: (_) {},
+            ),
+          )
+          ..add(_localNotifications.onTap.listen(out.add, onError: (_) {}));
+      },
+      onCancel: () async {
+        for (final sub in subs) {
+          await sub.cancel();
+        }
+      },
+    );
+    return out.stream;
+  }
+
+  @override
+  FutureResult<Map<String, String>?> launchPush() => guard(() async {
+    final message = await _messaging.initialMessage();
+    if (message != null) return _stringData(message.data);
+    return _localNotifications.launchTap();
+  });
+
+  static Map<String, String> _stringData(Map<String, dynamic> data) => {
+    for (final e in data.entries)
+      if (e.value != null) e.key: '${e.value}',
+  };
 }

@@ -79,6 +79,26 @@ class ApproverAccess extends Equatable {
       hasStaffRecord &&
       (canApproveLeave || canApproveAttendance || canApproveOt || canSeeTeam);
 
+  /// Whether a request owned by [ownerId], opened on the employee's own
+  /// page (from a push, #53), belongs on the approver's page instead: it is
+  /// someone else's, and [user] may open the approver's page
+  /// ([attendance]: the off-site and "forgot to scan" one). An unknown
+  /// owner or user keeps the page where it is; the server decides the rest.
+  static bool opensAsApprover({
+    required String? ownerId,
+    required User? user,
+    bool attendance = false,
+  }) {
+    final own = user?.employeeId;
+    if (ownerId == null || ownerId.isEmpty || own == null || own.isEmpty) {
+      return false;
+    }
+    if (ownerId == own) return false;
+    final access = ApproverAccess.of(user);
+    return access.canSeeApprovals &&
+        (!attendance || access.canApproveAttendance);
+  }
+
   /// Whether [user] gets Approve and Reject on [request]: it is pending
   /// with a step waiting, it is not their own, and the waiting step is
   /// theirs. An HR step is HR's (the leave permission, or an admin role; a
