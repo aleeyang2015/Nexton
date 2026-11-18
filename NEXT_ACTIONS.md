@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#52 implemented on `52-device-registration`, `1e4d192` + `91b31f7`, waiting for "push issue 52 to main directly"). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#52 merged, `f0c7a6c`; next is #53, not started). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,8 +13,8 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 
 | | |
 |---|---|
-| Last finished work order | 50 of 60: #51, push: Firebase set up (app id `next.on.hr.com`) |
-| Next work order | **51 of 60: #52**, push: register this phone after sign-in, remove it before sign-out. IMPLEMENTED on `52-device-registration` (`1e4d192`, `91b31f7`), both reviews done and fixed; waiting for the owner's merge word |
+| Last finished work order | 51 of 60: #52, push: register this phone after sign-in, remove it before sign-out (covers #71) |
+| Next work order | **52 of 60: #53**, push: tapping a push opens the right screen. Not started, no branch, no plan shown yet |
 | `origin/main` | `adad453` "Merge branch '51-push-setup' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -185,10 +185,13 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Now: #52 (work order 51 of 60), "push: register this phone after sign-in, remove it before sign-out": IMPLEMENTED**
-   on `52-device-registration` (`1e4d192`, review fixes `91b31f7`), pushed, not merged. Covers #71. Gates: analyze 1
-   warning already on `main`; `flutter test` 2,177 passed; debug APK built. Waiting for "push issue 52 to main
-   directly". Owner decisions: device id stays in SharedPreferences; auth reaches push through
+1. **Next: #53 (work order 52 of 60), "push: tapping a push opens the right screen".** Not started: no branch, no
+   plan shown yet. Read the issue and its comments, plan, wait for "go". Settle first the open point about hiding
+   approver-only data when someone else's request is opened by id (see the #53 notes above).
+
+   **#52 (work order 51 of 60): MERGED (`f0c7a6c`)** on the owner's say, 2026-11-18, from
+   `52-device-registration` (`1e4d192`, review fixes `91b31f7`). Covers #71. Gates: analyze 1
+   warning already on `main`; `flutter test` 2,177 passed; debug APK built. Owner decisions: device id stays in SharedPreferences; auth reaches push through
    `beforeSignOutProvider` (wired in `main.dart`). The sign-off DELETE carries `AuthInterceptor.noRefreshFlag` (no
    refresh on its 401, so a late refresh cannot write tokens back after sign-out). Device checks pending on
    `nexton-demo`: one row after sign-in, gone after sign-out, one row after a relaunch, flight-mode sign-out instant,
@@ -989,7 +992,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 48 | #49 | approvals: approve or reject OT, and cancel an approved OT before it starts | `49-ot-decisions` | `1110d2d`, `bbefe8b` | merged to main directly (`5960973`) | analyze: 1 warning already on `main`; `flutter test`: 2,118 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 49 | #50 | approvals: my team's leave and "forgot to scan" history (read-only) | `50-team-history` | `f00dd81`, `c02e491` | merged to main directly (`79a134a`) | analyze: 1 warning already on `main`; `flutter test`: 2,142 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 50 | #51 | push: Firebase set up (app id next.on.hr.com) | `51-push-setup` | `d4a2b38`, `8f41b6d` | merged to main directly (`adad453`) | analyze: 1 warning already on `main`; `flutter test`: 2,150 passed, 0 failed; debug APK and iOS simulator build | MERGED, device checks pending |
-| 51 | #52 | push: register this phone after sign-in, remove it before sign-out | `52-device-registration` | `1e4d192`, `91b31f7` | not merged | analyze: 1 warning already on `main`; `flutter test`: 2,177 passed, 0 failed; debug APK | IMPLEMENTED, waiting for merge word |
+| 51 | #52 | push: register this phone after sign-in, remove it before sign-out | `52-device-registration` | `1e4d192`, `91b31f7` | merged to main directly (`f0c7a6c`) | analyze: 1 warning already on `main`; `flutter test`: 2,177 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 52 | #53 | push: tapping a push opens the right screen | | | | | NOT STARTED |
 | 53 | #54 | notifications: the bell shows recent pushes | | | | | NOT STARTED |
 | 54 | #55 | notifications: unread dots and a count on the bell | | | | | BLOCKED: backend, unread count |
@@ -1014,7 +1017,7 @@ Parent issues (#62 to #66) group the items above. The rest were reported later a
 | #68 | leave approvals: refresh when the leave was already decided (INVALID_STATUS) | likely covered by #16 (a stale refusal reloads both lists, then says why); to check on a phone, then close |
 | #69 | leave cancel: refresh when the leave was already decided (INVALID_STATUS) | likely covered by #16 and #17 (the request page reloads in place); to check, then close |
 | #70 | leave approve: show "not enough days left" on 422 INSUFFICIENT_BALANCE | likely covered by #16 (the approvals tab shows the code's own text); not checked against the issue line by line |
-| #71 | push: sign the phone off on logout (shared phones get the last user's messages) | COVERED by #52 (`52-device-registration`) |
+| #71 | push: sign the phone off on logout (shared phones get the last user's messages) | COVERED by #52, merged (`f0c7a6c`) |
 | #72 | payslip: the salary list stops at 10 payslips a year | priority bug; fixed on screen by #21 (one page of 100); to confirm with a login that has more than 10 payslips in a year, then close |
 | #73 | forgot to scan: a request with a photo is always refused (attachment_url must be a string) | NOT STARTED, priority bug. Root cause known: the request sends the whole upload object as `attachment_url`, not the URL string. Not scheduled |
 | #75 | Docs: /auth/me employee_id now uses the own-record lookup (backend live 17 Nov) | NOT STARTED; docs only (`lib/features/auth/auth.md` lines 24 and 186); no code change |
