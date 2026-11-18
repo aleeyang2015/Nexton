@@ -95,8 +95,6 @@ class _Details extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final hireDate = personal.hireDate;
-    final ext = personal.workPhoneExtension;
-    final workPhone = personal.workPhone;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,11 +121,11 @@ class _Details extends StatelessWidget {
             ),
             PersonalInfoRow(
               label: l10n.personalWorkPhone,
-              value: workPhone == null
-                  ? null
-                  : ext == null
-                  ? workPhone
-                  : '$workPhone (${l10n.personalPhoneExt} $ext)',
+              value: PersonalInfoCopy.workPhone(
+                l10n,
+                personal.workPhone,
+                personal.workPhoneExtension,
+              ),
             ),
             PersonalInfoRow(
               label: l10n.personalHomePhone,

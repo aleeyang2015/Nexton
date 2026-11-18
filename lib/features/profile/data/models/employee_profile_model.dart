@@ -45,7 +45,7 @@ class EmployeeProfileModel {
   /// carries salary, ID card, passport, tax, social security and bank
   /// values, which are never read. Every text is trimmed; empty is none.
   static EmployeePersonalInfo _personal(Map<String, dynamic> json) {
-    String? text(Object? raw) => _nonEmpty(_string(raw)?.trim());
+    final text = _plainText;
     return EmployeePersonalInfo(
       firstName: text(json['first_name']) ?? '',
       lastName: text(json['last_name']) ?? '',
@@ -79,7 +79,23 @@ class EmployeeProfileModel {
     if (date.year != year || date.month != month || date.day != day) {
       return null;
     }
+    // Go's zero time (`0001-01-01`) is "no date set", not a day.
+    if (year < 1900) return null;
     return date;
+  }
+
+  /// A text the personal page may show: a string (trimmed, empty is none)
+  /// or a whole number (a phone or an employee number sent as a number).
+  /// An object or a list is none, never its printout: the server does not
+  /// check `emergency_contacts`, and nothing nested in it reaches the
+  /// screen.
+  static String? _plainText(Object? raw) {
+    if (raw is String) return _nonEmpty(raw.trim());
+    if (raw is int) return '$raw';
+    if (raw is double && raw.isFinite && raw == raw.truncateToDouble()) {
+      return '${raw.toInt()}';
+    }
+    return null;
   }
 
   /// The web's list of `{name, name_lo?, relationship, phone?,
@@ -88,7 +104,7 @@ class EmployeeProfileModel {
   /// name, is skipped.
   static List<EmergencyContact> _emergencyContacts(Object? raw) {
     if (raw is! List) return const [];
-    String? text(Object? value) => _nonEmpty(_string(value)?.trim());
+    final text = _plainText;
     return [
       for (final item in raw.whereType<Map>())
         if (text(item['name']) case final String name)

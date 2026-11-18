@@ -390,6 +390,38 @@ void main() {
       }
     });
 
+    test('Go\'s zero time is no hire date, not 01/01/0001', () {
+      expect(
+        EmployeeProfileModel.fromJson({
+          ...full(),
+          'hire_date': '0001-01-01T00:00:00Z',
+        }).personal.hireDate,
+        isNull,
+      );
+    });
+
+    test('only texts and whole numbers are read: an object or a list is '
+        'none, never its printout', () {
+      final p = EmployeeProfileModel.fromJson({
+        ...full(),
+        'employee_number': 42.0,
+        'mobile_phone': 1.5e10,
+        'home_phone': {'number': '021'},
+        'emergency_contacts': [
+          {'name': {'bank_account': '999'}, 'phone': '020'},
+          {
+            'name': 'Keo',
+            'relationship': ['x'],
+            'phone': {'k': 'v'},
+          },
+        ],
+      }).personal;
+      expect(p.employeeNumber, '42');
+      expect(p.mobilePhone, '15000000000');
+      expect(p.homePhone, isNull);
+      expect(p.emergencyContacts, const [EmergencyContact(name: 'Keo')]);
+    });
+
     test('the hire date is the day as sent, whatever the zone', () {
       for (final sent in [
         '2024-01-15T00:00:00+07:00',

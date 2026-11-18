@@ -5,7 +5,22 @@ abstract final class PersonalInfoCopy {
   /// `dd/MM/yyyy`, Latin digits as everywhere else in the App.
   static String date(DateTime date) =>
       '${date.day.toString().padLeft(2, '0')}/'
-      '${date.month.toString().padLeft(2, '0')}/${date.year}';
+      '${date.month.toString().padLeft(2, '0')}/'
+      '${date.year.toString().padLeft(4, '0')}';
+
+  /// The work phone and its extension: "021 412 000 (Ext. 12)", either one
+  /// alone, or null when HR has neither.
+  static String? workPhone(
+    AppLocalizations l10n,
+    String? phone,
+    String? extension,
+  ) {
+    final ext = extension == null
+        ? null
+        : '${l10n.personalPhoneExt} $extension';
+    if (phone == null) return ext;
+    return ext == null ? phone : '$phone ($ext)';
+  }
 
   /// The web's relationship values in the App's words; anything else as HR
   /// typed it.

@@ -11,6 +11,7 @@ import 'package:next_on/features/profile/domain/entities/employee_profile.dart';
 import 'package:next_on/features/profile/domain/entities/personal_info.dart';
 import 'package:next_on/features/profile/presentation/pages/personal_info_page.dart';
 import 'package:next_on/features/profile/presentation/pages/profile_page.dart';
+import 'package:next_on/features/profile/presentation/widgets/personal_info_copy.dart';
 import 'package:next_on/features/profile/profile_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 import 'package:next_on/l10n/generated/app_localizations_en.dart';
@@ -126,6 +127,33 @@ void main() {
     expect(find.text('-'), findsNWidgets(6));
     expect(find.text(en.personalNoEmergencyContacts), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('an extension with no work phone still shows', (tester) async {
+    profiles.profile = Result.success(
+      withPersonal(
+        const EmployeePersonalInfo(
+          firstName: 'Bee',
+          lastName: 'Sisouk',
+          employeeNumber: 'EMP-0042',
+          workPhoneExtension: '12',
+        ),
+      ),
+    );
+    await pumpPage(tester);
+    expect(find.text('${en.personalPhoneExt} 12'), findsOneWidget);
+  });
+
+  test('the work phone and its extension, in words', () {
+    expect(PersonalInfoCopy.workPhone(en, '021', '12'), '021 (Ext. 12)');
+    expect(PersonalInfoCopy.workPhone(en, '021', null), '021');
+    expect(PersonalInfoCopy.workPhone(en, null, '12'), 'Ext. 12');
+    expect(PersonalInfoCopy.workPhone(en, null, null), isNull);
+  });
+
+  test('dates are dd/MM/yyyy, the year always four digits', () {
+    expect(PersonalInfoCopy.date(DateTime(2024, 1, 5)), '05/01/2024');
+    expect(PersonalInfoCopy.date(DateTime(999, 12, 31)), '31/12/0999');
   });
 
   testWidgets('no staff record: #12\'s "contact HR", no Retry', (tester) async {
