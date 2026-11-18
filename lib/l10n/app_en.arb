@@ -849,5 +849,11 @@
   "attOtClockOutBy": "Clock out by {time}",
   "@attOtClockOutBy": {"placeholders": {"time": {"type": "String"}}},
   "notificationsEmpty": "No notifications yet",
-  "notificationsLoadFailed": "Could not load notifications."
+  "notificationsLoadFailed": "Could not load notifications.",
+  "updateRequiredTitle": "Update needed",
+  "updateRequiredBody": "This version is too old. Please update NEXTON to keep using it.",
+  "updateRequiredButton": "Update",
+  "updateFromAppStore": "Please update from the App Store.",
+  "maintenanceTitle": "Under maintenance",
+  "maintenanceDefaultBody": "NEXTON is being upgraded. Please try again later."
 }

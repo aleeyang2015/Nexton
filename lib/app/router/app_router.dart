@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/app_gate/domain/app_gate_status.dart';
+import '../../features/app_gate/presentation/pages/maintenance_page.dart';
+import '../../features/app_gate/presentation/pages/update_required_page.dart';
+import '../../features/app_gate/presentation/providers/app_gate_notifier.dart';
 import '../../features/approvals/approvals_page.dart';
 import '../../features/approvals/presentation/pages/leave_approval_detail_page.dart';
 import '../../features/approvals/presentation/providers/approver_access_provider.dart';
@@ -122,6 +126,12 @@ class AppRoutes {
 
   /// The bell list (#54): the user's recent pushes.
   static const String notifications = '/notifications';
+
+  /// The version gate (#57): this version is too old.
+  static const String updateRequired = '/update-required';
+
+  /// The version gate (#57): the server is under maintenance.
+  static const String maintenance = '/maintenance';
   /// One payslip, by its id. A route pattern; build a location with
   /// [payslip].
   static const String payslipDetail = '/salary-history/payslip/:id';
@@ -442,7 +452,27 @@ LeaveRequest? _leaveRequestExtra(Object? extra, String id) =>
 ///    their password whenever they want. The forced flow still leaves it: the
 ///    session drops `mustChangePassword` on success and the page navigates
 ///    home itself.
-String? authRedirect({required AuthSession session, required String location}) {
+///
+/// Before all of them, the version gate (#57): an App too old or a server
+/// under maintenance holds every location, the login and the forced
+/// password change too, on its own screen; once the gate opens again, its
+/// screen goes home and the rules above apply.
+String? authRedirect({
+  required AuthSession session,
+  required String location,
+  AppGateStatus gate = const AppGateOk(),
+}) {
+  final gateScreen = switch (gate) {
+    AppGateUpdateRequired() => AppRoutes.updateRequired,
+    AppGateMaintenance() => AppRoutes.maintenance,
+    AppGateOk() => null,
+  };
+  if (gateScreen != null) return location == gateScreen ? null : gateScreen;
+  if (location == AppRoutes.updateRequired ||
+      location == AppRoutes.maintenance) {
+    return AppRoutes.home;
+  }
+
   final atHome = location == AppRoutes.home;
   final atLogin = location == AppRoutes.login;
   final atChangePassword = location == AppRoutes.changePassword;
@@ -477,12 +507,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     fireImmediately: true,
   );
 
+  // The version gate (#57), bridged the same way.
+  final gate = ValueNotifier<AppGateStatus>(const AppGateOk());
+  ref.onDispose(gate.dispose);
+  ref.listen(
+    appGateProvider,
+    (_, next) => gate.value = next,
+    fireImmediately: true,
+  );
+
   return GoRouter(
     initialLocation: AppRoutes.home,
     debugLogDiagnostics: true,
-    refreshListenable: session,
-    redirect: (context, state) =>
-        authRedirect(session: session.value, location: state.matchedLocation),
+    refreshListenable: Listenable.merge([session, gate]),
+    redirect: (context, state) => authRedirect(
+      session: session.value,
+      location: state.matchedLocation,
+      gate: gate.value,
+    ),
     routes: [
       // Main routes
       GoRoute(
@@ -656,6 +698,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.salaryHistory,
         name: 'salaryHistory',
         builder: (context, state) => const SalaryHistoryPage(),
+      ),
+      // The version gate (#57): reached only through the redirect.
+      GoRoute(
+        path: AppRoutes.updateRequired,
+        name: 'updateRequired',
+        builder: (context, state) => const UpdateRequiredPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.maintenance,
+        name: 'maintenance',
+        builder: (context, state) => const MaintenancePage(),
       ),
       // The bell list (#54): from the bell on Home, Profile, and a push
       // this App has no screen for.

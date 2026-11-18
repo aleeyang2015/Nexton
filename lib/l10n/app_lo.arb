@@ -652,5 +652,11 @@
   "attCorrectionWindowHint": "ເວລາທີ່ຮັບໄດ້: {from}–{to}",
   "attOtClockOutBy": "ສະແກນອອກພາຍໃນ {time}",
   "notificationsEmpty": "ຍັງບໍ່ມີແຈ້ງເຕືອນ",
-  "notificationsLoadFailed": "ບໍ່ສາມາດໂຫຼດແຈ້ງເຕືອນໄດ້."
+  "notificationsLoadFailed": "ບໍ່ສາມາດໂຫຼດແຈ້ງເຕືອນໄດ້.",
+  "updateRequiredTitle": "ມີເວີຊັນໃໝ່",
+  "updateRequiredBody": "ເວີຊັນນີ້ເກົ່າເກີນໄປ. ກະລຸນາອັບເດດ NEXTON ເພື່ອໃຊ້ງານຕໍ່.",
+  "updateRequiredButton": "ອັບເດດ",
+  "updateFromAppStore": "ກະລຸນາອັບເດດຈາກ App Store.",
+  "maintenanceTitle": "ລະບົບກຳລັງປັບປຸງ",
+  "maintenanceDefaultBody": "ລະບົບກຳລັງປັບປຸງ. ກະລຸນາລອງໃໝ່ພາຍຫຼັງ."
 }

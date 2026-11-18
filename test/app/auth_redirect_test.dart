@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/app/router/app_router.dart';
+import 'package:next_on/features/app_gate/domain/app_gate_status.dart';
 import 'package:next_on/features/auth/domain/entities/auth_session.dart';
 
 import '../support/auth_test_doubles.dart';
@@ -97,6 +98,65 @@ void main() {
       expect(redirect(signedIn, AppRoutes.home), isNull);
       // And a later sign-out sends them back.
       expect(redirect(signedOut, AppRoutes.home), AppRoutes.login);
+    });
+  });
+
+  group('the version gate (#57) comes first', () {
+    const update = AppGateUpdateRequired();
+    const down = AppGateMaintenance('Back at 10:00');
+
+    String? gated(AuthSession session, String location, AppGateStatus gate) =>
+        authRedirect(session: session, location: location, gate: gate);
+
+    test('too old: every location, before the session rules', () {
+      for (final session in [
+        bootstrapping,
+        signedOut,
+        signedIn,
+        owesPassword,
+      ]) {
+        for (final location in [
+          AppRoutes.home,
+          AppRoutes.login,
+          AppRoutes.changePassword,
+          '/some/deep/link',
+        ]) {
+          expect(
+            gated(session, location, update),
+            AppRoutes.updateRequired,
+            reason: '\$session at \$location',
+          );
+        }
+        expect(gated(session, AppRoutes.updateRequired, update), isNull);
+      }
+    });
+
+    test('maintenance: every location, its own screen', () {
+      expect(gated(signedOut, AppRoutes.login, down), AppRoutes.maintenance);
+      expect(
+        gated(owesPassword, AppRoutes.changePassword, down),
+        AppRoutes.maintenance,
+      );
+      expect(gated(signedIn, AppRoutes.maintenance, down), isNull);
+      // From the update screen, when the server goes down meanwhile.
+      expect(
+        gated(signedIn, AppRoutes.updateRequired, down),
+        AppRoutes.maintenance,
+      );
+    });
+
+    test('back to ok: the gate screen goes home, then the session rules', () {
+      const ok = AppGateOk();
+      expect(gated(signedIn, AppRoutes.maintenance, ok), AppRoutes.home);
+      expect(gated(signedIn, AppRoutes.updateRequired, ok), AppRoutes.home);
+      // Home then sends the signed-out to login, as before.
+      expect(gated(signedOut, AppRoutes.home, ok), AppRoutes.login);
+    });
+
+    test('ok changes nothing elsewhere', () {
+      const ok = AppGateOk();
+      expect(gated(signedIn, '/time-off', ok), isNull);
+      expect(gated(signedOut, AppRoutes.login, ok), isNull);
     });
   });
 }

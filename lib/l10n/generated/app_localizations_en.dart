@@ -2129,4 +2129,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsLoadFailed => 'Could not load notifications.';
+
+  @override
+  String get updateRequiredTitle => 'Update needed';
+
+  @override
+  String get updateRequiredBody =>
+      'This version is too old. Please update NEXTON to keep using it.';
+
+  @override
+  String get updateRequiredButton => 'Update';
+
+  @override
+  String get updateFromAppStore => 'Please update from the App Store.';
+
+  @override
+  String get maintenanceTitle => 'Under maintenance';
+
+  @override
+  String get maintenanceDefaultBody =>
+      'NEXTON is being upgraded. Please try again later.';
 }

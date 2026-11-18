@@ -3877,6 +3877,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not load notifications.'**
   String get notificationsLoadFailed;
+
+  /// No description provided for @updateRequiredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update needed'**
+  String get updateRequiredTitle;
+
+  /// No description provided for @updateRequiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This version is too old. Please update NEXTON to keep using it.'**
+  String get updateRequiredBody;
+
+  /// No description provided for @updateRequiredButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get updateRequiredButton;
+
+  /// No description provided for @updateFromAppStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Please update from the App Store.'**
+  String get updateFromAppStore;
+
+  /// No description provided for @maintenanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Under maintenance'**
+  String get maintenanceTitle;
+
+  /// No description provided for @maintenanceDefaultBody.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXTON is being upgraded. Please try again later.'**
+  String get maintenanceDefaultBody;
 }
 
 class _AppLocalizationsDelegate

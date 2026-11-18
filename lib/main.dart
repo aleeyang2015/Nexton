@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/app.dart';
 import 'app/router/app_router.dart';
+import 'core/app/app_version.dart';
 import 'core/network/network_providers.dart';
 import 'core/network/secure_store.dart';
 import 'core/network/token_storage.dart';
@@ -23,6 +25,14 @@ void main() async {
 
   // Opened once here so every provider downstream can stay synchronous.
   final prefs = await SharedPreferences.getInstance();
+
+  // The real version, before any client is built (#57): the User-Agent,
+  // the version gate and push registration read it.
+  try {
+    AppVersion.use((await PackageInfo.fromPlatform()).version);
+  } catch (_) {
+    // Unknown: the gate then carries on as normal.
+  }
   final secureStore = FlutterSecureStore();
 
   // Must finish before anything reads a token: it moves a session left in

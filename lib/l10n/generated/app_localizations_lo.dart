@@ -2114,4 +2114,23 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get notificationsLoadFailed => 'ບໍ່ສາມາດໂຫຼດແຈ້ງເຕືອນໄດ້.';
+
+  @override
+  String get updateRequiredTitle => 'ມີເວີຊັນໃໝ່';
+
+  @override
+  String get updateRequiredBody =>
+      'ເວີຊັນນີ້ເກົ່າເກີນໄປ. ກະລຸນາອັບເດດ NEXTON ເພື່ອໃຊ້ງານຕໍ່.';
+
+  @override
+  String get updateRequiredButton => 'ອັບເດດ';
+
+  @override
+  String get updateFromAppStore => 'ກະລຸນາອັບເດດຈາກ App Store.';
+
+  @override
+  String get maintenanceTitle => 'ລະບົບກຳລັງປັບປຸງ';
+
+  @override
+  String get maintenanceDefaultBody => 'ລະບົບກຳລັງປັບປຸງ. ກະລຸນາລອງໃໝ່ພາຍຫຼັງ.';
 }
