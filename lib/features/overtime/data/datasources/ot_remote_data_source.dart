@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/failure.dart';
 import '../../../../core/network/api_client.dart';
@@ -26,6 +27,17 @@ abstract class OtRemoteDataSource {
   });
 
   Future<OtRequest> request(String id);
+
+  /// The OT requests at the signed-in approver's steps (#48), one page by
+  /// number: `GET ot-requests/my-approvals?status=&page=&per_page=`.
+  /// [status] is read against the caller's own step: `pending` waits on
+  /// them, `approved` / `rejected` they decided. Never `limit` (the server
+  /// reads it as `per_page`, and pages by number only).
+  Future<OtPage<OtRequest>> myApprovals({
+    required OtApprovalStatus status,
+    int page = 1,
+    int perPage = OtPage.defaultPerPage,
+  });
 
   Future<OtRequest> edit(String id, OtDraft draft);
 
@@ -77,6 +89,32 @@ class OtRemoteDataSourceImpl implements OtRemoteDataSource {
       },
     );
     return _page(response.data, page, OtRequestModel.tryFromJson);
+  });
+
+  @override
+  Future<OtPage<OtRequest>> myApprovals({
+    required OtApprovalStatus status,
+    int page = 1,
+    int perPage = OtPage.defaultPerPage,
+  }) => _business(() async {
+    try {
+      final response = await _client.get<dynamic>(
+        OtPaths.myApprovals,
+        queryParameters: {
+          'status': status.name,
+          'page': page,
+          'per_page': perPage,
+        },
+      );
+      return _page(response.data, page, OtRequestModel.tryFromJson);
+    } on DioException catch (error) {
+      // A 422 here is the App's bug (a status or month it should never
+      // send): say so in the log; the tab shows the shared load error.
+      if (kDebugMode && error.response?.statusCode == 422) {
+        debugPrint('[OT approvals] 422 for $status: ${error.response?.data}');
+      }
+      rethrow;
+    }
   });
 
   @override

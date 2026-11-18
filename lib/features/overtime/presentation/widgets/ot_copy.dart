@@ -130,6 +130,46 @@ class OtCopy {
     return role == null ? null : l10n.otWaitingFor(role);
   }
 
+  /// "EMP-001 · Kitchen": the number and the department (#48: the
+  /// current one; Lao name in Lao when there is one). Empty when neither.
+  static String employeeLine(AppLocalizations l10n, OtRequest request) {
+    final department = _isLao(l10n)
+        ? request.departmentNameLo ?? request.departmentName
+        : request.departmentName ?? request.departmentNameLo;
+    return [
+      request.employeeNumber,
+      department,
+    ].whereType<String>().join(' · ');
+  }
+
+  /// "ລໍຖ້າ {n} ຊົ່ວໂມງ" on the head's waiting list (#48), from when it was
+  /// asked to [now], in whole hours (never below 0). `created_at` is Lao
+  /// wall-clock time read on the phone's clock (#27). Null with no time.
+  static ({String label, Color color})? waitingHours(
+    AppLocalizations l10n,
+    OtRequest request,
+    DateTime now,
+  ) {
+    final asked = request.createdAt;
+    if (asked == null) return null;
+    final hours = now.difference(asked).inHours;
+    return (
+      label: l10n.apprWaitingHours(hours < 0 ? 0 : hours),
+      color: AppColors.primary,
+    );
+  }
+
+  /// The request's own state on the head's decided lists (#48): "waiting
+  /// for: HR" while it waits on a later step, else its status pill.
+  static ({String label, Color color})? decidedPill(
+    AppLocalizations l10n,
+    OtRequest request,
+  ) {
+    final waiting = waitingFor(l10n, request);
+    if (waiting != null) return (label: waiting, color: AppColors.primary);
+    return statusPill(l10n, request.status);
+  }
+
   /// "08:00–12:00 · 200%": a piece's window on the phone's clock and its
   /// pay. A part the server did not send is left out.
   static String piece(AppLocalizations l10n, OtPiece piece) {
@@ -172,6 +212,19 @@ class OtCopy {
   ///   filter) → its own text, no Retry: asking again cannot change it;
   /// * anything else (no signal, a server error) → "could not load OT", with
   ///   Retry.
+  /// The head's OT lists failing (#48): no staff record says so (#28's
+  /// text) with nothing to retry; anything else — a 422 included, the App's
+  /// own bug — is the shared load error with Retry.
+  static ({String message, bool canRetry}) approvalsError(
+    AppLocalizations l10n,
+    Object? error,
+  ) {
+    if (error is ValidationFailure && error.code == 'EMPLOYEE_NOT_FOUND') {
+      return (message: error.localize(l10n), canRetry: false);
+    }
+    return (message: l10n.otListLoadFailed, canRetry: true);
+  }
+
   static ({String message, bool canRetry}) listError(
     AppLocalizations l10n,
     Object? error,

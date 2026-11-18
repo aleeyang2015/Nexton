@@ -10,6 +10,7 @@ class OtPaths {
 
   static const String requests = '$_prefix/ot-requests';
   static const String requestsMy = '$_prefix/ot-requests/my';
+  static const String myApprovals = '$_prefix/ot-requests/my-approvals';
   static const String openPosts = '$_prefix/ot-announcements/open';
 
   // The id is one path segment, whatever it holds: an id that came in from

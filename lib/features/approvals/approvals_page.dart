@@ -8,6 +8,7 @@ import '../../core/widgets/global_widgets.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../attendance/presentation/widgets/offsite_approvals_tab.dart';
 import '../attendance/presentation/widgets/time_correction_approvals_tab.dart';
+import '../overtime/presentation/widgets/ot_approvals_tab.dart';
 import '../time_off/presentation/widgets/leave_approvals_badge_icon.dart';
 import '../time_off/presentation/widgets/leave_approvals_tab.dart';
 import 'domain/approver_access.dart';
@@ -17,13 +18,16 @@ import 'presentation/providers/approver_access_provider.dart';
 enum ApprovalsTab {
   leave,
   timeCorrection,
-  offsite;
+  offsite,
+  ot;
 
   /// The sections [access] may see, in tab order: leave for leave approvers,
-  /// "forgot to scan" and off-site for attendance approvers.
+  /// "forgot to scan" and off-site for attendance approvers, OT for heads
+  /// (#48: the App does not decide OT's HR steps).
   static List<ApprovalsTab> visibleFor(ApproverAccess access) => [
     if (access.canApproveLeave) leave,
     if (access.canApproveAttendance) ...[timeCorrection, offsite],
+    if (access.canApproveOt) ot,
   ];
 }
 
@@ -95,6 +99,9 @@ class _ApprovalsScaffold extends StatelessWidget {
               ),
             ),
             bottom: TabBar(
+              // Four sections do not fit a small phone in Lao: they scroll.
+              isScrollable: tabs.length > 3,
+              tabAlignment: tabs.length > 3 ? TabAlignment.start : null,
               labelColor: AppColors.primary,
               unselectedLabelColor: AppColors.subTitle,
               indicatorColor: AppColors.primary,
@@ -129,11 +136,16 @@ class _ApprovalsScaffold extends StatelessWidget {
           icon: const Icon(Icons.wrong_location_outlined),
           text: l10n.approvalsOffsiteTab,
         ),
+        ApprovalsTab.ot => Tab(
+          icon: const Icon(Icons.work_history_outlined),
+          text: l10n.apprSectionOt,
+        ),
       };
 
   static Widget _view(ApprovalsTab tab) => switch (tab) {
     ApprovalsTab.leave => const LeaveApprovalsTab(),
     ApprovalsTab.timeCorrection => const TimeCorrectionApprovalsTab(),
     ApprovalsTab.offsite => const OffsiteApprovalsTab(),
+    ApprovalsTab.ot => const OtApprovalsTab(),
   };
 }

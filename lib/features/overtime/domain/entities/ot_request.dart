@@ -7,6 +7,11 @@ import 'ot_step.dart';
 /// never read as one of the others.
 enum OtStatus { pending, approved, rejected, cancelled, unknown }
 
+/// The approver's lists of OT requests (#48), read against their own step:
+/// [pending] waits on them, [approved] / [rejected] they decided. Its
+/// [name] is the wire value.
+enum OtApprovalStatus { pending, approved, rejected }
+
 /// One OT request (`OTRequestResponse`): the same shape from the list, the
 /// detail, ask, edit, join, approve, reject and cancel.
 ///
@@ -17,13 +22,19 @@ enum OtStatus { pending, approved, rejected, cancelled, unknown }
 /// but on a phone outside Laos the two kinds are not on the same clock:
 /// never compare or sort a wall-clock field against a moment.
 ///
-/// The employee's department is not here: the server never fills it for
-/// OT. Who paid by hand is a user id and is not kept.
+/// The employee's department is their current one (#48: the server fills
+/// `employee.department` since 15 Nov). Who paid by hand is a user id and is
+/// not kept.
 class OtRequest extends Equatable {
   final String id;
   final String employeeId;
   final String? employeeName;
   final String? employeeNumber;
+
+  /// The employee's department now, in English and Lao; null when they have
+  /// none.
+  final String? departmentName;
+  final String? departmentNameLo;
 
   /// Set when this request joined an HR post.
   final String? announcementId;
@@ -56,6 +67,8 @@ class OtRequest extends Equatable {
     required this.employeeId,
     this.employeeName,
     this.employeeNumber,
+    this.departmentName,
+    this.departmentNameLo,
     this.announcementId,
     this.workDate,
     required this.startTime,
@@ -94,6 +107,8 @@ class OtRequest extends Equatable {
     employeeId,
     employeeName,
     employeeNumber,
+    departmentName,
+    departmentNameLo,
     announcementId,
     workDate,
     startTime,

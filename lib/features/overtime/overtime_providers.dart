@@ -9,6 +9,7 @@ import 'domain/usecases/ask_ot_usecase.dart';
 import 'domain/usecases/cancel_ot_usecase.dart';
 import 'domain/usecases/edit_ot_usecase.dart';
 import 'domain/usecases/get_my_ot_requests_usecase.dart';
+import 'domain/usecases/get_ot_approvals_usecase.dart';
 import 'domain/usecases/get_open_ot_posts_usecase.dart';
 import 'domain/usecases/get_ot_request_usecase.dart';
 import 'domain/usecases/join_ot_post_usecase.dart';
@@ -31,6 +32,10 @@ final askOtUseCaseProvider = Provider<AskOtUseCase>(
 
 final getMyOtRequestsUseCaseProvider = Provider<GetMyOtRequestsUseCase>(
   (ref) => GetMyOtRequestsUseCase(ref.watch(otRepositoryProvider)),
+);
+
+final getOtApprovalsUseCaseProvider = Provider<GetOtApprovalsUseCase>(
+  (ref) => GetOtApprovalsUseCase(ref.watch(otRepositoryProvider)),
 );
 
 final getOtRequestUseCaseProvider = Provider<GetOtRequestUseCase>(

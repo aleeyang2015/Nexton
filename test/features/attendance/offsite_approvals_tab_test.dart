@@ -296,6 +296,9 @@ void main() {
     testWidgets('its tab opens the off-site list', (tester) async {
       await pumpPage(tester);
 
+      // Four sections scroll on a small phone (#48): bring it into view.
+      await tester.ensureVisible(find.text('Approve Off-site'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Approve Off-site'));
       await tester.pumpAndSettle();
 

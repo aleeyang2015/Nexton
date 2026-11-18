@@ -2492,6 +2492,24 @@ abstract class AppLocalizations {
   /// **'This request is not available'**
   String get apprRequestNotFound;
 
+  /// No description provided for @apprSectionOt.
+  ///
+  /// In en, this message translates to:
+  /// **'OT'**
+  String get apprSectionOt;
+
+  /// No description provided for @apprOtWaitingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No OT is waiting for you'**
+  String get apprOtWaitingEmpty;
+
+  /// No description provided for @apprWaitingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting {hours} h'**
+  String apprWaitingHours(int hours);
+
   /// No description provided for @apprAlreadyDecided.
   ///
   /// In en, this message translates to:

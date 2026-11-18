@@ -1323,6 +1323,17 @@ class AppLocalizationsLo extends AppLocalizations {
   String get apprRequestNotFound => 'ບໍ່ພົບຄຳຮ້ອງນີ້';
 
   @override
+  String get apprSectionOt => 'ໂອທີ';
+
+  @override
+  String get apprOtWaitingEmpty => 'ບໍ່ມີໂອທີລໍຖ້າທ່ານ';
+
+  @override
+  String apprWaitingHours(int hours) {
+    return 'ລໍຖ້າ $hours ຊົ່ວໂມງ';
+  }
+
+  @override
   String get apprAlreadyDecided => 'ມີຄົນຕັດສິນຄຳຮ້ອງນີ້ແລ້ວ';
 
   @override
