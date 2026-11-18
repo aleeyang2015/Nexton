@@ -63,3 +63,53 @@ open until their phone check). No force-push. `docs/next-actions` updated after 
 
 **Open at the end of the day:** the owner's questions in `NEXT_ACTIONS.md` "Waiting for the owner"; #73 priority
 bug; phone checks for every issue. Next: #45, not started.
+
+## 2026-11-18
+
+**Completed:** work orders 44 to 60, that is #45 to #61 except #55 (BLOCKED: Nexton-Backend#190, the unread
+count, not live). 16 issues, each merged to `main` on the owner's "push issue N to main directly".
+
+| Issue | What | Merge |
+|---|---|---|
+| #45 | "My requests": "forgot to scan" tab, detail by id, cancel | `0aa9eb1` |
+| #46 | approvals: off-site scans for heads and HR | `afedb4f` |
+| #47 | approvals: "forgot to scan" for heads and HR | `227a9b3` |
+| #48 | approvals: OT waiting and decided lists | `fbeb16e` |
+| #49 | approvals: OT approve, reject, cancel before it starts | `5960973` |
+| #50 | approvals: "My team" history, read-only | `79a134a` |
+| #51 | push: Firebase set up, permission asked once | `adad453` |
+| #52 | push: register the phone; sign it off before sign-out (covers #71) | `f0c7a6c` |
+| #53 | push: a tapped push opens its item | `dcb056c` |
+| #54 | notifications: the bell list | `748e760` |
+| #56 | sign-in: sign-out ends the sign-in on the server (owner's go) | `f3cb794` |
+| #57 | app: update needed / maintenance (`package_info_plus`, `url_launcher`: owner-approved) | `cb69094` |
+| #58 | profile: personal info, read-only | `2c35513` |
+| #59 | profile: change my own photo | `08b8864` |
+| #60 | sign-in: forgot password says ask HR; remember my email | `1ffb410` |
+| #61 | app: hide what the company has not bought | `4d3161c` |
+
+**Verification:** as on 2026-11-17, for every issue: tests first, gates on the branch and on the merge commit
+(analyze keeps the one old warning), two fresh reviews (one adversarial, with probes), the real findings fixed in
+a follow-up commit and mutation-checked. Tests: 1,944 → 2,398, all passing at `4d3161c`. No phone check on
+`nexton-demo` was possible from here; all are pending.
+
+**Commits and push:** 32 non-merge commits and 16 merge commits on `main`, all pushed (`origin/main` = `4d3161c`).
+Every issue branch is pushed and contained in `origin/main`. Merges were `--no-ff` with `Refs #N`. No force-push.
+`docs/next-actions` updated after each issue.
+
+**Technical decisions worth remembering:**
+- The sign-off at sign-out runs through auth's `beforeSignOutProvider` hook, wired in `main.dart` (#52); its DELETE
+  and the logout never start a token refresh (`noRefreshFlag`, path match), and a refresh answer for a sign-in that
+  ended meanwhile writes and clears nothing (#56).
+- Push routing is one table (`notifications/domain/push_route.dart`) and one opener (#53); the bell list reuses it
+  (#54). Someone else's request hands over to the approver's page (`ApproverHandOver`, top page only, once).
+- The auth interceptor's replay sends a fresh copy of a multipart form (`FormData.clone`, #59): fixes every upload
+  after a token ran out.
+- The real version lives in `core/app/app_version.dart`, set in `main.dart` (#57); the version gate sits before
+  every session rule in `authRedirect`.
+- Modules: pure rules in `core/modules/app_modules.dart`; the session-reading providers in the auth feature (#61).
+
+**Open at the end of the day:** #35 and #55 (backend); the owner's questions in "Waiting for the owner"; #73
+priority bug; phone checks for every issue; GitHub issues #2 to #61 still open. Next: #62, the "fixes" parent
+tracker: a read-only check and the owner's call on closing its children (`NEXT_ACTIONS.md` "Next", item 1).
+

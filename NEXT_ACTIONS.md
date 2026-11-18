@@ -5,23 +5,23 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#61 merged, `4d3161c`; every work order but #55 is merged; #55 waits on Nexton-Backend#190). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: end of 2026-11-18 (session handoff: #61 merged, `4d3161c`; every work order merged but #35 and #55, both blocked on the backend; next is #62, the "fixes" parent tracker). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
-State checked against GitHub and `origin` at the end of 2026-11-17.
+State checked against GitHub and `origin` at the end of 2026-11-18.
 
 | | |
 |---|---|
 | Last finished work order | 60 of 60: #61, app: hide what the company has not bought |
-| Next work order | **54 of 60: #55**, notifications: unread dots and a count on the bell. BLOCKED on Nexton-Backend#190 (read/unread and the unread count). Every other work order is merged. Open follow-ups are listed under "Now". |
-| `origin/main` | `adad453` "Merge branch '51-push-setup' into main" (2026-11-18) |
+| Next | **#62**, the "fixes" parent tracker (children #2 to #19): a read-only check and the owner's call on closing its children; no code expected. See "Next", item 1. Work orders still open: **#35** (BLOCKED, Nexton-Backend#195) and **#55** (BLOCKED, Nexton-Backend#190) |
+| `origin/main` | `4d3161c` "Merge branch '61-hide-unbought-modules' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
-| Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
+| Feature branches | `2-…` to `61-…` (no `35-…` or `55-…`: both BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
-| Gates on `main` at `56b6c75` | `flutter analyze lib test`: 1 warning, already on `main` before this work (`_ShiftHoursLine` unused, `attendance_status_card.dart`); `flutter test`: 1,944 passed, 0 failed; `flutter build apk --debug`: builds |
+| Gates on `main` at `4d3161c` | `flutter analyze lib test`: 1 warning, already on `main` before this work (`_ShiftHoursLine` unused, `attendance_status_card.dart`); `flutter test`: 2,398 passed, 0 failed; `flutter build apk --debug`: builds |
 | Pull requests | none for any work item. GitHub has two PRs, both docs and both merged before this work: #1 and #67 |
-| Issues on GitHub | all 73 are **open** (#2 to #75; #67 is a PR). Merge messages say `Refs #N`, not `Fixes #N`, so nothing closed by itself. Newest is #75 (docs), as at the start of the day |
+| Issues on GitHub | every work item #2 to #61 and the trackers #62 to #66 are **open** (checked 2026-11-18 for #2 to #19 and #62 to #66). Merge messages say `Refs #N`, not `Fixes #N`, so nothing closed by itself |
 
 How "MERGED" is used here: the issue's branch is contained in `origin/main` (checked with
 `git merge-base --is-ancestor`) and the gates passed on the merge commit. It was pushed to `main` directly, as a
@@ -62,13 +62,32 @@ issue N to main directly". Test count went from 1,261 to 1,944. Day log: `WORK_L
 | Off-site | #40 to #42 | the form only after a refused punch, camera only; the card sees a waiting off-site check-in (`domain/next_punch.dart`); "My requests" (`/attendance/requests`) with the off-site tab, paging, detail and cancel |
 | Forgot to scan | #43, #44 | 30-day look-back; `domain/correction_rules.dart` (window, overnight, weekday rows); refusals in Lao; the form filled from a history day (`?date=&part=`) |
 
+### Finished on 2026-11-18
+
+Work orders 44 to 60 (#45 to #61, but #55: BLOCKED on Nexton-Backend#190, the unread count). Each the same way as
+on 2026-11-17: plan, the owner's "go", its own branch from fresh `main`, tests first, gates, two fresh reviews (one
+adversarial, with probes), the real findings fixed and mutation-checked, then merged on the owner's "push issue N to
+main directly". Test count went from 1,944 to 2,398. Merges `0aa9eb1` (#45) to `4d3161c` (#61). Day log:
+`WORK_LOG.md`.
+
+| Area | Issues | What is on `main` now |
+|---|---|---|
+| Requests | #45 | "My requests": "forgot to scan" tab, detail by id, cancel |
+| Approvals | #46 to #50 | off-site and "forgot to scan" approvals; OT waiting/decided lists; OT approve, reject, cancel before start; "My team" history (read-only, heads) |
+| Push | #51 to #53 | Firebase (`next.on.hr.com`), permission asked once; the phone registered with name, versions, language; signed off before sign-out; a tapped push opens its item (approver view for someone else's) |
+| Notifications | #54 | the bell list (paged, two-phone copies collapsed); unknown pushes open it |
+| Sign-in | #56, #60 | sign-out ends the sign-in on the server (`POST /auth/logout`), late refresh answers dropped; "Forgot password?" says ask HR; "Remember my email" works |
+| App | #57, #61 | the version gate (update screen, maintenance) with the real version (`package_info_plus`, `url_launcher`: owner-approved); modules not bought are hidden |
+| Profile | #58, #59 | personal info, read-only (no sensitive fields read); change my own photo (JPEG/PNG, 5 MB, no shrink) |
+
 ### Not finished
 
 - **Phone checks on `nexton-demo`: none done, for any issue.** Every "Done when" box that needs a phone, two
   logins or the web portal is still open. This is the main thing between "MERGED" and closing an issue.
 - **By hand, by the lead:** #2 a release APK signs in on a phone; #3 the real upload key, a release bundle, a
   phone install, the iOS simulator build.
-- **Issues to close on GitHub** once checked: #2 to #44 but #35 (all still open). Also likely covered by merged work and
+- **Issues to close on GitHub** once checked: #2 to #61 but #35 and #55 (all still open), then the trackers #62
+  to #66 when their children are. Also likely covered by merged work and
   only needing a check before closing: #68, #69, #70, #72, #74 (see "Outside the work order").
 - **Priority bug #73** (forgot to scan with a photo is refused): root cause known, not scheduled.
 
@@ -185,7 +204,29 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Now: every work order but #55 is merged.** #55 (unread dots and a count on the bell) waits on
+1. **Next session: #62, the "fixes" parent tracker.** Not a feature issue: its body lists children #2 to #19 and
+   the 60-item work order for all five trackers (#62 to #66); "keep it open until every child closes". Two comments
+   (2026-11-13) record the app id `next.on.hr.com` and ask to redo the file-clash lines, which no longer matters
+   now that every child is merged.
+   - **Objective:** bring the tracker to closed: every child (#2 to #19) closed on GitHub.
+   - **State:** every child is MERGED on `main` (rows 1 to 18 below), every child is **open** on GitHub (merges
+     said `Refs #N`); no child has had its phone check on `nexton-demo`.
+   - **Dependencies:** the phone checks (each child's "Done when" boxes that need a device or a login); a GitHub
+     login to close issues (the public API here only reads); the owner's say on when to close.
+   - **First concrete step (read-only, no branch):** `git fetch origin --prune`, then for each child branch
+     `git merge-base --is-ancestor origin/<branch> origin/main` (branches in rows 1 to 18); re-read #62 and its
+     comments for anything new; list, per child, the "Done when" boxes still needing a phone; show the owner that
+     list and ask: close now with a note, or after the phone checks; and who closes (the owner, or a login given
+     for it).
+   - **Files:** none expected. A code change only if a recheck finds a child's behaviour changed on the server;
+     that would be a new issue with its own branch, on the owner's say.
+   - **Verification:** each child branch contained in `origin/main`; gates still green on `origin/main`
+     (`flutter analyze lib test && flutter test && flutter build apk --debug`); GitHub states re-read after any
+     closing.
+   - After #62, the same check applies to the trackers #63 to #66 (payslip, overtime, requests and approvals,
+     extras).
+
+2. **Every work order but #35 and #55 is merged.** #55 (unread dots and a count on the bell) waits on
    Nexton-Backend#190; when it lands, read #55 and its comments, plan, wait for "go". Follow-ups the owner may want as
    issues: a photo package that shrinks photos and converts HEIC (#59: 5 MB and iPhone-gallery refusals); a pull to
    refresh that keeps the last good profile offline (#58); the debug log printing the whole profile body (#58); a

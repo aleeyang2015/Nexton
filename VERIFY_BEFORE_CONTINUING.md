@@ -3,40 +3,45 @@
 The checklist for the start of a work session on the Nexton App. Do it top to bottom before writing any code.
 It takes a few minutes and stops the two expensive mistakes: redoing finished work, and building on a stale tree.
 
-Written at the end of 2026-11-16; brought up to date at the end of 2026-11-17 (the checkpoint after #44). The
-record of what is done is `NEXT_ACTIONS.md`, next to this file on branch `docs/next-actions`, with `WORK_LOG.md`
-(the day-by-day log). None of the three is on `main`.
+Written at the end of 2026-11-16; brought up to date at the end of 2026-11-17 (the checkpoint after #44) and at
+the end of 2026-11-18 (the checkpoint after #61). The record of what is done is `NEXT_ACTIONS.md`, next to this
+file on branch `docs/next-actions`, with `WORK_LOG.md` (the day-by-day log). None of the three is on `main`.
 
-## Resume here (next session, after 2026-11-17)
+## Resume here (next session, after 2026-11-18)
 
 1. Read the project rules: `CLAUDE.md` on `main`. There is no `PROJECT_RULES.md`; `CLAUDE.md` is the rules file.
 2. Read this file, then `NEXT_ACTIONS.md` (both on `origin/docs/next-actions`).
 3. Check the real Git and project state before changing anything (steps 3 to 5 below).
-4. Confirm #44 is done: `git merge-base --is-ancestor origin/44-correction-form-entries origin/main && echo "in main"`.
-5. Continue with **#45** (work order 44 of 60): read it and its comment, show the plan prepared in
-   `NEXT_ACTIONS.md` "Next", wait for "go".
+4. Confirm #61 is done: `git merge-base --is-ancestor origin/61-hide-unbought-modules origin/main && echo "in main"`.
+5. Continue with **#62**. It is not a feature issue: it is the "fixes" parent tracker (children #2 to #19, and the
+   60-item work order for all five trackers #62 to #66). Every child is merged on `main`, but every child is still
+   **open** on GitHub (merges said `Refs #N`, not `Fixes #N`). The first step is in `NEXT_ACTIONS.md` "Next",
+   item 1: a read-only check and a short plan for the owner. No code is expected for #62.
 6. Follow the existing architecture, conventions and workflow; do not restart planning, regenerate these documents,
    or redo a MERGED issue.
-7. Do not create a new branch until the owner says so. Per `CLAUDE.md` step 3, #45 gets its own branch
-   (`45-my-correction-requests`) from fresh `origin/main`; that happens only after the owner's "go" to the plan.
+7. Do not create a branch, close an issue, or change anything on GitHub until the owner says so. #62 needs no
+   branch unless the owner asks for a code change.
 
-### State at the end of 2026-11-17
+### State at the end of 2026-11-18
 
 | | |
 |---|---|
 | Branch checked out | `main` |
-| `main` = `origin/main` | `56b6c75` "Merge branch '44-correction-form-entries' into main" |
+| `main` = `origin/main` | `4d3161c` "Merge branch '61-hide-unbought-modules' into main" |
 | Working tree | clean: nothing modified, staged or untracked; no stashes |
-| Unpushed commits | none, on any local branch |
-| Last completed | #44 (merged on the owner's say; gates green on `56b6c75`: analyze 1 old warning, 1,944 tests passed, debug APK builds) |
-| Next | #45, not started: no branch, no code |
+| Unpushed commits | none, on any local branch (every branch equals its remote) |
+| Last completed | #61 (merged on the owner's say; gates green on `4d3161c`: analyze 1 old warning, 2,398 tests passed, debug APK builds) |
+| Done today | work orders 44 to 60: #45 to #61, but #55 (BLOCKED on Nexton-Backend#190) |
+| Still blocked | #35 (Nexton-Backend#195, OT hours) and #55 (Nexton-Backend#190, unread count): the only two work orders not merged |
+| Next | #62 (parent tracker): a read-only check and the owner's call on closing; no branch, no code |
 | Phone checks | none done for any issue; all pending on `nexton-demo` |
 
-Known risks to keep in mind for #45:
-- The owner's open questions in `NEXT_ACTIONS.md` "Waiting for the owner" (15 items) are unanswered.
-- #73 (a "forgot to scan" request with a photo is always refused) is a priority bug outside #45.
-- #45 touches `my_requests_page.dart` and `app_router.dart`, both changed by #42 and #44: build on `main`, never
-  on an old branch.
+Known risks to keep in mind:
+- GitHub issues #2 to #61 are all open although merged; closing them is the owner's (it needs a login; the public
+  API here can only read). Their phone checks are still pending, which is why they were left open.
+- The owner's open questions in `NEXT_ACTIONS.md` "Waiting for the owner" are unanswered.
+- #73 (a "forgot to scan" request with a photo is always refused) is a priority bug outside the work order.
+- Follow-ups proposed today (none filed): see `NEXT_ACTIONS.md` "Next", item 2.
 
 ## Do not
 
@@ -82,20 +87,20 @@ git fetch origin --prune
 git log --oneline -1 origin/main
 ```
 
-`NEXT_ACTIONS.md` says `origin/main` was `56b6c75` ("Merge branch '44-correction-form-entries' into main") at the
-end of 2026-11-17.
+`NEXT_ACTIONS.md` says `origin/main` was `4d3161c` ("Merge branch '61-hide-unbought-modules' into main") at the
+end of 2026-11-18.
 
-- If `origin/main` is still `56b6c75`: nothing moved. Go on.
-- If it has moved: someone merged since. Read `git log --oneline 56b6c75..origin/main` and work out what it
+- If `origin/main` is still `4d3161c`: nothing moved. Go on.
+- If it has moved: someone merged since. Read `git log --oneline 4d3161c..origin/main` and work out what it
   changes for the next issue before planning it. Update local `main` with `git switch main && git merge --ff-only
   origin/main`. If it cannot fast-forward, stop and report.
 
 ## 5. Check the last merge really is there
 
-For the last issue marked MERGED (work order 43, #44):
+For the last issue marked MERGED (work order 60, #61):
 
 ```sh
-git merge-base --is-ancestor origin/44-correction-form-entries origin/main && echo "in main"
+git merge-base --is-ancestor origin/61-hide-unbought-modules origin/main && echo "in main"
 ```
 
 There are no pull requests for the work items: each was pushed to `main` as a merge commit on the owner's say, so
@@ -112,12 +117,12 @@ close an issue. Those are the owner's to do, or need a login the owner provides.
 
 ## 6. Read the next issue, with its comments
 
-The next issue is the first item under "Next" in `NEXT_ACTIONS.md` (at the time of writing: **#45, work order 44
-of 60**).
+The next issue is the first item under "Next" in `NEXT_ACTIONS.md` (at the time of writing: **#62, the "fixes"
+parent tracker**; every work order is merged except #35 and #55, both blocked on the backend).
 
 ```sh
-curl -s https://api.github.com/repos/aleeyang2015/Nexton/issues/45
-curl -s https://api.github.com/repos/aleeyang2015/Nexton/issues/45/comments
+curl -s https://api.github.com/repos/aleeyang2015/Nexton/issues/62
+curl -s https://api.github.com/repos/aleeyang2015/Nexton/issues/62/comments
 ```
 
 Read the body to the end and every comment. A comment headed "Checked against branch `clock-in-out-location`"
