@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#45 merged, `0aa9eb1`; next is #46, not started). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#46 IMPLEMENTED on its branch, waiting for the owner's say to merge; #45 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 | | |
 |---|---|
 | Last finished work order | 44 of 60: #45, attendance: my "forgot to scan" requests — list, detail, cancel |
-| Next work order | **45 of 60: #46**, approvals: off-site scans for heads and HR. Not started, no branch, no plan shown yet |
+| Next work order | **45 of 60: #46**, approvals: off-site scans for heads and HR. IMPLEMENTED on `46-offsite-approvals` (`9aa91f0`, `961cfb5`), pushed, reviewed; waiting for the owner's say to merge. Then 46 of 60: #47 |
 | `origin/main` | `0aa9eb1` "Merge branch '45-my-correction-requests' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -173,8 +173,33 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #46 (work order 45 of 60), "approvals: off-site scans for heads and HR".** Not started: no branch, no plan
-   shown yet. Read the issue and its comments, plan, wait for "go".
+1. **#46 (work order 45 of 60), "approvals: off-site scans for heads and HR": IMPLEMENTED, 2026-11-18, waiting for the
+   owner's say to merge.** Owner said go on 2026-11-18 (search box dropped, the plan's recommendation). Branch
+   `46-offsite-approvals` (pushed): `9aa91f0` (feature), `961cfb5` (review fixes). Gates on `961cfb5`: analyze 1 warning
+   already on `main`; `flutter test` 2,031 passed; debug APK builds.
+   - Visibility was #36's (comment item 1). The off-site tab in #19's shape: waiting (`status=pending`) + "decided by me"
+     chips, each `limit=20` + cursor, loaded in parallel, kept alive. Search box and dropdown counts gone.
+   - `ApproverAccess.canDecideOffsite`: pending with a waiting step; not own; not after approving an earlier step; HR step =
+     attendance permission or admin; dept-head / specific = the named employee, or no one named yet (server decides).
+     Rows read `employee.id`; steps `approver.id`. Own → `leaveOwnRequestNoActions`.
+   - Approve → #37's note dialog (note sent when typed); Reject → `RejectReasonDialog` (moved from time_off to approvals).
+     `OffsiteDecisionNotifier` (family by id): one decision at a time from row or page; decided / NOT_PENDING /
+     STEP_CHANGED / 404 take the row out at once and reload; NOT_APPROVER → own / another approver, buttons go;
+     CHECKIN_PENDING_APPROVAL, TOO_EARLY_CHECKIN, 500 keep it; CHECKIN_NOT_APPROVED → Reject only. A 403 stays a
+     validation failure. Own decision table in `offsite_error_code.dart` (the correction one unchanged).
+   - `/approvals/offsite/:id` (needs an attendance approver): #42's page with `approver: true`: card, photo full size,
+     steps, decision; never Cancel; decided → back.
+   - Shared: `core/widgets/paged_list_end.dart` (from the leave approvals tab); the scan card's number tag gives way at 420 px.
+   - Strings: `apprAlreadyDecided`, `apprCannotDecideOwn`, `apprAnotherApprover`, `apprApproveCheckinFirst`,
+     `apprCheckinNotApproved`. The tab keeps #36's label "ອະນຸມັດນອກພື້ນທີ່" (not the issue's `apprSectionOffsite`).
+   Open after #46, none built there:
+   - phone check on `nexton-demo` (two logins: staff without can_work_offsite + a head); **check a real
+     `my-approvals?status=pending` payload: does a waiting dept-head step carry `approver.id`, and is it an employee id?**
+     The rule leans on it (without it, the server decides and its NOT_APPROVER hides the buttons);
+   - the leave approvals' and this tab's empty texts are leave's ("Nothing needs your approval"), as the issue allows;
+   - `flutter analyze` (whole repo, as `CLAUDE.md` step 6 writes it) exits non-zero on the old `_ShiftHoursLine` warning
+     and on stale `build/ios/SourcePackages` files: worth a small issue.
+
 
    **#45 (work order 44 of 60), "attendance: my "forgot to scan" requests — list, detail, cancel": MERGED (`0aa9eb1`),
    2026-11-18.** Merged on the owner's "push issue 45 to main directly"; gates green on the merge commit (analyze 1 warning
@@ -801,7 +826,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 42 | #43 | attendance: "forgot to scan" — rules and sending (no screen) | `43-correction-rules` | `3bb78d8`, `3bffdd0` | merged to main directly (`da3fda8`) | analyze: 1 warning already on `main`; `flutter test`: 1,921 passed, 0 failed; debug APK builds | MERGED |
 | 43 | #44 | attendance: "forgot to scan" form, from a history day or the menu | `44-correction-form-entries` | `fdc11a7`, `a2ba160` | merged to main directly (`56b6c75`) | analyze: 1 warning already on `main`; `flutter test`: 1,944 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 44 | #45 | attendance: my "forgot to scan" requests — list, detail, cancel | `45-my-correction-requests` | `60fe12f`, `f0d87d0` | merged to main directly (`0aa9eb1`) | analyze: 1 warning already on `main`; `flutter test`: 1,987 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 45 | #46 | approvals: off-site scans for heads and HR | | | | | NOT STARTED |
+| 45 | #46 | approvals: off-site scans for heads and HR | `46-offsite-approvals` | `9aa91f0`, `961cfb5` | none yet | analyze: 1 warning already on `main`; `flutter test`: 2,031 passed, 0 failed; debug APK builds | IMPLEMENTED, waiting for the owner's say to merge; phone check on `nexton-demo` pending |
 | 46 | #47 | approvals: "forgot to scan" requests for heads and HR | | | | | NOT STARTED |
 | 47 | #48 | approvals: OT waiting and decided lists for heads | | | | | NOT STARTED |
 | 48 | #49 | approvals: approve or reject OT, and cancel an approved OT before it starts | | | | | NOT STARTED |
