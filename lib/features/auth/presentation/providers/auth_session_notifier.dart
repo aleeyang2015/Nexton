@@ -194,9 +194,22 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
   /// loses its last watcher, and Riverpod disposes it on its own — so the
   /// next sign-in rebuilds every one of them from scratch, same as a cold
   /// app start. Nothing here needs to invalidate them by hand.
+  ///
+  /// Before the tokens go, this phone is signed off for push (#52:
+  /// [beforeSignOutProvider]), so a shared phone stops getting this user's
+  /// pushes. That never stops the sign-out, and waits at most a few seconds.
   Future<void> logout() async {
+    await _signOffThisPhone(tokensLive: true);
     await ref.read(logoutUseCaseProvider)();
     state = const AsyncValue.data(AuthSession.unauthenticated());
+  }
+
+  Future<void> _signOffThisPhone({required bool tokensLive}) async {
+    try {
+      await ref.read(beforeSignOutProvider)(tokensLive: tokensLive);
+    } catch (_) {
+      // Never stops a sign-out.
+    }
   }
 
   /// A sign-out the user did not ask for. When the interceptor forced it the
@@ -214,6 +227,10 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
 
     await ref.read(logoutUseCaseProvider)();
     state = AsyncValue.data(AuthSession.unauthenticated(endReason: reason));
+    // The tokens are already gone: no `DELETE`, the FCM token only (#52).
+    // After the sign-out, not before: reports of the same loss that arrive
+    // together must find the session already down.
+    unawaited(_signOffThisPhone(tokensLive: false));
   }
 }
 

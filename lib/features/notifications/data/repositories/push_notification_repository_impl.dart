@@ -44,29 +44,59 @@ class PushNotificationRepositoryImpl extends BaseRepository
   });
 
   @override
-  FutureResult<Unit> registerDevice() {
-    return guard(() async {
-      final token = await _messaging.getToken();
-      if (token == null) {
-        // iOS without an APNs token: usually a simulator, or the Push
-        // Notifications capability missing from the signing profile.
-        throw const Failure.unknown(message: 'No FCM token available');
-      }
-      // For testers to paste into the Firebase console's test message.
-      // Debug builds only: never in a release log.
-      if (kDebugMode) debugPrint('[Push] FCM token: $token');
+  FutureResult<Unit> registerDevice({required String languageCode}) =>
+      guard(() async {
+        await _register(await _token(), languageCode);
+        return Unit.instance;
+      });
 
-      await _remote.register(
-        DeviceRegistrationModel(
+  @override
+  FutureResult<Unit> updateDeviceToken({required String languageCode}) =>
+      guard(() async {
+        final token = await _token();
+        final updated = await _remote.updateToken(_local.deviceId(), token);
+        // No active row for this phone (signed off, or never registered):
+        // the full registration instead.
+        if (!updated) await _register(token, languageCode);
+        return Unit.instance;
+      });
+
+  @override
+  FutureResult<Unit> unregisterDevice() => guard(() async {
+    await _remote.unregister(_local.deviceId());
+    return Unit.instance;
+  });
+
+  @override
+  FutureResult<Unit> deleteToken() => guard(() async {
+    await _messaging.deleteToken();
+    return Unit.instance;
+  });
+
+  Future<String> _token() async {
+    final token = await _messaging.getToken();
+    if (token == null) {
+      // iOS without an APNs token: usually a simulator, or the Push
+      // Notifications capability missing from the signing profile.
+      throw const Failure.unknown(message: 'No FCM token available');
+    }
+    // For testers to paste into the Firebase console's test message.
+    // Debug builds only: never in a release log.
+    if (kDebugMode) debugPrint('[Push] FCM token: $token');
+    return token;
+  }
+
+  Future<void> _register(String token, String languageCode) =>
+      _remote.register(
+        DeviceRegistrationModel.forPhone(
           deviceId: _local.deviceId(),
-          deviceType: Platform.isIOS ? 'ios' : 'android',
           deviceToken: token,
+          isIOS: Platform.isIOS,
+          rawOsVersion: Platform.operatingSystemVersion,
           appVersion: AppConstants.appVersion,
+          languageCode: languageCode,
         ),
       );
-      return Unit.instance;
-    });
-  }
 
   @override
   Stream<String> get onTokenRefresh => _messaging.onTokenRefresh;

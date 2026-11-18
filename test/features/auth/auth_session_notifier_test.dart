@@ -452,4 +452,81 @@ void main() {
       expect(current().status, AuthStatus.unauthenticated);
     });
   });
+
+  group('signing this phone off for push (#52)', () {
+    /// A container whose sign-off hook records when it ran, against the
+    /// repository's logout (which clears the tokens).
+    ProviderContainer withHook(
+      Future<void> Function({required bool tokensLive}) hook,
+    ) {
+      final c = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          beforeSignOutProvider.overrideWithValue(hook),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test('sign-out signs the phone off before the tokens are cleared',
+        () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      final order = <String>[];
+      final c = withHook(({required bool tokensLive}) async {
+        order.add('hook(tokensLive: $tokensLive) at logout #${repository.logoutCalls}');
+      });
+      await c.read(authSessionProvider.future);
+
+      await c.read(authSessionProvider.notifier).logout();
+
+      expect(order, ['hook(tokensLive: true) at logout #0']);
+      expect(repository.logoutCalls, 1);
+      expect(
+        c.read(authSessionProvider).requireValue.status,
+        AuthStatus.unauthenticated,
+      );
+    });
+
+    test('a sign-off that fails never stops the sign-out', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      final c = withHook(({required bool tokensLive}) async {
+        throw Exception('no signal');
+      });
+      await c.read(authSessionProvider.future);
+
+      await c.read(authSessionProvider.notifier).logout();
+
+      expect(repository.logoutCalls, 1);
+      expect(
+        c.read(authSessionProvider).requireValue.status,
+        AuthStatus.unauthenticated,
+      );
+    });
+
+    test('a forced sign-out (tokens already gone): the hook with '
+        'tokensLive false, after the session is down', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      final seen = <bool>[];
+      final c = withHook(({required bool tokensLive}) async {
+        seen.add(tokensLive);
+      });
+      await c.read(authSessionProvider.future);
+
+      repository.sessionExpired.add(SessionEndReason.expired);
+      await pumpEventQueue();
+
+      expect(seen, [false]);
+      expect(
+        c.read(authSessionProvider).requireValue.endReason,
+        SessionEndReason.expired,
+      );
+    });
+  });
 }
