@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#47 merged, `227a9b3`; next is #48, not started). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#48 IMPLEMENTED on its branch, waiting for the owner's say to merge; #47 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 | | |
 |---|---|
 | Last finished work order | 46 of 60: #47, approvals: "forgot to scan" requests for heads and HR |
-| Next work order | **47 of 60: #48**, approvals: OT waiting and decided lists for heads. Not started, no branch, no plan shown yet |
+| Next work order | **47 of 60: #48**, approvals: OT waiting and decided lists for heads. IMPLEMENTED on `48-ot-approvals-lists` (`11db106`, `e1cd94d`), pushed, reviewed; waiting for the owner's say to merge. Then 48 of 60: #49 |
 | `origin/main` | `227a9b3` "Merge branch '47-correction-approvals' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -177,8 +177,32 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #48 (work order 47 of 60), "approvals: OT waiting and decided lists for heads".** Not started: no branch,
-   no plan shown yet. Read the issue and its comments, plan, wait for "go".
+1. **#48 (work order 47 of 60), "approvals: OT waiting and decided lists for heads": IMPLEMENTED, 2026-11-18, waiting
+   for the owner's say to merge.** Owner said go on 2026-11-18. Branch `48-ot-approvals-lists` (pushed): `11db106`
+   (feature), `e1cd94d` (review fixes). Gates on `e1cd94d`: analyze 1 warning already on `main`; `flutter test` 2,089
+   passed; debug APK builds.
+   - Data: `GET ot-requests/my-approvals?status=&page=&per_page=` (offset only, never `limit`), always pending / approved /
+     rejected, as `OtPage`. `employee.department` read (live 15 Nov: current department; `name_lo` may be null); a 422 is
+     logged in debug.
+   - 4th Approvals tab "ໂອທີ" (`apprSectionOt`) for heads only (`canApproveOt`); more than three tabs scroll. Waiting +
+     "decided by me" chips, each paged by number (`PagedList` numbered mode), kept alive; waits for the session's
+     employee id; restarts on another login.
+   - HR steps hidden: waiting = pending step not HR's; decided = the step I decided not HR's (unmatched: shown only when
+     no step decided that way is HR's). Lists hold the server's pages as sent; a page leaving fewer than 20 rows asks for
+     the next at once; "none" only once the list has ended (a failed next page shows its Retry).
+   - Rows (`OtApprovalRow`): name (or number), number · department, day · window ("(next day)"), reason in 2 lines,
+     "ລໍຖ້າ {n} ຊົ່ວໂມງ" on waiting, the request's own state ("waiting for: HR", …) on decided. Tap → #30's page.
+     Errors: no staff record → #28's text, no Retry; else the shared load error with Retry; a failed refresh is toasted.
+   Open after #48, none built there:
+   - phone check on `nexton-demo` (OT route `dept_head_hr`; 25 waiting → `page=2` once on scroll; an HR login that is
+     also a head sees no HR-step rows);
+   - **for the owner:** the automatic next page follows the issue exactly, so an HR login that is also a head (whose
+     lists hold every HR step) fetches every page one after another on opening the tab (a burst of requests). A cap
+     (e.g. stop after a few short pages and go on on scroll) or `per_page=100` for these lists would be cheaper;
+   - "waiting n h" compares Lao wall-clock `created_at` with the phone's clock: off on a phone outside Lao time (the open
+     #27 question: read wall clocks as +07?); it is computed per build, not ticking;
+   - the decided-step match assumes `approver.id` is an employee id: check on `nexton-demo`.
+
 
    **#47 (work order 46 of 60), "approvals: "forgot to scan" requests for heads and HR": MERGED (`227a9b3`), 2026-11-18.**
    Merged on the owner's "push issue 47 to main directly"; gates green on the merge commit (analyze 1 warning already on
@@ -864,7 +888,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 44 | #45 | attendance: my "forgot to scan" requests — list, detail, cancel | `45-my-correction-requests` | `60fe12f`, `f0d87d0` | merged to main directly (`0aa9eb1`) | analyze: 1 warning already on `main`; `flutter test`: 1,987 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 45 | #46 | approvals: off-site scans for heads and HR | `46-offsite-approvals` | `9aa91f0`, `961cfb5` | merged to main directly (`afedb4f`) | analyze: 1 warning already on `main`; `flutter test`: 2,031 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 46 | #47 | approvals: "forgot to scan" requests for heads and HR | `47-correction-approvals` | `3192f3e`, `9a86936` | merged to main directly (`227a9b3`) | analyze: 1 warning already on `main`; `flutter test`: 2,067 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 47 | #48 | approvals: OT waiting and decided lists for heads | | | | | NOT STARTED |
+| 47 | #48 | approvals: OT waiting and decided lists for heads | `48-ot-approvals-lists` | `11db106`, `e1cd94d` | none yet | analyze: 1 warning already on `main`; `flutter test`: 2,089 passed, 0 failed; debug APK builds | IMPLEMENTED, waiting for the owner's say to merge; phone check on `nexton-demo` pending |
 | 48 | #49 | approvals: approve or reject OT, and cancel an approved OT before it starts | | | | | NOT STARTED |
 | 49 | #50 | approvals: my team's leave and "forgot to scan" history (read-only) | | | | | NOT STARTED |
 | 50 | #51 | push: Firebase set up for nexton.hr on Android and iOS | | | | | NOT STARTED |
