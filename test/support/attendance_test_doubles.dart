@@ -230,7 +230,17 @@ class FakeAttendanceRepository implements AttendanceRepository {
 /// alone.
 class FakeOffsiteRepository implements OffsiteRepository {
   Result<List<OffsiteRequestDetail>> mineResult = const Result.success([]);
+  /// The approvals inbox: one page per status, all of it by default
+  /// ([approvalsResult] for every status). [approvalsPages] answers by
+  /// status in call order instead, the last one repeating.
   Result<List<OffsiteRequestDetail>> approvalsResult = const Result.success([]);
+  Map<TimeCorrectionStatus, List<Result<CursorPage<OffsiteRequestDetail>>>>?
+  approvalsPages;
+  final List<({TimeCorrectionStatus? status, String? cursor})> approvalsCalls =
+      [];
+
+  /// When set, the next decision waits for it.
+  Completer<void>? holdDecision;
   Result<OffsiteOutcome>? submitResult;
   Result<Unit> decisionResult = const Result.success(Unit.instance);
 
@@ -240,7 +250,7 @@ class FakeOffsiteRepository implements OffsiteRepository {
   final List<String> cancelled = [];
   int mineCalls = 0;
   final List<TimeCorrectionStatus?> approvalsStatuses = [];
-  final List<({String id, String? stepId})> approved = [];
+  final List<({String id, String? stepId, String? note})> approved = [];
   final List<({String id, String note, String? stepId})> rejected = [];
 
   @override
@@ -273,16 +283,29 @@ class FakeOffsiteRepository implements OffsiteRepository {
 
 
   @override
-  FutureResult<List<OffsiteRequestDetail>> approvals({
+  FutureResult<CursorPage<OffsiteRequestDetail>> approvals({
     TimeCorrectionStatus? status,
+    String? cursor,
   }) async {
     approvalsStatuses.add(status);
-    return approvalsResult;
+    approvalsCalls.add((status: status, cursor: cursor));
+    final pages = approvalsPages?[status];
+    if (pages != null && pages.isNotEmpty) {
+      final asked = approvalsCalls.where((c) => c.status == status).length;
+      return pages[asked <= pages.length ? asked - 1 : pages.length - 1];
+    }
+    return approvalsResult.fold(
+      Result.failure,
+      (rows) => Result.success(CursorPage.single(rows)),
+    );
   }
 
   @override
-  FutureResult<Unit> approve(String id, {String? stepId}) async {
-    approved.add((id: id, stepId: stepId));
+  FutureResult<Unit> approve(String id, {String? stepId, String? note}) async {
+    approved.add((id: id, stepId: stepId, note: note));
+    final hold = holdDecision;
+    holdDecision = null;
+    await hold?.future;
     return decisionResult;
   }
 

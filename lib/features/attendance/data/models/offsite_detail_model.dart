@@ -34,7 +34,7 @@ class OffsiteDetailModel {
 
     return OffsiteRequestDetail(
       id: id,
-      employee: _employee(json['employee']),
+      employee: _employee(json['employee'], json),
       method: method,
       latitude: LeaveJson.doubleOf(json['latitude']),
       longitude: LeaveJson.doubleOf(json['longitude']),
@@ -56,10 +56,17 @@ class OffsiteDetailModel {
 
   /// §10's `OffsiteEmployee`, which carries the same fields the correction
   /// workflow's employee block does.
-  static TimeCorrectionEmployee _employee(dynamic value) {
+  static TimeCorrectionEmployee _employee(
+    dynamic value,
+    Map<String, dynamic> parent,
+  ) {
     final json = value is Map ? Map<String, dynamic>.from(value) : const {};
     final department = json['department'];
     return TimeCorrectionEmployee(
+      // Whose request it is: an approver's own shows no buttons (#46).
+      id:
+          TimeCorrectionJson.text(json['id']) ??
+          TimeCorrectionJson.text(parent['employee_id']),
       name: LeaveJson.nonEmpty(json['name']) ?? '',
       employeeNumber: LeaveJson.nonEmpty(json['employee_number']),
       departmentName: department is Map
@@ -98,6 +105,9 @@ class OffsiteDetailModel {
       // `specific` is an off-site role the shared enum doesn't name; it falls
       // through to `unknown`, which the timeline renders by its approver's name.
       role: LeaveApprovalStep.roleFromWire(LeaveJson.str(json['step_role'])),
+      approverId: approver is Map
+          ? TimeCorrectionJson.text(approver['id'])
+          : null,
       approverName: approver is Map
           ? LeaveJson.nonEmpty(approver['name'])
           : null,

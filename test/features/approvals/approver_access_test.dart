@@ -1,10 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/features/approvals/domain/approver_access.dart';
+import 'package:next_on/features/attendance/domain/entities/time_correction_status.dart';
 import 'package:next_on/features/auth/domain/entities/user.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
 
 import '../../support/leave_test_doubles.dart';
+import '../../support/offsite_approval_test_doubles.dart';
 
 /// Who gets the Approvals place, and which of its sections (decision 8:
 /// department heads and HR only).
@@ -200,6 +202,80 @@ void main() {
       );
       expect(decide(unnamed, user(head: true, employeeId: 'emp-lee')),
           isFalse);
+    });
+  });
+
+  group('canDecideOffsite: the Approve and Reject buttons (#46)', () {
+    test('an HR step: HR by the attendance permission, or an admin', () {
+      final scan = offsiteForApproval();
+      expect(
+        ApproverAccess.canDecideOffsite(scan, user(permissions: [attendanceHr])),
+        isTrue,
+      );
+      expect(
+        ApproverAccess.canDecideOffsite(scan, user(roles: ['admin'])),
+        isTrue,
+      );
+      // A head, or HR for leave only, is not HR here.
+      expect(ApproverAccess.canDecideOffsite(scan, user(head: true)), isFalse);
+      expect(
+        ApproverAccess.canDecideOffsite(scan, user(permissions: [leaveHr])),
+        isFalse,
+      );
+    });
+
+    test('a dept-head or specific step: the employee named on it', () {
+      for (final role in [LeaveStepRole.deptHead, LeaveStepRole.unknown]) {
+        final scan = offsiteForApproval(role: role, approverId: 'emp-1');
+        expect(
+          ApproverAccess.canDecideOffsite(scan, user(head: true)),
+          isTrue,
+          reason: '$role',
+        );
+        expect(
+          ApproverAccess.canDecideOffsite(
+            scan,
+            user(head: true, employeeId: 'emp-2'),
+          ),
+          isFalse,
+          reason: '$role',
+        );
+      }
+    });
+
+    test('never one\'s own request, even as HR', () {
+      final scan = offsiteForApproval(employeeId: 'emp-1');
+      expect(
+        ApproverAccess.canDecideOffsite(scan, user(permissions: [attendanceHr])),
+        isFalse,
+      );
+      expect(ApproverAccess.isOwnOffsite(scan, 'emp-1'), isTrue);
+    });
+
+    test('not once decided, nor with no step waiting, nor with no staff '
+        'record', () {
+      final hr = user(permissions: [attendanceHr]);
+      expect(
+        ApproverAccess.canDecideOffsite(
+          offsiteForApproval(status: TimeCorrectionStatus.approved),
+          hr,
+        ),
+        isFalse,
+      );
+      expect(
+        ApproverAccess.canDecideOffsite(
+          offsiteForApproval(stepStatus: LeaveStepStatus.approved),
+          hr,
+        ),
+        isFalse,
+      );
+      expect(
+        ApproverAccess.canDecideOffsite(
+          offsiteForApproval(),
+          user(permissions: [attendanceHr], employeeId: null),
+        ),
+        isFalse,
+      );
     });
   });
 }

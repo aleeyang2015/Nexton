@@ -5,27 +5,29 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
-/// Collects the rejection reason `PUT /leave/requests/:id/reject` requires
+/// Collects the rejection reason a reject call requires (leave, "forgot to
+/// scan", off-site: shared by the Approvals place). For leave, `PUT
+/// /leave/requests/:id/reject`
 /// (leave-request-flutter.md §3.10). Modelled on `EarlyCheckoutReasonDialog`.
 ///
 /// Resolves to the trimmed reason, or null if the approver backed out.
-class LeaveRejectReasonDialog extends StatefulWidget {
-  const LeaveRejectReasonDialog({super.key});
+class RejectReasonDialog extends StatefulWidget {
+  const RejectReasonDialog({super.key});
 
   static Future<String?> show(BuildContext context) {
     return showDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const LeaveRejectReasonDialog(),
+      builder: (_) => const RejectReasonDialog(),
     );
   }
 
   @override
-  State<LeaveRejectReasonDialog> createState() =>
-      _LeaveRejectReasonDialogState();
+  State<RejectReasonDialog> createState() =>
+      _RejectReasonDialogState();
 }
 
-class _LeaveRejectReasonDialogState extends State<LeaveRejectReasonDialog> {
+class _RejectReasonDialogState extends State<RejectReasonDialog> {
   final _controller = TextEditingController();
 
   bool get _canSubmit => _controller.text.trim().isNotEmpty;

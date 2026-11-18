@@ -15,6 +15,11 @@ import '../../domain/attendance_failure_x.dart';
 import '../../domain/entities/offsite_detail.dart';
 import '../../domain/entities/time_correction_status.dart';
 import '../providers/offsite_detail_notifier.dart';
+import '../../../approvals/domain/approver_access.dart';
+import '../../../auth/presentation/providers/auth_session_notifier.dart';
+import '../providers/offsite_decision_notifier.dart';
+import '../widgets/offsite_approval_card.dart';
+import '../widgets/offsite_decision_flow.dart';
 import '../widgets/offsite_record_card.dart';
 import '../widgets/time_correction_approval_workflow.dart';
 
@@ -25,15 +30,21 @@ import '../widgets/time_correction_approval_workflow.dart';
 ///
 /// Loads its own copy by id; [initial] (the list row) is shown meanwhile.
 /// Pull to refresh.
+///
+/// With [approver] (#46, `/approvals/offsite/:id`) it is an approver's page
+/// of someone's scan: who filed it, the photo full size, the steps, and —
+/// when the waiting step is theirs — Approve and Reject; never Cancel.
 class OffsiteRequestDetailPage extends ConsumerWidget {
   const OffsiteRequestDetailPage({
     super.key,
     required this.requestId,
     this.initial,
+    this.approver = false,
   });
 
   final String requestId;
   final OffsiteRequestDetail? initial;
+  final bool approver;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -59,7 +70,7 @@ class OffsiteRequestDetailPage extends ConsumerWidget {
           // Opened from a toast or a link there may be no page underneath.
           onPressed: () => context.canPop()
               ? context.pop()
-              : context.go(AppRoutes.myRequests),
+              : context.go(approver ? AppRoutes.approvals : AppRoutes.myRequests),
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
         ),
         title: customText(
@@ -75,7 +86,9 @@ class OffsiteRequestDetailPage extends ConsumerWidget {
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(15, 16, 15, 32),
-                children: [
+                children: approver
+                    ? [_ApproverBody(request: request)]
+                    : [
                   OffsiteRecordCard(
                     request: request,
                     onViewImage: (url) => showImageViewer(
@@ -93,7 +106,7 @@ class OffsiteRequestDetailPage extends ConsumerWidget {
                     currentStepNo: request.currentStepNo,
                     cancelled: request.status == TimeCorrectionStatus.cancelled,
                   ),
-                ],
+                      ],
               ),
             )
           : loaded.hasError && !loaded.isLoading
@@ -145,6 +158,82 @@ class OffsiteRequestDetailPage extends ConsumerWidget {
       (failure) => AppToast.error(failure.localize(l10n)),
       (_) => AppToast.success(l10n.offsiteCancelled),
     );
+  }
+}
+
+/// The approver's page (#46): the request's card (who filed it, the scan,
+/// the place, the reason), the photo full size, the steps, and the decision.
+class _ApproverBody extends ConsumerWidget {
+  const _ApproverBody({required this.request});
+
+  final OffsiteRequestDetail request;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final user = ref.watch(
+      authSessionProvider.select((s) => s.valueOrNull?.user),
+    );
+    final deciding = ref.watch(offsiteDecisionNotifierProvider(request.id));
+    final rejectOnly = ref.watch(offsiteRejectOnlyProvider(request.id));
+    final photo = request.attachmentUrl;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        OffsiteApprovalCard(
+          request: request,
+          deciding: deciding,
+          canDecide: ApproverAccess.canDecideOffsite(request, user),
+          own: ApproverAccess.isOwnOffsite(request, user?.employeeId),
+          rejectOnly: rejectOnly,
+          onApprove: () => _decided(
+            context,
+            OffsiteDecisionFlow.approve(context, ref, request),
+          ),
+          onReject: () => _decided(
+            context,
+            OffsiteDecisionFlow.reject(context, ref, request),
+          ),
+          onViewImage: (url) => showImageViewer(
+            context,
+            url,
+            errorText: l10n.leaveFileOpenFailed,
+          ),
+        ),
+        if (photo != null) ...[
+          heightBx(h: 16),
+          GestureDetector(
+            onTap: () => showImageViewer(
+              context,
+              photo,
+              errorText: l10n.leaveFileOpenFailed,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.network(
+                photo,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
+        ],
+        heightBx(h: 16),
+        TimeCorrectionApprovalWorkflow(
+          steps: request.steps,
+          currentStepNo: request.currentStepNo,
+          cancelled: request.status == TimeCorrectionStatus.cancelled,
+        ),
+      ],
+    );
+  }
+
+  /// Decided: back to the list, which has been read again. Refused: the page
+  /// stays, read again when the request moved on.
+  static Future<void> _decided(BuildContext context, Future<bool> done) async {
+    if (!await done || !context.mounted) return;
+    context.canPop() ? context.pop() : context.go(AppRoutes.approvals);
   }
 }
 

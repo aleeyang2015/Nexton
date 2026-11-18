@@ -37,7 +37,12 @@ abstract class OffsiteRemoteDataSource {
   /// distinction can't be made on the client — a request this approver cleared
   /// stays `pending` overall while it sits with HR — so the filter belongs on
   /// the query.
-  Future<List<OffsiteRequestDetail>> approvals({TimeCorrectionStatus? status});
+  ///
+  /// One page at a time (#46): `limit` 20, from [cursor].
+  Future<CursorPage<OffsiteRequestDetail>> approvals({
+    TimeCorrectionStatus? status,
+    String? cursor,
+  });
 
   /// One page of the caller's requests, newest first (#42): only those with
   /// [status] when given; [cursor] is the last page's `next_cursor`.
@@ -57,7 +62,7 @@ abstract class OffsiteRemoteDataSource {
   /// Approves the request's current step. [stepId] is the step the caller saw
   /// pending; the backend refuses with `STEP_CHANGED` when it has moved on
   /// since. The body isn't read.
-  Future<void> approve(String id, {String? stepId});
+  Future<void> approve(String id, {String? stepId, String? note});
 
   /// Rejects a pending request. [note] is required by the endpoint (§8) — it is
   /// what the employee is told. The body isn't read.
@@ -112,20 +117,29 @@ class OffsiteRemoteDataSourceImpl implements OffsiteRemoteDataSource {
   }
 
   @override
-  Future<List<OffsiteRequestDetail>> approvals({
+  Future<CursorPage<OffsiteRequestDetail>> approvals({
     TimeCorrectionStatus? status,
-  }) => _list(AttendancePaths.myOffsiteApprovals, status: status);
+    String? cursor,
+  }) => _page(AttendancePaths.myOffsiteApprovals, status: status, cursor: cursor);
 
-  /// Rows per page of "My requests".
+  /// Rows per page of "My requests" and of the approvals lists.
   static const int myRequestsPageSize = 20;
 
   @override
   Future<CursorPage<OffsiteRequestDetail>> myRequests({
     TimeCorrectionStatus? status,
     String? cursor,
+  }) => _page(AttendancePaths.myOffsiteRequests, status: status, cursor: cursor);
+
+  /// One cursor page of a list route: `limit` [myRequestsPageSize], the
+  /// status and the cursor when given, rows in the server's order.
+  Future<CursorPage<OffsiteRequestDetail>> _page(
+    String path, {
+    TimeCorrectionStatus? status,
+    String? cursor,
   }) async {
     final response = await _client.get<dynamic>(
-      AttendancePaths.myOffsiteRequests,
+      path,
       queryParameters: {
         if (status != null) 'status': status.wireValue,
         'limit': myRequestsPageSize,
@@ -171,9 +185,12 @@ class OffsiteRemoteDataSourceImpl implements OffsiteRemoteDataSource {
   );
 
   @override
-  Future<void> approve(String id, {String? stepId}) => _decide(
+  Future<void> approve(String id, {String? stepId, String? note}) => _decide(
     AttendancePaths.approveOffsiteRequest(id),
-    {if (stepId != null) 'step_id': stepId},
+    {
+      if (stepId != null) 'step_id': stepId,
+      if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+    },
   );
 
   /// §8 names the rejection reason `note`, and rejects the call with a 422
@@ -255,7 +272,15 @@ class OffsiteRemoteDataSourceImpl implements OffsiteRemoteDataSource {
 
       final code = ApiError.tryParse(error.response?.data)?.code;
       final token = tokens[code];
-      if (token != null) throw Failure.validation(message: token);
+      // Kept as a validation failure with its code, never `Failure.auth`
+      // (a 403 `NOT_APPROVER` would otherwise be hidden).
+      if (token != null) throw Failure.validation(message: token, code: code);
+      // Gone (or never the caller's): "not available".
+      if (error.response?.statusCode == 404) {
+        throw const Failure.validation(
+          message: OffsiteErrorCode.tokenRequestGone,
+        );
+      }
       rethrow;
     }
   }

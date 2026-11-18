@@ -7,7 +7,7 @@ import '../../../../core/network/paged_list.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
-import '../../../../core/widgets/load_more_footer.dart';
+import '../../../../core/widgets/paged_list_end.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../approvals/presentation/widgets/approve_note_dialog.dart';
@@ -18,7 +18,7 @@ import '../providers/leave_approvals_state.dart';
 import '../providers/leave_types_notifier.dart';
 import 'leave_copy.dart';
 import 'leave_filter_chip.dart';
-import 'leave_reject_reason_dialog.dart';
+import '../../../approvals/presentation/widgets/reject_reason_dialog.dart';
 
 /// "ອະນຸມັດຂໍລາພັກ" — the requests awaiting the signed-in approver's
 /// decision (`my-approvals?status=pending`), each approvable / rejectable
@@ -68,7 +68,7 @@ class LeaveApprovalsTab extends ConsumerWidget {
             ),
           ),
           if (pending != null && !state.pending.isLoading)
-            _ListEnd(
+            PagedListEnd(
               list: pending,
               onLoadMore: notifier.loadMorePending,
               onRetry: notifier.retryLoadMorePending,
@@ -98,7 +98,7 @@ class LeaveApprovalsTab extends ConsumerWidget {
             ),
           ),
           if (decided != null && !state.decided.isLoading)
-            _ListEnd(
+            PagedListEnd(
               list: decided,
               onLoadMore: notifier.loadMoreDecided,
               onRetry: notifier.retryLoadMoreDecided,
@@ -138,72 +138,6 @@ class _DecidedFilterChips extends StatelessWidget {
       ],
     );
   }
-}
-
-/// What sits under a list's last row: the trigger that asks for its next
-/// page when it comes near the screen, and the footer that shows how that
-/// page is doing.
-class _ListEnd extends StatelessWidget {
-  final PagedList<LeaveRequest> list;
-  final VoidCallback onLoadMore;
-  final VoidCallback onRetry;
-
-  const _ListEnd({
-    required this.list,
-    required this.onLoadMore,
-    required this.onRetry,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        if (list.canLoadMore)
-          // A new one for each length, so a page that lands and leaves the
-          // end still in view asks for the one after it.
-          _LoadMoreWhenShown(
-            key: ValueKey(list.items.length),
-            onShown: onLoadMore,
-          ),
-        LoadMoreFooter(
-          loadingMore: list.loadingMore,
-          failed: list.loadMoreError != null,
-          onRetry: onRetry,
-        ),
-      ],
-    );
-  }
-}
-
-/// Calls [onShown] once, when it is first built.
-///
-/// A `ListView` builds a child only when it comes within reach of the
-/// screen, so placing this after a list's last row means "the user is near
-/// the end of this list": the moment to ask for its next page. That works
-/// for a list in the middle of the page too, which the page's own scroll
-/// position cannot tell from the one below it.
-class _LoadMoreWhenShown extends StatefulWidget {
-  final VoidCallback onShown;
-
-  const _LoadMoreWhenShown({super.key, required this.onShown});
-
-  @override
-  State<_LoadMoreWhenShown> createState() => _LoadMoreWhenShownState();
-}
-
-class _LoadMoreWhenShownState extends State<_LoadMoreWhenShown> {
-  @override
-  void initState() {
-    super.initState();
-    // After this frame: asking changes the notifier's state, which may not
-    // happen while the list is being built.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) widget.onShown();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 class _ApprovalList extends StatelessWidget {
@@ -479,7 +413,7 @@ class _PendingApprovalCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final notifier = ref.read(leaveApprovalsNotifierProvider.notifier);
 
-    final reason = await LeaveRejectReasonDialog.show(context);
+    final reason = await RejectReasonDialog.show(context);
     if (reason == null) return;
 
     _report(l10n, await notifier.reject(request, reason), rejected: true);

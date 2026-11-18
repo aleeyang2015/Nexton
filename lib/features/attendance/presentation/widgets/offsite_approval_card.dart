@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/offsite_detail.dart';
@@ -10,8 +11,9 @@ import 'time_correction_approval_copy.dart';
 
 /// One off-site scan request on the approvals tab: who filed it and its status,
 /// the day and shift segment, which punch it stands in for, when and where it
-/// was taken, the reason, the photo, and — while it is pending — the approve /
-/// reject buttons.
+/// was taken, the reason, the photo, and — when the waiting step is the
+/// approver's (#46) — the approve / reject buttons. On the approver's own
+/// request a line says someone else decides it.
 ///
 /// Built from the same parts as [TimeCorrectionApprovalCard], so an approver
 /// moving between the two tabs reads the same card twice over. What differs is
@@ -23,17 +25,29 @@ class OffsiteApprovalCard extends StatelessWidget {
 
   /// Whether a decision on this request is in flight; disables the buttons.
   final bool deciding;
-  final VoidCallback onApprove;
-  final VoidCallback onReject;
+
+  /// Whether the waiting step is the approver's (`canDecideOffsite`).
+  final bool canDecide;
+
+  /// The approver's own request: a line instead of buttons.
+  final bool own;
+
+  /// Reject only (`CHECKIN_NOT_APPROVED`).
+  final bool rejectOnly;
+  final VoidCallback? onApprove;
+  final VoidCallback? onReject;
   final ValueChanged<String> onViewImage;
 
   const OffsiteApprovalCard({
     super.key,
     required this.request,
-    required this.deciding,
-    required this.onApprove,
-    required this.onReject,
     required this.onViewImage,
+    this.deciding = false,
+    this.canDecide = false,
+    this.own = false,
+    this.rejectOnly = false,
+    this.onApprove,
+    this.onReject,
   });
 
   @override
@@ -65,12 +79,21 @@ class OffsiteApprovalCard extends StatelessWidget {
           const ApprovalNoAttachment()
         else
           ApprovalAttachmentRow(url: photo, onView: () => onViewImage(photo)),
-        if (request.status == TimeCorrectionStatus.pending) ...[
+        if (own && request.status == TimeCorrectionStatus.pending) ...[
+          heightBx(h: 14),
+          customText(
+            l10n.leaveOwnRequestNoActions,
+            fontSize: 13,
+            color: AppColors.subTitle,
+            maxLine: 3,
+          ),
+        ] else if (canDecide && onApprove != null && onReject != null) ...[
           heightBx(h: 14),
           ApprovalDecisionRow(
             enabled: !deciding,
-            onApprove: onApprove,
-            onReject: onReject,
+            showApprove: !rejectOnly,
+            onApprove: onApprove!,
+            onReject: onReject!,
           ),
         ],
       ],

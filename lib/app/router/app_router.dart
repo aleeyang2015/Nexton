@@ -142,6 +142,14 @@ class AppRoutes {
   static String approvalLeave(String id) =>
       '/approvals/leave/${Uri.encodeComponent(id)}';
 
+  /// The approver's page of one off-site scan, by its id (#46). A route
+  /// pattern; build a location with [approvalOffsite].
+  static const String approvalOffsiteDetail = '/approvals/offsite/:id';
+
+  /// The location of the approver's page of off-site scan [id].
+  static String approvalOffsite(String id) =>
+      '/approvals/offsite/${Uri.encodeComponent(id)}';
+
   /// The employee's OT requests.
   static const String overtime = '/overtime';
 
@@ -188,6 +196,24 @@ final List<GoRoute> approvalsRoutes = [
         child: LeaveApprovalDetailPage(
           requestId: id,
           initial: _leaveRequestExtra(state.extra, id),
+        ),
+      );
+    },
+  ),
+  // One off-site scan for its approver (#46); `extra` may carry the row.
+  GoRoute(
+    path: AppRoutes.approvalOffsiteDetail,
+    name: 'approvalOffsite',
+    builder: (context, state) {
+      final id = state.pathParameters['id'] ?? '';
+      final extra = state.extra;
+      return _ApprovalsGate(
+        child: OffsiteRequestDetailPage(
+          requestId: id,
+          approver: true,
+          initial: extra is OffsiteRequestDetail && extra.id == id
+              ? extra
+              : null,
         ),
       );
     },

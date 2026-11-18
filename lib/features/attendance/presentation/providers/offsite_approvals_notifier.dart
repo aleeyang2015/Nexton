@@ -1,127 +1,136 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/errors/failure.dart';
-import '../../../../core/utils/result.dart';
-import '../../../time_off/data/datasources/leave_error_code.dart';
+import '../../../../core/network/paged_list.dart';
 import '../../attendance_providers.dart';
 import '../../domain/entities/offsite_detail.dart';
 import '../../domain/entities/time_correction_status.dart';
 import 'offsite_approvals_state.dart';
 
-/// The approvals page's off-site tab: the requests from
-/// `GET /attendance/offsite-requests/my-approvals`, one list per status the
-/// dropdown offers, narrowed locally by the search box, and each decision's
-/// in-flight status — the same shape as [TimeCorrectionApprovalsNotifier].
-///
-/// The status buckets are fetched together rather than on demand, because the
-/// dropdown shows each one's count next to its label.
+/// The approvals page's off-site tab (#46): the scans waiting at the
+/// approver's step and the ones they decided, from
+/// `GET /attendance/offsite-requests/my-approvals`, each list a page at a
+/// time and loaded in parallel. Decisions go through
+/// `OffsiteDecisionNotifier`, which reads these lists again after one.
 class OffsiteApprovalsNotifier
     extends AutoDisposeNotifier<OffsiteApprovalsState> {
   bool _disposed = false;
+
+  /// Loads started per list; an answer to an older one is dropped.
+  int _pendingLoads = 0;
+  int _decidedLoads = 0;
 
   @override
   OffsiteApprovalsState build() {
     _disposed = false;
     ref.onDispose(() => _disposed = true);
     Future.microtask(refresh);
-    // The dropdown has no "all" option, so the tab opens on the status an
-    // approver comes for.
     return const OffsiteApprovalsState();
   }
 
-  /// The dropdown is typed for a nullable status ("all" on the employee's own
-  /// history page); this tab never offers it.
-  void selectFilter(TimeCorrectionStatus? status) {
-    if (status == null) return;
-    state = state.copyWith(filter: status);
+  /// Both lists again from their first page: pull to refresh, after a
+  /// decision. Rows already shown stay while they load.
+  Future<void> refresh() =>
+      Future.wait([_loadFirst(_pendingList), _loadFirst(_decidedList)]);
+
+  /// The "decided by me" chip: that list from its first page.
+  void selectDecided(TimeCorrectionStatus status) {
+    if (status == state.decidedFilter) return;
+    state = state.copyWith(
+      decidedFilter: status,
+      decided: const AsyncValue.loading(),
+    );
+    _loadFirst(_decidedList);
   }
 
-  void search(String query) => state = state.copyWith(query: query);
+  Future<void> retryPending() => _loadFirst(_pendingList);
+  Future<void> retryDecided() => _loadFirst(_decidedList);
+  Future<void> loadMorePending() => _loadMore(_pendingList);
+  Future<void> loadMoreDecided() => _loadMore(_decidedList);
+  Future<void> retryLoadMorePending() => _retryLoadMore(_pendingList);
+  Future<void> retryLoadMoreDecided() => _retryLoadMore(_decidedList);
 
-  /// Refetches every status bucket — on retry, pull-to-refresh, or after a
-  /// decision. Requests already shown stay on screen while it loads.
-  Future<void> refresh() async {
-    state = state.copyWith(
-      requests:
-          const AsyncLoading<
-                Map<TimeCorrectionStatus, List<OffsiteRequestDetail>>
-              >()
-              .copyWithPrevious(state.requests),
-    );
-
-    final useCase = ref.read(getOffsiteApprovalsUseCaseProvider);
-    final results = await Future.wait(
-      OffsiteApprovalsState.statuses.map(useCase.call),
-    );
+  /// A check-out that can only be rejected now (`CHECKIN_NOT_APPROVED`).
+  void markRejectOnly(String id) {
     if (_disposed) return;
+    state = state.copyWith(rejectOnlyIds: {...state.rejectOnlyIds, id});
+  }
 
-    // One bucket failing leaves the tab with a half-truth — a "0" count on a
-    // status that may well have requests — so the whole load fails.
-    final failure = results
-        .map((result) => result.failureOrNull)
-        .nonNulls
-        .firstOrNull;
-    if (failure != null) {
-      state = state.copyWith(
-        requests: AsyncValue.error(failure, StackTrace.current),
-      );
-      return;
-    }
+  late final _OffsiteList _pendingList = _OffsiteList(
+    status: () => TimeCorrectionStatus.pending,
+    read: () => state.pending,
+    write: (value) => state = state.copyWith(pending: value),
+    nextLoad: () => ++_pendingLoads,
+    currentLoad: () => _pendingLoads,
+  );
 
-    state = state.copyWith(
-      requests: AsyncValue.data({
-        for (final (index, status) in OffsiteApprovalsState.statuses.indexed)
-          status: results[index].getOrElse(const []),
-      }),
+  late final _OffsiteList _decidedList = _OffsiteList(
+    status: () => state.decidedFilter,
+    read: () => state.decided,
+    write: (value) => state = state.copyWith(decided: value),
+    nextLoad: () => ++_decidedLoads,
+    currentLoad: () => _decidedLoads,
+  );
+
+  Future<void> _loadFirst(_OffsiteList list) async {
+    final load = list.nextLoad();
+    list.write(
+      const AsyncLoading<PagedList<OffsiteRequestDetail>>().copyWithPrevious(
+        list.read(),
+      ),
+    );
+    final result = await ref.read(getOffsiteApprovalsUseCaseProvider)((
+      status: list.status(),
+      cursor: null,
+    ));
+    if (_disposed || load != list.currentLoad()) return;
+    list.write(
+      result.fold(
+        (failure) => AsyncValue.error(failure, StackTrace.current),
+        (page) => AsyncValue.data(PagedList.first(page)),
+      ),
     );
   }
 
-  /// Approves [request]. Resolves to null when it went through, else the
-  /// failure for the tab to report — which includes `TOO_EARLY_CHECKIN`, the
-  /// session rule the punch behind a final approval can still break (§7).
-  Future<Failure?> approve(OffsiteRequestDetail request) => _decide(
-    request.id,
-    () => ref.read(approveOffsiteRequestUseCaseProvider)((
-      id: request.id,
-      stepId: request.currentStep?.id,
-    )),
-  );
+  Future<void> _loadMore(_OffsiteList list) async {
+    final value = list.read();
+    final current = value.valueOrNull;
+    if (current == null || !current.canLoadMore || value.isLoading) return;
+    final load = list.currentLoad();
+    list.write(AsyncValue.data(current.startLoadingMore()));
 
-  /// Rejects [request] with [note], the reason the employee is shown. Same
-  /// contract as [approve].
-  Future<Failure?> reject(OffsiteRequestDetail request, String note) => _decide(
-    request.id,
-    () => ref.read(rejectOffsiteRequestUseCaseProvider)((
-      id: request.id,
-      note: note,
-      stepId: request.currentStep?.id,
-    )),
-  );
-
-  Future<Failure?> _decide(
-    String id,
-    Future<Result<Unit>> Function() action,
-  ) async {
-    if (state.decidingIds.contains(id)) return null;
-    state = state.copyWith(decidingIds: {...state.decidingIds, id});
-
-    final result = await action();
-    if (_disposed) return result.failureOrNull;
-
-    state = state.copyWith(decidingIds: {...state.decidingIds}..remove(id));
-
-    final failure = result.failureOrNull;
-    // A decision moves the request on, and so does someone else's decision on
-    // a step this one aimed at (`STEP_CHANGED`, §7) — either way the lists are
-    // refetched, so the card shows where the request now stands.
-    if (failure == null || _isStepChanged(failure)) await refresh();
-    return failure;
+    final result = await ref.read(getOffsiteApprovalsUseCaseProvider)((
+      status: list.status(),
+      cursor: current.nextCursor,
+    ));
+    if (_disposed || load != list.currentLoad()) return;
+    final now = list.read().valueOrNull ?? current;
+    list.write(AsyncValue.data(result.fold(now.failLoadingMore, now.append)));
   }
 
-  bool _isStepChanged(Failure failure) => failure.maybeWhen(
-    validation: (message, _, _) => message == LeaveErrorCode.tokenStepChanged,
-    orElse: () => false,
-  );
+  Future<void> _retryLoadMore(_OffsiteList list) async {
+    final current = list.read().valueOrNull;
+    if (current == null || current.loadMoreError == null) return;
+    list.write(AsyncValue.data(current.retryable));
+    await _loadMore(list);
+  }
+}
+
+/// One of the tab's two lists: the status it asks for, where it lives in
+/// the state, and its load count.
+class _OffsiteList {
+  final TimeCorrectionStatus Function() status;
+  final AsyncValue<PagedList<OffsiteRequestDetail>> Function() read;
+  final void Function(AsyncValue<PagedList<OffsiteRequestDetail>> value) write;
+  final int Function() nextLoad;
+  final int Function() currentLoad;
+
+  _OffsiteList({
+    required this.status,
+    required this.read,
+    required this.write,
+    required this.nextLoad,
+    required this.currentLoad,
+  });
 }
 
 final offsiteApprovalsNotifierProvider =

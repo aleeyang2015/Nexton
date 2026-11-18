@@ -40,8 +40,11 @@ abstract class OffsiteRepository {
   /// [status] is the endpoint's own filter, read against the caller's step
   /// (§5): `pending` is what still waits on them, `approved`/`rejected` what
   /// they have already decided. An HR user also sees what waits on the HR step.
-  FutureResult<List<OffsiteRequestDetail>> approvals({
+  ///
+  /// One page at a time (#46), from [cursor].
+  FutureResult<CursorPage<OffsiteRequestDetail>> approvals({
     TimeCorrectionStatus? status,
+    String? cursor,
   });
 
   /// `PUT /attendance/offsite-requests/:id/approve` — [stepId] is the step the
@@ -51,7 +54,9 @@ abstract class OffsiteRepository {
   /// The final approval is what writes the punch, so this call can still be
   /// refused by a session rule (`TOO_EARLY_CHECKIN`) after the decision itself
   /// was fine — the backend rolls the approval back when that happens.
-  FutureResult<Unit> approve(String id, {String? stepId});
+  ///
+  /// [note] is the approver's optional word to the employee (#46).
+  FutureResult<Unit> approve(String id, {String? stepId, String? note});
 
   /// `PUT /attendance/offsite-requests/:id/reject` — [note] is required by the
   /// endpoint (§8), and is what the employee is told.

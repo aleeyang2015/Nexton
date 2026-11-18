@@ -604,7 +604,7 @@ void main() {
 
       final requests = await source.approvals();
 
-      expect(requests.map((r) => r.id), ['ok']);
+      expect(requests.items.map((r) => r.id), ['ok']);
     });
 
     test('a decision sends the step it was aimed at', () async {
