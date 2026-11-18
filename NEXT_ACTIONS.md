@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#60 merged, `1ffb410`; next is #61, the last work order, not started; #55 stays blocked on the backend). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#61 implemented on `61-hide-unbought-modules`, `80b36da` + `9301c94`, waiting for "push issue 61 to main directly"). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 | | |
 |---|---|
 | Last finished work order | 59 of 60: #60, sign-in: "forgot password" says ask HR, and "remember my email" works |
-| Next work order | **60 of 60: #61**, app: hide what the company has not bought. Not started, no branch, no plan shown yet. (#55 stays BLOCKED on Nexton-Backend#190.) |
+| Next work order | **60 of 60: #61**, app: hide what the company has not bought. IMPLEMENTED on `61-hide-unbought-modules` (`80b36da`, `9301c94`), both reviews done and fixed; waiting for the owner's merge word. (#55 stays BLOCKED on Nexton-Backend#190.) |
 | `origin/main` | `adad453` "Merge branch '51-push-setup' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -185,9 +185,14 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #61 (work order 60 of 60, the last), "app: hide what the company has not bought".** Not started: no
-   branch, no plan shown yet. Read the issue and its comments, plan, wait for "go". #55 stays blocked on
-   Nexton-Backend#190.
+1. **Now: #61 (work order 60 of 60, the last), "app: hide what the company has not bought": IMPLEMENTED** on
+   `61-hide-unbought-modules` (`80b36da`, review fixes `9301c94`), pushed, not merged. Gates: analyze 1 warning already on
+   `main`; `flutter test` 2,398 passed; debug APK built. `core_hr` / `payroll` (Payroll needs Core HR; an empty list
+   allows nothing) gate the menu tiles, Home's clock card and summary, and Profile's Personal row, pencil and stats.
+   Without Core HR the header's own refusal says "not turned on" once. Push targets (leave, correction, OT) can still
+   open Core HR pages for a company without it; each page shows the server's MODULE_NOT_ACTIVE text. Device check
+   pending: on `nexton-demo` (Core HR + Payroll) every tile shows as before. #55 stays blocked on
+   Nexton-Backend#190: once it lands, #55 is the only work order left.
 
    **#60 (work order 59 of 60): MERGED (`1ffb410`)** on the owner's say, 2026-11-18, from
    `60-login-forgot-remember` (`e88628d`, review fixes `27fd6a2`). Gates: analyze 1
@@ -1080,7 +1085,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 57 | #58 | profile: see my personal information (read-only) | `58-personal-info` | `dff359e`, `1792a0c` | merged to main directly (`2c35513`) | analyze: 1 warning already on `main`; `flutter test`: 2,339 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 58 | #59 | profile: change my own photo | `59-profile-photo` | `13cb98c`, `371cea0` | merged to main directly (`08b8864`) | analyze: 1 warning already on `main`; `flutter test`: 2,368 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 59 | #60 | sign-in: "forgot password" says ask HR, and "remember my email" works | `60-login-forgot-remember` | `e88628d`, `27fd6a2` | merged to main directly (`1ffb410`) | analyze: 1 warning already on `main`; `flutter test`: 2,383 passed, 0 failed; debug APK | MERGED, device checks pending |
-| 60 | #61 | app: hide what the company has not bought | | | | | NOT STARTED |
+| 60 | #61 | app: hide what the company has not bought | `61-hide-unbought-modules` | `80b36da`, `9301c94` | not merged | analyze: 1 warning already on `main`; `flutter test`: 2,398 passed, 0 failed; debug APK | IMPLEMENTED, waiting for merge word |
 
 ## Outside the work order
 
