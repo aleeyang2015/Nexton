@@ -24,6 +24,7 @@ import 'domain/usecases/get_offsite_approvals_usecase.dart';
 import 'domain/usecases/get_offsite_detail_usecase.dart';
 import 'domain/usecases/get_offsite_history_usecase.dart';
 import 'domain/usecases/get_monthly_summary_usecase.dart';
+import 'domain/usecases/get_team_corrections_usecase.dart';
 import 'domain/usecases/get_time_correction_approvals_usecase.dart';
 import 'domain/usecases/get_time_correction_detail_usecase.dart';
 import 'domain/usecases/get_time_correction_history_usecase.dart';
@@ -170,6 +171,10 @@ final downloadTimeCorrectionAttachmentUseCaseProvider =
         ref.watch(attendanceRepositoryProvider),
       );
     });
+
+final getTeamCorrectionsUseCaseProvider = Provider<GetTeamCorrectionsUseCase>(
+  (ref) => GetTeamCorrectionsUseCase(ref.watch(attendanceRepositoryProvider)),
+);
 
 final getTimeCorrectionApprovalsUseCaseProvider =
     Provider<GetTimeCorrectionApprovalsUseCase>((ref) {

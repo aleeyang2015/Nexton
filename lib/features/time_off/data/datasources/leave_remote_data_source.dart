@@ -46,6 +46,14 @@ abstract class LeaveRemoteDataSource {
     LeaveStatus? status,
     String? cursor,
   });
+  /// One page of the requests of the head's team (#50,
+  /// `GET /leave/requests/team`), any status, newest first; [status] filters
+  /// by the request's own status. HR rights get the whole company (the
+  /// notifier keeps the departments the login heads).
+  Future<CursorPage<LeaveRequest>> teamRequests({
+    LeaveStatus? status,
+    String? cursor,
+  });
   Future<LeaveRequest> approve({
     required String id,
     String? stepId,
@@ -225,6 +233,23 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
   }) async {
     final response = await _client.get<dynamic>(
       LeavePaths.myApprovals,
+      queryParameters: {
+        if (status != null) 'status': status.name,
+        // Sending `limit` puts the endpoint in cursor mode.
+        'limit': approvalsPageSize,
+        if (cursor != null) 'cursor': cursor,
+      },
+    );
+    return CursorPage.fromBody(response.data, LeaveRequestModel.fromJson);
+  }
+
+  @override
+  Future<CursorPage<LeaveRequest>> teamRequests({
+    LeaveStatus? status,
+    String? cursor,
+  }) async {
+    final response = await _client.get<dynamic>(
+      LeavePaths.requestsTeam,
       queryParameters: {
         if (status != null) 'status': status.name,
         // Sending `limit` puts the endpoint in cursor mode.

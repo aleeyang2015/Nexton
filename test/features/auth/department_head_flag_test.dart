@@ -57,6 +57,37 @@ void main() {
       expect(UserModel.fromJson(me()).toEntity().isDepartmentHead, isFalse);
     });
 
+    test('headed_department_ids (#50): read as sent, kept through the cache '
+        'and onto the user; anything else is none', () {
+      final json = {
+        ...me(true),
+        'headed_department_ids': ['d-sales', 'd-kitchen'],
+      };
+      final model = UserModel.fromJson(json);
+      expect(model.toEntity().headedDepartmentIds, ['d-sales', 'd-kitchen']);
+      expect(
+        UserModel.fromJson(model.toJson()).headedDepartmentIds,
+        ['d-sales', 'd-kitchen'],
+      );
+      expect(
+        model.withDepartmentHead(true).headedDepartmentIds,
+        ['d-sales', 'd-kitchen'],
+      );
+      expect(UserModel.fromJson(me(true)).headedDepartmentIds, isEmpty);
+      expect(
+        UserModel.fromJson({
+          ...me(true),
+          'headed_department_ids': ['d-1', 2, '', null],
+        }).headedDepartmentIds,
+        ['d-1'],
+      );
+      expect(
+        UserModel.fromJson({...me(true), 'headed_department_ids': 'd-1'})
+            .headedDepartmentIds,
+        isEmpty,
+      );
+    });
+
     test('it survives the cache (toJson / fromJson)', () {
       final cached = UserModel.fromJson(
         UserModel.fromJson(me(true)).toJson(),

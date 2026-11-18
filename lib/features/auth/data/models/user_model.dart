@@ -60,6 +60,18 @@ class UserModel {
 
   static bool? _boolOrNull(Object? value) => value is bool ? value : null;
 
+  /// The departments the user heads now (`headed_department_ids`, #50).
+  /// Anything but a list of non-empty strings reads as none.
+  @JsonKey(name: 'headed_department_ids', fromJson: _ids)
+  final List<String> headedDepartmentIds;
+
+  static List<String> _ids(Object? value) => value is List
+      ? [
+          for (final id in value)
+            if (id is String && id.isNotEmpty) id,
+        ]
+      : const [];
+
   const UserModel({
     required this.id,
     required this.tenantId,
@@ -74,6 +86,7 @@ class UserModel {
     this.departmentName,
     this.positionTitle,
     this.isDepartmentHead,
+    this.headedDepartmentIds = const [],
   });
 
   /// This user, with [isDepartmentHead] filled in when the server did not
@@ -94,6 +107,7 @@ class UserModel {
           departmentName: departmentName,
           positionTitle: positionTitle,
           isDepartmentHead: value,
+          headedDepartmentIds: headedDepartmentIds,
         );
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
@@ -116,5 +130,6 @@ class UserModel {
     departmentName: departmentName,
     positionTitle: positionTitle,
     isDepartmentHead: isDepartmentHead ?? false,
+    headedDepartmentIds: headedDepartmentIds,
   );
 }

@@ -51,6 +51,48 @@ class CursorPage<T> {
   }
 }
 
+/// One page of a list the server hands out by page number (`?page=` and
+/// `?per_page=`, `meta {page, total_pages}`): the team's "forgot to scan"
+/// (#50). Plain Dart, as [CursorPage].
+class NumberedPage<T> {
+  final List<T> items;
+
+  /// This page's number, from 1.
+  final int page;
+  final int totalPages;
+
+  const NumberedPage({
+    required this.items,
+    required this.page,
+    required this.totalPages,
+  });
+
+  /// True when there is a page after this one.
+  bool get hasMore => page < totalPages;
+
+  /// Reads a page-number answer: `data` is the list, `meta` says where it
+  /// is. A page number that is missing is the page asked for ([asked]); no
+  /// `total_pages` is no page after this one. A row [parse] cannot read
+  /// (null) is skipped, not the whole page lost.
+  static NumberedPage<T> fromBody<T>(
+    dynamic body,
+    int asked,
+    T? Function(Map<String, dynamic> json) parse,
+  ) {
+    final items = ApiEnvelope.unwrapList(
+      body,
+    ).map(parse).whereType<T>().toList();
+    final meta = body is Map ? body['meta'] : null;
+    final page = meta is Map && meta['page'] is int
+        ? meta['page'] as int
+        : asked;
+    final total = meta is Map && meta['total_pages'] is int
+        ? meta['total_pages'] as int
+        : page;
+    return NumberedPage(items: items, page: page, totalPages: total);
+  }
+}
+
 /// A list as a screen holds it while it loads page after page: the rows so
 /// far, where to go on from, and how the page being fetched is doing.
 ///

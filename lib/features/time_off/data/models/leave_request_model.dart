@@ -33,6 +33,9 @@ class LeaveRequestModel {
       departmentName: department is Map
           ? LeaveJson.nonEmpty(department['name'])
           : null,
+      departmentId: department is Map
+          ? LeaveJson.nonEmpty(department['id'])
+          : null,
       leaveType: _leaveType(json['leave_type']),
       startDate: start ?? end ?? DateTime.now(),
       endDate: end ?? start ?? DateTime.now(),

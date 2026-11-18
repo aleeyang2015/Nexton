@@ -2492,6 +2492,30 @@ abstract class AppLocalizations {
   /// **'This request is not available'**
   String get apprRequestNotFound;
 
+  /// No description provided for @apprSectionTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'My team'**
+  String get apprSectionTeam;
+
+  /// No description provided for @apprTeamLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get apprTeamLeave;
+
+  /// No description provided for @apprTeamCorrections.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot to scan'**
+  String get apprTeamCorrections;
+
+  /// No description provided for @apprTeamEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No requests from your team'**
+  String get apprTeamEmpty;
+
   /// No description provided for @apprReasonRequired.
   ///
   /// In en, this message translates to:

@@ -150,6 +150,17 @@ class AppRoutes {
   static String approvalOffsite(String id) =>
       '/approvals/offsite/${Uri.encodeComponent(id)}';
 
+  /// A team member's leave request, read-only, for their head (#50). A
+  /// route pattern; build a location with [teamLeave].
+  static const String teamLeaveDetail = '/approvals/team/leave/:id';
+  static String teamLeave(String id) =>
+      '/approvals/team/leave/${Uri.encodeComponent(id)}';
+
+  /// A team member's "forgot to scan" request, read-only (#50).
+  static const String teamCorrectionDetail = '/approvals/team/correction/:id';
+  static String teamCorrection(String id) =>
+      '/approvals/team/correction/${Uri.encodeComponent(id)}';
+
   /// The approver's page of one "forgot to scan" request, by its id (#47).
   /// A route pattern; build a location with [approvalCorrection].
   static const String approvalCorrectionDetail = '/approvals/correction/:id';
@@ -204,6 +215,43 @@ final List<GoRoute> approvalsRoutes = [
         child: LeaveApprovalDetailPage(
           requestId: id,
           initial: _leaveRequestExtra(state.extra, id),
+        ),
+      );
+    },
+  ),
+  // "My team", read-only (#50): a team member's leave, and "forgot to
+  // scan", each with the list row in `extra`. For heads only.
+  GoRoute(
+    path: AppRoutes.teamLeaveDetail,
+    name: 'teamLeave',
+    builder: (context, state) {
+      final id = state.pathParameters['id'] ?? '';
+      final extra = state.extra;
+      return _ApprovalsGate(
+        teamOnly: true,
+        child: LeaveApprovalDetailPage(
+          requestId: id,
+          readOnly: true,
+          initial: extra is LeaveRequest && extra.id == id ? extra : null,
+        ),
+      );
+    },
+  ),
+  GoRoute(
+    path: AppRoutes.teamCorrectionDetail,
+    name: 'teamCorrection',
+    builder: (context, state) {
+      final id = state.pathParameters['id'] ?? '';
+      final extra = state.extra;
+      return _ApprovalsGate(
+        teamOnly: true,
+        child: TimeCorrectionHistoryDetailPage(
+          id: id,
+          approver: true,
+          readOnly: true,
+          preview: extra is TimeCorrectionDetail && extra.id == id
+              ? extra
+              : null,
         ),
       );
     },
@@ -629,12 +677,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 /// A page of the Approvals place for those who may see it, the not-found
 /// page for anyone else.
 class _ApprovalsGate extends ConsumerWidget {
-  const _ApprovalsGate({required this.child, this.attendanceOnly = false});
+  const _ApprovalsGate({
+    required this.child,
+    this.attendanceOnly = false,
+    this.teamOnly = false,
+  });
 
   final Widget child;
 
   /// Only for attendance approvers too (an off-site scan, #46).
   final bool attendanceOnly;
+
+  /// Only for heads too ("My team", #50).
+  final bool teamOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) =>
@@ -642,7 +697,8 @@ class _ApprovalsGate extends ConsumerWidget {
         approverAccessProvider.select(
           (a) =>
               a.canSeeApprovals &&
-              (!attendanceOnly || a.canApproveAttendance),
+              (!attendanceOnly || a.canApproveAttendance) &&
+              (!teamOnly || a.canSeeTeam),
         ),
       )
       ? child

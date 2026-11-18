@@ -67,6 +67,12 @@ class AttendanceRepositoryImpl extends BaseRepository
   );
 
   @override
+  FutureResult<NumberedPage<TimeCorrectionDetail>> teamTimeCorrections({
+    TimeCorrectionStatus? status,
+    int page = 1,
+  }) => guard(() => _remote.teamTimeCorrections(status: status, page: page));
+
+  @override
   FutureResult<TimeCorrectionDetail> timeCorrectionDetail(String id) =>
       guard(() => _remote.timeCorrectionDetail(id));
 

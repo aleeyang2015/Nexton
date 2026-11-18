@@ -1332,6 +1332,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get apprRequestNotFound => 'This request is not available';
 
   @override
+  String get apprSectionTeam => 'My team';
+
+  @override
+  String get apprTeamLeave => 'Leave';
+
+  @override
+  String get apprTeamCorrections => 'Forgot to scan';
+
+  @override
+  String get apprTeamEmpty => 'No requests from your team';
+
+  @override
   String get apprReasonRequired => 'Write a reason';
 
   @override

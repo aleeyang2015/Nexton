@@ -1323,6 +1323,18 @@ class AppLocalizationsLo extends AppLocalizations {
   String get apprRequestNotFound => 'ບໍ່ພົບຄຳຮ້ອງນີ້';
 
   @override
+  String get apprSectionTeam => 'ທີມຂອງຂ້ອຍ';
+
+  @override
+  String get apprTeamLeave => 'ລາພັກ';
+
+  @override
+  String get apprTeamCorrections => 'ລືມລົງເວລາ';
+
+  @override
+  String get apprTeamEmpty => 'ບໍ່ມີຄຳຮ້ອງຂອງທີມ';
+
+  @override
   String get apprReasonRequired => 'ກະລຸນາຂຽນເຫດຜົນ';
 
   @override

@@ -13,13 +13,15 @@ import '../time_off/presentation/widgets/leave_approvals_badge_icon.dart';
 import '../time_off/presentation/widgets/leave_approvals_tab.dart';
 import 'domain/approver_access.dart';
 import 'presentation/providers/approver_access_provider.dart';
+import 'presentation/widgets/team_tab.dart';
 
 /// The sections of [ApprovalsPage], in tab order.
 enum ApprovalsTab {
   leave,
   timeCorrection,
   offsite,
-  ot;
+  ot,
+  team;
 
   /// The sections [access] may see, in tab order: leave for leave approvers,
   /// "forgot to scan" and off-site for attendance approvers, OT for heads
@@ -28,6 +30,7 @@ enum ApprovalsTab {
     if (access.canApproveLeave) leave,
     if (access.canApproveAttendance) ...[timeCorrection, offsite],
     if (access.canApproveOt) ot,
+    if (access.canSeeTeam) team,
   ];
 }
 
@@ -140,6 +143,10 @@ class _ApprovalsScaffold extends StatelessWidget {
           icon: const Icon(Icons.work_history_outlined),
           text: l10n.apprSectionOt,
         ),
+        ApprovalsTab.team => Tab(
+          icon: const Icon(Icons.groups_outlined),
+          text: l10n.apprSectionTeam,
+        ),
       };
 
   static Widget _view(ApprovalsTab tab) => switch (tab) {
@@ -147,5 +154,6 @@ class _ApprovalsScaffold extends StatelessWidget {
     ApprovalsTab.timeCorrection => const TimeCorrectionApprovalsTab(),
     ApprovalsTab.offsite => const OffsiteApprovalsTab(),
     ApprovalsTab.ot => const OtApprovalsTab(),
+    ApprovalsTab.team => const TeamTab(),
   };
 }

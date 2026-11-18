@@ -30,10 +30,16 @@ class LeaveApprovalDetailPage extends ConsumerWidget {
     super.key,
     required this.requestId,
     this.initial,
+    this.readOnly = false,
   });
 
   final String requestId;
   final LeaveRequest? initial;
+
+  /// A head's read-only view of a team member's request (#50): no buttons;
+  /// a `404` on the page's own read (moved department) keeps the row's copy,
+  /// with no error.
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,7 +51,12 @@ class LeaveApprovalDetailPage extends ConsumerWidget {
         loaded.hasError &&
         error is Failure &&
         LeaveErrorCode.isRequestGone(error);
-    final request = gone ? null : (loaded.valueOrNull ?? initial);
+    final keepRow = readOnly && gone && initial != null;
+    final request = keepRow
+        ? initial
+        : gone
+        ? null
+        : (loaded.valueOrNull ?? initial);
 
     return Container(
       color: Colors.white,
@@ -79,7 +90,10 @@ class LeaveApprovalDetailPage extends ConsumerWidget {
                   onRefresh: () => _refresh(context, ref),
                   // The buttons wait for the page's own copy: the list row
                   // may be out of date.
-                  child: _Body(request: request, loaded: loaded.hasValue),
+                  child: _Body(
+                    request: request,
+                    loaded: loaded.hasValue && !readOnly,
+                  ),
                 )
               : loaded.hasError && !loaded.isLoading
               ? LeaveRequestUnavailable(
