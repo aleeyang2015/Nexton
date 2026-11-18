@@ -5,11 +5,11 @@ import '../../../../core/modules/app_modules.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
-import '../../../../l10n/generated/app_localizations.dart';
 import '../../../attendance/presentation/widgets/attendance_status_card.dart';
 import '../widgets/attendance_history_summary.dart';
 import '../widgets/home_header.dart';
 import '../widgets/home_menu_grid.dart';
+import '../../../auth/presentation/providers/module_access_provider.dart';
 
 /// Home screen.
 ///
@@ -39,13 +39,14 @@ class HomePage extends ConsumerWidget {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
                   children: [
+                    // Without it, the header above already says so: its
+                    // profile call gets the same refusal.
                     if (coreHr) ...[
                       const AttendanceStatusCard(),
                       heightBx(h: 22),
                       const AttendanceHistorySummary(),
-                    ] else
-                      const _ModuleOff(),
-                    heightBx(h: 28),
+                      heightBx(h: 28),
+                    ],
                     const HomeMenuGrid(),
                   ],
                 ),
@@ -53,38 +54,6 @@ class HomePage extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// In place of the clock card when the company has no Core HR (#61): the
-/// same words the server's `MODULE_NOT_ACTIVE` gets.
-class _ModuleOff extends StatelessWidget {
-  const _ModuleOff();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.info_outline, color: AppColors.subTitle),
-          widthBx(w: 12),
-          Expanded(
-            child: customText(
-              AppLocalizations.of(context)!.errorModuleNotActive,
-              fontSize: 14,
-              color: AppColors.subTitle,
-              maxLine: 3,
-            ),
-          ),
-        ],
       ),
     );
   }

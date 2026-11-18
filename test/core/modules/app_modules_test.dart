@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/modules/app_modules.dart';
+import 'package:next_on/features/auth/domain/user_modules.dart';
+import 'package:next_on/features/auth/presentation/providers/module_access_provider.dart';
 import 'package:next_on/features/auth/domain/entities/auth_session.dart';
 import 'package:next_on/features/auth/presentation/providers/auth_session_notifier.dart';
 

@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
-import 'package:next_on/core/modules/app_modules.dart';
+import 'package:next_on/features/auth/presentation/providers/module_access_provider.dart';
 import 'package:next_on/core/network/api_error_mapper.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/presentation/widgets/attendance_status_card.dart';
@@ -25,8 +25,8 @@ import '../../support/test_asset_bundle.dart';
 void main() {
   final en = AppLocalizationsEn();
 
-  testWidgets('no Core HR: no clock card, no month summary; the "not turned '
-      'on" line instead, and the menu as allowed', (tester) async {
+  testWidgets('no Core HR: no clock card, no month summary; "not turned on" '
+      'said once, and no empty menu', (tester) async {
     tester.view.physicalSize = const Size(390, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -35,7 +35,16 @@ void main() {
         overrides: [
           activeModulesProvider.overrideWithValue(const []),
           approverAccessOf(),
-          profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
+          // As the real server answers a company without Core HR.
+          profileRepositoryProvider.overrideWithValue(
+            FakeProfileRepository()
+              ..profile = const Result.failure(
+                Failure.validation(
+                  message: "Module 'core_hr' is not active",
+                  code: ApiErrorCodes.moduleNotActive,
+                ),
+              ),
+          ),
         ],
         child: DefaultAssetBundle(
           bundle: TestAssetBundle(),
@@ -52,8 +61,10 @@ void main() {
 
     expect(find.byType(AttendanceStatusCard), findsNothing);
     expect(find.byType(AttendanceHistorySummary), findsNothing);
+    // Said once, by the header; no empty menu under it.
     expect(find.text(en.errorModuleNotActive), findsOneWidget);
     expect(find.text(en.leaveMenu), findsNothing);
+    expect(find.text(en.homeServicesTitle), findsNothing);
   });
 
   testWidgets('a deep link into Salary for a company without Payroll: the '

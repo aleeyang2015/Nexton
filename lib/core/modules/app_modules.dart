@@ -1,11 +1,8 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../features/auth/domain/entities/user.dart';
-import '../../features/auth/presentation/providers/auth_session_notifier.dart';
-
 /// The subscription modules the App sits behind (#61): what the company has
 /// bought, from `/auth/me`'s `modules`. Hiding only stops staff from tapping
 /// into a dead end; the server stays the gate (`403 MODULE_NOT_ACTIVE`).
+/// Pure: the session-reading providers live in the auth feature
+/// (`module_access_provider.dart`).
 abstract final class AppModules {
   /// The profile, clock in/out and its history, leave, OT, "forgot to
   /// scan", off-site, Approvals, personal info, the photo.
@@ -21,24 +18,3 @@ abstract final class AppModules {
     _ => modules.contains(module),
   };
 }
-
-extension UserModules on User {
-  bool get canUseCoreHr => AppModules.allows(modules, AppModules.coreHr);
-  bool get canUsePayroll => AppModules.allows(modules, AppModules.payroll);
-}
-
-/// The signed-in company's modules, read on their own: a screen that gates
-/// on them does not rebuild on other session changes. Empty when no one is
-/// signed in.
-final activeModulesProvider = Provider<List<String>>(
-  (ref) =>
-      ref.watch(
-        authSessionProvider.select((s) => s.valueOrNull?.user?.modules),
-      ) ??
-      const [],
-);
-
-/// Whether the company has [module] (with what it depends on).
-final hasModuleProvider = Provider.family<bool, String>(
-  (ref, module) => AppModules.allows(ref.watch(activeModulesProvider), module),
-);

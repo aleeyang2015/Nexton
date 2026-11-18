@@ -20,6 +20,7 @@ import '../../../../core/upload/presentation/file_source_sheet.dart';
 import '../../../../core/upload/domain/capture_policy.dart';
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/modules/app_modules.dart';
+import '../../../auth/presentation/providers/module_access_provider.dart';
 
 /// "ໂປຣຟາຍ" screen, pushed from the home header. Profile summary + a
 /// settings-style menu.
@@ -99,7 +100,9 @@ class ProfilePage extends ConsumerWidget {
                     heightBx(h: 12),
                     const Center(child: _StatusPill()),
                     heightBx(h: 20),
-                    const _StatsRow(),
+                    // The month summary is Core HR's (#61).
+                    if (ref.watch(hasModuleProvider(AppModules.coreHr)))
+                      const _StatsRow(),
                     heightBx(h: 16),
                     const _MenuCard(),
                   ],

@@ -18,6 +18,8 @@ class HomeMenuGrid extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final entries = buildListMenuEntries(context, ref, l10n);
+    // Nothing the company has bought sits behind a tile (#61): no section.
+    if (entries.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

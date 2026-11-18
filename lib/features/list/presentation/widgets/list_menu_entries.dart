@@ -8,6 +8,7 @@ import '../../../approvals/presentation/providers/approver_access_provider.dart'
 import '../../../time_off/presentation/pages/time_off_page.dart';
 import '../../../../core/modules/app_modules.dart';
 import 'list_menu_grid.dart';
+import '../../../auth/presentation/providers/module_access_provider.dart';
 
 /// The app's shortcut entries, shared by the "ລາຍການ" tab and the home screen
 /// so both always show the same menu. Called from `build`: the Approvals
@@ -18,10 +19,9 @@ List<ListMenuEntry> buildListMenuEntries(
   WidgetRef ref,
   AppLocalizations l10n,
 ) {
-  final modules = ref.watch(activeModulesProvider);
   return [
     for (final entry in _entries(context, ref, l10n))
-      if (entry.module == null || AppModules.allows(modules, entry.module!))
+      if (entry.module == null || ref.watch(hasModuleProvider(entry.module!)))
         entry,
   ];
 }
@@ -48,7 +48,7 @@ List<ListMenuEntry> _entries(
       Icons.fact_check_outlined,
       color: const Color(0xFF0E9F8E),
       module: AppModules.coreHr,
-    onTap: () => context.push(AppRoutes.approvals),
+      onTap: () => context.push(AppRoutes.approvals),
     ),
   ListMenuEntry(
     l10n.leaveMenu,

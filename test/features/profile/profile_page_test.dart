@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:next_on/core/modules/app_modules.dart';
+import 'package:next_on/features/auth/presentation/providers/module_access_provider.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/core/upload/upload_providers.dart';
@@ -294,6 +294,9 @@ void main() {
 
     expect(find.text(en.personal), findsNothing);
     expect(find.byIcon(Icons.edit), findsNothing);
+    // No month summary from Core HR either.
+    expect(find.text(en.lateArrivals), findsNothing);
+    expect(find.text(en.absences), findsNothing);
     expect(find.text(en.changePassword), findsOneWidget);
   });
 }
