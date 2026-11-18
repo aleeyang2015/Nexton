@@ -677,5 +677,8 @@
   "relationshipSibling": "ອ້າຍ/ເອື້ອຍ/ນ້ອງ",
   "relationshipChild": "ລູກ",
   "relationshipFriend": "ໝູ່",
-  "relationshipOther": "ອື່ນໆ"
+  "relationshipOther": "ອື່ນໆ",
+  "profilePhotoChanged": "ປ່ຽນຮູບໂປຣຟາຍແລ້ວ",
+  "profilePhotoNotImage": "ໄຟລ໌ນີ້ບໍ່ແມ່ນຮູບ. ກະລຸນາເລືອກຮູບອື່ນ.",
+  "profilePhotoTooLarge": "ຮູບໃຫຍ່ເກີນໄປ. ກະລຸນາເລືອກຮູບອື່ນ."
 }

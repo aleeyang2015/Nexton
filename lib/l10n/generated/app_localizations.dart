@@ -4027,6 +4027,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get relationshipOther;
+
+  /// No description provided for @profilePhotoChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile photo changed'**
+  String get profilePhotoChanged;
+
+  /// No description provided for @profilePhotoNotImage.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is not a photo. Please choose another.'**
+  String get profilePhotoNotImage;
+
+  /// No description provided for @profilePhotoTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo is too large. Please choose another.'**
+  String get profilePhotoTooLarge;
 }
 
 class _AppLocalizationsDelegate

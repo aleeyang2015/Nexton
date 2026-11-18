@@ -2190,4 +2190,13 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get relationshipOther => 'ອື່ນໆ';
+
+  @override
+  String get profilePhotoChanged => 'ປ່ຽນຮູບໂປຣຟາຍແລ້ວ';
+
+  @override
+  String get profilePhotoNotImage => 'ໄຟລ໌ນີ້ບໍ່ແມ່ນຮູບ. ກະລຸນາເລືອກຮູບອື່ນ.';
+
+  @override
+  String get profilePhotoTooLarge => 'ຮູບໃຫຍ່ເກີນໄປ. ກະລຸນາເລືອກຮູບອື່ນ.';
 }

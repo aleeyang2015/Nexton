@@ -132,6 +132,11 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.uploadStorageUnavailable;
     case 'uploadPermissionDenied':
       return l10n.uploadPermissionDenied;
+    // The profile photo's own refusals (#59).
+    case 'profilePhotoNotImage':
+      return l10n.profilePhotoNotImage;
+    case 'profilePhotoTooLarge':
+      return l10n.profilePhotoTooLarge;
 
     // Leave (time-off) business rules — the leave datasource encodes a
     // recognised `error.code` as one of these tokens

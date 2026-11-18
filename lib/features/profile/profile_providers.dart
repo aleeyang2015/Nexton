@@ -5,6 +5,7 @@ import 'data/datasources/profile_remote_data_source.dart';
 import 'data/repositories/profile_repository_impl.dart';
 import 'domain/repositories/profile_repository.dart';
 import 'domain/usecases/get_my_profile_usecase.dart';
+import 'domain/usecases/upload_my_photo_usecase.dart';
 
 /// Composition root for the profile feature: the one place the data layer is
 /// constructed and bound to the domain contracts. Presentation consumes only
@@ -20,4 +21,8 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 
 final getMyProfileUseCaseProvider = Provider<GetMyProfileUseCase>((ref) {
   return GetMyProfileUseCase(ref.watch(profileRepositoryProvider));
+});
+
+final uploadMyPhotoUseCaseProvider = Provider<UploadMyPhotoUseCase>((ref) {
+  return UploadMyPhotoUseCase(ref.watch(profileRepositoryProvider));
 });
