@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#52 merged, `f0c7a6c`; next is #53, not started). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#53 implemented on `53-push-open`, `9df2051` + `862cb98`, waiting for "push issue 53 to main directly"). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 | | |
 |---|---|
 | Last finished work order | 51 of 60: #52, push: register this phone after sign-in, remove it before sign-out (covers #71) |
-| Next work order | **52 of 60: #53**, push: tapping a push opens the right screen. Not started, no branch, no plan shown yet |
+| Next work order | **52 of 60: #53**, push: tapping a push opens the right screen. IMPLEMENTED on `53-push-open` (`9df2051`, `862cb98`), both reviews done and fixed; waiting for the owner's merge word |
 | `origin/main` | `adad453` "Merge branch '51-push-setup' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -185,9 +185,16 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #53 (work order 52 of 60), "push: tapping a push opens the right screen".** Not started: no branch, no
-   plan shown yet. Read the issue and its comments, plan, wait for "go". Settle first the open point about hiding
-   approver-only data when someone else's request is opened by id (see the #53 notes above).
+1. **Now: #53 (work order 52 of 60), "push: tapping a push opens the right screen": IMPLEMENTED** on `53-push-open`
+   (`9df2051`, review fixes `862cb98`), pushed, not merged. Gates: analyze 1 warning already on `main`; `flutter
+   test` 2,226 passed; debug APK built. Owner decisions: routing in `lib/features/notifications/`
+   (`domain/push_route.dart`, `presentation/push_router.dart`, #54 reuses it); no new string (each by-id page keeps
+   its 404 text); non-Home targets open with `push`. Someone else's leave or "forgot to scan" request hands over to
+   the approver page (`ApproverHandOver`, only from the top page, once); a login that stays on the employee page
+   sees no Edit/Cancel on another's leave. The open point above is settled that way: the server refuses, the App
+   hides the owner's actions. Device checks pending: iOS tap on the foreground alert arrives via
+   `onMessageOpenedApp`; Firebase-console messages for each table row (closed, background, open); the forced
+   password change then the item; B tapping A's push sees the "not there" text.
 
    **#52 (work order 51 of 60): MERGED (`f0c7a6c`)** on the owner's say, 2026-11-18, from
    `52-device-registration` (`1e4d192`, review fixes `91b31f7`). Covers #71. Gates: analyze 1
@@ -993,7 +1000,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 49 | #50 | approvals: my team's leave and "forgot to scan" history (read-only) | `50-team-history` | `f00dd81`, `c02e491` | merged to main directly (`79a134a`) | analyze: 1 warning already on `main`; `flutter test`: 2,142 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 50 | #51 | push: Firebase set up (app id next.on.hr.com) | `51-push-setup` | `d4a2b38`, `8f41b6d` | merged to main directly (`adad453`) | analyze: 1 warning already on `main`; `flutter test`: 2,150 passed, 0 failed; debug APK and iOS simulator build | MERGED, device checks pending |
 | 51 | #52 | push: register this phone after sign-in, remove it before sign-out | `52-device-registration` | `1e4d192`, `91b31f7` | merged to main directly (`f0c7a6c`) | analyze: 1 warning already on `main`; `flutter test`: 2,177 passed, 0 failed; debug APK | MERGED, device checks pending |
-| 52 | #53 | push: tapping a push opens the right screen | | | | | NOT STARTED |
+| 52 | #53 | push: tapping a push opens the right screen | `53-push-open` | `9df2051`, `862cb98` | not merged | analyze: 1 warning already on `main`; `flutter test`: 2,226 passed, 0 failed; debug APK | IMPLEMENTED, waiting for merge word |
 | 53 | #54 | notifications: the bell shows recent pushes | | | | | NOT STARTED |
 | 54 | #55 | notifications: unread dots and a count on the bell | | | | | BLOCKED: backend, unread count |
 | 55 | #56 | sign-in: signing out ends the session on the server | | | | | BLOCKED on the owner's list; the backend said "now live" on 15 Nov. Needs the owner's go |
