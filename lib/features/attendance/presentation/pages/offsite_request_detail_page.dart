@@ -19,7 +19,7 @@ import '../../../approvals/domain/approver_access.dart';
 import '../../../auth/presentation/providers/auth_session_notifier.dart';
 import '../providers/offsite_decision_notifier.dart';
 import '../widgets/offsite_approval_card.dart';
-import '../widgets/offsite_decision_flow.dart';
+import '../widgets/attendance_decision_flow.dart';
 import '../widgets/offsite_record_card.dart';
 import '../widgets/time_correction_approval_workflow.dart';
 
@@ -185,16 +185,24 @@ class _ApproverBody extends ConsumerWidget {
           deciding: decision.deciding,
           canDecide:
               !decision.notMine &&
-              ApproverAccess.canDecideOffsite(request, user),
-          own: ApproverAccess.isOwnOffsite(request, user?.employeeId),
+              ApproverAccess.canDecideAttendance(request, user),
+          own: ApproverAccess.isOwnAttendance(request, user?.employeeId),
           rejectOnly: decision.rejectOnly,
           onApprove: () => _decided(
             context,
-            OffsiteDecisionFlow.approve(context, ref, request),
+            AttendanceDecisionFlow.approve(
+              context,
+              ref.read(offsiteDecisionNotifierProvider(request.id).notifier),
+              request,
+            ),
           ),
           onReject: () => _decided(
             context,
-            OffsiteDecisionFlow.reject(context, ref, request),
+            AttendanceDecisionFlow.reject(
+              context,
+              ref.read(offsiteDecisionNotifierProvider(request.id).notifier),
+              request,
+            ),
           ),
           onViewImage: (url) => showImageViewer(
             context,

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../time_off/domain/entities/leave_approval_step.dart';
+import 'attendance_approval_request.dart';
 import 'offsite_method.dart';
 import 'time_correction_detail.dart';
 import 'time_correction_status.dart';
@@ -15,8 +16,11 @@ import 'time_correction_status.dart';
 /// and statuses are in turn leave's shared enums. The same goes for [status]:
 /// §10's four values are [TimeCorrectionStatus]'s four values, with the same
 /// wire literals.
-class OffsiteRequestDetail extends Equatable {
+class OffsiteRequestDetail extends Equatable
+    implements AttendanceApprovalRequest {
+  @override
   final String id;
+  @override
   final TimeCorrectionEmployee employee;
 
   /// Which punch the scan stands in for.
@@ -43,6 +47,7 @@ class OffsiteRequestDetail extends Equatable {
   final String? attachmentUrl;
 
   final String reason;
+  @override
   final TimeCorrectionStatus status;
 
   /// The step now awaiting a decision; 0 once none is.
@@ -52,6 +57,7 @@ class OffsiteRequestDetail extends Equatable {
   /// employee with `can_work_offsite`.
   final String? attendanceRecordId;
 
+  @override
   final List<TimeCorrectionApprovalStep> steps;
   final DateTime submittedAt;
 
@@ -82,6 +88,7 @@ class OffsiteRequestDetail extends Equatable {
   /// The step awaiting a decision right now, if any — its id goes with an
   /// approve/reject call as `step_id`, so the backend can refuse a decision
   /// aimed at a step someone else has already moved past (§7).
+  @override
   TimeCorrectionApprovalStep? get currentStep {
     for (final step in steps) {
       if (step.status == LeaveStepStatus.pending) return step;

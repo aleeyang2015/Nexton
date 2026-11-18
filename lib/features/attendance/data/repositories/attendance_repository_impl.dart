@@ -77,16 +77,22 @@ class AttendanceRepositoryImpl extends BaseRepository
   });
 
   @override
-  FutureResult<List<TimeCorrectionDetail>> timeCorrectionApprovals({
+  FutureResult<CursorPage<TimeCorrectionDetail>> timeCorrectionApprovals({
     TimeCorrectionStatus? status,
-  }) => guard(() => _remote.timeCorrectionApprovals(status: status));
+    String? cursor,
+  }) => guard(
+    () => _remote.timeCorrectionApprovals(status: status, cursor: cursor),
+  );
 
   @override
-  FutureResult<Unit> approveTimeCorrection(String id, {String? stepId}) =>
-      guard(() async {
-        await _remote.approveTimeCorrection(id, stepId: stepId);
-        return Unit.instance;
-      });
+  FutureResult<Unit> approveTimeCorrection(
+    String id, {
+    String? stepId,
+    String? note,
+  }) => guard(() async {
+    await _remote.approveTimeCorrection(id, stepId: stepId, note: note);
+    return Unit.instance;
+  });
 
   @override
   FutureResult<Unit> rejectTimeCorrection(

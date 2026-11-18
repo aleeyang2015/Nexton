@@ -29,7 +29,7 @@ import '../models/time_correction_record_model.dart';
 import '../models/time_correction_request_model.dart';
 import 'attendance_api_paths.dart';
 import 'correction_error_code.dart';
-import 'time_correction_error_code.dart';
+import 'approval_decision_code.dart';
 
 /// The attendance calls the home screen can trigger.
 ///
@@ -88,14 +88,22 @@ abstract class AttendanceRemoteDataSource {
   /// what they have already decided. That distinction can't be made on the
   /// client — a request this approver cleared stays `pending` overall while
   /// it sits with HR — so the filter belongs on the query.
-  Future<List<TimeCorrectionDetail>> timeCorrectionApprovals({
+  ///
+  /// One page at a time (#47): `limit` 20, from [cursor].
+  Future<CursorPage<TimeCorrectionDetail>> timeCorrectionApprovals({
     TimeCorrectionStatus? status,
+    String? cursor,
   });
 
   /// Approves the request's current step. [stepId] is the step the caller
   /// saw pending; the backend refuses with `STEP_CHANGED` when it has moved
-  /// on since. The body isn't read.
-  Future<void> approveTimeCorrection(String id, {String? stepId});
+  /// on since. [note] is the approver's optional word (#47). The body isn't
+  /// read.
+  Future<void> approveTimeCorrection(
+    String id, {
+    String? stepId,
+    String? note,
+  });
 
   /// Rejects a pending request. [note] is required by the endpoint — it is
   /// what the employee is told. The body isn't read.
@@ -110,10 +118,6 @@ abstract class AttendanceRemoteDataSource {
 }
 
 class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
-  /// The approvals page shows one unpaged list; corrections are limited to
-  /// the last 30 days, so this comfortably covers them.
-  static const int _correctionPageSize = 100;
-
   /// Rows per page of "My requests"' "forgot to scan" tab (#45), as the
   /// off-site tab asks for.
   static const int myCorrectionsPageSize = 20;
@@ -371,15 +375,16 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   }
 
   @override
-  Future<List<TimeCorrectionDetail>> timeCorrectionApprovals({
+  Future<CursorPage<TimeCorrectionDetail>> timeCorrectionApprovals({
     TimeCorrectionStatus? status,
+    String? cursor,
   }) async {
     final response = await _client.get<dynamic>(
       AttendancePaths.myCorrectionApprovals,
       queryParameters: {
         if (status != null) 'status': status.wireValue,
-        'page': 1,
-        'per_page': _correctionPageSize,
+        'limit': myCorrectionsPageSize,
+        if (cursor != null) 'cursor': cursor,
       },
     );
     _debugLog(
@@ -387,18 +392,27 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
       response.data,
     );
 
-    final requests = ApiEnvelope.unwrapList(
+    // In the server's order (keyset paging); a broken row is dropped.
+    final page = CursorPage.fromBody<TimeCorrectionDetail?>(
       response.data,
-    ).map(_approvalOrNull).whereType<TimeCorrectionDetail>().toList();
-    requests.sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
-    return requests;
+      _approvalOrNull,
+    );
+    return CursorPage(
+      items: page.items.whereType<TimeCorrectionDetail>().toList(),
+      nextCursor: page.nextCursor,
+      hasMore: page.hasMore,
+    );
   }
 
   @override
-  Future<void> approveTimeCorrection(String id, {String? stepId}) => _decide(
-    AttendancePaths.approveCorrectionRequest(id),
-    {if (stepId != null) 'step_id': stepId},
-  );
+  Future<void> approveTimeCorrection(
+    String id, {
+    String? stepId,
+    String? note,
+  }) => _decide(AttendancePaths.approveCorrectionRequest(id), {
+    if (stepId != null) 'step_id': stepId,
+    if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+  });
 
   /// §4.8 names the rejection reason `note`, and rejects the call with a 422
   /// without it.
@@ -450,8 +464,16 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
       );
 
       final code = ApiError.tryParse(error.response?.data)?.code;
-      final token = TimeCorrectionErrorCode.tokenByWire[code];
-      if (token != null) throw Failure.validation(message: token);
+      final token = ApprovalDecisionCode.tokenByWire[code];
+      // Kept as a validation failure with its code, never `Failure.auth`
+      // (a 403 `NOT_APPROVER` would otherwise be hidden).
+      if (token != null) throw Failure.validation(message: token, code: code);
+      // Gone (or never the caller's): "not available".
+      if (error.response?.statusCode == 404) {
+        throw const Failure.validation(
+          message: CorrectionErrorCode.tokenRequestGone,
+        );
+      }
       rethrow;
     }
   }

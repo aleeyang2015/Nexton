@@ -178,7 +178,7 @@ void main() {
       expect(repository.approved, [
         (id: 'o-1', stepId: 'step-1', note: 'OK, client visit'),
       ]);
-      expect(find.text('Request approved'), findsOneWidget);
+      expect(find.text('Approved'), findsOneWidget);
     });
 
     testWidgets('the approver\'s own request: a line, no buttons', (

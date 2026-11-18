@@ -100,7 +100,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.approved.single.stepId, 'step-1');
-    expect(find.text(en.offsiteApprovalApproved), findsOneWidget);
+    expect(find.text(en.apprApprovedToast), findsOneWidget);
     expect(find.text('LIST'), findsOneWidget);
   });
 

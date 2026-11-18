@@ -6,14 +6,18 @@ import '../repositories/attendance_repository.dart';
 ///
 /// [stepId] is the step the approver saw pending; sending it lets the
 /// backend refuse (`STEP_CHANGED`) rather than apply the decision to a step
-/// someone else has meanwhile moved past.
+/// someone else has meanwhile moved past. [note] is optional (#47).
 class ApproveTimeCorrectionUseCase
-    implements BaseUseCase<Unit, ({String id, String? stepId})> {
+    implements BaseUseCase<Unit, ({String id, String? stepId, String? note})> {
   final AttendanceRepository _repository;
 
   ApproveTimeCorrectionUseCase(this._repository);
 
   @override
-  FutureResult<Unit> call(({String id, String? stepId}) p) =>
-      _repository.approveTimeCorrection(p.id, stepId: p.stepId);
+  FutureResult<Unit> call(({String id, String? stepId, String? note}) p) =>
+      _repository.approveTimeCorrection(
+        p.id,
+        stepId: p.stepId,
+        note: p.note,
+      );
 }

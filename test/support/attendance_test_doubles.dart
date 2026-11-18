@@ -174,28 +174,58 @@ class FakeAttendanceRepository implements AttendanceRepository {
     return cancelTimeCorrectionResult;
   }
 
+  /// The approvals inbox: every status answers [timeCorrectionApprovalsResult]
+  /// as one page, unless [timeCorrectionApprovalsPages] names pages for it
+  /// (in call order, the last one repeating).
   Result<List<TimeCorrectionDetail>> timeCorrectionApprovalsResult =
       const Result.success([]);
+  Map<TimeCorrectionStatus, List<Result<CursorPage<TimeCorrectionDetail>>>>?
+  timeCorrectionApprovalsPages;
 
   /// The statuses the page asked for, in call order.
   final List<TimeCorrectionStatus?> requestedApprovalStatuses = [];
+  final List<({TimeCorrectionStatus? status, String? cursor})>
+  timeCorrectionApprovalsCalls = [];
 
   @override
-  FutureResult<List<TimeCorrectionDetail>> timeCorrectionApprovals({
+  FutureResult<CursorPage<TimeCorrectionDetail>> timeCorrectionApprovals({
     TimeCorrectionStatus? status,
+    String? cursor,
   }) async {
     requestedApprovalStatuses.add(status);
-    return timeCorrectionApprovalsResult;
+    timeCorrectionApprovalsCalls.add((status: status, cursor: cursor));
+    final pages = timeCorrectionApprovalsPages?[status];
+    if (pages != null && pages.isNotEmpty) {
+      final asked = timeCorrectionApprovalsCalls
+          .where((c) => c.status == status)
+          .length;
+      return pages[asked <= pages.length ? asked - 1 : pages.length - 1];
+    }
+    return timeCorrectionApprovalsResult.fold(
+      Result.failure,
+      (rows) => Result.success(CursorPage.single(rows)),
+    );
   }
 
   Result<Unit> approveTimeCorrectionResult = const Result.success(
     Unit.instance,
   );
-  final List<({String id, String? stepId})> approvedTimeCorrections = [];
+  final List<({String id, String? stepId, String? note})>
+  approvedTimeCorrections = [];
+
+  /// When set, the next correction decision waits for it.
+  Completer<void>? holdTimeCorrectionDecision;
 
   @override
-  FutureResult<Unit> approveTimeCorrection(String id, {String? stepId}) async {
-    approvedTimeCorrections.add((id: id, stepId: stepId));
+  FutureResult<Unit> approveTimeCorrection(
+    String id, {
+    String? stepId,
+    String? note,
+  }) async {
+    approvedTimeCorrections.add((id: id, stepId: stepId, note: note));
+    final hold = holdTimeCorrectionDecision;
+    holdTimeCorrectionDecision = null;
+    await hold?.future;
     return approveTimeCorrectionResult;
   }
 

@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../attendance/domain/entities/offsite_detail.dart';
+import '../../attendance/domain/entities/attendance_approval_request.dart';
 import '../../attendance/domain/entities/time_correction_status.dart';
 import '../../auth/domain/entities/user.dart';
 import '../../time_off/domain/entities/leave_approval_step.dart';
@@ -101,15 +101,18 @@ class ApproverAccess extends Equatable {
     };
   }
 
-  /// Whether [user] gets Approve and Reject on the off-site scan [request]
-  /// (#46): it is pending with a step waiting, it is not their own, and the
+  /// Whether [user] gets Approve and Reject on the attendance [request], an
+  /// off-site scan (#46) or a "forgot to scan" (#47): it is pending with a step waiting, it is not their own, and the
   /// waiting step is theirs. An HR step is HR's (the attendance permission,
   /// or an admin role); a dept-head or `specific` step is the employee named
   /// on it.
   ///
   /// Only hides buttons that would fail: the server still decides, and its
   /// refusal is shown.
-  static bool canDecideOffsite(OffsiteRequestDetail request, User? user) {
+  static bool canDecideAttendance(
+    AttendanceApprovalRequest request,
+    User? user,
+  ) {
     final employeeId = user?.employeeId;
     if (user == null || employeeId == null || employeeId.isEmpty) {
       return false;
@@ -118,7 +121,7 @@ class ApproverAccess extends Equatable {
     if (request.status != TimeCorrectionStatus.pending || step == null) {
       return false;
     }
-    if (isOwnOffsite(request, employeeId)) return false;
+    if (isOwnAttendance(request, employeeId)) return false;
     // Already approved an earlier step: never the next one too (the server
     // leaves such a request out of "waiting on me", and refuses it).
     final approvedEarlier = request.steps.any(
@@ -142,7 +145,10 @@ class ApproverAccess extends Equatable {
 
   /// Whether [request] is the signed-in employee's own: it shows a line in
   /// place of buttons, and a `NOT_APPROVER` on it says "your own".
-  static bool isOwnOffsite(OffsiteRequestDetail request, String? employeeId) =>
+  static bool isOwnAttendance(
+    AttendanceApprovalRequest request,
+    String? employeeId,
+  ) =>
       employeeId != null &&
       employeeId.isNotEmpty &&
       request.employee.id == employeeId;

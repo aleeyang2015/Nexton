@@ -12,12 +12,17 @@ import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/image_viewer.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../approvals/domain/approver_access.dart';
+import '../../../auth/presentation/providers/auth_session_notifier.dart';
 import '../../attendance_providers.dart';
 import '../../domain/attendance_failure_x.dart';
 import '../../domain/entities/time_correction_detail.dart';
 import '../../domain/entities/time_correction_record.dart';
 import '../../domain/entities/time_correction_status.dart';
+import '../providers/time_correction_decision_notifier.dart';
 import '../providers/time_correction_detail_notifier.dart';
+import '../widgets/approval_card_parts.dart';
+import '../widgets/attendance_decision_flow.dart';
 import '../widgets/time_correction_approval_workflow.dart';
 import '../widgets/time_correction_detail_cards.dart';
 import '../widgets/time_correction_record_card.dart';
@@ -30,14 +35,21 @@ import '../widgets/time_correction_record_card.dart';
 ///
 /// Loads its own copy by id; [initial] (the list row) shows meanwhile. Pull
 /// to refresh.
+///
+/// With [approver] (#47, `/approvals/correction/:id`) it is an approver's
+/// page of someone's request: never Cancel; Approve and Reject at the
+/// bottom when the waiting step is theirs. After a decision the page stays
+/// and is read again, so the corrected day shows.
 class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
   final String id;
   final TimeCorrectionRecord? initial;
+  final bool approver;
 
   const TimeCorrectionHistoryDetailPage({
     super.key,
     required this.id,
     this.initial,
+    this.approver = false,
   });
 
   @override
@@ -58,7 +70,7 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
           backgroundColor: AppColors.homeBackground,
           body: Column(
             children: [
-              const _Header(),
+              _Header(approver: approver),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () => _refresh(context, ref),
@@ -69,6 +81,7 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
                       if (detail.hasValue && !gone)
                         _Body(
                           id: id,
+                          approver: approver,
                           detail: detail.requireValue,
                           cancelling: state.cancelling,
                           downloading: state.downloading,
@@ -113,12 +126,14 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
 
 class _Body extends ConsumerWidget {
   final String id;
+  final bool approver;
   final TimeCorrectionDetail detail;
   final bool cancelling;
   final bool downloading;
 
   const _Body({
     required this.id,
+    required this.approver,
     required this.detail,
     required this.cancelling,
     required this.downloading,
@@ -129,9 +144,9 @@ class _Body extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final attachment = detail.attachmentUrl;
     final result = detail.result;
-    final canCancel = detail.canCancelBy(
-      ref.watch(attendanceOwnEmployeeIdProvider),
-    );
+    final canCancel =
+        !approver &&
+        detail.canCancelBy(ref.watch(attendanceOwnEmployeeIdProvider));
 
     return Column(
       children: [
@@ -176,6 +191,10 @@ class _Body extends ConsumerWidget {
             loading: cancelling,
             onTap: () => _cancel(context, ref),
           ),
+        ],
+        if (approver) ...[
+          heightBx(h: 24),
+          _ApproverActions(detail: detail),
         ],
         heightBx(h: 16),
         customText(
@@ -227,8 +246,56 @@ class _Body extends ConsumerWidget {
   }
 }
 
+/// Approve and Reject for the approver (#47), when the waiting step is
+/// theirs; the "your own request" line on their own.
+class _ApproverActions extends ConsumerWidget {
+  const _ApproverActions({required this.detail});
+
+  final TimeCorrectionDetail detail;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final user = ref.watch(
+      authSessionProvider.select((s) => s.valueOrNull?.user),
+    );
+    final provider = timeCorrectionDecisionNotifierProvider(detail.id);
+    final decision = ref.watch(provider);
+
+    if (ApproverAccess.isOwnAttendance(detail, user?.employeeId) &&
+        detail.status == TimeCorrectionStatus.pending) {
+      return customText(
+        l10n.leaveOwnRequestNoActions,
+        fontSize: 13,
+        color: AppColors.subTitle,
+        alight: TextAlign.center,
+        maxLine: 3,
+      );
+    }
+    if (decision.notMine ||
+        !ApproverAccess.canDecideAttendance(detail, user)) {
+      return const SizedBox.shrink();
+    }
+    return ApprovalDecisionRow(
+      enabled: !decision.deciding,
+      onApprove: () => AttendanceDecisionFlow.approve(
+        context,
+        ref.read(provider.notifier),
+        detail,
+      ),
+      onReject: () => AttendanceDecisionFlow.reject(
+        context,
+        ref.read(provider.notifier),
+        detail,
+      ),
+    );
+  }
+}
+
 class _Header extends StatelessWidget {
-  const _Header();
+  const _Header({this.approver = false});
+
+  final bool approver;
 
   @override
   Widget build(BuildContext context) {
@@ -244,7 +311,11 @@ class _Header extends StatelessWidget {
             // "My requests" on its "forgot to scan" tab.
             onPressed: () => context.canPop()
                 ? context.pop()
-                : context.go(AppRoutes.timeCorrectionHistory),
+                : context.go(
+                    approver
+                        ? AppRoutes.approvals
+                        : AppRoutes.timeCorrectionHistory,
+                  ),
             icon: const Icon(
               Icons.arrow_back_ios_new,
               color: AppColors.textPrimary,

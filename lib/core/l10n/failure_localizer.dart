@@ -104,11 +104,12 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
     case 'offsiteTooEarlyCheckin':
       return l10n.offsiteTooEarlyCheckin;
     // An approver's decision on an off-site scan (#46).
-    case 'offsiteAlreadyDecided':
+    // Any attendance approval (#46, #47): `ApprovalDecisionCode`.
+    case 'apprAlreadyDecided':
       return l10n.apprAlreadyDecided;
-    case 'offsiteAnotherApprover':
+    case 'apprAnotherApprover':
       return l10n.apprAnotherApprover;
-    case 'offsiteCannotDecideOwn':
+    case 'apprCannotDecideOwn':
       return l10n.apprCannotDecideOwn;
     case 'offsiteApproveCheckinFirst':
       return l10n.apprApproveCheckinFirst;

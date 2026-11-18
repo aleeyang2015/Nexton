@@ -11,23 +11,33 @@ import 'time_correction_copy.dart';
 
 /// One request on the approvals page: who filed it and its status, the day,
 /// shift and correction type, the requested time(s), the reason, the
-/// evidence file, and — while it is pending — the approve / reject buttons.
+/// evidence file, and — when the waiting step is the approver's (#47) — the
+/// approve / reject buttons. On the approver's own request a line says
+/// someone else decides it.
 class TimeCorrectionApprovalCard extends StatelessWidget {
   final TimeCorrectionDetail request;
 
   /// Whether a decision on this request is in flight; disables the buttons.
   final bool deciding;
-  final VoidCallback onApprove;
-  final VoidCallback onReject;
+
+  /// Whether the waiting step is the approver's (`canDecideAttendance`).
+  final bool canDecide;
+
+  /// The approver's own request: a line instead of buttons.
+  final bool own;
+  final VoidCallback? onApprove;
+  final VoidCallback? onReject;
   final ValueChanged<String> onViewImage;
 
   const TimeCorrectionApprovalCard({
     super.key,
     required this.request,
-    required this.deciding,
-    required this.onApprove,
-    required this.onReject,
     required this.onViewImage,
+    this.deciding = false,
+    this.canDecide = false,
+    this.own = false,
+    this.onApprove,
+    this.onReject,
   });
 
   @override
@@ -62,12 +72,20 @@ class TimeCorrectionApprovalCard extends StatelessWidget {
             url: attachment,
             onView: () => onViewImage(attachment),
           ),
-        if (request.status == TimeCorrectionStatus.pending) ...[
+        if (own && request.status == TimeCorrectionStatus.pending) ...[
+          heightBx(h: 14),
+          customText(
+            l10n.leaveOwnRequestNoActions,
+            fontSize: 13,
+            color: AppColors.subTitle,
+            maxLine: 3,
+          ),
+        ] else if (canDecide && onApprove != null && onReject != null) ...[
           heightBx(h: 14),
           ApprovalDecisionRow(
             enabled: !deciding,
-            onApprove: onApprove,
-            onReject: onReject,
+            onApprove: onApprove!,
+            onReject: onReject!,
           ),
         ],
       ],
