@@ -680,5 +680,6 @@
   "relationshipOther": "ອື່ນໆ",
   "profilePhotoChanged": "ປ່ຽນຮູບໂປຣຟາຍແລ້ວ",
   "profilePhotoNotImage": "ໄຟລ໌ນີ້ບໍ່ແມ່ນຮູບ. ກະລຸນາເລືອກຮູບອື່ນ.",
-  "profilePhotoTooLarge": "ຮູບໃຫຍ່ເກີນໄປ. ກະລຸນາເລືອກຮູບອື່ນ."
+  "profilePhotoTooLarge": "ຮູບໃຫຍ່ເກີນໄປ. ກະລຸນາເລືອກຮູບອື່ນ.",
+  "forgotPasswordAskHr": "ກະລຸນາຕິດຕໍ່ HR ເພື່ອຕັ້ງລະຫັດຜ່ານໃໝ່ໃຫ້ທ່ານ."
 }

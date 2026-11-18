@@ -4,6 +4,7 @@ import '../../core/network/auth_interceptor.dart';
 import '../../core/network/network_providers.dart';
 import 'data/datasources/auth_local_data_source.dart';
 import 'data/datasources/auth_remote_data_source.dart';
+import 'data/datasources/remembered_email_store.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'domain/repositories/auth_repository.dart';
 import 'domain/usecases/change_password_usecase.dart';
@@ -30,6 +31,11 @@ final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
 });
 
 /// Exposed as the abstract type so consumers never see the impl
+/// The email "Remember my email" keeps (#60).
+final rememberedEmailStoreProvider = Provider<RememberedEmailStore>(
+  (ref) => RememberedEmailStore(ref.watch(sharedPreferencesProvider)),
+);
+
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepositoryImpl(
     remote: ref.watch(authRemoteDataSourceProvider),

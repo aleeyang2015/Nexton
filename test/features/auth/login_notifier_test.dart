@@ -1,6 +1,10 @@
 import 'dart:ui';
 
 import 'package:fake_async/fake_async.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:next_on/features/auth/data/datasources/remembered_email_store.dart';
+import 'package:next_on/core/network/network_providers.dart';
+import 'package:next_on/core/constants/app_constants.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
@@ -485,4 +489,151 @@ void main() {
       });
     });
   });
+
+  group('remember my email (#60)', () {
+    late SharedPreferences prefs;
+    late ProviderContainer c;
+    late ProviderSubscription<LoginState> form;
+
+    Future<void> open({Map<String, Object> saved = const {}}) async {
+      SharedPreferences.setMockInitialValues(saved);
+      prefs = await SharedPreferences.getInstance();
+      c = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+      );
+      addTearDown(c.dispose);
+      form = c.listen(loginNotifierProvider, (_, _) {});
+    }
+
+    LoginNotifier n() => c.read(loginNotifierProvider.notifier);
+    LoginState s() => c.read(loginNotifierProvider);
+    String? savedEmail() => prefs.getString(AppConstants.rememberedEmailKey);
+
+    void signInSucceeds() => repository.loginResult = Result.success(
+      AuthSession.signedIn(testUser()),
+    );
+
+    test('a saved email: the form starts with it, the box ticked', () async {
+      await open(saved: {AppConstants.rememberedEmailKey: 'noy.s@shop.la'});
+      expect(s().email, 'noy.s@shop.la');
+      expect(s().rememberMe, isTrue);
+    });
+
+    test('nothing saved: empty, the box unticked', () async {
+      await open();
+      expect(s().email, isEmpty);
+      expect(s().rememberMe, isFalse);
+    });
+
+    test('ticked and signed in: the email (trimmed) is kept, even though the '
+        'form is disposed during the sign-in', () async {
+      await open();
+      signInSucceeds();
+      // The router leaves /login as the session flips: the form goes.
+      repository.whileLoggingIn = () async {
+        form.close();
+        // Riverpod drops the unwatched form a moment later: let it.
+        await pumpEventQueue();
+      };
+      n()
+        ..emailChanged('  noy.s@shop.la ')
+        ..passwordChanged('password1')
+        ..toggleRememberMe();
+
+      final notifier = n();
+      await notifier.submit();
+      await pumpEventQueue();
+
+      // Really gone during the sign-in, as on the phone.
+      expect(c.exists(loginNotifierProvider), isFalse);
+      expect(savedEmail(), 'noy.s@shop.la');
+    });
+
+    test('unticked and signed in: the saved email is forgotten', () async {
+      await open(saved: {AppConstants.rememberedEmailKey: 'noy.s@shop.la'});
+      signInSucceeds();
+      n()
+        ..passwordChanged('password1')
+        ..toggleRememberMe();
+      expect(s().rememberMe, isFalse);
+
+      await n().submit();
+      await pumpEventQueue();
+
+      expect(savedEmail(), isNull);
+    });
+
+    test('a wrong password, ticked: nothing new is saved', () async {
+      await open(saved: {AppConstants.rememberedEmailKey: 'old@shop.la'});
+      repository.loginResult = const Result.failure(
+        Failure.auth(message: 'Invalid email or password'),
+      );
+      n()
+        ..emailChanged('new@shop.la')
+        ..passwordChanged('wrong-one');
+
+      await n().submit();
+      await pumpEventQueue();
+
+      expect(savedEmail(), 'old@shop.la');
+    });
+
+    test('a failure, unticked: the saved email stays too', () async {
+      await open(saved: {AppConstants.rememberedEmailKey: 'old@shop.la'});
+      repository.loginResult = const Result.failure(
+        Failure.network(message: 'No internet connection'),
+      );
+      n()
+        ..passwordChanged('password1')
+        ..toggleRememberMe();
+
+      await n().submit();
+      await pumpEventQueue();
+
+      expect(savedEmail(), 'old@shop.la');
+    });
+
+    test('no store at all (no preferences): the login still works', () async {
+      // The suite's own container has no SharedPreferences.
+      repository.loginResult = Result.success(AuthSession.signedIn(testUser()));
+      notifier()
+        ..emailChanged('noy.s@shop.la')
+        ..passwordChanged('password1')
+        ..toggleRememberMe();
+      await notifier().submit();
+      expect(state().session, isNotNull);
+    });
+
+    test('a store that fails to save does not break the login', () async {
+      c = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          rememberedEmailStoreProvider.overrideWithValue(_FailingStore()),
+        ],
+      );
+      addTearDown(c.dispose);
+      c.listen(loginNotifierProvider, (_, _) {});
+      signInSucceeds();
+      n()
+        ..emailChanged('noy.s@shop.la')
+        ..passwordChanged('password1')
+        ..toggleRememberMe();
+
+      await n().submit();
+      expect(s().session, isNotNull);
+    });
+  });
+}
+
+/// A store whose phone storage refuses every write.
+class _FailingStore extends RememberedEmailStore {
+  _FailingStore() : super(_ThrowingPrefs());
+}
+
+class _ThrowingPrefs implements SharedPreferences {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw Exception('disk full');
 }

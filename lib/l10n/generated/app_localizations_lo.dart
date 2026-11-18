@@ -2199,4 +2199,8 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get profilePhotoTooLarge => 'ຮູບໃຫຍ່ເກີນໄປ. ກະລຸນາເລືອກຮູບອື່ນ.';
+
+  @override
+  String get forgotPasswordAskHr =>
+      'ກະລຸນາຕິດຕໍ່ HR ເພື່ອຕັ້ງລະຫັດຜ່ານໃໝ່ໃຫ້ທ່ານ.';
 }

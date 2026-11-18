@@ -4045,6 +4045,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This photo is too large. Please choose another.'**
   String get profilePhotoTooLarge;
+
+  /// No description provided for @forgotPasswordAskHr.
+  ///
+  /// In en, this message translates to:
+  /// **'Please ask your HR to reset your password.'**
+  String get forgotPasswordAskHr;
 }
 
 class _AppLocalizationsDelegate

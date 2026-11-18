@@ -7,6 +7,8 @@ import '../../../../core/network/api_error_mapper.dart';
 import '../../../../core/utils/clock_provider.dart';
 import '../../domain/auth_failure_x.dart';
 import '../../domain/usecases/login_usecase.dart';
+import '../../auth_providers.dart';
+import '../../data/datasources/remembered_email_store.dart';
 import 'auth_session_notifier.dart';
 import 'login_state.dart';
 
@@ -40,7 +42,21 @@ class LoginNotifier extends AutoDisposeNotifier<LoginState> {
       _disposed = true;
       _waitTimer?.cancel();
     });
-    return const LoginState();
+    // "Remember my email" (#60): the saved email, with the box ticked.
+    final saved = _store?.read();
+    return saved == null
+        ? const LoginState()
+        : LoginState(email: saved, rememberMe: true);
+  }
+
+  /// The remembered-email store, or null when it cannot be built (no
+  /// SharedPreferences, as in a test): the form then simply starts empty.
+  RememberedEmailStore? get _store {
+    try {
+      return ref.read(rememberedEmailStoreProvider);
+    } catch (_) {
+      return null;
+    }
   }
 
   void emailChanged(String value) {
@@ -76,9 +92,22 @@ class LoginNotifier extends AutoDisposeNotifier<LoginState> {
       submission: const AsyncValue.loading(),
     );
 
+    // Read now: a successful login takes the App off this screen, which
+    // disposes this notifier before the login call returns, and `ref` is
+    // gone then.
+    final store = _store;
+    final remember = state.rememberMe;
+    final email = state.email;
+
     final result = await ref
         .read(authSessionProvider.notifier)
-        .login(email: state.email, password: state.password);
+        .login(email: email, password: state.password);
+
+    // Only a sign-in that worked changes what is remembered (#60), and it
+    // must happen here, before the disposed check below.
+    if (result.isSuccess && store != null) {
+      unawaited(remember ? store.save(email) : store.clear());
+    }
 
     if (_disposed) return;
 
