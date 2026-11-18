@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#48 IMPLEMENTED on its branch, waiting for the owner's say to merge; #47 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#48 merged, `fbeb16e`; next is #49, not started). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 
 | | |
 |---|---|
-| Last finished work order | 46 of 60: #47, approvals: "forgot to scan" requests for heads and HR |
-| Next work order | **47 of 60: #48**, approvals: OT waiting and decided lists for heads. IMPLEMENTED on `48-ot-approvals-lists` (`11db106`, `e1cd94d`), pushed, reviewed; waiting for the owner's say to merge. Then 48 of 60: #49 |
-| `origin/main` | `227a9b3` "Merge branch '47-correction-approvals' into main" (2026-11-18) |
+| Last finished work order | 47 of 60: #48, approvals: OT waiting and decided lists for heads |
+| Next work order | **48 of 60: #49**, the OT decisions for heads. Not started, no branch, no plan shown yet |
+| `origin/main` | `fbeb16e` "Merge branch '48-ot-approvals-lists' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -74,7 +74,10 @@ issue N to main directly". Test count went from 1,261 to 1,944. Day log: `WORK_L
 
 ### Waiting for the owner
 
-1. **#47 merged** (`227a9b3`) on the owner's say, 2026-11-18. Item 11's direct link to
+1. **#48 merged** (`fbeb16e`) on the owner's say, 2026-11-18. Two questions for the owner, unanswered: cap the automatic
+   next-page fetch (an HR login that is also a head fetches every page on opening the OT tab), or `per_page=100`? And
+   read OT wall clocks as Lao time (+07) for "waiting n h" (with #27's question)?
+   **#47 merged** (`227a9b3`) on the owner's say, 2026-11-18. Item 11's direct link to
    `/attendance/time-correction/approvals` is settled (Approvals tab, behind the gate).
    **#46 merged** (`afedb4f`) on the owner's say, 2026-11-18. Check a real `my-approvals?status=pending` payload on
    `nexton-demo`: does a waiting dept-head step carry `approver.id` (an employee id)?
@@ -177,8 +180,12 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#48 (work order 47 of 60), "approvals: OT waiting and decided lists for heads": IMPLEMENTED, 2026-11-18, waiting
-   for the owner's say to merge.** Owner said go on 2026-11-18. Branch `48-ot-approvals-lists` (pushed): `11db106`
+1. **Next: #49 (work order 48 of 60), the OT decisions for heads (adds Approve / Reject on #48's rows and #30's page).**
+   Not started: no branch, no plan shown yet. Read the issue and its comments, plan, wait for "go".
+
+   **#48 (work order 47 of 60), "approvals: OT waiting and decided lists for heads": MERGED (`fbeb16e`), 2026-11-18.**
+   Merged on the owner's "push issue 48 to main directly"; gates green on the merge commit (analyze 1 warning already on
+   `main`; 2,089 tests passed; debug APK builds). Owner said go on 2026-11-18. Branch `48-ot-approvals-lists` (pushed): `11db106`
    (feature), `e1cd94d` (review fixes). Gates on `e1cd94d`: analyze 1 warning already on `main`; `flutter test` 2,089
    passed; debug APK builds.
    - Data: `GET ot-requests/my-approvals?status=&page=&per_page=` (offset only, never `limit`), always pending / approved /
@@ -888,7 +895,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 44 | #45 | attendance: my "forgot to scan" requests — list, detail, cancel | `45-my-correction-requests` | `60fe12f`, `f0d87d0` | merged to main directly (`0aa9eb1`) | analyze: 1 warning already on `main`; `flutter test`: 1,987 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 45 | #46 | approvals: off-site scans for heads and HR | `46-offsite-approvals` | `9aa91f0`, `961cfb5` | merged to main directly (`afedb4f`) | analyze: 1 warning already on `main`; `flutter test`: 2,031 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 46 | #47 | approvals: "forgot to scan" requests for heads and HR | `47-correction-approvals` | `3192f3e`, `9a86936` | merged to main directly (`227a9b3`) | analyze: 1 warning already on `main`; `flutter test`: 2,067 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 47 | #48 | approvals: OT waiting and decided lists for heads | `48-ot-approvals-lists` | `11db106`, `e1cd94d` | none yet | analyze: 1 warning already on `main`; `flutter test`: 2,089 passed, 0 failed; debug APK builds | IMPLEMENTED, waiting for the owner's say to merge; phone check on `nexton-demo` pending |
+| 47 | #48 | approvals: OT waiting and decided lists for heads | `48-ot-approvals-lists` | `11db106`, `e1cd94d` | merged to main directly (`fbeb16e`) | analyze: 1 warning already on `main`; `flutter test`: 2,089 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 48 | #49 | approvals: approve or reject OT, and cancel an approved OT before it starts | | | | | NOT STARTED |
 | 49 | #50 | approvals: my team's leave and "forgot to scan" history (read-only) | | | | | NOT STARTED |
 | 50 | #51 | push: Firebase set up for nexton.hr on Android and iOS | | | | | NOT STARTED |
