@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'personal_info.dart';
 import 'shift_detail.dart';
 
 /// The signed-in user's Core HR employee record, as the rest of the app sees
@@ -36,6 +37,9 @@ class EmployeeProfile extends Equatable {
   /// offers Ask, and the server's refusal explains.
   final bool? canAskOt;
 
+  /// The read-only personal page's record (#58).
+  final EmployeePersonalInfo personal;
+
   const EmployeeProfile({
     required this.id,
     required this.fullName,
@@ -47,6 +51,7 @@ class EmployeeProfile extends Equatable {
     this.shiftNameLo,
     this.shiftDetails = const [],
     this.canAskOt,
+    this.personal = const EmployeePersonalInfo(),
   });
 
   @override
@@ -61,5 +66,6 @@ class EmployeeProfile extends Equatable {
     shiftNameLo,
     shiftDetails,
     canAskOt,
+    personal,
   ];
 }

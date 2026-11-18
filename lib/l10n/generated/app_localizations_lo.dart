@@ -2133,4 +2133,61 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get maintenanceDefaultBody => 'ລະບົບກຳລັງປັບປຸງ. ກະລຸນາລອງໃໝ່ພາຍຫຼັງ.';
+
+  @override
+  String get personalName => 'ຊື່';
+
+  @override
+  String get personalNameLo => 'ຊື່ (ລາວ)';
+
+  @override
+  String get personalEmployeeNumber => 'ລະຫັດພະນັກງານ';
+
+  @override
+  String get personalMobilePhone => 'ໂທລະສັບມືຖື';
+
+  @override
+  String get personalWorkPhone => 'ໂທລະສັບບ່ອນເຮັດວຽກ';
+
+  @override
+  String get personalPhoneExt => 'ເບີຕໍ່';
+
+  @override
+  String get personalHomePhone => 'ໂທລະສັບບ້ານ';
+
+  @override
+  String get personalDepartment => 'ພະແນກ';
+
+  @override
+  String get personalManager => 'ຫົວໜ້າ';
+
+  @override
+  String get personalHireDate => 'ວັນເລີ່ມງານ';
+
+  @override
+  String get personalEmergencyContacts => 'ຕິດຕໍ່ສຸກເສີນ';
+
+  @override
+  String get personalNoEmergencyContacts => 'ຍັງບໍ່ມີຂໍ້ມູນ';
+
+  @override
+  String get personalAskHrToFix => 'ຖ້າຂໍ້ມູນບໍ່ຖືກຕ້ອງ, ກະລຸນາແຈ້ງ HR.';
+
+  @override
+  String get relationshipSpouse => 'ຄູ່ສົມລົດ';
+
+  @override
+  String get relationshipParent => 'ພໍ່/ແມ່';
+
+  @override
+  String get relationshipSibling => 'ອ້າຍ/ເອື້ອຍ/ນ້ອງ';
+
+  @override
+  String get relationshipChild => 'ລູກ';
+
+  @override
+  String get relationshipFriend => 'ໝູ່';
+
+  @override
+  String get relationshipOther => 'ອື່ນໆ';
 }

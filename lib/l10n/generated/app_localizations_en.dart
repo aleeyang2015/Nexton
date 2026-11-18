@@ -2149,4 +2149,61 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get maintenanceDefaultBody =>
       'NEXTON is being upgraded. Please try again later.';
+
+  @override
+  String get personalName => 'Name';
+
+  @override
+  String get personalNameLo => 'Name (Lao)';
+
+  @override
+  String get personalEmployeeNumber => 'Employee number';
+
+  @override
+  String get personalMobilePhone => 'Mobile phone';
+
+  @override
+  String get personalWorkPhone => 'Work phone';
+
+  @override
+  String get personalPhoneExt => 'Ext.';
+
+  @override
+  String get personalHomePhone => 'Home phone';
+
+  @override
+  String get personalDepartment => 'Department';
+
+  @override
+  String get personalManager => 'Manager';
+
+  @override
+  String get personalHireDate => 'Hire date';
+
+  @override
+  String get personalEmergencyContacts => 'Emergency contacts';
+
+  @override
+  String get personalNoEmergencyContacts => 'None yet';
+
+  @override
+  String get personalAskHrToFix => 'If something is wrong, ask HR to fix it.';
+
+  @override
+  String get relationshipSpouse => 'Spouse';
+
+  @override
+  String get relationshipParent => 'Parent';
+
+  @override
+  String get relationshipSibling => 'Sibling';
+
+  @override
+  String get relationshipChild => 'Child';
+
+  @override
+  String get relationshipFriend => 'Friend';
+
+  @override
+  String get relationshipOther => 'Other';
 }

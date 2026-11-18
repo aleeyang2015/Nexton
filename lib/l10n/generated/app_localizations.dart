@@ -3913,6 +3913,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'NEXTON is being upgraded. Please try again later.'**
   String get maintenanceDefaultBody;
+
+  /// No description provided for @personalName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get personalName;
+
+  /// No description provided for @personalNameLo.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (Lao)'**
+  String get personalNameLo;
+
+  /// No description provided for @personalEmployeeNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee number'**
+  String get personalEmployeeNumber;
+
+  /// No description provided for @personalMobilePhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile phone'**
+  String get personalMobilePhone;
+
+  /// No description provided for @personalWorkPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Work phone'**
+  String get personalWorkPhone;
+
+  /// No description provided for @personalPhoneExt.
+  ///
+  /// In en, this message translates to:
+  /// **'Ext.'**
+  String get personalPhoneExt;
+
+  /// No description provided for @personalHomePhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Home phone'**
+  String get personalHomePhone;
+
+  /// No description provided for @personalDepartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Department'**
+  String get personalDepartment;
+
+  /// No description provided for @personalManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager'**
+  String get personalManager;
+
+  /// No description provided for @personalHireDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Hire date'**
+  String get personalHireDate;
+
+  /// No description provided for @personalEmergencyContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency contacts'**
+  String get personalEmergencyContacts;
+
+  /// No description provided for @personalNoEmergencyContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'None yet'**
+  String get personalNoEmergencyContacts;
+
+  /// No description provided for @personalAskHrToFix.
+  ///
+  /// In en, this message translates to:
+  /// **'If something is wrong, ask HR to fix it.'**
+  String get personalAskHrToFix;
+
+  /// No description provided for @relationshipSpouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Spouse'**
+  String get relationshipSpouse;
+
+  /// No description provided for @relationshipParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent'**
+  String get relationshipParent;
+
+  /// No description provided for @relationshipSibling.
+  ///
+  /// In en, this message translates to:
+  /// **'Sibling'**
+  String get relationshipSibling;
+
+  /// No description provided for @relationshipChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Child'**
+  String get relationshipChild;
+
+  /// No description provided for @relationshipFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend'**
+  String get relationshipFriend;
+
+  /// No description provided for @relationshipOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get relationshipOther;
 }
 
 class _AppLocalizationsDelegate
