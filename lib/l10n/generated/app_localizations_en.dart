@@ -1251,13 +1251,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timeCorrectionApprovalsMenu => 'Approve Time Corrections';
 
   @override
-  String get timeCorrectionApprovalsTitle => 'Time Correction Requests';
-
-  @override
-  String get timeCorrectionApprovalsSearchHint =>
-      'Search by employee name or ID (EMP-007)...';
-
-  @override
   String get timeCorrectionApprovalStatusPending => 'Awaiting review';
 
   @override
@@ -1313,17 +1306,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timeCorrectionApprovalReject => 'Reject';
 
   @override
-  String get timeCorrectionApprovalApproved => 'Request approved';
-
-  @override
-  String get timeCorrectionApprovalRejected => 'Request rejected';
-
-  @override
   String get timeCorrectionApprovalsLoadFailed =>
       'Couldn\'t load the correction requests.';
-
-  @override
-  String get timeCorrectionApprovalsEmpty => 'No correction requests';
 
   @override
   String get approvalsMenu => 'Approvals';
@@ -1566,12 +1550,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offsiteApprovalNoScanDate => 'No clock-in date';
-
-  @override
-  String get offsiteApprovalApproved => 'Request approved';
-
-  @override
-  String get offsiteApprovalRejected => 'Request rejected';
 
   @override
   String get offsiteApprovalsLoadFailed =>

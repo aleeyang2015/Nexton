@@ -45,11 +45,15 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
   final TimeCorrectionRecord? initial;
   final bool approver;
 
+  /// The approver list's row, shown while the request loads (#47).
+  final TimeCorrectionDetail? preview;
+
   const TimeCorrectionHistoryDetailPage({
     super.key,
     required this.id,
     this.initial,
     this.approver = false,
+    this.preview,
   });
 
   @override
@@ -58,6 +62,9 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
     final provider = timeCorrectionDetailNotifierProvider(id);
     final state = ref.watch(provider);
     final detail = state.detail;
+    // The list row while the page's own copy loads (approver, #47); a load
+    // that failed says so rather than leave the row passing for it.
+    final shown = detail.valueOrNull ?? (detail.hasError ? null : preview);
     final error = detail.error;
     final gone = TimeCorrectionDetailNotifier.isGone(error);
     final notLinked = error is Failure && error.isEmployeeNotLinked;
@@ -78,11 +85,11 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(15, 12, 15, 32),
                     children: [
-                      if (detail.hasValue && !gone)
+                      if (shown != null && !gone)
                         _Body(
                           id: id,
                           approver: approver,
-                          detail: detail.requireValue,
+                          detail: shown,
                           cancelling: state.cancelling,
                           downloading: state.downloading,
                         )
@@ -192,18 +199,17 @@ class _Body extends ConsumerWidget {
             onTap: () => _cancel(context, ref),
           ),
         ],
-        if (approver) ...[
-          heightBx(h: 24),
-          _ApproverActions(detail: detail),
+        if (approver) ...[heightBx(h: 24), _ApproverActions(detail: detail)],
+        if (!approver) ...[
+          heightBx(h: 16),
+          customText(
+            l10n.timeCorrectionContactNote,
+            fontSize: 13,
+            color: AppColors.secondaryTxt,
+            alight: TextAlign.center,
+            maxLine: 2,
+          ),
         ],
-        heightBx(h: 16),
-        customText(
-          l10n.timeCorrectionContactNote,
-          fontSize: 13,
-          color: AppColors.secondaryTxt,
-          alight: TextAlign.center,
-          maxLine: 2,
-        ),
       ],
     );
   }
@@ -212,7 +218,9 @@ class _Body extends ConsumerWidget {
   /// it now is: cancelled, or — "already decided" — as it was decided.
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
-    final notifier = ref.read(timeCorrectionDetailNotifierProvider(id).notifier);
+    final notifier = ref.read(
+      timeCorrectionDetailNotifierProvider(id).notifier,
+    );
     final confirmed = await AppDialog.ask(
       context,
       title: l10n.leaveCancelAction,
@@ -273,6 +281,7 @@ class _ApproverActions extends ConsumerWidget {
       );
     }
     if (decision.notMine ||
+        decision.decided ||
         !ApproverAccess.canDecideAttendance(detail, user)) {
       return const SizedBox.shrink();
     }
@@ -313,7 +322,7 @@ class _Header extends StatelessWidget {
                 ? context.pop()
                 : context.go(
                     approver
-                        ? AppRoutes.approvals
+                        ? AppRoutes.timeCorrectionApprovals
                         : AppRoutes.timeCorrectionHistory,
                   ),
             icon: const Icon(

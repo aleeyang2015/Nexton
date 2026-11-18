@@ -16,7 +16,12 @@ class AttendanceDecisionState {
     this.deciding = false,
     this.rejectOnly = false,
     this.notMine = false,
+    this.decided = false,
   });
+
+  /// The approver's decision went through: no buttons any more, even when
+  /// the request could not be read again yet (no signal).
+  final bool decided;
 
   /// A decision is on its way: the buttons are off.
   final bool deciding;
@@ -32,10 +37,12 @@ class AttendanceDecisionState {
     bool? deciding,
     bool? rejectOnly,
     bool? notMine,
+    bool? decided,
   }) => AttendanceDecisionState(
     deciding: deciding ?? this.deciding,
     rejectOnly: rejectOnly ?? this.rejectOnly,
     notMine: notMine ?? this.notMine,
+    decided: decided ?? this.decided,
   );
 }
 
@@ -124,6 +131,7 @@ abstract class AttendanceDecisionNotifier<T extends AttendanceApprovalRequest>
       final result = await action();
       final failure = result.failureOrNull;
       if (failure == null) {
+        if (!_disposed) state = state.copyWith(decided: true);
         _leaveWaiting();
         if (staysAfterDecision) await _reloadPage();
         return result;

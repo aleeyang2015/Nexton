@@ -37,8 +37,7 @@ class OffsiteErrorCode {
   /// them. This is the one refusal they don't share: the final approval writes
   /// the punch, and the session guard can still turn that down (the backend
   /// rolls the approval back when it does).
-  static const String tokenTooEarlyCheckin =
-      ApprovalDecisionCode.tokenTooEarlyCheckin;
+  static const String tokenTooEarlyCheckin = 'offsiteTooEarlyCheckin';
 
   /// `CANNOT_CANCEL` has no counterpart in the correction workflow — that one
   /// withdraws from a detail page that has already re-read the request — so it
@@ -74,6 +73,7 @@ class OffsiteErrorCode {
   /// table, and the two refusals only an off-site check-out raises.
   static const Map<String, String> decisionTokenByWire = {
     ...ApprovalDecisionCode.tokenByWire,
+    tooEarlyCheckin: tokenTooEarlyCheckin,
     checkinPendingApproval: tokenApproveCheckinFirst,
     checkinNotApproved: tokenCheckinNotApproved,
   };

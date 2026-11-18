@@ -131,6 +131,30 @@ void main() {
       ));
     });
 
+    test('a first-page reload that fails while a next page is on its way: '
+        'no spinner left behind, the list can go on', () async {
+      repository.timeCorrectionApprovalsPages![TimeCorrectionStatus.pending] = [
+        Result.success(page([correctionForApproval()], next: 'c1')),
+        Result.success(page([correctionForApproval(id: 'tc-2')])),
+        const Result.failure(Failure.network(message: 'offline')),
+      ];
+      await start();
+      final lists = container.read(
+        timeCorrectionApprovalsNotifierProvider.notifier,
+      );
+
+      unawaited(lists.loadMorePending());
+      unawaited(lists.refresh());
+      await pumpEventQueue();
+
+      final pending = container
+          .read(timeCorrectionApprovalsNotifierProvider)
+          .pending;
+      expect(pending.hasError, isTrue);
+      expect(pending.value!.loadingMore, isFalse);
+      expect(pending.value!.canLoadMore, isTrue);
+    });
+
     test('the next waiting page is asked for with the cursor, once', () async {
       await start();
       final lists = container.read(
@@ -337,6 +361,17 @@ void main() {
 
       expect(find.text(en.timeCorrectionApprovalApprove), findsNothing);
     });
+
+    testWidgets('the list could not load: the approver\'s words, not the '
+        'employee\'s', (tester) async {
+      repository.timeCorrectionApprovalsPages![TimeCorrectionStatus.pending] = [
+        const Result.failure(Failure.network(message: 'offline')),
+      ];
+      await pumpTab(tester);
+
+      expect(find.text(en.timeCorrectionApprovalsLoadFailed), findsOneWidget);
+      expect(find.text(en.timeCorrectionHistoryLoadFailed), findsNothing);
+    });
   });
 
   group('the request\'s approver page', () {
@@ -382,9 +417,8 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('Approve and Reject when the step is mine, never Cancel', (
-      tester,
-    ) async {
+    testWidgets('Approve and Reject when the step is mine, never Cancel nor '
+        'the employee\'s contact note', (tester) async {
       repository.timeCorrectionDetailResults = [
         Result.success(correctionForApproval()),
       ];
@@ -393,6 +427,24 @@ void main() {
       expect(find.text(en.timeCorrectionApprovalApprove), findsOneWidget);
       expect(find.text(en.timeCorrectionApprovalReject), findsOneWidget);
       expect(find.text(en.leaveCancelAction), findsNothing);
+      expect(find.text(en.timeCorrectionContactNote), findsNothing);
+    });
+
+    testWidgets('approved, but the page could not be read again (no signal): '
+        'the buttons go anyway, so no second approve', (tester) async {
+      repository.timeCorrectionDetailResults = [
+        Result.success(correctionForApproval()),
+        const Result.failure(Failure.network(message: 'offline')),
+      ];
+      await open(tester);
+
+      await tester.tap(find.text(en.timeCorrectionApprovalApprove));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(en.timeCorrectionApprovalApprove).last);
+      await tester.pumpAndSettle();
+
+      expect(repository.approvedTimeCorrections, hasLength(1));
+      expect(find.text(en.timeCorrectionApprovalApprove), findsNothing);
     });
 
     testWidgets('approved: the page stays, read again, and shows the '

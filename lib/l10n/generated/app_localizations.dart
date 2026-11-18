@@ -2342,18 +2342,6 @@ abstract class AppLocalizations {
   /// **'Approve Time Corrections'**
   String get timeCorrectionApprovalsMenu;
 
-  /// No description provided for @timeCorrectionApprovalsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Time Correction Requests'**
-  String get timeCorrectionApprovalsTitle;
-
-  /// No description provided for @timeCorrectionApprovalsSearchHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Search by employee name or ID (EMP-007)...'**
-  String get timeCorrectionApprovalsSearchHint;
-
   /// No description provided for @timeCorrectionApprovalStatusPending.
   ///
   /// In en, this message translates to:
@@ -2456,29 +2444,11 @@ abstract class AppLocalizations {
   /// **'Reject'**
   String get timeCorrectionApprovalReject;
 
-  /// No description provided for @timeCorrectionApprovalApproved.
-  ///
-  /// In en, this message translates to:
-  /// **'Request approved'**
-  String get timeCorrectionApprovalApproved;
-
-  /// No description provided for @timeCorrectionApprovalRejected.
-  ///
-  /// In en, this message translates to:
-  /// **'Request rejected'**
-  String get timeCorrectionApprovalRejected;
-
   /// No description provided for @timeCorrectionApprovalsLoadFailed.
   ///
   /// In en, this message translates to:
   /// **'Couldn\'t load the correction requests.'**
   String get timeCorrectionApprovalsLoadFailed;
-
-  /// No description provided for @timeCorrectionApprovalsEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'No correction requests'**
-  String get timeCorrectionApprovalsEmpty;
 
   /// No description provided for @approvalsMenu.
   ///
@@ -2917,18 +2887,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No clock-in date'**
   String get offsiteApprovalNoScanDate;
-
-  /// No description provided for @offsiteApprovalApproved.
-  ///
-  /// In en, this message translates to:
-  /// **'Request approved'**
-  String get offsiteApprovalApproved;
-
-  /// No description provided for @offsiteApprovalRejected.
-  ///
-  /// In en, this message translates to:
-  /// **'Request rejected'**
-  String get offsiteApprovalRejected;
 
   /// No description provided for @offsiteApprovalsLoadFailed.
   ///

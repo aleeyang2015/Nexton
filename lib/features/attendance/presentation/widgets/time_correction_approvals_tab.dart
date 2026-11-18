@@ -22,7 +22,7 @@ class TimeCorrectionApprovalsTab extends StatelessWidget {
       lists: timeCorrectionApprovalsNotifierProvider,
       decisionOf: timeCorrectionDecisionNotifierProvider.call,
       routeOf: AppRoutes.approvalCorrection,
-      loadFailedText: (l10n) => l10n.timeCorrectionHistoryLoadFailed,
+      loadFailedText: (l10n) => l10n.timeCorrectionApprovalsLoadFailed,
       cardOf: (context, request, actions) => TimeCorrectionApprovalCard(
         request: request,
         deciding: actions.deciding,

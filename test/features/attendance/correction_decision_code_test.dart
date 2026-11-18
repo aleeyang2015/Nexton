@@ -71,6 +71,7 @@ void main() {
   test('one table: off-site\'s holds every shared entry', () {
     for (final entry in ApprovalDecisionCode.tokenByWire.entries) {
       expect(OffsiteErrorCode.decisionTokenByWire[entry.key], entry.value);
+      expect(ApprovalDecisionCode.correctionTokenByWire[entry.key], entry.value);
     }
     // No check-in refusals for a correction.
     expect(
@@ -84,6 +85,14 @@ void main() {
     final failure = await approveFails();
     expect(failure, isNot(isA<AuthFailure>()));
     expect(failure.localize(en), en.apprAnotherApprover);
+  });
+
+  test('too early: #8\'s "it isn\'t time to clock in yet", never "Approved"',
+      () async {
+    refuse(409, 'TOO_EARLY_CHECKIN');
+    final text = (await approveFails()).localize(en);
+    expect(text, en.ruleTooEarlyCheckin);
+    expect(text, isNot(contains('Approved')));
   });
 
   test('"someone already decided" in the issue\'s words', () async {

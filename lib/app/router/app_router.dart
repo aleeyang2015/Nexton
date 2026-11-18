@@ -14,6 +14,7 @@ import '../../features/attendance/presentation/pages/offsite_request_detail_page
 import '../../features/attendance/presentation/pages/offsite_request_page.dart';
 import '../../features/profile/domain/entities/shift_detail.dart';
 import '../../features/attendance/presentation/pages/time_correction_history_detail_page.dart';
+import '../../features/attendance/domain/entities/time_correction_detail.dart';
 import '../../features/attendance/domain/entities/time_correction_record.dart';
 import '../../features/attendance/presentation/pages/time_correction_request_page.dart';
 import '../../features/auth/domain/entities/auth_session.dart';
@@ -217,18 +218,25 @@ final List<GoRoute> approvalsRoutes = [
       child: ApprovalsPage(initialTab: ApprovalsTab.timeCorrection),
     ),
   ),
-  // One "forgot to scan" request for its approver (#47). The page loads
-  // it by id; the row in `extra` is not a list row of that page's kind.
+  // One "forgot to scan" request for its approver (#47); `extra` may carry
+  // the list's row, shown while the page loads its own copy.
   GoRoute(
     path: AppRoutes.approvalCorrectionDetail,
     name: 'approvalCorrection',
-    builder: (context, state) => _ApprovalsGate(
-      attendanceOnly: true,
-      child: TimeCorrectionHistoryDetailPage(
-        id: state.pathParameters['id'] ?? '',
-        approver: true,
-      ),
-    ),
+    builder: (context, state) {
+      final id = state.pathParameters['id'] ?? '';
+      final extra = state.extra;
+      return _ApprovalsGate(
+        attendanceOnly: true,
+        child: TimeCorrectionHistoryDetailPage(
+          id: id,
+          approver: true,
+          preview: extra is TimeCorrectionDetail && extra.id == id
+              ? extra
+              : null,
+        ),
+      );
+    },
   ),
   // One off-site scan for its approver (#46); `extra` may carry the row.
   GoRoute(

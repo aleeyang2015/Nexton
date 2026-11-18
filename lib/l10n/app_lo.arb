@@ -396,8 +396,6 @@
   "timeCorrectionAttachmentSaveFailed": "ດາວໂຫຼດໄຟລ໌ບໍ່ສຳເລັດ.",
 
   "timeCorrectionApprovalsMenu": "ອະນຸມັດແກ້ໄຂເວລາ",
-  "timeCorrectionApprovalsTitle": "ຄຳຮ້ອງແກ້ໄຂເວລາ",
-  "timeCorrectionApprovalsSearchHint": "ຄົ້ນຫາຊື່ພະນັກງານ ຫຼື ລະຫັດ (EMP-007)...",
   "timeCorrectionApprovalStatusPending": "ລໍຖ້າກວດສອບ",
   "timeCorrectionApprovalDepartment": "ພະແນກ: {name}",
   "timeCorrectionApprovalShift": "ກະ {name} ({hours})",
@@ -415,10 +413,7 @@
   "timeCorrectionApprovalViewImage": "ເບິ່ງຮູບ",
   "timeCorrectionApprovalApprove": "ອະນຸມັດ",
   "timeCorrectionApprovalReject": "ປະຕິເສດ",
-  "timeCorrectionApprovalApproved": "ອະນຸມັດຄຳຮ້ອງແລ້ວ",
-  "timeCorrectionApprovalRejected": "ປະຕິເສດຄຳຮ້ອງແລ້ວ",
   "timeCorrectionApprovalsLoadFailed": "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງແກ້ໄຂເວລາໄດ້.",
-  "timeCorrectionApprovalsEmpty": "ບໍ່ມີຄຳຮ້ອງແກ້ໄຂເວລາ",
 
   "approvalsMenu": "ອະນຸມັດ",
   "apprApproveConfirmTitle": "ອະນຸມັດຄຳຮ້ອງນີ້ບໍ?",
@@ -493,8 +488,6 @@
   "offsiteApprovalPosition": "ຕຳແໜ່ງ",
   "offsiteApprovalNoFix": "ບໍ່ມີຕຳແໜ່ງ",
   "offsiteApprovalNoScanDate": "ບໍ່ມີວັນທີລົງເວລາ",
-  "offsiteApprovalApproved": "ອະນຸມັດຄຳຮ້ອງແລ້ວ",
-  "offsiteApprovalRejected": "ປະຕິເສດຄຳຮ້ອງແລ້ວ",
   "offsiteApprovalsLoadFailed": "ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງລົງເວລານອກພື້ນທີ່ໄດ້.",
   "offsiteApprovalsEmpty": "ບໍ່ມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່",
   "offsiteTooEarlyCheckin": "ອະນຸມັດແລ້ວ ແຕ່ຍັງບໍ່ເຖິງເວລາລົງເວລາເຂົ້າ — ຍັງບໍ່ໄດ້ບັນທຶກເວລາ",

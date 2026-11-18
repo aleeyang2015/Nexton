@@ -111,6 +111,8 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.apprAnotherApprover;
     case 'apprCannotDecideOwn':
       return l10n.apprCannotDecideOwn;
+    case 'apprTooEarlyCheckin':
+      return l10n.ruleTooEarlyCheckin;
     case 'offsiteApproveCheckinFirst':
       return l10n.apprApproveCheckinFirst;
     case 'offsiteCheckinNotApproved':

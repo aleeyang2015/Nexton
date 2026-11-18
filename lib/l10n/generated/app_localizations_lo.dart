@@ -1240,13 +1240,6 @@ class AppLocalizationsLo extends AppLocalizations {
   String get timeCorrectionApprovalsMenu => 'ອະນຸມັດແກ້ໄຂເວລາ';
 
   @override
-  String get timeCorrectionApprovalsTitle => 'ຄຳຮ້ອງແກ້ໄຂເວລາ';
-
-  @override
-  String get timeCorrectionApprovalsSearchHint =>
-      'ຄົ້ນຫາຊື່ພະນັກງານ ຫຼື ລະຫັດ (EMP-007)...';
-
-  @override
   String get timeCorrectionApprovalStatusPending => 'ລໍຖ້າກວດສອບ';
 
   @override
@@ -1304,17 +1297,8 @@ class AppLocalizationsLo extends AppLocalizations {
   String get timeCorrectionApprovalReject => 'ປະຕິເສດ';
 
   @override
-  String get timeCorrectionApprovalApproved => 'ອະນຸມັດຄຳຮ້ອງແລ້ວ';
-
-  @override
-  String get timeCorrectionApprovalRejected => 'ປະຕິເສດຄຳຮ້ອງແລ້ວ';
-
-  @override
   String get timeCorrectionApprovalsLoadFailed =>
       'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງແກ້ໄຂເວລາໄດ້.';
-
-  @override
-  String get timeCorrectionApprovalsEmpty => 'ບໍ່ມີຄຳຮ້ອງແກ້ໄຂເວລາ';
 
   @override
   String get approvalsMenu => 'ອະນຸມັດ';
@@ -1557,12 +1541,6 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get offsiteApprovalNoScanDate => 'ບໍ່ມີວັນທີລົງເວລາ';
-
-  @override
-  String get offsiteApprovalApproved => 'ອະນຸມັດຄຳຮ້ອງແລ້ວ';
-
-  @override
-  String get offsiteApprovalRejected => 'ປະຕິເສດຄຳຮ້ອງແລ້ວ';
 
   @override
   String get offsiteApprovalsLoadFailed =>

@@ -538,8 +538,6 @@
   "timeCorrectionAttachmentSaveFailed": "Couldn't download the file.",
 
   "timeCorrectionApprovalsMenu": "Approve Time Corrections",
-  "timeCorrectionApprovalsTitle": "Time Correction Requests",
-  "timeCorrectionApprovalsSearchHint": "Search by employee name or ID (EMP-007)...",
   "timeCorrectionApprovalStatusPending": "Awaiting review",
   "timeCorrectionApprovalDepartment": "Department: {name}",
   "@timeCorrectionApprovalDepartment": {"placeholders": {"name": {"type": "String"}}},
@@ -559,10 +557,7 @@
   "timeCorrectionApprovalViewImage": "View",
   "timeCorrectionApprovalApprove": "Approve",
   "timeCorrectionApprovalReject": "Reject",
-  "timeCorrectionApprovalApproved": "Request approved",
-  "timeCorrectionApprovalRejected": "Request rejected",
   "timeCorrectionApprovalsLoadFailed": "Couldn't load the correction requests.",
-  "timeCorrectionApprovalsEmpty": "No correction requests",
 
   "approvalsMenu": "Approvals",
   "apprApproveConfirmTitle": "Approve this request?",
@@ -652,8 +647,6 @@
   "offsiteApprovalPosition": "Position",
   "offsiteApprovalNoFix": "No position",
   "offsiteApprovalNoScanDate": "No clock-in date",
-  "offsiteApprovalApproved": "Request approved",
-  "offsiteApprovalRejected": "Request rejected",
   "offsiteApprovalsLoadFailed": "Couldn't load the off-site clock-in requests.",
   "offsiteApprovalsEmpty": "No off-site clock-in requests",
   "offsiteTooEarlyCheckin": "Approved, but it isn't time to clock in yet \u2014 the punch was not recorded.",

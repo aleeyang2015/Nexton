@@ -464,7 +464,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
       );
 
       final code = ApiError.tryParse(error.response?.data)?.code;
-      final token = ApprovalDecisionCode.tokenByWire[code];
+      final token = ApprovalDecisionCode.correctionTokenByWire[code];
       // Kept as a validation failure with its code, never `Failure.auth`
       // (a 403 `NOT_APPROVER` would otherwise be hidden).
       if (token != null) throw Failure.validation(message: token, code: code);

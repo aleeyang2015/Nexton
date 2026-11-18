@@ -27,15 +27,24 @@ class ApprovalDecisionCode {
   static const String tokenCannotDecideOwn = 'apprCannotDecideOwn';
 
   /// The final approval writes the punch, and the session rule can still
-  /// turn it down: the request stays waiting, so the row stays.
-  static const String tokenTooEarlyCheckin = 'offsiteTooEarlyCheckin';
+  /// turn it down: the request stays waiting, so the row stays. Said with
+  /// #8's "it isn't time to clock in yet"; off-site has its own words.
+  static const String tokenTooEarlyCheckin = 'apprTooEarlyCheckin';
 
-  /// Wire code → client token, for approve and reject.
+  /// Wire code → client token, for approve and reject: the entries both
+  /// kinds share. `TOO_EARLY_CHECKIN` each kind words itself
+  /// ([correctionTokenByWire], `OffsiteErrorCode.decisionTokenByWire`).
   static const Map<String, String> tokenByWire = {
     notPending: tokenAlreadyDecided,
     stepChanged: LeaveErrorCode.tokenStepChanged,
     notApprover: tokenAnotherApprover,
     employeeNotFound: LeaveErrorCode.tokenEmployeeNotFound,
+  };
+
+  /// The "forgot to scan" decisions' table (#47): the shared one, and #8's
+  /// too-early text.
+  static const Map<String, String> correctionTokenByWire = {
+    ...tokenByWire,
     tooEarlyCheckin: tokenTooEarlyCheckin,
   };
 

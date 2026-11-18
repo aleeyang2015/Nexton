@@ -157,13 +157,17 @@ abstract class AttendanceApprovalsNotifier<T extends AttendanceApprovalRequest>
     list.write(AsyncLoading<PagedList<T>>().copyWithPrevious(list.read()));
     final result = await fetch(list.status(), null);
     if (_disposed || load != list.currentLoad()) return;
-    // A failure keeps the rows already shown.
+    // A failure keeps the rows already shown, with no next page left
+    // "on its way" (its answer was dropped), so the list can go on.
+    final shown = list.read().valueOrNull;
     list.write(
       result.fold(
         (failure) => AsyncValue<PagedList<T>>.error(
           failure,
           StackTrace.current,
-        ).copyWithPrevious(list.read()),
+        ).copyWithPrevious(
+          shown == null ? list.read() : AsyncValue.data(shown.retryable),
+        ),
         (page) => AsyncValue.data(PagedList.first(page)),
       ),
     );
