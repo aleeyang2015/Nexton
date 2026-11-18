@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/modules/app_modules.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
@@ -6,17 +9,21 @@ import '../../../attendance/presentation/widgets/attendance_status_card.dart';
 import '../widgets/attendance_history_summary.dart';
 import '../widgets/home_header.dart';
 import '../widgets/home_menu_grid.dart';
+import '../../../auth/presentation/providers/module_access_provider.dart';
 
 /// Home screen.
 ///
 /// The attendance card owns its own state and talks to the attendance
 /// feature directly, so this page composes rather than coordinates — the
 /// header's profile details are the only placeholder data left here.
-class HomePage extends StatelessWidget {
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Clocking and its month summary are Core HR's: a company without it
+    // would only see them fail (#61).
+    final coreHr = ref.watch(hasModuleProvider(AppModules.coreHr));
     return Container(
       color: AppColors.homeBackground,
       child: SafeArea(
@@ -32,10 +39,14 @@ class HomePage extends StatelessWidget {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
                   children: [
-                    const AttendanceStatusCard(),
-                    heightBx(h: 22),
-                    const AttendanceHistorySummary(),
-                    heightBx(h: 28),
+                    // Without it, the header above already says so: its
+                    // profile call gets the same refusal.
+                    if (coreHr) ...[
+                      const AttendanceStatusCard(),
+                      heightBx(h: 22),
+                      const AttendanceHistorySummary(),
+                      heightBx(h: 28),
+                    ],
                     const HomeMenuGrid(),
                   ],
                 ),

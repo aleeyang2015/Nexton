@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:next_on/features/auth/presentation/providers/module_access_provider.dart';
 import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
@@ -212,6 +213,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            activeModulesProvider.overrideWithValue(const ['core_hr', 'payroll']),
             profileRepositoryProvider.overrideWithValue(profiles),
             attendanceRepositoryProvider.overrideWithValue(
               FakeAttendanceRepository(),

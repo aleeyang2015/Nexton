@@ -12,6 +12,7 @@ User approverTestUser({
   List<String> roles = const ['employee'],
   List<String> permissions = const [],
   String? employeeId = 'b3f1-employees-uuid',
+  List<String> modules = const ['core_hr', 'payroll'],
 }) => User(
   id: 'cce14a0e',
   tenantId: 'cbc6553a',
@@ -20,6 +21,7 @@ User approverTestUser({
   lastName: 'Vilaysone',
   roles: roles,
   permissions: permissions,
+  modules: modules,
   employeeId: employeeId,
   isDepartmentHead: head,
 );

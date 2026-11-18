@@ -19,6 +19,8 @@ import '../providers/profile_photo_notifier.dart';
 import '../../../../core/upload/presentation/file_source_sheet.dart';
 import '../../../../core/upload/domain/capture_policy.dart';
 import '../../../../core/l10n/failure_localizer.dart';
+import '../../../../core/modules/app_modules.dart';
+import '../../../auth/presentation/providers/module_access_provider.dart';
 
 /// "ໂປຣຟາຍ" screen, pushed from the home header. Profile summary + a
 /// settings-style menu.
@@ -63,7 +65,9 @@ class ProfilePage extends ConsumerWidget {
                         avatarUrl: data?.avatarUrl,
                         // No employee id before the profile loads: nothing
                         // to change yet (#59).
-                        canChange: data != null,
+                        canChange:
+                            data != null &&
+                            ref.watch(hasModuleProvider(AppModules.coreHr)),
                       ),
                     ),
                     heightBx(h: 16),
@@ -96,7 +100,9 @@ class ProfilePage extends ConsumerWidget {
                     heightBx(h: 12),
                     const Center(child: _StatusPill()),
                     heightBx(h: 20),
-                    const _StatsRow(),
+                    // The month summary is Core HR's (#61).
+                    if (ref.watch(hasModuleProvider(AppModules.coreHr)))
+                      const _StatsRow(),
                     heightBx(h: 16),
                     const _MenuCard(),
                   ],
@@ -510,6 +516,8 @@ class _MenuCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    // The personal page reads the Core HR record (#61).
+    final coreHr = ref.watch(hasModuleProvider(AppModules.coreHr));
 
     return Container(
       decoration: BoxDecoration(
@@ -520,13 +528,15 @@ class _MenuCard extends ConsumerWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          _MenuRow(
-            icon: Icons.person_outline,
-            color: AppColors.primary,
-            label: l10n.personal,
-            onTap: () => context.push(AppRoutes.personalInfo),
-          ),
-          _menuDivider(),
+          if (coreHr) ...[
+            _MenuRow(
+              icon: Icons.person_outline,
+              color: AppColors.primary,
+              label: l10n.personal,
+              onTap: () => context.push(AppRoutes.personalInfo),
+            ),
+            _menuDivider(),
+          ],
           _MenuRow(
             icon: Icons.lock_outline,
             color: _purple,

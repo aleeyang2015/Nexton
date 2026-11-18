@@ -6,12 +6,27 @@ import '../../../../app/router/app_router.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../approvals/presentation/providers/approver_access_provider.dart';
 import '../../../time_off/presentation/pages/time_off_page.dart';
+import '../../../../core/modules/app_modules.dart';
 import 'list_menu_grid.dart';
+import '../../../auth/presentation/providers/module_access_provider.dart';
 
 /// The app's shortcut entries, shared by the "ລາຍການ" tab and the home screen
 /// so both always show the same menu. Called from `build`: the Approvals
-/// tile is watched in, for department heads and HR only (decision 8).
+/// tile is watched in, for department heads and HR only (decision 8), and
+/// a tile whose module the company has not bought is left out (#61).
 List<ListMenuEntry> buildListMenuEntries(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations l10n,
+) {
+  return [
+    for (final entry in _entries(context, ref, l10n))
+      if (entry.module == null || ref.watch(hasModuleProvider(entry.module!)))
+        entry,
+  ];
+}
+
+List<ListMenuEntry> _entries(
   BuildContext context,
   WidgetRef ref,
   AppLocalizations l10n,
@@ -32,24 +47,28 @@ List<ListMenuEntry> buildListMenuEntries(
       l10n.approvalsMenu,
       Icons.fact_check_outlined,
       color: const Color(0xFF0E9F8E),
+      module: AppModules.coreHr,
       onTap: () => context.push(AppRoutes.approvals),
     ),
   ListMenuEntry(
     l10n.leaveMenu,
     Icons.edit_calendar_outlined,
     color: const Color(0xFF3B6FF6),
+    module: AppModules.coreHr,
     onTap: () => context.push(AppRoutes.timeOff, extra: TimeOffTab.request),
   ),
   ListMenuEntry(
     l10n.leaveHistoryMenu,
     Icons.event_available_outlined,
     color: const Color(0xFF5B5BF0),
+    module: AppModules.coreHr,
     onTap: () => context.push(AppRoutes.timeOff),
   ),
   ListMenuEntry(
     l10n.otMenu,
     Icons.work_history_outlined,
     color: const Color(0xFFD9468F),
+    module: AppModules.coreHr,
     onTap: () => context.push(AppRoutes.overtime),
   ),
   // ListMenuEntry(l10n.delegateTaskMenu, Icons.assignment_ind_outlined),
@@ -61,12 +80,14 @@ List<ListMenuEntry> buildListMenuEntries(
     l10n.salaryHistoryMenu,
     Icons.payments_outlined,
     color: const Color(0xFF2F9E6E),
+    module: AppModules.payroll,
     onTap: () => context.push(AppRoutes.salaryHistory),
   ),
   ListMenuEntry(
     l10n.forgotClockInMenu,
     Icons.more_time,
     color: const Color(0xFFE9A23B),
+    module: AppModules.coreHr,
     onTap: () => context.push(AppRoutes.timeCorrectionRequest),
   ),
   // "My requests" (#42, #45): the off-site and "forgot to scan" requests
@@ -75,6 +96,7 @@ List<ListMenuEntry> buildListMenuEntries(
     l10n.attMyRequestsMenu,
     Icons.assignment_outlined,
     color: const Color(0xFFE8604C),
+    module: AppModules.coreHr,
     onTap: () => context.push(AppRoutes.myRequests),
   ),
   // ListMenuEntry(
