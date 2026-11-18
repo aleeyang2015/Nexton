@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#46 merged, `afedb4f`; next is #47, not started). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#47 IMPLEMENTED on its branch, waiting for the owner's say to merge; #46 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 | | |
 |---|---|
 | Last finished work order | 45 of 60: #46, approvals: off-site scans for heads and HR |
-| Next work order | **46 of 60: #47**, approvals: "forgot to scan" requests for heads and HR. Not started, no branch, no plan shown yet |
+| Next work order | **46 of 60: #47**, approvals: "forgot to scan" requests for heads and HR. IMPLEMENTED on `47-correction-approvals` (`3192f3e`, `9a86936`), pushed, reviewed; waiting for the owner's say to merge. Then 47 of 60: #48 |
 | `origin/main` | `afedb4f` "Merge branch '46-offsite-approvals' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -175,10 +175,32 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #47 (work order 46 of 60), "approvals: "forgot to scan" requests for heads and HR".** Not started: no branch,
-   no plan shown yet. #46's section is the one to copy (`canDecideOffsite`, `OffsiteDecisionNotifier`, the tab's shape,
-   `PagedListEnd`, `RejectReasonDialog`); #45's detail page gets an approver mode. Read the issue and its comments, plan,
-   wait for "go".
+1. **#47 (work order 46 of 60), "approvals: "forgot to scan" requests for heads and HR": IMPLEMENTED, 2026-11-18,
+   waiting for the owner's say to merge.** Owner said go on 2026-11-18 to the plan's three recommendations (shared bases,
+   the old page to the Approvals tab, the page stays after approving). Branch `47-correction-approvals` (pushed):
+   `3192f3e` (feature), `9a86936` (review fixes). Gates on `9a86936`: analyze 1 warning already on `main`; `flutter test`
+   2,067 passed; debug APK builds.
+   - Shared with #46 (its behaviour kept, its tests green): `AttendanceApprovalRequest` (both entities),
+     `ApproverAccess.canDecideAttendance` (was `canDecideOffsite`), `ApprovalDecisionCode` (one shared table; each kind adds
+     its own TOO_EARLY_CHECKIN wording, off-site its CHECKIN_* codes; `time_correction_error_code.dart` gone), base classes
+     `AttendanceApprovalsNotifier`, `AttendanceDecisionNotifier`, `AttendanceApprovalsView`, `AttendanceDecisionFlow`.
+   - The "forgot to scan" tab: waiting + "decided by me" chips, `limit=20` + cursor, kept alive; search box and dropdown
+     gone; rows with the asked time beside the part's; buttons only on my step; own → the line.
+   - Decisions: note on Approve; NOT_PENDING / STEP_CHANGED / 404 drop the row and reload; TOO_EARLY_CHECKIN (#8's text)
+     and 500 keep it; NOT_APPROVER own / another, buttons go; a decision that went through hides the buttons even when the
+     page cannot be read again.
+   - `/approvals/correction/:id` (attendance approvers): #45's page with `approver: true`: no Cancel, no contact note,
+     Approve / Reject; after a decision it stays and reloads ("ຜົນຫຼັງແກ້ໄຂ"). The old `/attendance/time-correction/approvals`
+     opens Approvals on this tab behind the gate; `TimeCorrectionApprovalsPage` deleted (settles "Waiting" item 11).
+   - The success toast for both kinds is #37's "Approved" / "Rejected"; 8 strings left unused by #46/#47 removed.
+   - Tests: `correction_approvals_notifier_test.dart`, `correction_decision_code_test.dart` (not the issue's
+     `correction_error_code_test.dart`: that name already holds #43's tests, kept as they were).
+   Open after #47, none built there:
+   - phone check on `nexton-demo` (the "Done when" walk, incl. two phones approving the same request);
+   - the tab keeps #36's label "ອະນຸມັດແກ້ໄຂເວລາ" (the owner's go to the plan), not the issue's `apprSectionCorrection`;
+   - not confirmed: that `GET correction-requests/:id` answers an approver (the issue says it does);
+   - off-site's TOO_EARLY_CHECKIN still reads "Approved, but…" (as on `main` since #40); #46's issue asks for #8's text:
+     a one-line follow-up.
 
    **#46 (work order 45 of 60), "approvals: off-site scans for heads and HR": MERGED (`afedb4f`), 2026-11-18.** Merged on
    the owner's "push issue 46 to main directly"; gates green on the merge commit (analyze 1 warning already on `main`;
@@ -835,7 +857,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 43 | #44 | attendance: "forgot to scan" form, from a history day or the menu | `44-correction-form-entries` | `fdc11a7`, `a2ba160` | merged to main directly (`56b6c75`) | analyze: 1 warning already on `main`; `flutter test`: 1,944 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 44 | #45 | attendance: my "forgot to scan" requests — list, detail, cancel | `45-my-correction-requests` | `60fe12f`, `f0d87d0` | merged to main directly (`0aa9eb1`) | analyze: 1 warning already on `main`; `flutter test`: 1,987 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 45 | #46 | approvals: off-site scans for heads and HR | `46-offsite-approvals` | `9aa91f0`, `961cfb5` | merged to main directly (`afedb4f`) | analyze: 1 warning already on `main`; `flutter test`: 2,031 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 46 | #47 | approvals: "forgot to scan" requests for heads and HR | | | | | NOT STARTED |
+| 46 | #47 | approvals: "forgot to scan" requests for heads and HR | `47-correction-approvals` | `3192f3e`, `9a86936` | none yet | analyze: 1 warning already on `main`; `flutter test`: 2,067 passed, 0 failed; debug APK builds | IMPLEMENTED, waiting for the owner's say to merge; phone check on `nexton-demo` pending |
 | 47 | #48 | approvals: OT waiting and decided lists for heads | | | | | NOT STARTED |
 | 48 | #49 | approvals: approve or reject OT, and cancel an approved OT before it starts | | | | | NOT STARTED |
 | 49 | #50 | approvals: my team's leave and "forgot to scan" history (read-only) | | | | | NOT STARTED |
