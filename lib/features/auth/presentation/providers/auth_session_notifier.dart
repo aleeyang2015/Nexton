@@ -187,8 +187,8 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
     state = AsyncValue.data(AuthSession(status: current.status, user: user));
   }
 
-  /// User-initiated sign-out. There is no logout endpoint; this is local
-  /// teardown only.
+  /// User-initiated sign-out: the phone's push row, then the server ends
+  /// this phone's sign-in (#56), then the local teardown.
   ///
   /// Every feature's session-scoped provider (profile, attendance, leave,
   /// salary — see their `.autoDispose` declarations) is watched only by
@@ -212,9 +212,22 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
   /// server ends the sign-in (#56) — after that the access token is refused
   /// — then the phone's copy is cleared. Both server calls need the tokens.
   Future<void> _logout() async {
+    final signedInAs = state.valueOrNull?.user?.id;
     await _signOffThisPhone(tokensLive: true);
+    // The sign-off can take seconds: a forced sign-out meanwhile already
+    // ended this session, and someone may have signed in since. Their
+    // sign-in is not this sign-out's to end, on the server or the phone.
+    if (!_stillSignedInAs(signedInAs)) return;
     await ref.read(logoutUseCaseProvider)(endSession: true);
     state = const AsyncValue.data(AuthSession.unauthenticated());
+  }
+
+  /// True while the session is still the one signed in as [userId].
+  bool _stillSignedInAs(String? userId) {
+    final session = state.valueOrNull;
+    return session != null &&
+        session.hasSession &&
+        session.user?.id == userId;
   }
 
   Future<void> _signOffThisPhone({required bool tokensLive}) async {
@@ -244,7 +257,12 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
       return;
     }
 
-    if (tokensLive) await _signOffThisPhone(tokensLive: true);
+    if (tokensLive) {
+      final signedInAs = current?.user?.id;
+      await _signOffThisPhone(tokensLive: true);
+      // As in [_logout]: a session ended meanwhile is not this one's to end.
+      if (!_stillSignedInAs(signedInAs)) return;
+    }
     // The tokens still work only after a failed re-login: the server ends
     // that sign-in too (#56). Otherwise they are already gone.
     await ref.read(logoutUseCaseProvider)(endSession: tokensLive);

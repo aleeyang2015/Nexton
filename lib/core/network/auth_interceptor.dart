@@ -43,7 +43,8 @@ class _Unreachable extends _RefreshOutcome {
 /// Mirrors the contract documented in `features/auth/auth.md`:
 ///
 /// * every request carries `Authorization: Bearer <access_token>` **except**
-///   `POST /auth/refresh`, whose credential is the refresh token in its body;
+///   `POST /auth/refresh` and `POST /auth/logout`, whose credential is the
+///   refresh token in their body;
 /// * a `401` triggers one refresh-and-retry cycle, guarded by a single-flight
 ///   mutex so parallel 401s share one in-flight refresh. A `401` on
 ///   `POST /auth/login` is a wrong password, not an expired token, and passes
@@ -70,8 +71,8 @@ class AuthInterceptor extends Interceptor {
 
   /// A request marked with this in `extra` gets its `401` as it is: no
   /// refresh, and no session ended. The push sign-off at sign-out (#52)
-  /// uses it: a refresh still on its way after the sign-out cleared the
-  /// tokens would write the old user's tokens back.
+  /// uses it, and the logout (#56) is treated the same by its path: both
+  /// are sent as the tokens are about to be cleared.
   static const String noRefreshFlag = 'auth_no_refresh';
 
   final TokenStorage _tokenStorage;
@@ -233,6 +234,9 @@ class AuthInterceptor extends Interceptor {
         // A 200 that is not the refresh response, e.g. a Wi-Fi login page.
         return const _Unreachable(null);
       }
+      // The sign-in it was for has ended while it ran (signed out, or
+      // someone else signed in): its tokens must not come back (#56).
+      if (!await _stillSaved(refreshToken)) return const _Unreachable(null);
 
       // The access token and its expiry change on every refresh — writing
       // the expiry unconditionally is what stops the previous token's from
@@ -250,6 +254,10 @@ class AuthInterceptor extends Interceptor {
     } on DioException catch (error) {
       final reason = _refusalOf(error);
       if (reason == null) return _Unreachable(error);
+      // A refusal for a sign-in that has already ended: whoever is signed in
+      // now keeps their session (#56: the server refuses the refresh of a
+      // sign-in it ended at logout).
+      if (!await _stillSaved(refreshToken)) return _Unreachable(error);
 
       await _tokenStorage.clear();
       return _Dead(reason);
@@ -258,6 +266,11 @@ class AuthInterceptor extends Interceptor {
       return const _Unreachable(null);
     }
   }
+
+  /// True when [sent] is still the saved refresh token: the sign-in a
+  /// refresh was for is still this phone's.
+  Future<bool> _stillSaved(String sent) async =>
+      await _tokenStorage.readRefreshToken() == sent;
 
   /// Why the server refused a refresh, or null when [error] is not a refusal
   /// of the token: no answer at all, a 5xx, a 429, or a 4xx with no API error

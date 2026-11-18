@@ -53,6 +53,9 @@ class _FakeAdapter implements HttpClientAdapter {
   /// overlap.
   bool slow = false;
 
+  /// When set, the refresh's answer waits for it: a slow server (#56).
+  Completer<void>? holdRefresh;
+
   void queue(String path, List<_Reply> answers) => replies[path] = answers;
 
   @override
@@ -63,6 +66,7 @@ class _FakeAdapter implements HttpClientAdapter {
   ) async {
     requests.add(options);
     if (slow) await Future<void>.delayed(const Duration(milliseconds: 10));
+    if (options.path == ApiPaths.refresh) await holdRefresh?.future;
 
     final queued = replies[options.path];
     final reply = queued == null || queued.isEmpty
@@ -402,6 +406,46 @@ void main() {
       expect(h.requestsTo(ApiPaths.refresh), hasLength(1));
       expect(h.sessionExpiredEvents, [SessionEndReason.expired]);
       expect(await h.tokens.readRefreshToken(), isNull);
+    });
+
+    test('a refresh that answers after a sign-out cleared the tokens writes '
+        'nothing back (#56)', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(ApiPaths.me, [_unauthorized, _okProfile]);
+      h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+      h.adapter.holdRefresh = Completer<void>();
+
+      final call = h.client.get<dynamic>(ApiPaths.me);
+      await pumpEventQueue();
+      // The sign-out clears the phone's copy while the refresh runs.
+      await h.tokens.clear();
+      h.adapter.holdRefresh!.complete();
+      await expectLater(call, throwsA(isA<DioException>()));
+
+      expect(await h.tokens.readAccessToken(), isNull);
+      expect(await h.tokens.readRefreshToken(), isNull);
+      expect(h.sessionExpiredEvents, isEmpty);
+    });
+
+    test('the last user\'s refresh, refused after someone else signed in, '
+        'leaves the new sign-in alone (#56)', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(ApiPaths.me, [_unauthorized]);
+      h.adapter.queue(ApiPaths.refresh, [_unauthorized]);
+      h.adapter.holdRefresh = Completer<void>();
+
+      final call = h.client.get<dynamic>(ApiPaths.me);
+      await pumpEventQueue();
+      // A signs out; B signs in.
+      await h.tokens.clear();
+      await h.tokens.writeAccessToken('access-b');
+      await h.tokens.writeRefreshToken('refresh-b');
+      h.adapter.holdRefresh!.complete();
+      await expectLater(call, throwsA(isA<DioException>()));
+
+      expect(await h.tokens.readAccessToken(), 'access-b');
+      expect(await h.tokens.readRefreshToken(), 'refresh-b');
+      expect(h.sessionExpiredEvents, isEmpty);
     });
 
     test('a refresh that sends no new refresh token (#56: no rotation) keeps '

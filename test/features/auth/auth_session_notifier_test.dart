@@ -634,6 +634,39 @@ void main() {
       );
     });
 
+    test('a forced sign-out while the sign-off waits, then someone else signs '
+        'in: the waiting sign-out ends nothing of theirs', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      final hold = Completer<void>();
+      var hooks = 0;
+      final c = withHook(({required bool tokensLive}) async {
+        hooks++;
+        if (hooks == 1) await hold.future;
+      });
+      await c.read(authSessionProvider.future);
+
+      final signingOut = c.read(authSessionProvider.notifier).logout();
+      await pumpEventQueue();
+      // A request refused meanwhile signs A out; B signs in.
+      repository.sessionExpired.add(SessionEndReason.expired);
+      await pumpEventQueue();
+      repository.loginResult = Result.success(
+        AuthSession.signedIn(testUser(id: 'user-b')),
+      );
+      await c
+          .read(authSessionProvider.notifier)
+          .login(email: 'b@nexton.la', password: 'secret-b');
+      hold.complete();
+      await signingOut;
+
+      // Only the forced sign-out's local clear: no server logout, and B
+      // stays signed in.
+      expect(repository.logoutEndSession, [false]);
+      expect(c.read(authSessionProvider).requireValue.user?.id, 'user-b');
+    });
+
     test('a forced sign-out (tokens gone): no server logout', () async {
       repository.restoreResult = Result.success(
         AuthSession.signedIn(testUser()),
