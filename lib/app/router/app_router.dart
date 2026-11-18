@@ -12,9 +12,9 @@ import '../../features/attendance/domain/entities/offsite_detail.dart';
 import '../../features/attendance/presentation/pages/my_requests_page.dart';
 import '../../features/attendance/presentation/pages/offsite_request_detail_page.dart';
 import '../../features/attendance/presentation/pages/offsite_request_page.dart';
-import '../../features/attendance/presentation/pages/time_correction_approvals_page.dart';
 import '../../features/profile/domain/entities/shift_detail.dart';
 import '../../features/attendance/presentation/pages/time_correction_history_detail_page.dart';
+import '../../features/attendance/domain/entities/time_correction_detail.dart';
 import '../../features/attendance/domain/entities/time_correction_record.dart';
 import '../../features/attendance/presentation/pages/time_correction_request_page.dart';
 import '../../features/auth/domain/entities/auth_session.dart';
@@ -150,6 +150,14 @@ class AppRoutes {
   static String approvalOffsite(String id) =>
       '/approvals/offsite/${Uri.encodeComponent(id)}';
 
+  /// The approver's page of one "forgot to scan" request, by its id (#47).
+  /// A route pattern; build a location with [approvalCorrection].
+  static const String approvalCorrectionDetail = '/approvals/correction/:id';
+
+  /// The location of the approver's page of "forgot to scan" request [id].
+  static String approvalCorrection(String id) =>
+      '/approvals/correction/${Uri.encodeComponent(id)}';
+
   /// The employee's OT requests.
   static const String overtime = '/overtime';
 
@@ -196,6 +204,36 @@ final List<GoRoute> approvalsRoutes = [
         child: LeaveApprovalDetailPage(
           requestId: id,
           initial: _leaveRequestExtra(state.extra, id),
+        ),
+      );
+    },
+  ),
+  // The old standalone "forgot to scan" approvals page (#47): Approvals on
+  // that tab, for those who may see it.
+  GoRoute(
+    path: AppRoutes.timeCorrectionApprovals,
+    name: 'timeCorrectionApprovals',
+    builder: (context, state) => const _ApprovalsGate(
+      attendanceOnly: true,
+      child: ApprovalsPage(initialTab: ApprovalsTab.timeCorrection),
+    ),
+  ),
+  // One "forgot to scan" request for its approver (#47); `extra` may carry
+  // the list's row, shown while the page loads its own copy.
+  GoRoute(
+    path: AppRoutes.approvalCorrectionDetail,
+    name: 'approvalCorrection',
+    builder: (context, state) {
+      final id = state.pathParameters['id'] ?? '';
+      final extra = state.extra;
+      return _ApprovalsGate(
+        attendanceOnly: true,
+        child: TimeCorrectionHistoryDetailPage(
+          id: id,
+          approver: true,
+          preview: extra is TimeCorrectionDetail && extra.id == id
+              ? extra
+              : null,
         ),
       );
     },
@@ -479,12 +517,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 : null,
           );
         },
-      ),
-      // The requests an approver decides on — the "ອະນຸມັດແກ້ໄຂເວລາ" menu tile
-      GoRoute(
-        path: AppRoutes.timeCorrectionApprovals,
-        name: 'timeCorrectionApprovals',
-        builder: (context, state) => const TimeCorrectionApprovalsPage(),
       ),
       // The old off-site history address opens "My requests" (#42), so a
       // link to it still lands. The form is not behind it: only a refused

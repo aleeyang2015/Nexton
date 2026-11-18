@@ -26,7 +26,7 @@ class OffsiteApprovalCard extends StatelessWidget {
   /// Whether a decision on this request is in flight; disables the buttons.
   final bool deciding;
 
-  /// Whether the waiting step is the approver's (`canDecideOffsite`).
+  /// Whether the waiting step is the approver's (`canDecideAttendance`).
   final bool canDecide;
 
   /// The approver's own request: a line instead of buttons.

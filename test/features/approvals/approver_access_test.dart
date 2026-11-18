@@ -7,6 +7,7 @@ import 'package:next_on/features/time_off/domain/entities/leave_approval_step.da
 import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
 
 import '../../support/leave_test_doubles.dart';
+import '../../support/correction_approval_test_doubles.dart';
 import '../../support/offsite_approval_test_doubles.dart';
 
 /// Who gets the Approvals place, and which of its sections (decision 8:
@@ -206,21 +207,21 @@ void main() {
     });
   });
 
-  group('canDecideOffsite: the Approve and Reject buttons (#46)', () {
+  group('canDecideAttendance: the Approve and Reject buttons (#46)', () {
     test('an HR step: HR by the attendance permission, or an admin', () {
       final scan = offsiteForApproval();
       expect(
-        ApproverAccess.canDecideOffsite(scan, user(permissions: [attendanceHr])),
+        ApproverAccess.canDecideAttendance(scan, user(permissions: [attendanceHr])),
         isTrue,
       );
       expect(
-        ApproverAccess.canDecideOffsite(scan, user(roles: ['admin'])),
+        ApproverAccess.canDecideAttendance(scan, user(roles: ['admin'])),
         isTrue,
       );
       // A head, or HR for leave only, is not HR here.
-      expect(ApproverAccess.canDecideOffsite(scan, user(head: true)), isFalse);
+      expect(ApproverAccess.canDecideAttendance(scan, user(head: true)), isFalse);
       expect(
-        ApproverAccess.canDecideOffsite(scan, user(permissions: [leaveHr])),
+        ApproverAccess.canDecideAttendance(scan, user(permissions: [leaveHr])),
         isFalse,
       );
     });
@@ -229,12 +230,12 @@ void main() {
       for (final role in [LeaveStepRole.deptHead, LeaveStepRole.unknown]) {
         final scan = offsiteForApproval(role: role, approverId: 'emp-1');
         expect(
-          ApproverAccess.canDecideOffsite(scan, user(head: true)),
+          ApproverAccess.canDecideAttendance(scan, user(head: true)),
           isTrue,
           reason: '$role',
         );
         expect(
-          ApproverAccess.canDecideOffsite(
+          ApproverAccess.canDecideAttendance(
             scan,
             user(head: true, employeeId: 'emp-2'),
           ),
@@ -246,7 +247,7 @@ void main() {
 
     test('a step that names no one yet is left to the server', () {
       final scan = offsiteForApproval(role: LeaveStepRole.deptHead);
-      expect(ApproverAccess.canDecideOffsite(scan, user(head: true)), isTrue);
+      expect(ApproverAccess.canDecideAttendance(scan, user(head: true)), isTrue);
     });
 
     test('not after approving an earlier step (a head who is also HR)', () {
@@ -266,7 +267,7 @@ void main() {
         ),
       ]);
       expect(
-        ApproverAccess.canDecideOffsite(
+        ApproverAccess.canDecideAttendance(
           scan,
           user(head: true, permissions: [attendanceHr]),
         ),
@@ -274,7 +275,7 @@ void main() {
       );
       // Someone else's earlier approval does not count.
       expect(
-        ApproverAccess.canDecideOffsite(
+        ApproverAccess.canDecideAttendance(
           scan,
           user(permissions: [attendanceHr], employeeId: 'emp-2'),
         ),
@@ -285,33 +286,66 @@ void main() {
     test('never one\'s own request, even as HR', () {
       final scan = offsiteForApproval(employeeId: 'emp-1');
       expect(
-        ApproverAccess.canDecideOffsite(scan, user(permissions: [attendanceHr])),
+        ApproverAccess.canDecideAttendance(scan, user(permissions: [attendanceHr])),
         isFalse,
       );
-      expect(ApproverAccess.isOwnOffsite(scan, 'emp-1'), isTrue);
+      expect(ApproverAccess.isOwnAttendance(scan, 'emp-1'), isTrue);
     });
 
     test('not once decided, nor with no step waiting, nor with no staff '
         'record', () {
       final hr = user(permissions: [attendanceHr]);
       expect(
-        ApproverAccess.canDecideOffsite(
+        ApproverAccess.canDecideAttendance(
           offsiteForApproval(status: TimeCorrectionStatus.approved),
           hr,
         ),
         isFalse,
       );
       expect(
-        ApproverAccess.canDecideOffsite(
+        ApproverAccess.canDecideAttendance(
           offsiteForApproval(stepStatus: LeaveStepStatus.approved),
           hr,
         ),
         isFalse,
       );
       expect(
-        ApproverAccess.canDecideOffsite(
+        ApproverAccess.canDecideAttendance(
           offsiteForApproval(),
           user(permissions: [attendanceHr], employeeId: null),
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('canDecideAttendance on a "forgot to scan" (#47)', () {
+    test('the same rule: HR step for HR, head step for its head, never own',
+        () {
+      final hrStep = correctionForApproval();
+      expect(
+        ApproverAccess.canDecideAttendance(
+          hrStep,
+          user(permissions: [attendanceHr]),
+        ),
+        isTrue,
+      );
+      expect(
+        ApproverAccess.canDecideAttendance(hrStep, user(head: true)),
+        isFalse,
+      );
+      final headStep = correctionForApproval(
+        role: LeaveStepRole.deptHead,
+        approverId: 'emp-1',
+      );
+      expect(
+        ApproverAccess.canDecideAttendance(headStep, user(head: true)),
+        isTrue,
+      );
+      expect(
+        ApproverAccess.canDecideAttendance(
+          correctionForApproval(employeeId: 'emp-1'),
+          user(permissions: [attendanceHr]),
         ),
         isFalse,
       );

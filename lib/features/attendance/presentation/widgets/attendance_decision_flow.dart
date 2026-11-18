@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/utils/result.dart';
@@ -7,25 +6,22 @@ import '../../../../core/widgets/app_toast.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../approvals/presentation/widgets/approve_note_dialog.dart';
 import '../../../approvals/presentation/widgets/reject_reason_dialog.dart';
-import '../../domain/entities/offsite_detail.dart';
-import '../providers/offsite_decision_notifier.dart';
+import '../../domain/entities/attendance_approval_request.dart';
+import '../providers/attendance_decision_notifier.dart';
 
-/// Approve and Reject on an off-site scan (#46), from its row or its page:
-/// ask first (a note for Approve, optional; a reason for Reject, required),
-/// decide through [offsiteDecisionNotifierProvider], then say how it went.
-class OffsiteDecisionFlow {
-  const OffsiteDecisionFlow._();
+/// Approve and Reject on an attendance request (#46, #47), from its row or
+/// its page: ask first (a note for Approve, optional; a reason for Reject,
+/// required), decide through [notifier], then say how it went.
+class AttendanceDecisionFlow {
+  const AttendanceDecisionFlow._();
 
   /// True when the request was approved.
-  static Future<bool> approve(
+  static Future<bool> approve<T extends AttendanceApprovalRequest>(
     BuildContext context,
-    WidgetRef ref,
-    OffsiteRequestDetail request,
+    AttendanceDecisionNotifier<T> notifier,
+    T request,
   ) async {
     final l10n = AppLocalizations.of(context)!;
-    final notifier = ref.read(
-      offsiteDecisionNotifierProvider(request.id).notifier,
-    );
     final note = await ApproveNoteDialog.show(
       context,
       approveLabel: l10n.timeCorrectionApprovalApprove,
@@ -35,15 +31,12 @@ class OffsiteDecisionFlow {
   }
 
   /// True when the request was rejected.
-  static Future<bool> reject(
+  static Future<bool> reject<T extends AttendanceApprovalRequest>(
     BuildContext context,
-    WidgetRef ref,
-    OffsiteRequestDetail request,
+    AttendanceDecisionNotifier<T> notifier,
+    T request,
   ) async {
     final l10n = AppLocalizations.of(context)!;
-    final notifier = ref.read(
-      offsiteDecisionNotifierProvider(request.id).notifier,
-    );
     final reason = await RejectReasonDialog.show(context);
     if (reason == null) return false;
     return _told(await notifier.reject(request, reason), l10n, false);
@@ -63,9 +56,7 @@ class OffsiteDecisionFlow {
       },
       (_) {
         AppToast.success(
-          approved
-              ? l10n.offsiteApprovalApproved
-              : l10n.offsiteApprovalRejected,
+          approved ? l10n.apprApprovedToast : l10n.apprRejectedToast,
         );
         return true;
       },

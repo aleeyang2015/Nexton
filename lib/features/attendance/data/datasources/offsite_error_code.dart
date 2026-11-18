@@ -1,6 +1,6 @@
 import '../../../time_off/data/datasources/leave_error_code.dart';
 import '../../domain/entities/punch_outcome.dart';
-import 'time_correction_error_code.dart';
+import 'approval_decision_code.dart';
 
 /// The business refusals `POST /attendance/offsite-requests` can answer with
 /// (attendance-offsite-requests.md §3), as the rules the app already knows.
@@ -33,7 +33,7 @@ class OffsiteErrorCode {
 
   /// A decision's own refusals (§7, §8) are the ones the correction workflow
   /// already has copy for — `STEP_CHANGED`, `NOT_APPROVER`, `NOT_PENDING`,
-  /// `EMPLOYEE_NOT_FOUND` — so [TimeCorrectionErrorCode.tokenByWire] covers
+  /// `EMPLOYEE_NOT_FOUND` — so [ApprovalDecisionCode.tokenByWire] covers
   /// them. This is the one refusal they don't share: the final approval writes
   /// the punch, and the session guard can still turn that down (the backend
   /// rolls the approval back when it does).
@@ -48,16 +48,15 @@ class OffsiteErrorCode {
   /// to see (#42). Said with #37's "this request is not available".
   static const String tokenRequestGone = 'offsiteRequestGone';
 
-  /// An approver's decision (#46): someone already decided it
-  /// (`NOT_PENDING`). The row goes and the lists are read again.
-  static const String tokenAlreadyDecided = 'offsiteAlreadyDecided';
-
-  /// `NOT_APPROVER`: another approver must decide this step. The notifier
-  /// turns it into [tokenCannotDecideOwn] when the request is the caller's.
-  static const String tokenAnotherApprover = 'offsiteAnotherApprover';
-
-  /// `NOT_APPROVER` on the caller's own request.
-  static const String tokenCannotDecideOwn = 'offsiteCannotDecideOwn';
+  /// The shared decision tokens (#46, #47), under the names the off-site
+  /// code has used.
+  static const String tokenAlreadyDecided =
+      ApprovalDecisionCode.tokenAlreadyDecided;
+  static const String tokenAnotherApprover =
+      ApprovalDecisionCode.tokenAnotherApprover;
+  static const String tokenCannotDecideOwn =
+      ApprovalDecisionCode.tokenCannotDecideOwn;
+  static const String notApprover = ApprovalDecisionCode.notApprover;
 
   /// `CHECKIN_PENDING_APPROVAL` on a check-out: approve the check-in first.
   /// The row stays.
@@ -67,29 +66,21 @@ class OffsiteErrorCode {
   /// cancelled, so this one can only be rejected. Approve goes.
   static const String tokenCheckinNotApproved = 'offsiteCheckinNotApproved';
 
-  static const String notPending = 'NOT_PENDING';
-  static const String notApprover = 'NOT_APPROVER';
   static const String checkinPendingApproval = 'CHECKIN_PENDING_APPROVAL';
   static const String checkinNotApproved = 'CHECKIN_NOT_APPROVED';
 
-  /// Wire code → client token, for the approve/reject calls (#46). Its own
-  /// table, not the correction one: `NOT_PENDING` here means someone else
-  /// decided it, and two refusals only an off-site check-out can raise.
+  /// Wire code → client token, for the approve/reject calls: the shared
+  /// table, and the two refusals only an off-site check-out raises.
   static const Map<String, String> decisionTokenByWire = {
-    notPending: tokenAlreadyDecided,
-    TimeCorrectionErrorCode.stepChanged: LeaveErrorCode.tokenStepChanged,
-    notApprover: tokenAnotherApprover,
-    employeeNotFound: LeaveErrorCode.tokenEmployeeNotFound,
+    ...ApprovalDecisionCode.tokenByWire,
     tooEarlyCheckin: tokenTooEarlyCheckin,
     checkinPendingApproval: tokenApproveCheckinFirst,
     checkinNotApproved: tokenCheckinNotApproved,
   };
 
-  /// The refusals that mean the request moved on without this approver: it
-  /// leaves their waiting list, so the lists are read again.
+  /// The refusals that mean the request moved on without this approver.
   static const Set<String> staleTokens = {
-    tokenAlreadyDecided,
-    LeaveErrorCode.tokenStepChanged,
+    ...ApprovalDecisionCode.staleTokens,
     tokenRequestGone,
   };
 

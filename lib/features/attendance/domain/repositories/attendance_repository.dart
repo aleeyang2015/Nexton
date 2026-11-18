@@ -71,14 +71,19 @@ abstract class AttendanceRepository {
   ///
   /// [status] is read against the caller's own step: `pending` is what still
   /// waits on them, `approved`/`rejected` what they have already decided.
-  FutureResult<List<TimeCorrectionDetail>> timeCorrectionApprovals({
+  FutureResult<CursorPage<TimeCorrectionDetail>> timeCorrectionApprovals({
     TimeCorrectionStatus? status,
+    String? cursor,
   });
 
   /// `PUT /attendance/correction-requests/:id/approve` — [stepId] is the
   /// step the caller saw pending, so a decision aimed at a step that has
   /// since moved on is refused rather than applied to the wrong one.
-  FutureResult<Unit> approveTimeCorrection(String id, {String? stepId});
+  FutureResult<Unit> approveTimeCorrection(
+    String id, {
+    String? stepId,
+    String? note,
+  });
 
   /// `PUT /attendance/correction-requests/:id/reject` — [note] is required,
   /// and is what the employee is told.

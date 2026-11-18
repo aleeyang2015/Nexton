@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../time_off/domain/entities/leave_approval_step.dart';
+import 'attendance_approval_request.dart';
 import 'attendance_day.dart';
 import 'time_correction_status.dart';
 import 'time_correction_type.dart';
@@ -9,8 +10,11 @@ import 'time_correction_type.dart';
 /// `GET /attendance/correction-requests/:id` returns it — the detail page.
 ///
 /// Times of day are offsets from midnight, as on [TimeCorrectionRequest].
-class TimeCorrectionDetail extends Equatable {
+class TimeCorrectionDetail extends Equatable
+    implements AttendanceApprovalRequest {
+  @override
   final String id;
+  @override
   final TimeCorrectionEmployee employee;
 
   /// The day being corrected.
@@ -23,10 +27,12 @@ class TimeCorrectionDetail extends Equatable {
 
   /// The evidence file's URL, or null when none was attached.
   final String? attachmentUrl;
+  @override
   final TimeCorrectionStatus status;
 
   /// The step now awaiting a decision; 0 once none is.
   final int currentStepNo;
+  @override
   final List<TimeCorrectionApprovalStep> steps;
   final DateTime submittedAt;
 
@@ -91,6 +97,7 @@ class TimeCorrectionDetail extends Equatable {
   /// The step awaiting a decision right now, if any — its id goes with an
   /// approve/reject call as `step_id`, so the backend can refuse a decision
   /// aimed at a step someone else has already moved past (§4.7).
+  @override
   TimeCorrectionApprovalStep? get currentStep {
     for (final step in steps) {
       if (step.status == LeaveStepStatus.pending) return step;
