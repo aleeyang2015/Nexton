@@ -12,11 +12,16 @@ class ListMenuEntry {
   /// in the [ListMenuGrid.compact] style.
   final Color color;
 
+  /// The subscription module the entry's screen sits behind (#61,
+  /// `AppModules`), or null for one every company has.
+  final String? module;
+
   const ListMenuEntry(
     this.label,
     this.icon, {
     this.onTap,
     this.color = AppColors.primary,
+    this.module,
   });
 }
 

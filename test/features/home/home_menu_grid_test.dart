@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/core/modules/app_modules.dart';
 import 'package:next_on/features/home/presentation/widgets/home_menu_grid.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
@@ -14,7 +15,10 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [approverAccessOf(approverTestUser(head: head))],
+        overrides: [
+          approverAccessOf(approverTestUser(head: head)),
+          activeModulesProvider.overrideWithValue(const ['core_hr', 'payroll']),
+        ],
         child: MaterialApp(
           locale: const Locale('lo'),
           supportedLocales: AppLocalizations.supportedLocales,

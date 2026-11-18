@@ -209,6 +209,9 @@ UserModel testUserModel({
   List<String> roles = const ['employee'],
   List<String> permissions = const ['corehr:employee:read'],
   String? employeeId = 'b3f1-employees-uuid',
+  // A company with everything the App uses (#61); a test of a smaller one
+  // passes its own.
+  List<String> modules = const ['core_hr', 'payroll'],
 }) => UserModel(
   id: id,
   tenantId: 'cbc6553a',
@@ -217,12 +220,15 @@ UserModel testUserModel({
   lastName: 'Vilaysone',
   roles: roles,
   permissions: permissions,
-  modules: const ['core_hr'],
+  modules: modules,
   employeeId: employeeId,
   isDepartmentHead: isDepartmentHead,
 );
 
-User testUser({String id = 'cce14a0e'}) => testUserModel(id: id).toEntity();
+User testUser({
+  String id = 'cce14a0e',
+  List<String> modules = const ['core_hr', 'payroll'],
+}) => testUserModel(id: id, modules: modules).toEntity();
 
 LoginResponseModel testTokens({
   bool mustChangePassword = false,

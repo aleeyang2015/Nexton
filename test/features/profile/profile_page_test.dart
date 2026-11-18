@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/core/modules/app_modules.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/core/upload/upload_providers.dart';
@@ -51,6 +52,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          activeModulesProvider.overrideWithValue(const ['core_hr', 'payroll']),
           profileRepositoryProvider.overrideWithValue(profiles),
           attendanceRepositoryProvider.overrideWithValue(attendance),
           authRepositoryProvider.overrideWithValue(auth),
@@ -186,6 +188,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            activeModulesProvider.overrideWithValue(const ['core_hr', 'payroll']),
             profileRepositoryProvider.overrideWithValue(profiles),
             attendanceRepositoryProvider.overrideWithValue(attendance),
             authRepositoryProvider.overrideWithValue(auth),
@@ -260,5 +263,37 @@ void main() {
       await tester.pump();
       expect(find.text(en.profilePhotoTooLarge), findsOneWidget);
     });
+  });
+
+  testWidgets('no Core HR (#61): no Personal row, no photo pencil; the '
+      'password and sign-out stay', (tester) async {
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeModulesProvider.overrideWithValue(const []),
+          profileRepositoryProvider.overrideWithValue(profiles),
+          attendanceRepositoryProvider.overrideWithValue(attendance),
+          authRepositoryProvider.overrideWithValue(auth),
+        ],
+        child: DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: const ProfilePage(),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text(en.personal), findsNothing);
+    expect(find.byIcon(Icons.edit), findsNothing);
+    expect(find.text(en.changePassword), findsOneWidget);
   });
 }

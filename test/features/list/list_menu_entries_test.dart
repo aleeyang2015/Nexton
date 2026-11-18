@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:next_on/core/modules/app_modules.dart';
 import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/features/list/presentation/widgets/list_menu_entries.dart';
 import 'package:next_on/features/list/presentation/widgets/list_menu_grid.dart';
@@ -18,7 +19,10 @@ void main() {
     late List<ListMenuEntry> built;
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [approverAccessOf()],
+        overrides: [
+          approverAccessOf(),
+          activeModulesProvider.overrideWithValue(const ['core_hr', 'payroll']),
+        ],
         child: MaterialApp(
           locale: const Locale('lo'),
           supportedLocales: AppLocalizations.supportedLocales,
@@ -75,7 +79,10 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [approverAccessOf()],
+        overrides: [
+          approverAccessOf(),
+          activeModulesProvider.overrideWithValue(const ['core_hr', 'payroll']),
+        ],
         child: MaterialApp.router(
           routerConfig: router,
           locale: const Locale('lo'),
