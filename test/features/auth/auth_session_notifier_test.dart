@@ -597,4 +597,121 @@ void main() {
       );
     });
   });
+
+  group('ending the sign-in on the server (#56)', () {
+    ProviderContainer withHook(
+      Future<void> Function({required bool tokensLive}) hook,
+    ) {
+      final c = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          beforeSignOutProvider.overrideWithValue(hook),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test('sign-out: the device row, then the server logout, then the clear',
+        () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      final order = <String>[];
+      repository.onLogout = ({required bool endSession}) =>
+          order.add('logout(endSession: $endSession)');
+      final c = withHook(({required bool tokensLive}) async {
+        order.add('device');
+      });
+      await c.read(authSessionProvider.future);
+
+      await c.read(authSessionProvider.notifier).logout();
+
+      expect(order, ['device', 'logout(endSession: true)']);
+      expect(
+        c.read(authSessionProvider).requireValue.status,
+        AuthStatus.unauthenticated,
+      );
+    });
+
+    test('a forced sign-out while the sign-off waits, then someone else signs '
+        'in: the waiting sign-out ends nothing of theirs', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      final hold = Completer<void>();
+      var hooks = 0;
+      final c = withHook(({required bool tokensLive}) async {
+        hooks++;
+        if (hooks == 1) await hold.future;
+      });
+      await c.read(authSessionProvider.future);
+
+      final signingOut = c.read(authSessionProvider.notifier).logout();
+      await pumpEventQueue();
+      // A request refused meanwhile signs A out; B signs in.
+      repository.sessionExpired.add(SessionEndReason.expired);
+      await pumpEventQueue();
+      repository.loginResult = Result.success(
+        AuthSession.signedIn(testUser(id: 'user-b')),
+      );
+      await c
+          .read(authSessionProvider.notifier)
+          .login(email: 'b@nexton.la', password: 'secret-b');
+      hold.complete();
+      await signingOut;
+
+      // Only the forced sign-out's local clear: no server logout, and B
+      // stays signed in.
+      expect(repository.logoutEndSession, [false]);
+      expect(c.read(authSessionProvider).requireValue.user?.id, 'user-b');
+    });
+
+    test('a forced sign-out (tokens gone): no server logout', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      final c = withHook(({required bool tokensLive}) async {});
+      await c.read(authSessionProvider.future);
+
+      repository.sessionExpired.add(SessionEndReason.expired);
+      await pumpEventQueue();
+
+      expect(repository.logoutEndSession, [false]);
+    });
+
+    test('a failed re-login after a password change: the tokens still work, '
+        'so the server ends that sign-in too', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      final c = withHook(({required bool tokensLive}) async {});
+      await c.read(authSessionProvider.future);
+      repository.loginResult = const Result.failure(
+        Failure.network(message: 'No internet connection'),
+      );
+
+      await c.read(authSessionProvider.notifier).changePassword(
+        currentPassword: 'current-pass',
+        newPassword: 'new-password',
+        confirmPassword: 'new-password',
+      );
+
+      expect(repository.logoutEndSession, [true]);
+    });
+
+    test('a session the network gave up on mid-restore: no server logout',
+        () async {
+      final c = withHook(({required bool tokensLive}) async {});
+      repository.whileRestoring = () async {
+        repository.sessionExpired.add(SessionEndReason.expired);
+        await Future<void>.delayed(Duration.zero);
+      };
+
+      await c.read(authSessionProvider.future);
+      await pumpEventQueue();
+
+      expect(repository.logoutEndSession, [false]);
+    });
+  });
 }

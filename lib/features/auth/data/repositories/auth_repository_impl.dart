@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../../../core/errors/failure.dart';
 import '../../../../core/network/session_end_reason.dart';
 import '../../../../core/utils/base_repository.dart';
@@ -167,14 +169,34 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
     });
   }
 
-  /// There is no `POST /auth/logout`; teardown is local and the refresh token
-  /// is left to lapse server-side.
+  /// How long a sign-out waits for the server's logout.
+  static const Duration logoutTimeout = Duration(seconds: 5);
+
+  /// Drops the session on the phone. With [endSession] (the user signed
+  /// out, and the tokens still work) the server ends this phone's sign-in
+  /// first (#56, `POST /auth/logout`), so a copy of the refresh token stops
+  /// working. That call is bounded by [logoutTimeout] and any failure is
+  /// ignored: the phone's copy is cleared whatever happened, and a refresh
+  /// token the server never heard about dies with its `JWT_REFRESH_TTL`.
   @override
-  FutureResult<Unit> logout() {
+  FutureResult<Unit> logout({bool endSession = false}) {
     return guard(() async {
+      if (endSession) await _endSessionOnServer();
       await _local.clear();
       return Unit.instance;
     });
+  }
+
+  Future<void> _endSessionOnServer() async {
+    try {
+      final refreshToken = await _local.readRefreshToken();
+      if (refreshToken == null || refreshToken.isEmpty) return;
+      await _remote
+          .logout(refreshToken, timeout: logoutTimeout)
+          .timeout(logoutTimeout);
+    } catch (error) {
+      if (kDebugMode) debugPrint('Server logout skipped: $error');
+    }
   }
 
   @override

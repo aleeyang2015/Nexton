@@ -53,6 +53,9 @@ class _FakeAdapter implements HttpClientAdapter {
   /// overlap.
   bool slow = false;
 
+  /// When set, the refresh's answer waits for it: a slow server (#56).
+  Completer<void>? holdRefresh;
+
   void queue(String path, List<_Reply> answers) => replies[path] = answers;
 
   @override
@@ -63,6 +66,7 @@ class _FakeAdapter implements HttpClientAdapter {
   ) async {
     requests.add(options);
     if (slow) await Future<void>.delayed(const Duration(milliseconds: 10));
+    if (options.path == ApiPaths.refresh) await holdRefresh?.future;
 
     final queued = replies[options.path];
     final reply = queued == null || queued.isEmpty
@@ -346,6 +350,121 @@ void main() {
       expect(h.requestsTo(ApiPaths.refresh), isEmpty);
       expect(h.sessionExpiredEvents, isEmpty);
       expect(await h.tokens.readAccessToken(), before);
+    });
+
+    test('the logout (#56): its 401 as it is, no refresh, no session ended, '
+        'the tokens untouched, and no bearer sent', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(ApiPaths.logout, [_unauthorized]);
+      h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+
+      await expectLater(
+        h.client.post<dynamic>(
+          ApiPaths.logout,
+          data: {'refresh_token': 'refresh-1'},
+        ),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(h.requestsTo(ApiPaths.refresh), isEmpty);
+      expect(h.sessionExpiredEvents, isEmpty);
+      expect(await h.tokens.readAccessToken(), 'access-1');
+      expect(await h.tokens.readRefreshToken(), 'refresh-1');
+      expect(
+        h
+            .requestsTo(ApiPaths.logout)
+            .single
+            .headers[AppConstants.authorizationHeader],
+        isNull,
+      );
+    });
+
+    test('HR ended the sign-in (#56): SESSION_EXPIRED, then the refresh '
+        'answers INVALID_TOKEN: signed out once, "session expired"', () async {
+      final h = await _Harness.create();
+      const ended = _Reply(401, {
+        'success': false,
+        'error': {
+          'code': 'SESSION_EXPIRED',
+          'message': 'Your session was ended by an administrator',
+        },
+      });
+      h.adapter.queue(ApiPaths.me, [ended, ended]);
+      h.adapter.queue(ApiPaths.refresh, [_unauthorized]);
+
+      await Future.wait([
+        expectLater(
+          h.client.get<dynamic>(ApiPaths.me),
+          throwsA(isA<DioException>()),
+        ),
+        expectLater(
+          h.client.get<dynamic>(ApiPaths.me),
+          throwsA(isA<DioException>()),
+        ),
+      ]);
+
+      expect(h.requestsTo(ApiPaths.refresh), hasLength(1));
+      expect(h.sessionExpiredEvents, [SessionEndReason.expired]);
+      expect(await h.tokens.readRefreshToken(), isNull);
+    });
+
+    test('a refresh that answers after a sign-out cleared the tokens writes '
+        'nothing back (#56)', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(ApiPaths.me, [_unauthorized, _okProfile]);
+      h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+      h.adapter.holdRefresh = Completer<void>();
+
+      final call = h.client.get<dynamic>(ApiPaths.me);
+      await pumpEventQueue();
+      // The sign-out clears the phone's copy while the refresh runs.
+      await h.tokens.clear();
+      h.adapter.holdRefresh!.complete();
+      await expectLater(call, throwsA(isA<DioException>()));
+
+      expect(await h.tokens.readAccessToken(), isNull);
+      expect(await h.tokens.readRefreshToken(), isNull);
+      expect(h.sessionExpiredEvents, isEmpty);
+    });
+
+    test('the last user\'s refresh, refused after someone else signed in, '
+        'leaves the new sign-in alone (#56)', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(ApiPaths.me, [_unauthorized]);
+      h.adapter.queue(ApiPaths.refresh, [_unauthorized]);
+      h.adapter.holdRefresh = Completer<void>();
+
+      final call = h.client.get<dynamic>(ApiPaths.me);
+      await pumpEventQueue();
+      // A signs out; B signs in.
+      await h.tokens.clear();
+      await h.tokens.writeAccessToken('access-b');
+      await h.tokens.writeRefreshToken('refresh-b');
+      h.adapter.holdRefresh!.complete();
+      await expectLater(call, throwsA(isA<DioException>()));
+
+      expect(await h.tokens.readAccessToken(), 'access-b');
+      expect(await h.tokens.readRefreshToken(), 'refresh-b');
+      expect(h.sessionExpiredEvents, isEmpty);
+    });
+
+    test('a refresh that sends no new refresh token (#56: no rotation) keeps '
+        'the saved one', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(ApiPaths.me, [_unauthorized, _okProfile]);
+      h.adapter.queue(ApiPaths.refresh, [
+        const _Reply(200, {
+          'success': true,
+          'data': {'access_token': 'access-2', 'expires_at': 1773505562},
+        }),
+      ]);
+
+      final response = await h.client.get<dynamic>(ApiPaths.me);
+
+      expect(response.statusCode, 200);
+      expect(await h.tokens.readAccessToken(), 'access-2');
+      expect(await h.tokens.readRefreshToken(), 'refresh-1');
+      expect(h.sessionExpiredEvents, isEmpty);
     });
 
     test('a failed refresh clears the session and signals expiry', () async {

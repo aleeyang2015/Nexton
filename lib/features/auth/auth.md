@@ -348,15 +348,17 @@ Wrong current password is **400 `PASSWORD_MISMATCH`** (not 401/403); since `isAu
 
 ---
 
-## No `POST /auth/logout`
+## `POST /auth/logout` (#56)
 
-There is **no logout endpoint** (verified against `mountAuthRoutes` — only `/login`, `/refresh`, `/me`, `/change-password` are registered). Both `logout()` (user-initiated) and `forceLogout()` (interceptor-forced) share one implementation and clear session state locally:
+Signing out ends this phone's sign-in on the server: `POST /auth/logout` with `{"refresh_token": "<saved token>"}`, no bearer, always `204` (an unknown, already ended or expired token too). It ends only this phone's sign-in; the person's other phones stay signed in.
 
-- `clearTokens()` — deletes `access_token`, `refresh_token`, **and** `cached_user` from SecureStore (and nulls the in-memory access-token cache).
-- `clearQueryCache()` — lazily imports `@/lib/queryClient` and calls `queryClient.clear()` so the next user on a shared device can't briefly see the previous user's data.
-- Resets store state to `status: 'unauthenticated'`, `user: null`, and clears `loginError` / `loginErrorKind` / `isSubmitting`.
+- Order at sign-out: the phone's push row (`DELETE /mobile/devices/:id`, #52), then the logout, then the local clear. After the logout the access token answers `401 SESSION_EXPIRED`, so the device row goes first; both calls need the tokens, so both come before the clear.
+- The logout waits at most 5 s; any failure is ignored and the phone is signed out anyway. A refresh token the server never heard about lapses at its `JWT_REFRESH_TTL` (30 days live, renewed by each refresh).
+- The interceptor never refreshes on the logout's `401`, and a refresh answer for a sign-in that ended while it ran (its refresh token is no longer the saved one) writes and clears nothing.
+- A forced sign-out sends no logout (the tokens are already gone), except after a failed re-login following a password change, whose tokens still work.
+- HR's "sign out everywhere" (`POST /core_hr/employees/:id/end-sessions`): the phone's next call answers `401 SESSION_EXPIRED`, the refresh `401 INVALID_TOKEN`, and the phone signs out with "session expired", reported once however many requests were refused together.
+- The server no longer rotates the refresh token: a refresh answer without `refresh_token` keeps the saved one.
 
-The refresh token is left to expire server-side on its own. (`logout()` simply delegates to `forceLogout()`.) A server-side session record, if one was created at login, is not deleted by the client — it lapses at the access TTL or when an admin revokes it.
 
 ## No `/auth/forgot-password`
 

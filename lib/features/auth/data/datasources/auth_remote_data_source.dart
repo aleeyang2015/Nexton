@@ -7,9 +7,8 @@ import '../../../../core/network/api_response.dart';
 import '../models/login_response_model.dart';
 import '../models/user_model.dart';
 
-/// The three auth calls a screen can trigger. `POST /auth/refresh` is missing
-/// on purpose — it is driven by the 401 interceptor, never by a caller — and
-/// there is no logout endpoint at all.
+/// The auth calls a screen can trigger. `POST /auth/refresh` is missing on
+/// purpose: it is driven by the 401 interceptor, never by a caller.
 ///
 /// Throws on failure ([AppException], or a [DioException] carrying a mapped
 /// Failure); the repository converts those into a Result.
@@ -27,6 +26,11 @@ abstract class AuthRemoteDataSource {
     required String currentPassword,
     required String newPassword,
   });
+
+  /// Ends the sign-in of [refreshToken] on the server (#56,
+  /// `POST /auth/logout`, always `204`): a copy of the token stops working.
+  /// [timeout] bounds it, so a sign-out never waits long.
+  Future<void> logout(String refreshToken, {Duration? timeout});
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -73,6 +77,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     await _client.put<dynamic>(
       ApiPaths.changePassword,
       data: {'current_password': currentPassword, 'new_password': newPassword},
+    );
+  }
+
+  @override
+  Future<void> logout(String refreshToken, {Duration? timeout}) async {
+    await _client.post<dynamic>(
+      ApiPaths.logout,
+      data: {'refresh_token': refreshToken},
+      options: timeout == null
+          ? null
+          : Options(
+              sendTimeout: timeout,
+              receiveTimeout: timeout,
+            ),
     );
   }
 }
