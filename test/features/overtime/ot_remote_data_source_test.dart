@@ -462,4 +462,78 @@ void main() {
       expect((await repository.ask(draft)).isFailure, isTrue);
     });
   });
+
+  group('my approvals (#48)', () {
+    test('sends the status and page / per_page, never a limit or cursor',
+        () async {
+      adapter.body = {
+        'success': true,
+        'data': [otRequestJson()],
+        'meta': {'page': 2, 'per_page': 20, 'total': 25, 'total_pages': 2},
+      };
+
+      final page = (await repository.myApprovals(
+        status: OtApprovalStatus.approved,
+        page: 2,
+      )).dataOrNull!;
+
+      final query = adapter.lastRequest!.queryParameters;
+      expect(adapter.lastRequest!.path, endsWith('ot-requests/my-approvals'));
+      expect(query['status'], 'approved');
+      expect(query['page'], 2);
+      expect(query['per_page'], 20);
+      expect(query.containsKey('limit'), isFalse);
+      expect(query.containsKey('cursor'), isFalse);
+      expect(page.page, 2);
+      expect(page.hasMore, isFalse);
+      expect(page.items.single.employeeName, isNotNull);
+    });
+
+    test('always one of pending / approved / rejected', () async {
+      adapter.body = {'success': true, 'data': <Object>[]};
+      for (final status in OtApprovalStatus.values) {
+        await repository.myApprovals(status: status);
+        expect(adapter.lastRequest!.queryParameters['status'], status.name);
+      }
+    });
+
+    test('no staff record: #28\'s refusal, not a crash', () async {
+      refuse(400, 'EMPLOYEE_NOT_FOUND');
+      final failure = (await repository.myApprovals(
+        status: OtApprovalStatus.pending,
+      )).failureOrNull;
+      expect(failure, isA<ValidationFailure>());
+    });
+  });
+
+  group('the employee\'s department (live since 15 Nov)', () {
+    Map<String, dynamic> withDepartment(Object? department) {
+      final json = otRequestJson();
+      final employee = Map<String, dynamic>.from(json['employee'] as Map);
+      if (department == null) {
+        employee.remove('department');
+      } else {
+        employee['department'] = department;
+      }
+      return {...json, 'employee': employee};
+    }
+
+    test('name and name_lo', () async {
+      answer(200, withDepartment({'id': 'd-1', 'name': 'Kitchen', 'name_lo': 'ຄົວ'}));
+      final request = (await repository.request('ot-1')).dataOrNull!;
+      expect(request.departmentName, 'Kitchen');
+      expect(request.departmentNameLo, 'ຄົວ');
+    });
+
+    test('name_lo null; or no department at all', () async {
+      answer(200, withDepartment({'id': 'd-1', 'name': 'Kitchen', 'name_lo': null}));
+      final noLao = (await repository.request('ot-1')).dataOrNull!;
+      expect(noLao.departmentName, 'Kitchen');
+      expect(noLao.departmentNameLo, isNull);
+
+      answer(200, withDepartment(null));
+      final none = (await repository.request('ot-1')).dataOrNull!;
+      expect(none.departmentName, isNull);
+    });
+  });
 }

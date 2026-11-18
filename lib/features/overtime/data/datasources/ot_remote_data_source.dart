@@ -27,6 +27,17 @@ abstract class OtRemoteDataSource {
 
   Future<OtRequest> request(String id);
 
+  /// The OT requests at the signed-in approver's steps (#48), one page by
+  /// number: `GET ot-requests/my-approvals?status=&page=&per_page=`.
+  /// [status] is read against the caller's own step: `pending` waits on
+  /// them, `approved` / `rejected` they decided. Never `limit` (the server
+  /// reads it as `per_page`, and pages by number only).
+  Future<OtPage<OtRequest>> myApprovals({
+    required OtApprovalStatus status,
+    int page = 1,
+    int perPage = OtPage.defaultPerPage,
+  });
+
   Future<OtRequest> edit(String id, OtDraft draft);
 
   Future<OtRequest> cancel(String id);
@@ -72,6 +83,23 @@ class OtRemoteDataSourceImpl implements OtRemoteDataSource {
       queryParameters: {
         if (wire != null) 'status': wire,
         if (month != null) 'month': _yearMonth(month),
+        'page': page,
+        'per_page': perPage,
+      },
+    );
+    return _page(response.data, page, OtRequestModel.tryFromJson);
+  });
+
+  @override
+  Future<OtPage<OtRequest>> myApprovals({
+    required OtApprovalStatus status,
+    int page = 1,
+    int perPage = OtPage.defaultPerPage,
+  }) => _business(() async {
+    final response = await _client.get<dynamic>(
+      OtPaths.myApprovals,
+      queryParameters: {
+        'status': status.name,
         'page': page,
         'per_page': perPage,
       },

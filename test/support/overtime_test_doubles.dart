@@ -27,6 +27,37 @@ class FakeOtRepository implements OtRepository {
   /// When set, a list call waits for it (taken by the call that sees it).
   Completer<void>? holdMyRequests;
 
+  /// Every my-approvals call (#48): the status and page asked for.
+  final List<({OtApprovalStatus status, int page, int perPage})>
+  approvalCalls = [];
+
+  /// The answer to a my-approvals call; by default an empty single page.
+  Result<OtPage<OtRequest>> Function(OtApprovalStatus status, int page)
+  approvalsAnswer = (status, page) =>
+      const Result.success(OtPage(items: [], page: 1, totalPages: 1));
+
+  /// When set, a my-approvals call waits for it (taken by the call that
+  /// sees it).
+  Completer<void>? holdApprovals;
+
+  /// A page number whose my-approvals answer waits for its completer.
+  final Map<int, Completer<void>> holdApprovalPages = {};
+
+  @override
+  FutureResult<OtPage<OtRequest>> myApprovals({
+    required OtApprovalStatus status,
+    int page = 1,
+    int perPage = OtPage.defaultPerPage,
+  }) async {
+    approvalCalls.add((status: status, page: page, perPage: perPage));
+    final answer = approvalsAnswer(status, page);
+    final hold = holdApprovals;
+    holdApprovals = null;
+    await hold?.future;
+    await holdApprovalPages[page]?.future;
+    return answer;
+  }
+
   /// Every draft the ask call was sent, in order.
   final List<OtDraft> asked = [];
 

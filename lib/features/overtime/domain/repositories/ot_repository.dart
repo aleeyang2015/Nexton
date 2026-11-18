@@ -20,6 +20,14 @@ abstract class OtRepository {
     int perPage = OtPage.defaultPerPage,
   });
 
+  /// One page of the OT requests at the caller's approval steps (#48), by
+  /// number. [status] is read against the caller's own step.
+  FutureResult<OtPage<OtRequest>> myApprovals({
+    required OtApprovalStatus status,
+    int page = 1,
+    int perPage = OtPage.defaultPerPage,
+  });
+
   /// One OT request; `404` when it is gone or not the caller's to see.
   FutureResult<OtRequest> request(String id);
 

@@ -8,8 +8,8 @@ import 'ot_step_model.dart';
 /// Tolerant: a field missing or of the wrong type gets its empty value, so
 /// one odd field never loses the request. The one thing refused is a
 /// request with no id ([FormatException]): nothing could open it. Keys the
-/// App does not use (`warnings` on a decision, `paid_by_hand_by`,
-/// `employee.department`) are ignored.
+/// App does not use (`warnings` on a decision, `paid_by_hand_by`) are
+/// ignored.
 class OtRequestModel {
   OtRequestModel._();
 
@@ -29,6 +29,7 @@ class OtRequestModel {
       throw const FormatException('An OT request without an id');
     }
     final employee = OtJson.object(json['employee']);
+    final department = OtJson.object(employee?['department']);
 
     return OtRequest(
       id: id,
@@ -38,6 +39,9 @@ class OtRequestModel {
           '',
       employeeName: OtJson.nonEmpty(employee?['name']),
       employeeNumber: OtJson.nonEmpty(employee?['employee_number']),
+      // The current department (#48); `name_lo` may be null.
+      departmentName: OtJson.nonEmpty(department?['name']),
+      departmentNameLo: OtJson.nonEmpty(department?['name_lo']),
       announcementId: OtJson.nonEmpty(json['announcement_id']),
       workDate: OtJson.date(json['work_date']),
       startTime: OtJson.str(json['start_time']) ?? '',

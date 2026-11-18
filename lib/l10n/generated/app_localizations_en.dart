@@ -1332,6 +1332,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get apprRequestNotFound => 'This request is not available';
 
   @override
+  String get apprSectionOt => 'OT';
+
+  @override
+  String get apprOtWaitingEmpty => 'No OT is waiting for you';
+
+  @override
+  String apprWaitingHours(int hours) {
+    return 'Waiting $hours h';
+  }
+
+  @override
   String get apprAlreadyDecided => 'Someone already decided this request';
 
   @override

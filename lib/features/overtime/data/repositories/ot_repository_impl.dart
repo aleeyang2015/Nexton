@@ -32,6 +32,15 @@ class OtRepositoryImpl extends BaseRepository implements OtRepository {
   );
 
   @override
+  FutureResult<OtPage<OtRequest>> myApprovals({
+    required OtApprovalStatus status,
+    int page = 1,
+    int perPage = OtPage.defaultPerPage,
+  }) => guard(
+    () => _remote.myApprovals(status: status, page: page, perPage: perPage),
+  );
+
+  @override
   FutureResult<OtRequest> request(String id) => guard(() => _remote.request(id));
 
   @override
