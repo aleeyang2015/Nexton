@@ -1,6 +1,7 @@
 import '../../../time_off/data/models/leave_parse.dart';
 import '../../../time_off/domain/entities/leave_approval_step.dart';
 import '../../domain/entities/time_correction_detail.dart';
+import '../../domain/entities/time_correction_status.dart';
 import 'time_correction_parse.dart';
 
 /// Reads `GET /attendance/correction-requests/:id`'s `data` object.
@@ -18,6 +19,7 @@ class TimeCorrectionDetailModel {
       throw const FormatException('Incomplete correction request');
     }
 
+    final status = TimeCorrectionJson.status(json['status']);
     final steps = LeaveJson.objects(json['steps']).map(_step).toList()
       ..sort((a, b) => a.stepNo.compareTo(b.stepNo));
 
@@ -33,11 +35,15 @@ class TimeCorrectionDetailModel {
       attachmentUrl: TimeCorrectionJson.attachmentUrls(
         json['attachment_url'],
       ).firstOrNull,
-      status: TimeCorrectionJson.status(json['status']),
+      status: status,
       currentStepNo: LeaveJson.intOf(json['current_step_no']) ?? 0,
       steps: steps,
       submittedAt: LeaveJson.dateTime(json['created_at']) ?? requestDate,
-      result: _result(json['attendance_record'], requestDate),
+      // Only an approved request has a corrected day: a record sent with any
+      // other is the day as it was, never "after the correction".
+      result: status == TimeCorrectionStatus.approved
+          ? _result(json['attendance_record'], requestDate)
+          : null,
     );
   }
 
@@ -60,9 +66,13 @@ class TimeCorrectionDetailModel {
     );
   }
 
-  /// A number, or null for anything else (never a throw over one field).
-  static double? _number(dynamic value) =>
-      value is num ? value.toDouble() : null;
+  /// A number, also one sent as text (`"8.50"`); null for anything else,
+  /// never a throw over one field.
+  static double? _number(dynamic value) => switch (value) {
+    num() => value.toDouble(),
+    String() => double.tryParse(value.trim()),
+    _ => null,
+  };
 
   /// [parent] is the request: its `employee_id` stands in when the
   /// `employee` object has no id.

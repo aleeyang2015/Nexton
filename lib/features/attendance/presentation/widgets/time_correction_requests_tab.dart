@@ -31,7 +31,8 @@ class TimeCorrectionRequestsTab extends ConsumerStatefulWidget {
 }
 
 class _TimeCorrectionRequestsTabState
-    extends ConsumerState<TimeCorrectionRequestsTab> {
+    extends ConsumerState<TimeCorrectionRequestsTab>
+    with AutomaticKeepAliveClientMixin {
   /// How close to the end of the list, in pixels, the next page is asked
   /// for: on scroll, as the off-site tab does, not as soon as a page lands.
   static const double _loadMoreWithin = 300;
@@ -56,8 +57,14 @@ class _TimeCorrectionRequestsTabState
     ref.read(timeCorrectionHistoryNotifierProvider.notifier).loadMore();
   }
 
+  /// Kept while "My requests" is open: switching tabs and back keeps the
+  /// picked status and the pages loaded, with no new request.
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final l10n = AppLocalizations.of(context)!;
     final filter = ref.watch(
       timeCorrectionHistoryNotifierProvider.select((s) => s.filter),

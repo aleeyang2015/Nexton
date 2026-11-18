@@ -32,7 +32,8 @@ class OffsiteRequestsTab extends ConsumerStatefulWidget {
   ConsumerState<OffsiteRequestsTab> createState() => _OffsiteRequestsTabState();
 }
 
-class _OffsiteRequestsTabState extends ConsumerState<OffsiteRequestsTab> {
+class _OffsiteRequestsTabState extends ConsumerState<OffsiteRequestsTab>
+    with AutomaticKeepAliveClientMixin {
   /// How close to the end of the list, in pixels, the next page is asked
   /// for: as the leave history does, on scroll, not as soon as a page lands.
   static const double _loadMoreWithin = 300;
@@ -57,8 +58,14 @@ class _OffsiteRequestsTabState extends ConsumerState<OffsiteRequestsTab> {
     ref.read(offsiteHistoryNotifierProvider.notifier).loadMore();
   }
 
+  /// Kept while "My requests" is open: switching tabs and back keeps the
+  /// picked status and the pages loaded, with no new request.
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final l10n = AppLocalizations.of(context)!;
     final filter = ref.watch(
       offsiteHistoryNotifierProvider.select((s) => s.filter),

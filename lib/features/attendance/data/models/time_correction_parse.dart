@@ -52,10 +52,11 @@ class TimeCorrectionJson {
   /// written: `2026-11-14 17:05:00`, `2026-11-14T17:05:00`, or `17:05` on
   /// [day].
   ///
-  /// Never shifted to the phone's zone. A zone suffix (`Z`, `+07:00`) is
-  /// dropped rather than applied: the backend stores these without a zone,
-  /// and a serializer that tags them UTC anyway would otherwise move every
-  /// time by the phone's offset.
+  /// A time with no zone is the company's clock as written, never shifted.
+  /// One that carries a zone (`Z`, `+07:00`) is a moment, read the way the
+  /// history page reads `records/my` (`AttendanceRecordModel`): on the
+  /// phone's clock, so the corrected day and the history row always show the
+  /// same time. A bare date has no time: null.
   static DateTime? wallClock(dynamic value, {DateTime? day}) {
     final text = LeaveJson.nonEmpty(value)?.trim();
     if (text == null) return null;
@@ -73,17 +74,15 @@ class TimeCorrectionJson {
       );
     }
 
-    final zoned = _zoneSuffix.firstMatch(text);
-    return DateTime.tryParse(zoned == null ? text : zoned[1]!);
+    if (!_hasTime.hasMatch(text)) return null;
+    final parsed = DateTime.tryParse(text);
+    return parsed != null && parsed.isUtc ? parsed.toLocal() : parsed;
   }
 
   static final RegExp _timeOnly = RegExp(r'^(\d{1,2}):(\d{2})(?::(\d{2}))?$');
 
-  /// A date-time with a zone after its time: group 1 is the part before the
-  /// zone. A bare date (`2026-11-14`) does not match.
-  static final RegExp _zoneSuffix = RegExp(
-    r'^(.*\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)(?:[Zz]|[+-]\d{2}(?::?\d{2})?)$',
-  );
+  /// A date with a time of day after it (`T` or a space, then `HH:MM`).
+  static final RegExp _hasTime = RegExp(r'\d[T ]\d{1,2}:\d{2}');
 
   /// The evidence arrives as a bare URL, the `POST /uploads` object, or a
   /// list of either; `""` or null means none.

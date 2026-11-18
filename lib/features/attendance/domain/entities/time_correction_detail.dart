@@ -51,6 +51,26 @@ class TimeCorrectionDetail extends Equatable {
     this.result,
   });
 
+  /// The same request with [status]: a withdrawal the server accepted, shown
+  /// before the request could be read again.
+  TimeCorrectionDetail withStatus(TimeCorrectionStatus status) =>
+      TimeCorrectionDetail(
+        id: id,
+        employee: employee,
+        requestDate: requestDate,
+        type: type,
+        clockIn: clockIn,
+        clockOut: clockOut,
+        shift: shift,
+        reason: reason,
+        attachmentUrl: attachmentUrl,
+        status: status,
+        currentStepNo: 0,
+        steps: steps,
+        submittedAt: submittedAt,
+        result: result,
+      );
+
   /// Only an undecided request can be withdrawn.
   bool get canCancel => status == TimeCorrectionStatus.pending;
 

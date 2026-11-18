@@ -352,6 +352,12 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
         'PUT $path error ${error.response?.statusCode}',
         error.response?.data,
       );
+      // Gone meanwhile: "not available", as the reload after it says.
+      if (error.response?.statusCode == 404) {
+        throw const Failure.validation(
+          message: CorrectionErrorCode.tokenRequestGone,
+        );
+      }
       // By its code, not its status: not the caller's, or no longer pending.
       final code = ApiError.tryParse(error.response?.data)?.code;
       if (code == CorrectionErrorCode.cannotCancel) {

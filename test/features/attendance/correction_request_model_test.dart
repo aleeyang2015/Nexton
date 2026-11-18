@@ -7,6 +7,7 @@ import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/api_client.dart';
 import 'package:next_on/features/attendance/data/datasources/attendance_remote_data_source.dart';
 import 'package:next_on/features/attendance/data/datasources/correction_error_code.dart';
+import 'package:next_on/features/attendance/data/models/attendance_record_model.dart';
 import 'package:next_on/features/attendance/data/models/time_correction_detail_model.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_detail.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_request.dart';
@@ -71,19 +72,40 @@ void main() {
       expect(result.lateMinutes, 2);
     });
 
-    test('a zone on the time is not applied: 17:05 stays 17:05', () {
+    test('a time with a zone is a moment, read as the history page reads '
+        'records/my: both show the same time', () {
+      const zoned = '2026-11-14T10:05:00Z';
       final detail = TimeCorrectionDetailModel.fromJson(
-        request(
-          attendanceRecord: {
-            'date': '2026-11-14',
-            'clock_in': '2026-11-14T08:00:00Z',
-            'clock_out': '2026-11-14T17:05:00+07:00',
-          },
-        ),
+        request(attendanceRecord: {'date': '2026-11-14', 'clock_out': zoned}),
       );
+      final history = AttendanceRecordModel.fromJson({
+        'date': '2026-11-14',
+        'sessions': [
+          {'clock_out': zoned},
+        ],
+      });
 
-      expect(detail.result!.clockIn, DateTime(2026, 11, 14, 8));
-      expect(detail.result!.clockOut, DateTime(2026, 11, 14, 17, 5));
+      expect(detail.result!.clockOut, history.sessions.single.clockOut);
+      expect(detail.result!.clockOut, DateTime.parse(zoned).toLocal());
+    });
+
+    test('a bare date is no time: shown as --:--, not 00:00', () {
+      final detail = TimeCorrectionDetailModel.fromJson(
+        request(attendanceRecord: {'date': '2026-11-14', 'clock_in': '2026-11-14'}),
+      );
+      expect(detail.result!.clockIn, isNull);
+    });
+
+    test('only an approved request has a corrected day', () {
+      for (final status in ['pending', 'rejected', 'cancelled']) {
+        final detail = TimeCorrectionDetailModel.fromJson(
+          request(
+            status: status,
+            attendanceRecord: {'date': '2026-11-14', 'clock_out': '17:05'},
+          ),
+        );
+        expect(detail.result, isNull, reason: status);
+      }
     });
 
     test('the corrected part (session) gives the times when it is there', () {
@@ -114,19 +136,20 @@ void main() {
       expect(detail.result!.clockIn, isNull);
     });
 
-    test('a field of the wrong kind is left out, not a throw', () {
+    test('numbers sent as text are read; a field of the wrong kind is left '
+        'out, not a throw', () {
       final detail = TimeCorrectionDetailModel.fromJson(
         request(
           attendanceRecord: {
             'date': '2026-11-14',
-            'work_hours': '8.5',
+            'work_hours': '8.50',
             'late_minutes': 'two',
             'is_late': 'yes',
           },
         ),
       );
 
-      expect(detail.result!.workHours, isNull);
+      expect(detail.result!.workHours, 8.5);
       expect(detail.result!.lateMinutes, isNull);
       expect(detail.result!.isLate, isFalse);
     });
@@ -295,6 +318,26 @@ void main() {
       );
       expect(adapter.lastRequest!.method, 'PUT');
       expect(adapter.lastRequest!.path, endsWith('tc-1/cancel'));
+    });
+
+    test('cancel 404 (gone meanwhile): "not available"', () async {
+      adapter
+        ..status = 404
+        ..body = {
+          'success': false,
+          'error': {'code': 'NOT_FOUND', 'message': 'not found'},
+        };
+
+      await expectLater(
+        source.cancelTimeCorrection('tc-1'),
+        throwsA(
+          isA<ValidationFailure>().having(
+            (f) => f.message,
+            'message',
+            CorrectionErrorCode.tokenRequestGone,
+          ),
+        ),
+      );
     });
 
     test('another 409 on cancel is not "already decided"', () async {

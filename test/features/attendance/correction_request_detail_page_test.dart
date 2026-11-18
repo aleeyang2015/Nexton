@@ -218,6 +218,25 @@ void main() {
       expect(cancelButton(), findsNothing);
     });
 
+    testWidgets('withdrawn, but the reload failed (no signal): shown '
+        'cancelled anyway, no Cancel to tap again', (tester) async {
+      repository.timeCorrectionDetailResults = [
+        Result.success(request()),
+        const Result.failure(Failure.network(message: 'offline')),
+      ];
+      await open(tester);
+
+      await tester.tap(cancelButton());
+      await tester.pumpAndSettle();
+      await tester.tap(cancelButton().last);
+      await tester.pumpAndSettle();
+
+      expect(repository.cancelledTimeCorrectionIds, ['tc-1']);
+      expect(find.text(en.timeCorrectionCancelled), findsOneWidget);
+      expect(find.text(en.timeCorrectionStatusCancelled), findsWidgets);
+      expect(cancelButton(), findsNothing);
+    });
+
     test('a second cancel while one is on its way tells nothing', () async {
       final container = ProviderContainer(overrides: overrides());
       addTearDown(container.dispose);
@@ -339,15 +358,14 @@ void main() {
       expect(find.text('"Forgot to clock out"'), findsOneWidget);
     });
 
-    testWidgets('opened with nothing under it: back goes to "My requests"', (
-      tester,
-    ) async {
+    testWidgets('opened with nothing under it: back goes to "My requests" '
+        'on its "forgot to scan" tab', (tester) async {
       repository.timeCorrectionDetailResults = [Result.success(request())];
       final router = GoRouter(
         initialLocation: AppRoutes.myCorrectionRequest('tc-1'),
         routes: [
           GoRoute(
-            path: AppRoutes.myRequests,
+            path: AppRoutes.timeCorrectionHistory,
             builder: (_, _) => const Scaffold(body: Text('MY REQUESTS')),
           ),
           GoRoute(
@@ -490,6 +508,40 @@ void main() {
       await tester.drag(find.byType(ListView), const Offset(0, -20000));
       await tester.pumpAndSettle();
       expect(repository.timeCorrectionHistoryCalls, hasLength(2));
+    });
+
+    testWidgets('switching tabs and back keeps the picked status and the '
+        'rows, with no new request', (tester) async {
+      tester.view.physicalSize = const Size(420, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      repository.timeCorrectionHistoryResults = [
+        Result.success(CursorPage.single([row('tc-1')])),
+      ];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides(),
+            offsiteRepositoryProvider.overrideWithValue(FakeOffsiteRepository()),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: MyRequestsPage(initialTab: MyRequestsTab.correction),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(repository.timeCorrectionHistoryCalls, hasLength(1));
+
+      await tester.tap(find.text(en.attOffsiteTab));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(en.attCorrectionTab));
+      await tester.pumpAndSettle();
+
+      expect(repository.timeCorrectionHistoryCalls, hasLength(1));
+      expect(find.byType(TimeCorrectionRecordCard), findsOneWidget);
     });
 
     testWidgets('a row opens its request\'s own page, with the row', (

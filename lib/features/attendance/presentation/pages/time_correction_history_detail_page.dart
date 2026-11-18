@@ -240,10 +240,11 @@ class _Header extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            // Opened from a toast or a link there may be no page underneath.
+            // Opened from a toast or a link there may be no page underneath:
+            // "My requests" on its "forgot to scan" tab.
             onPressed: () => context.canPop()
                 ? context.pop()
-                : context.go(AppRoutes.myRequests),
+                : context.go(AppRoutes.timeCorrectionHistory),
             icon: const Icon(
               Icons.arrow_back_ios_new,
               color: AppColors.textPrimary,

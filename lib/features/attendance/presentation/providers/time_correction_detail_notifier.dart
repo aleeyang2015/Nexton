@@ -5,6 +5,7 @@ import '../../../../core/utils/result.dart';
 import '../../attendance_providers.dart';
 import '../../data/datasources/correction_error_code.dart';
 import '../../domain/entities/time_correction_detail.dart';
+import '../../domain/entities/time_correction_status.dart';
 import '../services/attachment_file_saver.dart';
 import '../widgets/time_correction_detail_copy.dart';
 import 'time_correction_detail_state.dart';
@@ -78,7 +79,20 @@ class TimeCorrectionDetailNotifier
     try {
       final result = await ref.read(cancelTimeCorrectionUseCaseProvider)(arg);
       if (_disposed) return result;
-      await refresh();
+      final reloadFailed = await refresh();
+      // Withdrawn, but not read again (no signal): show it cancelled anyway,
+      // so Cancel goes and a second tap never reads "already decided".
+      final shown = state.detail.valueOrNull;
+      if (result.isSuccess &&
+          reloadFailed != null &&
+          shown != null &&
+          shown.status == TimeCorrectionStatus.pending) {
+        state = state.copyWith(
+          detail: AsyncValue.data(
+            shown.withStatus(TimeCorrectionStatus.cancelled),
+          ),
+        );
+      }
       if (ref.exists(timeCorrectionHistoryNotifierProvider)) {
         ref.read(timeCorrectionHistoryNotifierProvider.notifier).refresh();
       }
