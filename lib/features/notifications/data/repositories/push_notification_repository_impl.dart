@@ -38,7 +38,10 @@ class PushNotificationRepositoryImpl extends BaseRepository
   bool get permissionAsked => _local.permissionAsked();
 
   @override
-  Future<void> markPermissionAsked() => _local.markPermissionAsked();
+  FutureResult<Unit> markPermissionAsked() => guard(() async {
+    await _local.markPermissionAsked();
+    return Unit.instance;
+  });
 
   @override
   FutureResult<Unit> registerDevice() {

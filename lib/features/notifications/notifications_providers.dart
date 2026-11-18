@@ -10,8 +10,9 @@ import 'data/repositories/push_notification_repository_impl.dart';
 import 'domain/repositories/push_notification_repository.dart';
 import 'domain/usecases/register_device_usecase.dart';
 
-/// Composition root for the notifications feature: the one place the data
-/// layer is constructed and bound to the domain contracts.
+// Composition root for the notifications feature: the one place the data
+// layer is constructed and bound to the domain contracts.
+
 /// Whether Firebase started (`AppInitializer.initialize`, set in
 /// `main.dart`). False by default: a test or a phone where it failed gets
 /// no push, never a crash (#51).

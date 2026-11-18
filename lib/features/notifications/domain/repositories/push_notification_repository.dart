@@ -9,7 +9,7 @@ abstract class PushNotificationRepository {
 
   /// Whether the permission was already asked on this phone (#51).
   bool get permissionAsked;
-  Future<void> markPermissionAsked();
+  FutureResult<Unit> markPermissionAsked();
 
   /// Sends this device's current FCM token to the backend.
   FutureResult<Unit> registerDevice();

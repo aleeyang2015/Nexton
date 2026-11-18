@@ -69,7 +69,9 @@ class PushNotificationsNotifier extends Notifier<bool> {
     // Not worth bothering the user over: the next sign-in or token refresh
     // tries again.
     final failure = result.failureOrNull;
-    if (failure != null) debugPrint('Push registration failed: $failure');
+    if (failure != null && kDebugMode) {
+      debugPrint('Push registration failed: $failure');
+    }
   }
 }
 

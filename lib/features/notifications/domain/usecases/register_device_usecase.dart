@@ -9,16 +9,25 @@ import '../repositories/push_notification_repository.dart';
 class RegisterDeviceUseCase implements NoParamsUseCase<Unit> {
   final PushNotificationRepository _repository;
 
+  /// The prompt on its way, if any: a token refresh that comes meanwhile
+  /// waits for it rather than asking a second time.
+  Future<void>? _asking;
+
   RegisterDeviceUseCase(this._repository);
 
   @override
   FutureResult<Unit> call() async {
     if (!_repository.permissionAsked) {
-      final asked = await _repository.requestPermission();
-      // Asked (allowed or refused): not again. A prompt that could not be
-      // shown (the plugin threw) is tried at the next sign-in.
-      if (asked.isSuccess) await _repository.markPermissionAsked();
+      await (_asking ??= _askOnce().whenComplete(() => _asking = null));
     }
     return _repository.registerDevice();
+  }
+
+  /// Asked (allowed or refused): not again. A prompt that could not be
+  /// shown (the plugin threw), or a flag that could not be saved, is tried
+  /// at the next sign-in; the device registers either way.
+  Future<void> _askOnce() async {
+    final asked = await _repository.requestPermission();
+    if (asked.isSuccess) await _repository.markPermissionAsked();
   }
 }

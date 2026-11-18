@@ -6,6 +6,7 @@ import 'package:next_on/app/app.dart';
 import 'package:next_on/core/network/network_providers.dart';
 import 'package:next_on/features/auth/domain/entities/auth_session.dart';
 import 'package:next_on/features/auth/presentation/providers/auth_session_notifier.dart';
+import 'package:next_on/features/notifications/data/datasources/device_local_data_source.dart';
 import 'package:next_on/features/notifications/data/datasources/device_remote_data_source.dart';
 import 'package:next_on/features/notifications/data/datasources/firebase_messaging_data_source.dart';
 import 'package:next_on/features/notifications/data/datasources/local_notification_data_source.dart';
@@ -36,6 +37,7 @@ void main() {
   Future<ProviderContainer> launch({
     bool signedIn = false,
     bool pushAvailable = true,
+    bool failingStore = false,
   }) async {
     session = _Session(signedIn: signedIn);
     final container = ProviderContainer(
@@ -45,6 +47,8 @@ void main() {
         firebaseMessagingDataSourceProvider.overrideWithValue(messaging),
         localNotificationDataSourceProvider.overrideWithValue(_NoPopups()),
         deviceRemoteDataSourceProvider.overrideWithValue(remote),
+        if (failingStore)
+          deviceLocalDataSourceProvider.overrideWithValue(_FailingStore()),
         authSessionProvider.overrideWith(() => session),
       ],
     );
@@ -105,6 +109,28 @@ void main() {
     expect(messaging.permissionAsks, 2);
   });
 
+  test('a token refresh while the first prompt is open waits for it: one '
+      'prompt', () async {
+    final prompt = Completer<void>();
+    messaging.holdPermission = prompt;
+    await launch(signedIn: true);
+    messaging.refresh.add('new-token');
+    await pumpEventQueue();
+    expect(messaging.permissionAsks, 1);
+
+    prompt.complete();
+    await pumpEventQueue();
+    expect(messaging.permissionAsks, 1);
+    expect(remote.registrations, 2);
+  });
+
+  test('the "already asked" flag could not be saved: the device still '
+      'registers (asked again next time)', () async {
+    await launch(signedIn: true, failingStore: true);
+    expect(messaging.permissionAsks, 1);
+    expect(remote.registrations, 1);
+  });
+
   test(
     'Firebase did not start: no prompt, no registration, nothing touched',
     () async {
@@ -149,9 +175,16 @@ class _FakeMessaging implements FirebaseMessagingDataSource {
   bool allows = true;
   bool throwOnPermission = false;
 
+  /// When set, the prompt stays open until it completes.
+  Completer<void>? holdPermission;
+
+  /// Token refreshes, as the plugin would send them.
+  final refresh = StreamController<String>.broadcast();
+
   @override
   Future<bool> requestPermission() async {
     permissionAsks++;
+    await holdPermission?.future;
     if (throwOnPermission) throw Exception('plugin failed');
     return allows;
   }
@@ -163,7 +196,7 @@ class _FakeMessaging implements FirebaseMessagingDataSource {
   }
 
   @override
-  Stream<String> get onTokenRefresh => const Stream.empty();
+  Stream<String> get onTokenRefresh => refresh.stream;
 
   @override
   Stream<PushMessage> get onMessage => const Stream.empty();
@@ -176,6 +209,17 @@ class _FakeRemote implements DeviceRemoteDataSource {
   Future<void> register(DeviceRegistrationModel body) async {
     registrations++;
   }
+}
+
+class _FailingStore implements DeviceLocalDataSource {
+  @override
+  String deviceId() => 'device-1';
+
+  @override
+  bool permissionAsked() => false;
+
+  @override
+  Future<void> markPermissionAsked() async => throw Exception('prefs');
 }
 
 class _NoPopups implements LocalNotificationDataSource {
