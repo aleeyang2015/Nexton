@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#50 IMPLEMENTED on its branch, waiting for the owner's say to merge; #49 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#50 merged, `79a134a`; next is #51, not started). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -13,9 +13,9 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 
 | | |
 |---|---|
-| Last finished work order | 48 of 60: #49, approvals: approve or reject OT, and cancel an approved OT before it starts |
-| Next work order | **49 of 60: #50**, approvals: my team's leave and "forgot to scan" history (read-only). IMPLEMENTED on `50-team-history` (`f00dd81`, `c02e491`), pushed, reviewed; waiting for the owner's say to merge. Then 50 of 60: #51 |
-| `origin/main` | `5960973` "Merge branch '49-ot-decisions' into main" (2026-11-18) |
+| Last finished work order | 49 of 60: #50, approvals: my team's leave and "forgot to scan" history (read-only) |
+| Next work order | **50 of 60: #51**, push: Firebase set up for nexton.hr on Android and iOS. Not started, no branch, no plan shown yet |
+| `origin/main` | `79a134a` "Merge branch '50-team-history' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
 | This file | lives on branch `docs/next-actions` only (with `VERIFY_BEFORE_CONTINUING.md`). It is not on `main`; the owner has not asked for that |
@@ -74,7 +74,9 @@ issue N to main directly". Test count went from 1,261 to 1,944. Day log: `WORK_L
 
 ### Waiting for the owner
 
-1. **#49 merged** (`5960973`) on the owner's say, 2026-11-18.
+1. **#50 merged** (`79a134a`) on the owner's say, 2026-11-18. #48's OT tab has the per-page next-page counting fixed
+   for #50 (one line); part of the open #48 question.
+   **#49 merged** (`5960973`) on the owner's say, 2026-11-18.
    **#48 merged** (`fbeb16e`) on the owner's say, 2026-11-18. Two questions for the owner, unanswered: cap the automatic
    next-page fetch (an HR login that is also a head fetches every page on opening the OT tab), or `per_page=100`? And
    read OT wall clocks as Lao time (+07) for "waiting n h" (with #27's question)?
@@ -181,8 +183,13 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **#50 (work order 49 of 60), "approvals: my team's leave and "forgot to scan" history (read-only)": IMPLEMENTED,
-   2026-11-18, waiting for the owner's say to merge.** Owner said go on 2026-11-18 (headed_department_ids, no profile
+1. **Next: #51 (work order 50 of 60), "push: Firebase set up for nexton.hr on Android and iOS".** Not started: no
+   branch, no plan shown yet. Read the issue and its comments, plan, wait for "go". (Likely needs the lead's Firebase
+   project and files; check what can be done from here.)
+
+   **#50 (work order 49 of 60), "approvals: my team's leave and "forgot to scan" history (read-only)": MERGED
+   (`79a134a`), 2026-11-18.** Merged on the owner's "push issue 50 to main directly"; gates green on the merge commit
+   (analyze 1 warning already on `main`; 2,142 tests passed; debug APK builds). Owner said go on 2026-11-18 (headed_department_ids, no profile
    department; readOnly pages). Branch `50-team-history` (pushed): `f00dd81` (feature), `c02e491` (review fixes). Gates
    on `c02e491`: analyze 1 warning already on `main`; `flutter test` 2,142 passed; debug APK builds.
    - Auth: `headed_department_ids` (live 15 Nov) from `/auth/me` onto `User.headedDepartmentIds`, kept in the cache.
@@ -947,7 +954,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 46 | #47 | approvals: "forgot to scan" requests for heads and HR | `47-correction-approvals` | `3192f3e`, `9a86936` | merged to main directly (`227a9b3`) | analyze: 1 warning already on `main`; `flutter test`: 2,067 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 47 | #48 | approvals: OT waiting and decided lists for heads | `48-ot-approvals-lists` | `11db106`, `e1cd94d` | merged to main directly (`fbeb16e`) | analyze: 1 warning already on `main`; `flutter test`: 2,089 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 48 | #49 | approvals: approve or reject OT, and cancel an approved OT before it starts | `49-ot-decisions` | `1110d2d`, `bbefe8b` | merged to main directly (`5960973`) | analyze: 1 warning already on `main`; `flutter test`: 2,118 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 49 | #50 | approvals: my team's leave and "forgot to scan" history (read-only) | `50-team-history` | `f00dd81`, `c02e491` | none yet | analyze: 1 warning already on `main`; `flutter test`: 2,142 passed, 0 failed; debug APK builds | IMPLEMENTED, waiting for the owner's say to merge; phone check on `nexton-demo` pending |
+| 49 | #50 | approvals: my team's leave and "forgot to scan" history (read-only) | `50-team-history` | `f00dd81`, `c02e491` | merged to main directly (`79a134a`) | analyze: 1 warning already on `main`; `flutter test`: 2,142 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 50 | #51 | push: Firebase set up for nexton.hr on Android and iOS | | | | | NOT STARTED |
 | 51 | #52 | push: register this phone after sign-in, remove it before sign-out | | | | | NOT STARTED |
 | 52 | #53 | push: tapping a push opens the right screen | | | | | NOT STARTED |
