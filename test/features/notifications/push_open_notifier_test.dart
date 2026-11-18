@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/network/network_providers.dart';
+import 'package:next_on/core/utils/clock_provider.dart';
 import 'package:next_on/features/auth/presentation/providers/auth_session_notifier.dart';
 import 'package:next_on/features/notifications/domain/entities/push_message.dart';
 import 'package:next_on/features/notifications/domain/push_route.dart';
@@ -31,6 +32,7 @@ void main() {
   late NoPopups popups;
   late FakePushSession session;
   late List<PushTarget> opened;
+  late DateTime now;
 
   Future<ProviderContainer> launch({
     bool signedIn = true,
@@ -54,6 +56,7 @@ void main() {
         deviceRemoteDataSourceProvider.overrideWithValue(FakeDeviceRemote()),
         authSessionProvider.overrideWith(() => session),
         pushOpenerProvider.overrideWithValue(opened.add),
+        clockProvider.overrideWithValue(() => now),
       ],
     );
     addTearDown(container.dispose);
@@ -68,6 +71,37 @@ void main() {
     messaging = FakeMessaging();
     popups = NoPopups();
     opened = [];
+    now = DateTime(2026, 11, 18, 9);
+  });
+
+  test('the same push delivered twice (banner and tray, or iOS twice): '
+      'one page', () async {
+    await launch();
+    messaging.opened.add(const PushMessage(data: ot));
+    await _settle();
+    // The same push again a second later, after the first has opened.
+    now = now.add(const Duration(seconds: 1));
+    popups.taps.add(ot);
+    await _settle();
+    expect(opened, [const OtRequestTarget('ot-9')]);
+
+    // Tapped again a while later: opens again.
+    now = now.add(const Duration(seconds: 10));
+    messaging.opened.add(const PushMessage(data: ot));
+    await _settle();
+    expect(opened, hasLength(2));
+  });
+
+  test('a different push right after: opens too', () async {
+    await launch();
+    messaging.opened.add(const PushMessage(data: ot));
+    await _settle();
+    messaging.opened.add(const PushMessage(data: leave));
+    await _settle();
+    expect(opened, [
+      const OtRequestTarget('ot-9'),
+      const LeaveRequestTarget('lr-1'),
+    ]);
   });
 
   test(

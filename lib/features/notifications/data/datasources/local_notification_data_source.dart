@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -97,6 +98,9 @@ class LocalNotificationDataSourceImpl implements LocalNotificationDataSource {
 
   @override
   Future<Map<String, String>?> launchTap() async {
+    // The banner is Android's only (iOS shows a foreground push itself, and
+    // the plugin is set up for Android alone).
+    if (!Platform.isAndroid) return null;
     // Set up now: the tap callback is registered by `initialize`.
     await _ensureReady();
     final details = await _plugin.getNotificationAppLaunchDetails();

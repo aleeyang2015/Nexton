@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/clock_provider.dart';
 import '../../../auth/domain/entities/auth_session.dart';
 import '../../../auth/presentation/providers/auth_session_notifier.dart';
 import '../../domain/push_route.dart';
@@ -60,7 +61,24 @@ class PushOpenNotifier extends Notifier<PushTarget?> {
     );
   }
 
+  /// How close a repeat of the same tap must come to be the same tap: the
+  /// banner and the tray both delivering it, or iOS reporting the launch tap
+  /// twice. It opens one page, not two.
+  static const Duration repeatWindow = Duration(seconds: 3);
+
+  PushTarget? _lastTarget;
+  DateTime? _lastAt;
+
   void _tapped(PushTarget target) {
+    final now = ref.read(clockProvider)();
+    final lastAt = _lastAt;
+    if (target == _lastTarget &&
+        lastAt != null &&
+        now.difference(lastAt) < repeatWindow) {
+      return;
+    }
+    _lastTarget = target;
+    _lastAt = now;
     switch (_status) {
       case AuthStatus.unauthenticated:
         // The login screen; the push is dropped.
