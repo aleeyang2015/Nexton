@@ -143,4 +143,28 @@ void main() {
       false,
     );
   });
+
+  test('the automatic next page counts the whole load, not one page: a '
+      'page with my own request on it does not walk the whole history',
+      () async {
+    // Each page: my own request and 19 of the team's; 3 pages.
+    repository.teamPage = (status, cursor) async {
+      final n = cursor == null ? 0 : int.parse(cursor.substring(1));
+      return Result.success(
+        CursorPage(
+          items: [
+            leave('mine-$n', employeeId: me),
+            for (var i = 0; i < 19; i++) leave('p$n-$i'),
+          ],
+          nextCursor: n < 2 ? 'c${n + 1}' : null,
+          hasMore: n < 2,
+        ),
+      );
+    };
+    await start(head);
+
+    // 19 after page 1 (fewer than a page): page 2; 38 now: stop.
+    expect(repository.teamCalls.map((c) => c.cursor), [null, 'c1']);
+    expect(visible(), hasLength(38));
+  });
 }

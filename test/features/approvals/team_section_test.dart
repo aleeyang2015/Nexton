@@ -18,6 +18,8 @@ import 'package:next_on/features/attendance/domain/entities/time_correction_stat
 import 'package:next_on/features/auth/domain/entities/user.dart';
 import 'package:next_on/features/time_off/data/datasources/leave_error_code.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
+import 'package:next_on/features/time_off/presentation/widgets/leave_copy.dart';
+import 'package:next_on/features/time_off/presentation/widgets/leave_filter_chip.dart';
 import 'package:next_on/features/time_off/time_off_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 import 'package:next_on/l10n/generated/app_localizations_en.dart';
@@ -238,5 +240,47 @@ void main() {
       TimeCorrectionStatus.pending,
     );
     expect(leave.teamCalls.first.status, isNull);
+
+    // Back to leave and again: each list keeps its chip and its pages.
+    await tester.tap(find.text(en.apprTeamLeave));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(en.apprTeamCorrections));
+    await tester.pumpAndSettle();
+    expect(leave.teamCalls, hasLength(1));
+    expect(attendance.teamCorrectionCalls, hasLength(2));
+    expect(
+      tester
+          .widget<LeaveFilterChip>(
+            find.widgetWithText(LeaveFilterChip, en.timeCorrectionStatusPending),
+          )
+          .selected,
+      isTrue,
+    );
+  });
+
+  test('the days of a team row: not in a row, and a day listed twice', () {
+    expect(
+      LeaveCopy.teamDays(
+        en,
+        sampleLeaveRequest(
+          requestDays: [DateTime(2026, 9, 15), DateTime(2026, 9, 1)],
+        ),
+      ),
+      startsWith('1, 15 Sep 2026'),
+    );
+    expect(
+      LeaveCopy.teamDays(
+        en,
+        sampleLeaveRequest(
+          requestDays: [
+            DateTime(2026, 9, 1),
+            DateTime(2026, 9, 1),
+            DateTime(2026, 9, 15),
+          ],
+          totalDays: 2,
+        ),
+      ),
+      startsWith('1, 15 Sep 2026'),
+    );
   });
 }

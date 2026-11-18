@@ -183,7 +183,10 @@ class LeaveCopy {
   /// the days themselves, grouped by month: "1, 15 ກ.ຍ. 2026" / "1, 15 Sep
   /// 2026"; "28 Aug 2026, 2 Sep 2026" across months.
   static String teamDays(AppLocalizations l10n, LeaveRequest request) {
-    final days = [...request.requestDays]..sort();
+    // A day listed twice is one day.
+    final days = {
+      for (final d in request.requestDays) DateTime(d.year, d.month, d.day),
+    }.toList()..sort();
     final inARow = days.length < 2 ||
         [
           for (var i = 1; i < days.length; i++)

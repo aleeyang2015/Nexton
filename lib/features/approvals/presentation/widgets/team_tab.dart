@@ -31,15 +31,21 @@ import 'team_leave_row.dart';
 /// "forgot to scan" requests, every status, read-only. Two lists behind a
 /// switch, each loaded the first time it shows. Kept alive across tab
 /// switches.
-class TeamTab extends StatefulWidget {
+class TeamTab extends ConsumerStatefulWidget {
   const TeamTab({super.key});
 
   @override
-  State<TeamTab> createState() => _TeamTabState();
+  ConsumerState<TeamTab> createState() => _TeamTabState();
 }
 
-class _TeamTabState extends State<TeamTab> with AutomaticKeepAliveClientMixin {
+class _TeamTabState extends ConsumerState<TeamTab>
+    with AutomaticKeepAliveClientMixin {
   bool _corrections = false;
+
+  /// The lists shown so far: each stays (its chip, its pages) while the
+  /// tab lives, so switching back does not load it again.
+  bool _leaveShown = false;
+  bool _correctionsShown = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -48,6 +54,15 @@ class _TeamTabState extends State<TeamTab> with AutomaticKeepAliveClientMixin {
   Widget build(BuildContext context) {
     super.build(context);
     final l10n = AppLocalizations.of(context)!;
+    if (_corrections) {
+      _correctionsShown = true;
+    } else {
+      _leaveShown = true;
+    }
+    if (_leaveShown) ref.watch(teamLeaveNotifierProvider.select((_) => 0));
+    if (_correctionsShown) {
+      ref.watch(teamCorrectionsNotifierProvider.select((_) => 0));
+    }
 
     return Container(
       color: AppColors.homeBackground,
@@ -228,10 +243,9 @@ class _TeamList<T, S> extends ConsumerWidget {
 
     if (rows.isEmpty) {
       // The pages so far held only rows this head does not see: more are on
-      // their way, or the next one failed (its Retry is below).
-      if (list != null && list.hasMore) {
-        return [if (list.loadMoreError == null) const _Loading()];
-      }
+      // their way (the footer's spinner), or the next one failed (its Retry
+      // is below). Never "none" while the list has not ended.
+      if (list != null && list.hasMore) return const [];
       return [
         RequestsListMessage(
           icon: Icons.groups_outlined,

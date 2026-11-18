@@ -68,9 +68,11 @@ abstract class TeamListNotifier<T, S>
 
   @override
   TeamListState<T, S> build() {
-    final user = ref.watch(
-      authSessionProvider.select((s) => s.valueOrNull?.user),
-    );
+    // Starts again only when who is looking changes (their id, the
+    // departments they head, their HR rights): not on every `/auth/me`
+    // answer (a new photo link on resume would reset the chip).
+    ref.watch(authSessionProvider.select((s) => _whoKey(s.valueOrNull?.user)));
+    final user = ref.read(authSessionProvider).valueOrNull?.user;
     _disposed = false;
     ref.onDispose(() => _disposed = true);
     // Not before the session says who is looking: the filters need it.
@@ -79,6 +81,15 @@ abstract class TeamListNotifier<T, S>
     }
     return TeamListState<T, S>(user: user, keep: keeps);
   }
+
+  static String _whoKey(User? user) => [
+    user?.employeeId ?? '',
+    ...?user?.headedDepartmentIds,
+    '|',
+    ...?user?.roles,
+    '|',
+    ...?user?.permissions,
+  ].join(',');
 
   /// The chip: that status's list from its first page.
   void select(S? status) {
@@ -114,12 +125,17 @@ abstract class TeamListNotifier<T, S>
     }
     final list = result.dataOrNull!;
     state = state.copyWith(rows: AsyncValue.data(list));
-    await _fillUp(const [], list, load);
+    await _fillUp(load, shownBefore: 0);
     return null;
   }
 
-  /// The next page, when there is one and none is on its way.
-  Future<void> loadMore() async {
+  /// The next page, when there is one and none is on its way (the user
+  /// scrolled near the end).
+  Future<void> loadMore() => _loadMore(shownBefore: state.visible.length);
+
+  /// [shownBefore]: the rows on screen when the user's action began, so a
+  /// load counts what it has added in all.
+  Future<void> _loadMore({required int shownBefore}) async {
     final value = state.rows;
     final current = value.valueOrNull;
     if (current == null || !current.canLoadMore || value.isLoading) return;
@@ -137,7 +153,7 @@ abstract class TeamListNotifier<T, S>
     }
     final list = result.dataOrNull!;
     state = state.copyWith(rows: AsyncValue.data(list));
-    await _fillUp(current.items, list, load);
+    await _fillUp(load, shownBefore: shownBefore);
   }
 
   /// The Retry under the rows, after a next page failed.
@@ -148,14 +164,15 @@ abstract class TeamListNotifier<T, S>
     await loadMore();
   }
 
-  /// A load that added fewer rows than a page once filtered asks for the
-  /// next page at once (the spinner still showing).
-  Future<void> _fillUp(List<T> before, PagedList<T> after, int load) async {
+  /// While this load (from the user's action: open, chip, refresh, scroll)
+  /// has added fewer rows than a page once filtered, the next page is asked
+  /// for at once (the spinner still showing). In all, not per page: one
+  /// filtered row on a page must not walk the whole history.
+  Future<void> _fillUp(int load, {required int shownBefore}) async {
     if (_disposed || load != _loads) return;
-    final added = after.items
-        .skip(before.length)
-        .where((row) => keeps(row, state.user))
-        .length;
-    if (added < pageSize && after.canLoadMore) await loadMore();
+    final list = state.rows.valueOrNull;
+    if (list == null || !list.canLoadMore) return;
+    if (state.visible.length - shownBefore >= pageSize) return;
+    await _loadMore(shownBefore: shownBefore);
   }
 }
