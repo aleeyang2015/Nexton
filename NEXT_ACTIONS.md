@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#54 merged, `748e760`; #55 is blocked on the backend, #56 needs the owner's go, so the next buildable is #57). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#56 implemented on `56-server-logout`, `abba477` + `7564f53`, waiting for "push issue 56 to main directly"). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 | | |
 |---|---|
 | Last finished work order | 53 of 60: #54, notifications: the bell shows recent pushes |
-| Next work order | **54 of 60: #55** is BLOCKED (backend: unread count, Nexton-Backend#190); **55 of 60: #56** needs the owner's go; the next buildable is **56 of 60: #57**, app: ask for an update when this version is too old, and show maintenance. Not started |
+| Next work order | **55 of 60: #56**, sign-in: signing out ends the session on the server. IMPLEMENTED on `56-server-logout`, both reviews done and fixed; waiting for the owner's merge word. (#55 stays BLOCKED on Nexton-Backend#190; #57 is next after this.) |
 | `origin/main` | `adad453` "Merge branch '51-push-setup' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -184,6 +184,16 @@ Decided by the owner on 2026-11-16, during the work:
 | Fix nine off-site tests left stale by `b64a77a` ("scan" became "clock-in") | `fix/offsite-test-strings` | `ae02169` | none: pushed to `main` directly on the owner's say, 2026-11-16 | `flutter test`: 369 passed, 0 failed | MERGED |
 
 ## Next
+
+1. **Now: #56 (work order 55 of 60), "sign-in: signing out ends the session on the server": IMPLEMENTED** on
+   `56-server-logout` (`abba477`, review fixes `7564f53`), pushed, not merged. Owner's go 2026-11-18. Sign-out:
+   push row (#52), then `POST /auth/logout` (refresh token in the body, no bearer, 5 s, failures ignored), then the
+   local clear. A refresh answer without `refresh_token` keeps the saved one (no rotation on the server). A late
+   refresh answer for an ended sign-in writes and clears nothing; a paused sign-out never ends the next user's
+   sign-in. Worst-case sign-out on a very slow connection: about 13 s, no spinner (follow-up if wanted). Device checks
+   pending on `nexton-demo` (sign in again first: older sign-ins cannot be ended): curl refresh with the old token
+   answers 401 after sign-out; flight-mode sign-out at once; HR's end-sessions lands the phone on the login screen
+   with "session expired". After this: #57 (#55 stays blocked).
 
 1. **Next: #55 is blocked on the backend (unread count, Nexton-Backend#190), and #56 (sign-out ends the session on the
    server) waits for the owner's go. The next buildable is #57 (work order 56 of 60), "app: ask for an update when this
@@ -1020,7 +1030,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 52 | #53 | push: tapping a push opens the right screen | `53-push-open` | `9df2051`, `862cb98` | merged to main directly (`dcb056c`) | analyze: 1 warning already on `main`; `flutter test`: 2,226 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 53 | #54 | notifications: the bell shows recent pushes | `54-notifications-list` | `8ffe783`, `9678f08` | merged to main directly (`748e760`) | analyze: 1 warning already on `main`; `flutter test`: 2,267 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 54 | #55 | notifications: unread dots and a count on the bell | | | | | BLOCKED: backend, unread count |
-| 55 | #56 | sign-in: signing out ends the session on the server | | | | | BLOCKED on the owner's list; the backend said "now live" on 15 Nov. Needs the owner's go |
+| 55 | #56 | sign-in: signing out ends the session on the server | `56-server-logout` | `abba477`, `7564f53` | not merged | analyze: 1 warning already on `main`; `flutter test`: 2,283 passed, 0 failed; debug APK | IMPLEMENTED, waiting for merge word |
 | 56 | #57 | app: ask for an update when this version is too old, and show maintenance | | | | | NOT STARTED |
 | 57 | #58 | profile: see my personal information (read-only) | | | | | NOT STARTED |
 | 58 | #59 | profile: change my own photo | | | | | NOT STARTED |
