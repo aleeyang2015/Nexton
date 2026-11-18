@@ -1332,6 +1332,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get apprRequestNotFound => 'This request is not available';
 
   @override
+  String get apprReasonRequired => 'Write a reason';
+
+  @override
+  String get otApprovedToast => 'OT approved';
+
+  @override
+  String get otRejectedToast => 'OT rejected';
+
+  @override
+  String get otCancelApprovedAction => 'Cancel this OT';
+
+  @override
+  String get otCancelApprovedConfirm =>
+      'Cancel this approved OT? The employee is told.';
+
+  @override
   String get apprSectionOt => 'OT';
 
   @override

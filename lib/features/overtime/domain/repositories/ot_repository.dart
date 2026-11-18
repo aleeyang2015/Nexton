@@ -34,8 +34,21 @@ abstract class OtRepository {
   /// Changes a waiting OT request's day, times or reason.
   FutureResult<OtRequest> edit(String id, OtDraft draft);
 
-  /// Cancels an OT request.
+  /// Cancels an OT request: the employee's own waiting one (#32), or a
+  /// head's approved one before it starts (#49).
   FutureResult<OtRequest> cancel(String id);
+
+  /// A head approves / rejects the waiting step (#49). See the data source.
+  FutureResult<OtRequest> approve(
+    String id, {
+    required String stepId,
+    String? comment,
+  });
+  FutureResult<OtRequest> reject(
+    String id, {
+    required String stepId,
+    required String comment,
+  });
 
   /// HR's open posts for the caller's department, one page at a time.
   FutureResult<OtPage<OtPost>> openPosts({

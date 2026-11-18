@@ -38,6 +38,10 @@ class OtErrorCode {
   static const String tokenNotApprover = 'otNotApprover';
   static const String tokenCancelForbidden = 'otCancelForbidden';
 
+  /// A reject with no reason (`422 errors.comment`, #49). Not a server code,
+  /// so not in [allTokens].
+  static const String tokenReasonRequired = 'apprReasonRequired';
+
   /// Wire code → token, for every OT call.
   static const Map<String, String> tokenByWire = {
     'OT_DISABLED': tokenDisabled,

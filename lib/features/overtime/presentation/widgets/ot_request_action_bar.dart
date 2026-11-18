@@ -12,6 +12,8 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/ot_request.dart';
 import '../../overtime_providers.dart';
 import '../providers/ot_detail_notifier.dart';
+import 'ot_decision_buttons.dart';
+import 'ot_decision_flow.dart';
 import 'ot_request_actions.dart';
 
 /// Under the OT request: Edit and Cancel for the employee's own waiting
@@ -39,6 +41,22 @@ class _OtRequestActionBarState extends ConsumerState<OtRequestActionBar> {
       widget.request,
       ownEmployeeId: ref.watch(otOwnEmployeeIdProvider),
     );
+
+    // A head's buttons on someone's request (#49): Approve / Reject while
+    // it waits at their step, Cancel on an OT they approved that has not
+    // started. Never on their own request (the employee's bar below).
+    if (!actions.any && !actions.askApprover) {
+      return OtDecisionButtons(
+        request: widget.request,
+        padding: const EdgeInsets.fromLTRB(15, 10, 15, 14),
+        onEnd: (end) {
+          // Gone, or no longer theirs to see: back to the list.
+          if (end == OtDecisionEnd.gone && context.mounted) {
+            context.canPop() ? context.pop() : context.go(AppRoutes.approvals);
+          }
+        },
+      );
+    }
 
     if (actions.askApprover) {
       return Padding(

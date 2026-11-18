@@ -41,6 +41,20 @@ class OtRepositoryImpl extends BaseRepository implements OtRepository {
   );
 
   @override
+  FutureResult<OtRequest> approve(
+    String id, {
+    required String stepId,
+    String? comment,
+  }) => guard(() => _remote.approve(id, stepId: stepId, comment: comment));
+
+  @override
+  FutureResult<OtRequest> reject(
+    String id, {
+    required String stepId,
+    required String comment,
+  }) => guard(() => _remote.reject(id, stepId: stepId, comment: comment));
+
+  @override
   FutureResult<OtRequest> request(String id) => guard(() => _remote.request(id));
 
   @override

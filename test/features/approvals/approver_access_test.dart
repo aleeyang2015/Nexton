@@ -3,6 +3,8 @@ import 'package:next_on/features/approvals/domain/approver_access.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_detail.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_status.dart';
 import 'package:next_on/features/auth/domain/entities/user.dart';
+import 'package:next_on/features/overtime/domain/entities/ot_request.dart';
+import 'package:next_on/features/overtime/domain/entities/ot_step.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
 
@@ -349,6 +351,182 @@ void main() {
         ),
         isFalse,
       );
+    });
+  });
+
+  group('OT (#49): who gets Approve / Reject, and Cancel', () {
+    OtStep otStep(
+      int no,
+      OtStepRole role,
+      OtStepStatus status, {
+      String? approverId,
+    }) => OtStep(
+      id: 's-$no',
+      stepNo: no,
+      role: role,
+      status: status,
+      approverId: approverId,
+    );
+
+    OtRequest ot({
+      OtStatus status = OtStatus.pending,
+      String employeeId = 'emp-staff',
+      List<OtStep> steps = const [],
+      DateTime? startsAt,
+    }) => OtRequest(
+      id: 'ot-1',
+      employeeId: employeeId,
+      startTime: '18:00',
+      endTime: '20:00',
+      status: status,
+      steps: steps,
+      startsAt: startsAt,
+    );
+
+    final head = user(head: true);
+
+    test('canDecideOt: a pending head or specific step naming me', () {
+      for (final role in [OtStepRole.deptHead, OtStepRole.unknown]) {
+        expect(
+          ApproverAccess.canDecideOt(
+            ot(steps: [otStep(1, role, OtStepStatus.pending, approverId: 'emp-1')]),
+            head,
+          ),
+          isTrue,
+          reason: '$role',
+        );
+      }
+    });
+
+    test('canDecideOt: not another head\'s step, not an HR step (even for '
+        'HR), not my own, not decided', () {
+      expect(
+        ApproverAccess.canDecideOt(
+          ot(steps: [otStep(1, OtStepRole.deptHead, OtStepStatus.pending, approverId: 'emp-9')]),
+          head,
+        ),
+        isFalse,
+      );
+      expect(
+        ApproverAccess.canDecideOt(
+          ot(steps: [otStep(1, OtStepRole.hr, OtStepStatus.pending, approverId: 'emp-1')]),
+          user(head: true, roles: ['admin'], permissions: [attendanceHr]),
+        ),
+        isFalse,
+      );
+      expect(
+        ApproverAccess.canDecideOt(
+          ot(
+            employeeId: 'emp-1',
+            steps: [otStep(1, OtStepRole.deptHead, OtStepStatus.pending, approverId: 'emp-1')],
+          ),
+          head,
+        ),
+        isFalse,
+      );
+      expect(
+        ApproverAccess.canDecideOt(
+          ot(
+            status: OtStatus.approved,
+            steps: [otStep(1, OtStepRole.deptHead, OtStepStatus.approved, approverId: 'emp-1')],
+          ),
+          head,
+        ),
+        isFalse,
+      );
+    });
+
+    test('canDecideOt: not after I approved an earlier step (the server '
+        'refuses it)', () {
+      expect(
+        ApproverAccess.canDecideOt(
+          ot(
+            steps: [
+              otStep(1, OtStepRole.unknown, OtStepStatus.approved, approverId: 'emp-1'),
+              otStep(2, OtStepRole.deptHead, OtStepStatus.pending, approverId: 'emp-1'),
+            ],
+          ),
+          head,
+        ),
+        isFalse,
+      );
+    });
+
+    test('canCancelApprovedOt: an HR step I approved on the web adds '
+        'nothing', () {
+      expect(
+        ApproverAccess.canCancelApprovedOt(
+          ot(
+            status: OtStatus.approved,
+            startsAt: DateTime.utc(2026, 11, 14, 11),
+            steps: [
+              otStep(1, OtStepRole.deptHead, OtStepStatus.approved, approverId: 'emp-9'),
+              otStep(2, OtStepRole.hr, OtStepStatus.approved, approverId: 'emp-1'),
+            ],
+          ),
+          head,
+          DateTime.utc(2026, 11, 13),
+        ),
+        isFalse,
+      );
+    });
+
+    group('canCancelApprovedOt around starts_at', () {
+      final startsAt = DateTime.utc(2026, 11, 14, 11);
+      final approvedByMe = ot(
+        status: OtStatus.approved,
+        startsAt: startsAt,
+        steps: [
+          otStep(1, OtStepRole.deptHead, OtStepStatus.approved, approverId: 'emp-1'),
+          otStep(2, OtStepRole.hr, OtStepStatus.approved, approverId: 'emp-hr'),
+        ],
+      );
+
+      test('a second before: yes; at it or after: no', () {
+        expect(
+          ApproverAccess.canCancelApprovedOt(
+            approvedByMe,
+            head,
+            startsAt.subtract(const Duration(seconds: 1)),
+          ),
+          isTrue,
+        );
+        expect(
+          ApproverAccess.canCancelApprovedOt(approvedByMe, head, startsAt),
+          isFalse,
+        );
+        expect(
+          ApproverAccess.canCancelApprovedOt(
+            approvedByMe,
+            head,
+            startsAt.add(const Duration(minutes: 1)),
+          ),
+          isFalse,
+        );
+      });
+
+      test('not when I approved no step, nor before it is approved', () {
+        final before = startsAt.subtract(const Duration(days: 1));
+        expect(
+          ApproverAccess.canCancelApprovedOt(
+            approvedByMe,
+            user(head: true, employeeId: 'emp-9'),
+            before,
+          ),
+          isFalse,
+        );
+        expect(
+          ApproverAccess.canCancelApprovedOt(
+            ot(
+              startsAt: startsAt,
+              steps: [otStep(1, OtStepRole.deptHead, OtStepStatus.approved, approverId: 'emp-1')],
+            ),
+            head,
+            before,
+          ),
+          isFalse,
+        );
+      });
     });
   });
 }

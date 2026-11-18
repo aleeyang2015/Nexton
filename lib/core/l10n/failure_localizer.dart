@@ -113,6 +113,9 @@ String? _byValidationCode(AppLocalizations l10n, String code) {
       return l10n.apprCannotDecideOwn;
     case 'apprTooEarlyCheckin':
       return l10n.ruleTooEarlyCheckin;
+    // An OT reject with no reason (#49).
+    case 'apprReasonRequired':
+      return l10n.apprReasonRequired;
     case 'offsiteApproveCheckinFirst':
       return l10n.apprApproveCheckinFirst;
     case 'offsiteCheckinNotApproved':

@@ -58,6 +58,52 @@ class FakeOtRepository implements OtRepository {
     return answer;
   }
 
+  /// Every head decision sent (#49): approve or reject, the request, its
+  /// step and comment.
+  final List<({String kind, String id, String stepId, String? comment})>
+  decisions = [];
+
+  /// The answer to a decision; by default the request with that step
+  /// decided (approved: still pending at HR; rejected: rejected).
+  Result<OtRequest> Function(String kind, String id) decisionAnswer =
+      (kind, id) => Result.success(
+        sampleOt(
+          id,
+          status: kind == 'reject' ? OtStatus.rejected : OtStatus.pending,
+        ),
+      );
+
+  /// When set, a decision waits for it (taken by the call that sees it).
+  Completer<void>? holdDecision;
+
+  Future<Result<OtRequest>> _decide(
+    String kind,
+    String id,
+    String stepId,
+    String? comment,
+  ) async {
+    decisions.add((kind: kind, id: id, stepId: stepId, comment: comment));
+    final answer = decisionAnswer(kind, id);
+    final hold = holdDecision;
+    holdDecision = null;
+    await hold?.future;
+    return answer;
+  }
+
+  @override
+  FutureResult<OtRequest> approve(
+    String id, {
+    required String stepId,
+    String? comment,
+  }) => _decide('approve', id, stepId, comment);
+
+  @override
+  FutureResult<OtRequest> reject(
+    String id, {
+    required String stepId,
+    required String comment,
+  }) => _decide('reject', id, stepId, comment);
+
   /// Every draft the ask call was sent, in order.
   final List<OtDraft> asked = [];
 

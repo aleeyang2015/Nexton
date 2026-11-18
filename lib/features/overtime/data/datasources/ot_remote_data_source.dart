@@ -43,6 +43,20 @@ abstract class OtRemoteDataSource {
 
   Future<OtRequest> cancel(String id);
 
+  /// A head approves the waiting step [stepId] of request [id] (#49), with
+  /// [comment] when one was typed. The body is `step_id` and `comment` only:
+  /// never `pieces` (a head step refuses them). Answers the request; its
+  /// `warnings` (HR's limits) are not read.
+  Future<OtRequest> approve(String id, {required String stepId, String? comment});
+
+  /// A head rejects the waiting step [stepId] with [comment], the reason
+  /// (required).
+  Future<OtRequest> reject(
+    String id, {
+    required String stepId,
+    required String comment,
+  });
+
   Future<OtPage<OtPost>> openPosts({int page, int perPage});
 
   Future<OtRequest> join(String postId);
@@ -112,6 +126,48 @@ class OtRemoteDataSourceImpl implements OtRemoteDataSource {
       // send): say so in the log; the tab shows the shared load error.
       if (kDebugMode && error.response?.statusCode == 422) {
         debugPrint('[OT approvals] 422 for $status: ${error.response?.data}');
+      }
+      rethrow;
+    }
+  });
+
+  @override
+  Future<OtRequest> approve(
+    String id, {
+    required String stepId,
+    String? comment,
+  }) => _business(() async {
+    final note = comment?.trim() ?? '';
+    final response = await _client.put<dynamic>(
+      OtPaths.approve(id),
+      data: {'step_id': stepId, if (note.isNotEmpty) 'comment': note},
+    );
+    return _request(response.data);
+  });
+
+  @override
+  Future<OtRequest> reject(
+    String id, {
+    required String stepId,
+    required String comment,
+  }) => _business(() async {
+    try {
+      final response = await _client.put<dynamic>(
+        OtPaths.reject(id),
+        data: {'step_id': stepId, 'comment': comment.trim()},
+      );
+      return _request(response.data);
+    } on DioException catch (error) {
+      // `422 errors.comment`: no reason (the dialog normally blocks that).
+      final body = error.response?.data;
+      final errors = body is Map ? body['errors'] : null;
+      if (error.response?.statusCode == 422 &&
+          errors is Map &&
+          errors.containsKey('comment')) {
+        throw const Failure.validation(
+          message: OtErrorCode.tokenReasonRequired,
+          code: 'VALIDATION_ERROR',
+        );
       }
       rethrow;
     }

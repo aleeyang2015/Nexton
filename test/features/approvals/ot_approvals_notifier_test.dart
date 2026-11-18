@@ -8,6 +8,7 @@ import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/clock_provider.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/features/approvals/approvals_page.dart';
 import 'package:next_on/features/approvals/domain/approver_access.dart';
 import 'package:next_on/features/auth/domain/entities/user.dart';
@@ -16,7 +17,10 @@ import 'package:next_on/features/overtime/domain/entities/ot_page.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_request.dart';
 import 'package:next_on/features/overtime/domain/entities/ot_step.dart';
 import 'package:next_on/features/overtime/overtime_providers.dart';
+import 'package:next_on/features/overtime/data/datasources/ot_error_code.dart';
+import 'package:next_on/features/overtime/presentation/pages/ot_request_detail_page.dart';
 import 'package:next_on/features/overtime/presentation/providers/ot_approvals_notifier.dart';
+import 'package:next_on/features/overtime/presentation/providers/ot_decision_notifier.dart';
 import 'package:next_on/features/overtime/presentation/widgets/ot_approvals_tab.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 import 'package:next_on/l10n/generated/app_localizations_en.dart';
@@ -473,6 +477,334 @@ void main() {
         ApprovalsTab.visibleFor(ApproverAccess.of(attendanceHr)),
         isNot(contains(ApprovalsTab.ot)),
       );
+    });
+  });
+
+  group('decisions (#49)', () {
+    OtDecisionNotifier decision(String id) {
+      final provider = otDecisionNotifierProvider(id);
+      final sub = container.listen(provider, (_, _) {});
+      addTearDown(sub.close);
+      return container.read(provider.notifier);
+    }
+
+    int pendingCalls() =>
+        calls().where((c) => c.status == OtApprovalStatus.pending).length;
+
+    setUp(() {
+      repository.approvalsAnswer = (status, n) => Result.success(
+        status == OtApprovalStatus.pending
+            ? page([atHead('ot-1'), atHead('ot-2')], 1, 1)
+            : page([], 1, 1),
+      );
+    });
+
+    test('approve sends the pending step and the comment; the row moves '
+        '(out of waiting at once, both lists read again)', () async {
+      await start();
+      final before = repository.approvalCalls.length;
+
+      final result = await decision('ot-1').approve(
+        atHead('ot-1'),
+        comment: ' fine ',
+      );
+      await pumpEventQueue();
+
+      expect(result!.isSuccess, isTrue);
+      expect(repository.decisions.single, (
+        kind: 'approve',
+        id: 'ot-1',
+        stepId: 's-1',
+        comment: 'fine',
+      ));
+      expect(repository.approvalCalls.length, before + 2);
+    });
+
+    test('reject sends the reason', () async {
+      await start();
+      await decision('ot-1').reject(atHead('ot-1'), 'No stock count');
+      expect(repository.decisions.single.kind, 'reject');
+      expect(repository.decisions.single.comment, 'No stock count');
+    });
+
+    test('a refusal keeps the row (OT_NOT_ELIGIBLE: nothing reloaded)',
+        () async {
+      await start();
+      repository.decisionAnswer = (kind, id) => const Result.failure(
+        Failure.validation(
+          message: OtErrorCode.tokenNotEligible,
+          code: 'OT_NOT_ELIGIBLE',
+        ),
+      );
+      final before = repository.approvalCalls.length;
+
+      final result = await decision('ot-1').approve(atHead('ot-1'));
+      await pumpEventQueue();
+
+      expect(result!.isFailure, isTrue);
+      expect(repository.approvalCalls.length, before);
+      expect(read().pendingRows.map((r) => r.id), ['ot-1', 'ot-2']);
+    });
+
+    for (final (code, token) in [
+      ('STEP_CHANGED', OtErrorCode.tokenStepChanged),
+      ('OT_ALREADY_DECIDED', OtErrorCode.tokenAlreadyDecided),
+      ('NOT_APPROVER', OtErrorCode.tokenNotApprover),
+    ]) {
+      test('$code: the lists are read again, the row kept until then',
+          () async {
+        await start();
+        repository.decisionAnswer = (kind, id) =>
+            Result.failure(Failure.validation(message: token, code: code));
+        final before = pendingCalls();
+
+        await decision('ot-1').approve(atHead('ot-1'));
+        await pumpEventQueue();
+
+        expect(pendingCalls(), before + 1);
+      });
+    }
+
+    test('OT_STARTED on cancel: Cancel goes', () async {
+      await start();
+      repository.cancelAnswer = (id) => const Result.failure(
+        Failure.validation(message: OtErrorCode.tokenStarted, code: 'OT_STARTED'),
+      );
+      final notifier = decision('ot-1');
+
+      await notifier.cancelApproved(atHead('ot-1'));
+
+      expect(
+        container.read(otDecisionNotifierProvider('ot-1')).cancelHidden,
+        isTrue,
+      );
+    });
+
+    test('NOT_APPROVER: the buttons go for that request, even after the '
+        'reload shows it again', () async {
+      await start();
+      repository.decisionAnswer = (kind, id) => const Result.failure(
+        Failure.validation(
+          message: OtErrorCode.tokenNotApprover,
+          code: 'NOT_APPROVER',
+        ),
+      );
+
+      await decision('ot-1').approve(atHead('ot-1'));
+
+      expect(container.read(otDecisionNotifierProvider('ot-1')).notMine, isTrue);
+    });
+
+    for (final (code, token) in [
+      ('OT_ALREADY_PAID', OtErrorCode.tokenAlreadyPaid),
+      ('OT_PAID_BY_HAND', OtErrorCode.tokenPaidByHand),
+    ]) {
+      test('$code on cancel: Cancel goes (it will keep being refused)',
+          () async {
+        await start();
+        repository.cancelAnswer = (id) =>
+            Result.failure(Failure.validation(message: token, code: code));
+
+        await decision('ot-1').cancelApproved(atHead('ot-1'));
+
+        expect(
+          container.read(otDecisionNotifierProvider('ot-1')).cancelHidden,
+          isTrue,
+        );
+      });
+    }
+
+    test('a double tap sends once; the second tells nothing', () async {
+      await start();
+      final hold = Completer<void>();
+      repository.holdDecision = hold;
+      final notifier = decision('ot-1');
+
+      final first = notifier.approve(atHead('ot-1'));
+      final second = await notifier.approve(atHead('ot-1'));
+      expect(container.read(otDecisionNotifierProvider('ot-1')).deciding, isTrue);
+      hold.complete();
+      await first;
+
+      expect(second, isNull);
+      expect(repository.decisions, hasLength(1));
+    });
+  });
+
+  group('the buttons (#49)', () {
+    Future<void> pumpRow(WidgetTester tester, OtRequest request) async {
+      tester.view.physicalSize = const Size(420, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      repository.approvalsAnswer = (status, n) => Result.success(
+        status == OtApprovalStatus.pending
+            ? page([request], 1, 1)
+            : page([], 1, 1),
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            otRepositoryProvider.overrideWithValue(repository),
+            signedInAs(head),
+          ],
+          child: MaterialApp(
+            scaffoldMessengerKey: rootScaffoldMessengerKey,
+            locale: const Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: const Scaffold(body: OtApprovalsTab()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a waiting row at my step: Approve asks for a comment and '
+        'sends it; the toast says so', (tester) async {
+      await pumpRow(tester, atHead('ot-1'));
+
+      await tester.tap(find.text(en.leaveApprovalApproveAction));
+      await tester.pumpAndSettle();
+      expect(repository.decisions, isEmpty);
+      await tester.enterText(find.byType(TextField).last, 'Stock count');
+      await tester.tap(find.text(en.leaveApprovalApproveAction).last);
+      await tester.pumpAndSettle();
+
+      expect(repository.decisions.single.comment, 'Stock count');
+      expect(
+        find.descendant(
+          of: find.byType(SnackBar),
+          matching: find.text(en.otApprovedToast),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Reject asks for a reason first', (tester) async {
+      await pumpRow(tester, atHead('ot-1'));
+
+      await tester.tap(find.text(en.leaveApprovalRejectAction));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, 'Not needed');
+      // A frame for the dialog's Reject to switch on.
+      await tester.pump();
+      await tester.tap(find.text(en.leaveRejectReasonSubmit).last);
+      await tester.pumpAndSettle();
+
+      expect(repository.decisions.single.kind, 'reject');
+      expect(repository.decisions.single.comment, 'Not needed');
+    });
+
+    testWidgets('a row at another head\'s step: no buttons', (tester) async {
+      await pumpRow(
+        tester,
+        sampleOt(
+          'ot-1',
+          steps: [
+            step(1, OtStepRole.deptHead, OtStepStatus.pending, approverId: 'x'),
+          ],
+        ),
+      );
+      expect(find.text(en.leaveApprovalApproveAction), findsNothing);
+    });
+
+    Future<void> pumpPage(WidgetTester tester, OtRequest request) async {
+      tester.view.physicalSize = const Size(420, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      repository.requestAnswer = (id) => Result.success(request);
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const Scaffold(body: Text('LIST')),
+          ),
+          GoRoute(
+            path: AppRoutes.otRequestDetail,
+            builder: (_, state) => OtRequestDetailPage(
+              requestId: state.pathParameters['id']!,
+            ),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            otRepositoryProvider.overrideWithValue(repository),
+            signedInAs(head),
+            clockProvider.overrideWithValue(() => DateTime.utc(2026, 11, 13)),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            scaffoldMessengerKey: rootScaffoldMessengerKey,
+            locale: const Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+          ),
+        ),
+      );
+      unawaited(router.push(AppRoutes.otRequest(request.id)));
+      await tester.pumpAndSettle();
+    }
+
+    OtRequest approvedByMe(DateTime startsAt) => OtRequest(
+      id: 'ot-1',
+      employeeId: 'e-noy',
+      startTime: '18:00',
+      endTime: '20:00',
+      workDate: DateTime(2026, 11, 14),
+      status: OtStatus.approved,
+      startsAt: startsAt,
+      steps: [
+        step(1, OtStepRole.deptHead, OtStepStatus.approved, approverId: me),
+        step(2, OtStepRole.hr, OtStepStatus.approved, approverId: 'e-hr'),
+      ],
+    );
+
+    testWidgets('the page of a request waiting at my step: Approve and '
+        'Reject, not the employee\'s Edit / Cancel', (tester) async {
+      await pumpPage(tester, atHead('ot-1'));
+
+      expect(find.text(en.leaveApprovalApproveAction), findsOneWidget);
+      expect(find.text(en.leaveApprovalRejectAction), findsOneWidget);
+      expect(find.text(en.otEditAction), findsNothing);
+    });
+
+    testWidgets('an OT I approved, before it starts: Cancel, with a confirm',
+        (tester) async {
+      await pumpPage(tester, approvedByMe(DateTime.utc(2026, 11, 14, 11)));
+
+      await tester.tap(find.text(en.otCancelApprovedAction));
+      await tester.pumpAndSettle();
+      expect(find.text(en.otCancelApprovedConfirm), findsOneWidget);
+      expect(repository.cancels, isEmpty);
+      await tester.tap(find.text(en.otCancelApprovedAction).last);
+      await tester.pumpAndSettle();
+
+      expect(repository.cancels, ['ot-1']);
+      expect(find.text(en.otCancelledToast), findsOneWidget);
+    });
+
+    testWidgets('after it started: no Cancel', (tester) async {
+      await pumpPage(tester, approvedByMe(DateTime.utc(2026, 11, 12)));
+      expect(find.text(en.otCancelApprovedAction), findsNothing);
+    });
+
+    testWidgets('gone (404) while deciding on its page: "not available", '
+        'back to the list', (tester) async {
+      await pumpPage(tester, atHead('ot-1'));
+      repository.decisionAnswer = (kind, id) => const Result.failure(
+        Failure.network(message: 'gone', statusCode: 404),
+      );
+
+      await tester.tap(find.text(en.leaveApprovalApproveAction));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(en.leaveApprovalApproveAction).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.apprRequestNotFound), findsOneWidget);
+      expect(find.text('LIST'), findsOneWidget);
     });
   });
 }
