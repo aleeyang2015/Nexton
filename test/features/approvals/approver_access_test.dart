@@ -436,6 +436,41 @@ void main() {
       );
     });
 
+    test('canDecideOt: not after I approved an earlier step (the server '
+        'refuses it)', () {
+      expect(
+        ApproverAccess.canDecideOt(
+          ot(
+            steps: [
+              otStep(1, OtStepRole.unknown, OtStepStatus.approved, approverId: 'emp-1'),
+              otStep(2, OtStepRole.deptHead, OtStepStatus.pending, approverId: 'emp-1'),
+            ],
+          ),
+          head,
+        ),
+        isFalse,
+      );
+    });
+
+    test('canCancelApprovedOt: an HR step I approved on the web adds '
+        'nothing', () {
+      expect(
+        ApproverAccess.canCancelApprovedOt(
+          ot(
+            status: OtStatus.approved,
+            startsAt: DateTime.utc(2026, 11, 14, 11),
+            steps: [
+              otStep(1, OtStepRole.deptHead, OtStepStatus.approved, approverId: 'emp-9'),
+              otStep(2, OtStepRole.hr, OtStepStatus.approved, approverId: 'emp-1'),
+            ],
+          ),
+          head,
+          DateTime.utc(2026, 11, 13),
+        ),
+        isFalse,
+      );
+    });
+
     group('canCancelApprovedOt around starts_at', () {
       final startsAt = DateTime.utc(2026, 11, 14, 11);
       final approvedByMe = ot(

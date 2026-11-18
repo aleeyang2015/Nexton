@@ -31,6 +31,9 @@ class OtDecisionButtons extends ConsumerWidget {
   /// Around the buttons, when there are any (none: no space taken).
   final EdgeInsets padding;
 
+  /// Behind them: white, as the employee's bar on the page.
+  static const Color _background = Colors.white;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
@@ -40,7 +43,8 @@ class OtDecisionButtons extends ConsumerWidget {
     final provider = otDecisionNotifierProvider(request.id);
     final decision = ref.watch(provider);
     final now = ref.watch(clockProvider)();
-    final canDecide = ApproverAccess.canDecideOt(request, user);
+    final canDecide =
+        !decision.notMine && ApproverAccess.canDecideOt(request, user);
     final canCancel =
         !decision.cancelHidden &&
         ApproverAccess.canCancelApprovedOt(request, user, now);
@@ -54,71 +58,78 @@ class OtDecisionButtons extends ConsumerWidget {
     }
 
     if (canCancel) {
-      return Padding(
-        padding: padding,
-        child: SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: enabled
-                ? () => after(
-                    OtDecisionFlow.cancelApproved(context, notifier, request),
-                  )
-                : null,
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              side: const BorderSide(color: AppColors.danger),
-            ),
-            child: customText(
-              l10n.otCancelApprovedAction,
-              color: AppColors.danger,
-              fontWeight: FontWeight.w700,
+      return ColoredBox(
+        color: _background,
+        child: Padding(
+          padding: padding,
+          child: SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: enabled
+                  ? () => after(
+                      OtDecisionFlow.cancelApproved(context, notifier, request),
+                    )
+                  : null,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: const BorderSide(color: AppColors.danger),
+              ),
+              child: customText(
+                l10n.otCancelApprovedAction,
+                color: AppColors.danger,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ),
       );
     }
 
-    return Padding(
-      padding: padding,
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: enabled
-                  ? () =>
-                        after(OtDecisionFlow.reject(context, notifier, request))
-                  : null,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                side: const BorderSide(color: AppColors.danger),
-              ),
-              child: customText(
-                l10n.leaveApprovalRejectAction,
-                color: AppColors.danger,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          widthBx(w: 10),
-          Expanded(
-            child: FilledButton(
-              onPressed: enabled
-                  ? () => after(
-                      OtDecisionFlow.approve(context, notifier, request),
-                    )
-                  : null,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: customText(
-                l10n.leaveApprovalApproveAction,
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+    return ColoredBox(
+      color: _background,
+      child: Padding(
+        padding: padding,
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: enabled
+                    ? () => after(
+                        OtDecisionFlow.reject(context, notifier, request),
+                      )
+                    : null,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  side: const BorderSide(color: AppColors.danger),
+                ),
+                child: customText(
+                  l10n.leaveApprovalRejectAction,
+                  color: AppColors.danger,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
-          ),
-        ],
+            widthBx(w: 10),
+            Expanded(
+              child: FilledButton(
+                onPressed: enabled
+                    ? () => after(
+                        OtDecisionFlow.approve(context, notifier, request),
+                      )
+                    : null,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: customText(
+                  l10n.leaveApprovalApproveAction,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

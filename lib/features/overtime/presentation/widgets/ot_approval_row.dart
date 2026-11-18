@@ -20,8 +20,6 @@ class OtApprovalRow extends StatelessWidget {
     this.actions,
   });
 
-  /// The head's buttons under the row (#49), when there are any.
-
   final OtRequest request;
 
   /// On the waiting list: "waiting {n} h" in place of the status pill.
@@ -30,6 +28,8 @@ class OtApprovalRow extends StatelessWidget {
   /// The phone's clock, for how long it has waited.
   final DateTime now;
   final VoidCallback? onTap;
+
+  /// The head's buttons under the row (#49), when there are any.
   final Widget? actions;
 
   @override

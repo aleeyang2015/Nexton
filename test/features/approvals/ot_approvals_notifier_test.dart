@@ -580,6 +580,40 @@ void main() {
       );
     });
 
+    test('NOT_APPROVER: the buttons go for that request, even after the '
+        'reload shows it again', () async {
+      await start();
+      repository.decisionAnswer = (kind, id) => const Result.failure(
+        Failure.validation(
+          message: OtErrorCode.tokenNotApprover,
+          code: 'NOT_APPROVER',
+        ),
+      );
+
+      await decision('ot-1').approve(atHead('ot-1'));
+
+      expect(container.read(otDecisionNotifierProvider('ot-1')).notMine, isTrue);
+    });
+
+    for (final (code, token) in [
+      ('OT_ALREADY_PAID', OtErrorCode.tokenAlreadyPaid),
+      ('OT_PAID_BY_HAND', OtErrorCode.tokenPaidByHand),
+    ]) {
+      test('$code on cancel: Cancel goes (it will keep being refused)',
+          () async {
+        await start();
+        repository.cancelAnswer = (id) =>
+            Result.failure(Failure.validation(message: token, code: code));
+
+        await decision('ot-1').cancelApproved(atHead('ot-1'));
+
+        expect(
+          container.read(otDecisionNotifierProvider('ot-1')).cancelHidden,
+          isTrue,
+        );
+      });
+    }
+
     test('a double tap sends once; the second tells nothing', () async {
       await start();
       final hold = Completer<void>();

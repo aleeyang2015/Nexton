@@ -12,19 +12,33 @@ import 'ot_detail_notifier.dart';
 
 /// Where a head's action on one OT request stands (#49).
 class OtDecisionState {
-  const OtDecisionState({this.deciding = false, this.cancelHidden = false});
+  const OtDecisionState({
+    this.deciding = false,
+    this.cancelHidden = false,
+    this.notMine = false,
+  });
 
   /// An approve, reject or cancel is on its way: the buttons are off.
   final bool deciding;
 
-  /// `OT_STARTED`: the OT has begun, only HR can cancel it now.
+  /// A cancel the server will keep refusing: the OT has begun
+  /// (`OT_STARTED`, only HR can now), or it is paid (`OT_ALREADY_PAID`,
+  /// `OT_PAID_BY_HAND`). Cancel goes.
   final bool cancelHidden;
 
-  OtDecisionState copyWith({bool? deciding, bool? cancelHidden}) =>
-      OtDecisionState(
-        deciding: deciding ?? this.deciding,
-        cancelHidden: cancelHidden ?? this.cancelHidden,
-      );
+  /// `NOT_APPROVER`: the step is not this head's after all. Approve and
+  /// Reject go, even when a reload shows the same request again.
+  final bool notMine;
+
+  OtDecisionState copyWith({
+    bool? deciding,
+    bool? cancelHidden,
+    bool? notMine,
+  }) => OtDecisionState(
+    deciding: deciding ?? this.deciding,
+    cancelHidden: cancelHidden ?? this.cancelHidden,
+    notMine: notMine ?? this.notMine,
+  );
 }
 
 /// A head's approve, reject or cancel on one OT request, by its id (#49),
@@ -94,9 +108,12 @@ class OtDecisionNotifier
       await result.fold(
         (failure) async {
           final token = _tokenOf(failure);
-          if (token == OtErrorCode.tokenStarted) {
+          if (_cancelRefused.contains(token)) {
             if (!_disposed) state = state.copyWith(cancelHidden: true);
           } else if (_stale.contains(token)) {
+            if (token == OtErrorCode.tokenNotApprover && !_disposed) {
+              state = state.copyWith(notMine: true);
+            }
             _reloadLists();
             await _reloadPage();
           } else if (OtDetailNotifier.isGone(failure)) {
@@ -117,6 +134,13 @@ class OtDecisionNotifier
       keep.close();
     }
   }
+
+  /// The cancels the server will keep refusing.
+  static const Set<String> _cancelRefused = {
+    OtErrorCode.tokenStarted,
+    OtErrorCode.tokenAlreadyPaid,
+    OtErrorCode.tokenPaidByHand,
+  };
 
   /// The refusals that mean the request moved on without this head.
   static const Set<String> _stale = {

@@ -147,8 +147,9 @@ class ApproverAccess extends Equatable {
 
   /// Whether a head gets Approve and Reject on the OT [request] (#49): it is
   /// pending, the step waiting now is a dept-head or `specific` one naming
-  /// them, and it is not their own. HR rights add nothing (the App does not
-  /// decide OT's HR steps).
+  /// them, it is not their own, and they have not approved an earlier step
+  /// (the server refuses that with `NOT_APPROVER`). HR rights add nothing
+  /// (the App does not decide OT's HR steps).
   static bool canDecideOt(OtRequest request, User? user) {
     final employeeId = user?.employeeId;
     if (employeeId == null || employeeId.isEmpty) return false;
@@ -156,12 +157,17 @@ class ApproverAccess extends Equatable {
     if (request.employeeId == employeeId) return false;
     final step = request.pendingStep;
     if (step == null || step.role == OtStepRole.hr) return false;
+    final approvedEarlier = request.steps.any(
+      (s) => s.approverId == employeeId && s.status == OtStepStatus.approved,
+    );
+    if (approvedEarlier) return false;
     return step.approverId == employeeId;
   }
 
   /// Whether a head may cancel the approved OT [request] (#49): it is
-  /// approved, they approved one of its steps, and it has not started
-  /// ([now] before `starts_at`, both moments). After that only HR can.
+  /// approved, they approved one of its head steps (an HR step approved on
+  /// the web adds nothing), and it has not started ([now] before
+  /// `starts_at`, both moments). After that only HR can.
   static bool canCancelApprovedOt(OtRequest request, User? user, DateTime now) {
     final employeeId = user?.employeeId;
     if (employeeId == null || employeeId.isEmpty) return false;
@@ -169,7 +175,10 @@ class ApproverAccess extends Equatable {
     final startsAt = request.startsAt;
     if (startsAt == null || !now.isBefore(startsAt)) return false;
     return request.steps.any(
-      (s) => s.approverId == employeeId && s.status == OtStepStatus.approved,
+      (s) =>
+          s.approverId == employeeId &&
+          s.status == OtStepStatus.approved &&
+          s.role != OtStepRole.hr,
     );
   }
 
