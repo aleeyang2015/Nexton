@@ -21,6 +21,7 @@ import '../widgets/login_header.dart';
 import '../widgets/login_submit_button.dart';
 import '../widgets/auth_password_field.dart';
 import '../widgets/remember_me_checkbox.dart';
+import '../../../../core/widgets/app_dialog.dart';
 
 /// Login screen. Holds only text controllers — every decision lives in
 /// [LoginNotifier]. It also says, once, why the App ended the last session,
@@ -43,6 +44,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   void initState() {
     super.initState();
+    // A remembered email (#60) fills the field once, from the form's first
+    // state; what the user types afterwards is theirs.
+    _emailController.text = ref.read(loginNotifierProvider).email;
     _lifecycle = AppLifecycleListener(
       onResume: () => ref.read(loginNotifierProvider.notifier).syncWait(),
     );
@@ -186,12 +190,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           onToggleObscure: notifier.togglePasswordVisibility,
           onChanged: notifier.passwordChanged,
           onSubmitted: (_) => notifier.submit(),
-          trailing: customText(
-            l10n.forgotPassword,
-            color: AppColors.primary,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
+          trailing: _ForgotPassword(label: l10n.forgotPassword),
         ),
         heightBx(h: 20),
         RememberMeCheckbox(
@@ -265,6 +264,45 @@ class _LanguageToggleButton extends StatelessWidget {
                 color: AppColors.gray500,
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// "Forgot password?" (#60): staff have no self-service reset; HR resets a
+/// password (owner decision 12), so the tap says to ask them.
+class _ForgotPassword extends StatelessWidget {
+  final String label;
+
+  const _ForgotPassword({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          final l10n = AppLocalizations.of(context)!;
+          AppDialog.warning(
+            context,
+            title: l10n.forgotPassword,
+            message: l10n.forgotPasswordAskHr,
+          );
+        },
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+          child: Align(
+            alignment: Alignment.centerRight,
+            widthFactor: 1,
+            child: customText(
+              label,
+              color: AppColors.primary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),

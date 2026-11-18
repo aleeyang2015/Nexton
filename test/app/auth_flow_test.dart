@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/app/app.dart';
 import 'package:next_on/app/router/app_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:next_on/features/auth/presentation/widgets/remember_me_checkbox.dart';
+import 'package:next_on/core/network/network_providers.dart';
+import 'package:next_on/core/constants/app_constants.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/session_end_reason.dart';
 import 'package:next_on/core/utils/clock_provider.dart';
@@ -408,5 +412,50 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(LoginPage), findsOneWidget);
+  });
+
+  testWidgets('remember my email, through the real App (#60): ticked, '
+      'signed in, signed out — the email and the ticked box are back', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    container.dispose();
+    container = ProviderContainer(
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repository),
+        clockProvider.overrideWithValue(() => now()),
+        attendanceRepositoryProvider.overrideWithValue(
+          FakeAttendanceRepository(),
+        ),
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+    );
+    repository.loginResult = Result.success(AuthSession.signedIn(testUser()));
+
+    await launch(tester);
+    final box = find.byType(RememberMeCheckbox);
+    await tester.ensureVisible(box);
+    await tester.tap(box);
+    await tester.pump();
+    await signIn(tester);
+    expect(find.byType(HomePage), findsOneWidget);
+    expect(
+      prefs.getString(AppConstants.rememberedEmailKey),
+      'somphone.vilaysone@nexton.la',
+    );
+
+    await container.read(authSessionProvider.notifier).logout();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginPage), findsOneWidget);
+    final email = tester.widget<TextField>(
+      find.descendant(
+        of: find.byType(LoginEmailField),
+        matching: find.byType(TextField),
+      ),
+    );
+    expect(email.controller!.text, 'somphone.vilaysone@nexton.la');
+    expect(tester.widget<RememberMeCheckbox>(box).value, isTrue);
   });
 }

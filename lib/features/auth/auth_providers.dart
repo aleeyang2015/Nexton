@@ -4,6 +4,7 @@ import '../../core/network/auth_interceptor.dart';
 import '../../core/network/network_providers.dart';
 import 'data/datasources/auth_local_data_source.dart';
 import 'data/datasources/auth_remote_data_source.dart';
+import 'data/datasources/remembered_email_store.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'domain/repositories/auth_repository.dart';
 import 'domain/usecases/change_password_usecase.dart';
@@ -37,6 +38,11 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
     sessionExpired: ref.watch(authInterceptorProvider).onSessionExpired,
   );
 });
+
+/// The email "Remember my email" keeps (#60).
+final rememberedEmailStoreProvider = Provider<RememberedEmailStore>(
+  (ref) => RememberedEmailStore(ref.watch(sharedPreferencesProvider)),
+);
 
 final loginUseCaseProvider = Provider<LoginUseCase>((ref) {
   return LoginUseCase(ref.watch(authRepositoryProvider));

@@ -142,8 +142,13 @@ class FakeAuthRepository implements AuthRepository {
     loginCalls++;
     lastLoginEmail = email;
     lastLoginPassword = password;
+    await whileLoggingIn?.call();
     return loginResult;
   }
+
+  /// Runs while a login is on its way: what the App does meanwhile (#60: the
+  /// login screen is left, and its form disposed, before the answer).
+  Future<void> Function()? whileLoggingIn;
 
   /// Runs while a restore is in flight, before it answers: where a test can
   /// have the network layer give up on the session mid-restore.

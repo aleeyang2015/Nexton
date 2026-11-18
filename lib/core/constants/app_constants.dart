@@ -99,6 +99,10 @@ class AppConstants {
   static const String userPreferencesKey = 'user_preferences';
   static const String isFirstLaunchKey = 'is_first_launch';
 
+  /// The email "Remember my email" keeps for the next sign-in (#60). Kept
+  /// at sign-out on purpose: that is what the box is for.
+  static const String rememberedEmailKey = 'remembered_email';
+
   // Pagination
   static const int defaultPageSize = 20;
   static const int maxPageSize = 100;

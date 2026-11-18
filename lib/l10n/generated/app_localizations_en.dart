@@ -2217,4 +2217,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get profilePhotoTooLarge =>
       'This photo is too large. Please choose another.';
+
+  @override
+  String get forgotPasswordAskHr =>
+      'Please ask your HR to reset your password.';
 }
