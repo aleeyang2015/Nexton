@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/network_providers.dart';
 import '../../core/utils/clock_provider.dart';
+import '../auth/presentation/providers/auth_session_notifier.dart';
 import 'data/datasources/attendance_remote_data_source.dart';
 import 'data/datasources/geolocator_punch_location_source.dart';
 import 'data/datasources/offsite_remote_data_source.dart';
@@ -137,6 +138,17 @@ final getTimeCorrectionHistoryUseCaseProvider =
         ref.watch(attendanceRepositoryProvider),
       );
     });
+
+/// The signed-in user's employee record id, or null (no staff record, or
+/// signed out): a "forgot to scan" request offers Cancel only to its own
+/// employee (#45).
+final attendanceOwnEmployeeIdProvider = Provider<String?>(
+  (ref) => ref.watch(
+    authSessionProvider.select(
+      (session) => session.valueOrNull?.user?.employeeId,
+    ),
+  ),
+);
 
 final getTimeCorrectionDetailUseCaseProvider =
     Provider<GetTimeCorrectionDetailUseCase>((ref) {

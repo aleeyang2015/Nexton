@@ -1484,6 +1484,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attView => 'View';
 
   @override
+  String get attCorrectionTab => 'Forgot to scan';
+
+  @override
+  String get attCorrectionResult => 'After the correction';
+
+  @override
+  String get attCorrectionRequested => 'Requested time';
+
+  @override
   String get attOffsiteDetailTitle => 'Off-site scan request';
 
   @override

@@ -189,7 +189,17 @@ class _TimeCorrectionRequestPageState
     if (!context.mounted) return;
 
     if (ok) {
-      AppToast.success(l10n.timeCorrectionSubmitSuccess);
+      // "View" opens the request in "My requests" (#45). The router is taken
+      // now: this page is closing.
+      final id = ref.read(provider).submission.valueOrNull;
+      final router = GoRouter.of(context);
+      AppToast.success(
+        l10n.timeCorrectionSubmitSuccess,
+        actionLabel: id == null ? null : l10n.attView,
+        onAction: id == null
+            ? null
+            : () => router.push(AppRoutes.myCorrectionRequest(id)),
+      );
       _leave(context);
       return;
     }

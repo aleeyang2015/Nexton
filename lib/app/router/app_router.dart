@@ -15,7 +15,7 @@ import '../../features/attendance/presentation/pages/offsite_request_page.dart';
 import '../../features/attendance/presentation/pages/time_correction_approvals_page.dart';
 import '../../features/profile/domain/entities/shift_detail.dart';
 import '../../features/attendance/presentation/pages/time_correction_history_detail_page.dart';
-import '../../features/attendance/presentation/pages/time_correction_history_page.dart';
+import '../../features/attendance/domain/entities/time_correction_record.dart';
 import '../../features/attendance/presentation/pages/time_correction_request_page.dart';
 import '../../features/auth/domain/entities/auth_session.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
@@ -64,8 +64,13 @@ class AppRoutes {
       queryParameters: {'date': d, 'part': ?partId},
     ).toString();
   }
+  /// The old "forgot to scan" history address: it opens "My requests" on
+  /// that tab (#45).
   static const String timeCorrectionHistory =
       '/attendance/time-correction/history';
+
+  /// The old detail address, with the id as `extra`; it opens the same page
+  /// as [myCorrectionRequestDetail].
   static const String timeCorrectionHistoryDetail =
       '/attendance/time-correction/history/detail';
   static const String timeCorrectionApprovals =
@@ -83,6 +88,15 @@ class AppRoutes {
   /// The location of the employee's off-site request [id].
   static String myOffsiteRequest(String id) =>
       '/attendance/requests/offsite/${Uri.encodeComponent(id)}';
+
+  /// One of the employee's "forgot to scan" requests, by id (#45). A route
+  /// pattern; build a location with [myCorrectionRequest].
+  static const String myCorrectionRequestDetail =
+      '/attendance/requests/correction/:id';
+
+  /// The location of the employee's "forgot to scan" request [id].
+  static String myCorrectionRequest(String id) =>
+      '/attendance/requests/correction/${Uri.encodeComponent(id)}';
   static const String offsiteRequest = '/attendance/offsite';
   static const String cameraCapture = '/attendance/camera';
   static const String timeOff = '/time-off';
@@ -404,14 +418,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) =>
             timeCorrectionRequestPageFor(state.uri.queryParameters, state.extra),
       ),
-      // The requests filed from it
+      // The requests filed from it: the old address opens "My requests" on
+      // the "forgot to scan" tab (#45), so a link to it still lands.
       GoRoute(
         path: AppRoutes.timeCorrectionHistory,
         name: 'timeCorrectionHistory',
-        builder: (context, state) => const TimeCorrectionHistoryPage(),
+        builder: (context, state) =>
+            const MyRequestsPage(initialTab: MyRequestsTab.correction),
       ),
-      // One of those requests — its id rides along as `extra`, so a direct
-      // hit without one falls through to the 404 page.
+      // One of those requests by the old address — its id rides along as
+      // `extra`, so a direct hit without one falls through to the 404 page.
       GoRoute(
         path: AppRoutes.timeCorrectionHistoryDetail,
         name: 'timeCorrectionHistoryDetail',
@@ -419,6 +435,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final id = state.extra;
           if (id is! String) return const NotFoundPage();
           return TimeCorrectionHistoryDetailPage(id: id);
+        },
+      ),
+      // One "forgot to scan" request, by id (#45); `extra` may carry the
+      // list row, shown while the request loads.
+      GoRoute(
+        path: AppRoutes.myCorrectionRequestDetail,
+        name: 'myCorrectionRequest',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          final extra = state.extra;
+          return TimeCorrectionHistoryDetailPage(
+            id: id,
+            initial: extra is TimeCorrectionRecord && extra.id == id
+                ? extra
+                : null,
+          );
         },
       ),
       // The requests an approver decides on — the "ອະນຸມັດແກ້ໄຂເວລາ" menu tile

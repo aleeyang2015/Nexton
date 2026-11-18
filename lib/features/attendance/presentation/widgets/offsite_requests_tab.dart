@@ -16,6 +16,7 @@ import '../../domain/attendance_failure_x.dart';
 import '../../domain/entities/offsite_detail.dart';
 import '../providers/offsite_history_notifier.dart';
 import 'offsite_record_card.dart';
+import 'requests_list_message.dart';
 import 'time_correction_history_summary.dart';
 import '../../../../core/widgets/image_viewer.dart';
 
@@ -31,7 +32,8 @@ class OffsiteRequestsTab extends ConsumerStatefulWidget {
   ConsumerState<OffsiteRequestsTab> createState() => _OffsiteRequestsTabState();
 }
 
-class _OffsiteRequestsTabState extends ConsumerState<OffsiteRequestsTab> {
+class _OffsiteRequestsTabState extends ConsumerState<OffsiteRequestsTab>
+    with AutomaticKeepAliveClientMixin {
   /// How close to the end of the list, in pixels, the next page is asked
   /// for: as the leave history does, on scroll, not as soon as a page lands.
   static const double _loadMoreWithin = 300;
@@ -56,8 +58,14 @@ class _OffsiteRequestsTabState extends ConsumerState<OffsiteRequestsTab> {
     ref.read(offsiteHistoryNotifierProvider.notifier).loadMore();
   }
 
+  /// Kept while "My requests" is open: switching tabs and back keeps the
+  /// picked status and the pages loaded, with no new request.
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final l10n = AppLocalizations.of(context)!;
     final filter = ref.watch(
       offsiteHistoryNotifierProvider.select((s) => s.filter),
@@ -127,7 +135,7 @@ class _RequestsList extends ConsumerWidget {
       // No staff record: #11's "not linked" text, and nothing to retry.
       final error = requests.error;
       final notLinked = error is Failure && error.isEmployeeNotLinked;
-      return _Message(
+      return RequestsListMessage(
         icon: Icons.error_outline,
         text: notLinked ? error.localize(l10n) : l10n.offsiteHistoryLoadFailed,
         onRetry: notLinked
@@ -138,7 +146,7 @@ class _RequestsList extends ConsumerWidget {
 
     final visible = state.visible;
     if (visible.isEmpty) {
-      return _Message(
+      return RequestsListMessage(
         icon: Icons.inbox_outlined,
         text: l10n.offsiteHistoryEmpty,
       );
@@ -172,7 +180,7 @@ class _RequestsList extends ConsumerWidget {
             child: CircularProgressIndicator(color: AppColors.primary),
           )
         else if (list != null && list.loadMoreError != null)
-          _Message(
+          RequestsListMessage(
             icon: Icons.error_outline,
             text: l10n.offsiteHistoryLoadFailed,
             onRetry: notifier.retryLoadMore,
@@ -209,46 +217,5 @@ class _RequestsList extends ConsumerWidget {
       // the employee is told the request moved on rather than "it failed".
       AppToast.error(failure.localize(l10n));
     }
-  }
-}
-
-class _Message extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  final VoidCallback? onRetry;
-
-  const _Message({required this.icon, required this.text, this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final retry = onRetry;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40),
-      child: Column(
-        children: [
-          Icon(icon, color: AppColors.gray400, size: 36),
-          heightBx(h: 8),
-          customText(
-            text,
-            color: AppColors.subTitle,
-            alight: TextAlign.center,
-            maxLine: 2,
-          ),
-          if (retry != null) ...[
-            heightBx(h: 12),
-            InkWell(
-              onTap: retry,
-              child: customText(
-                l10n.retry,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
   }
 }

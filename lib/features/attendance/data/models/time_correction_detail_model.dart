@@ -1,6 +1,7 @@
 import '../../../time_off/data/models/leave_parse.dart';
 import '../../../time_off/domain/entities/leave_approval_step.dart';
 import '../../domain/entities/time_correction_detail.dart';
+import '../../domain/entities/time_correction_status.dart';
 import 'time_correction_parse.dart';
 
 /// Reads `GET /attendance/correction-requests/:id`'s `data` object.
@@ -18,12 +19,13 @@ class TimeCorrectionDetailModel {
       throw const FormatException('Incomplete correction request');
     }
 
+    final status = TimeCorrectionJson.status(json['status']);
     final steps = LeaveJson.objects(json['steps']).map(_step).toList()
       ..sort((a, b) => a.stepNo.compareTo(b.stepNo));
 
     return TimeCorrectionDetail(
       id: id,
-      employee: _employee(json['employee']),
+      employee: _employee(json['employee'], json),
       requestDate: requestDate,
       type: type,
       clockIn: TimeCorrectionJson.timeOfDay(json['requested_clock_in']),
@@ -33,17 +35,57 @@ class TimeCorrectionDetailModel {
       attachmentUrl: TimeCorrectionJson.attachmentUrls(
         json['attachment_url'],
       ).firstOrNull,
-      status: TimeCorrectionJson.status(json['status']),
+      status: status,
       currentStepNo: LeaveJson.intOf(json['current_step_no']) ?? 0,
       steps: steps,
       submittedAt: LeaveJson.dateTime(json['created_at']) ?? requestDate,
+      // Only an approved request has a corrected day: a record sent with any
+      // other is the day as it was, never "after the correction".
+      result: status == TimeCorrectionStatus.approved
+          ? _result(json['attendance_record'], requestDate)
+          : null,
     );
   }
 
-  static TimeCorrectionEmployee _employee(dynamic value) {
+  /// `attendance_record`, set once the request was approved (#45). Its
+  /// times are the company's wall clock (`TimeCorrectionJson.wallClock`).
+  /// The corrected part (`session`) gives the times when it is there.
+  static TimeCorrectionResult? _result(dynamic value, DateTime requestDate) {
+    if (value is! Map) return null;
+    final date = LeaveJson.date(value['date']) ?? requestDate;
+    final session = value['session'];
+    final times = session is Map ? session : value;
+    return TimeCorrectionResult(
+      date: date,
+      clockIn: TimeCorrectionJson.wallClock(times['clock_in'], day: date),
+      clockOut: TimeCorrectionJson.wallClock(times['clock_out'], day: date),
+      status: LeaveJson.nonEmpty(value['status']),
+      workHours: _number(value['work_hours']),
+      isLate: LeaveJson.boolOf(value['is_late']),
+      lateMinutes: _number(value['late_minutes'])?.toInt(),
+    );
+  }
+
+  /// A number, also one sent as text (`"8.50"`); null for anything else,
+  /// never a throw over one field.
+  static double? _number(dynamic value) => switch (value) {
+    num() => value.toDouble(),
+    String() => double.tryParse(value.trim()),
+    _ => null,
+  };
+
+  /// [parent] is the request: its `employee_id` stands in when the
+  /// `employee` object has no id.
+  static TimeCorrectionEmployee _employee(
+    dynamic value,
+    Map<String, dynamic> parent,
+  ) {
     final json = value is Map ? Map<String, dynamic>.from(value) : const {};
     final department = json['department'];
     return TimeCorrectionEmployee(
+      id:
+          TimeCorrectionJson.text(json['id']) ??
+          TimeCorrectionJson.text(parent['employee_id']),
       name: LeaveJson.nonEmpty(json['name']) ?? '',
       employeeNumber: LeaveJson.nonEmpty(json['employee_number']),
       departmentName: department is Map

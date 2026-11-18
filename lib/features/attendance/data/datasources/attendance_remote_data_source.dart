@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_response.dart';
+import '../../../../core/network/paged_list.dart';
 import '../../domain/entities/attendance_day.dart';
 import '../../domain/entities/open_ot_session.dart';
 import '../../domain/entities/attendance_summary.dart';
@@ -23,6 +24,7 @@ import '../models/clock_request_model.dart';
 import '../models/punch_block_details_model.dart';
 import '../models/punch_receipt_model.dart';
 import '../models/time_correction_detail_model.dart';
+import '../models/time_correction_parse.dart';
 import '../models/time_correction_record_model.dart';
 import '../models/time_correction_request_model.dart';
 import 'attendance_api_paths.dart';
@@ -55,17 +57,26 @@ abstract class AttendanceRemoteDataSource {
   /// The history page's stat cards over [range].
   Future<AttendanceSummary> summary(DateRange range);
 
-  /// Files a time-correction request. The created record isn't used, so the
-  /// response body is not read.
-  Future<void> submitTimeCorrection(TimeCorrectionRequest request);
+  /// Files a time-correction request. Resolves to the new request's id from
+  /// the 201's `data.id` (#45: "View" opens it), or null when the answer
+  /// carries none.
+  Future<String?> submitTimeCorrection(TimeCorrectionRequest request);
 
-  /// The employee's own time-correction requests, newest first.
-  Future<List<TimeCorrectionRecord>> myTimeCorrections();
+  /// One page of the employee's own time-correction requests (#45):
+  /// `GET correction-requests/my?status=&limit=&cursor=`, in the server's
+  /// order. [status] is a server filter; null asks for every status.
+  Future<CursorPage<TimeCorrectionRecord>> myTimeCorrections({
+    TimeCorrectionStatus? status,
+    String? cursor,
+  });
 
-  /// One of the employee's requests in full.
+  /// One request in full. A 404 (gone, or not the caller's to see) is
+  /// `CorrectionErrorCode.tokenRequestGone`.
   Future<TimeCorrectionDetail> timeCorrectionDetail(String id);
 
-  /// Withdraws a pending request. The body isn't read.
+  /// Withdraws a pending request. The body isn't read. `CANNOT_CANCEL` (not
+  /// the caller's, or decided meanwhile) is
+  /// `CorrectionErrorCode.tokenCannotCancel`.
   Future<void> cancelTimeCorrection(String id);
 
   /// The requests the signed-in approver decides on, newest first — the
@@ -99,9 +110,13 @@ abstract class AttendanceRemoteDataSource {
 }
 
 class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
-  /// The history page shows one unpaged list; corrections are limited to
-  /// the last 90 days, so this comfortably covers them.
+  /// The approvals page shows one unpaged list; corrections are limited to
+  /// the last 30 days, so this comfortably covers them.
   static const int _correctionPageSize = 100;
+
+  /// Rows per page of "My requests"' "forgot to scan" tab (#45), as the
+  /// off-site tab asks for.
+  static const int myCorrectionsPageSize = 20;
 
   /// Rows asked for per month when looking for the current record. `records/my`
   /// answers newest first, so the first few rows of a month hold yesterday,
@@ -248,7 +263,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   }
 
   @override
-  Future<void> submitTimeCorrection(TimeCorrectionRequest request) async {
+  Future<String?> submitTimeCorrection(TimeCorrectionRequest request) async {
     final body = TimeCorrectionRequestModel(request).toJson();
     _debugLog('POST ${AttendancePaths.correctionRequests} body', body);
 
@@ -258,6 +273,13 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
         data: body,
       );
       _debugLog('response ${response.statusCode}', response.data);
+      // The request went in either way: an answer without a usable id only
+      // means there is nothing for "View" to open.
+      final data = response.data;
+      final created = data is Map && data['data'] is Map
+          ? data['data'] as Map
+          : null;
+      return created == null ? null : TimeCorrectionJson.text(created['id']);
     } on DioException catch (error) {
       _debugLog('error ${error.response?.statusCode}', error.response?.data);
       // A refusal the user can act on, in plain words (#43).
@@ -268,33 +290,55 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   }
 
   @override
-  Future<List<TimeCorrectionRecord>> myTimeCorrections() async {
+  Future<CursorPage<TimeCorrectionRecord>> myTimeCorrections({
+    TimeCorrectionStatus? status,
+    String? cursor,
+  }) async {
     final response = await _client.get<dynamic>(
       AttendancePaths.myCorrectionRequests,
-      queryParameters: {'page': 1, 'per_page': _correctionPageSize},
+      queryParameters: {
+        if (status != null) 'status': status.wireValue,
+        'limit': myCorrectionsPageSize,
+        if (cursor != null) 'cursor': cursor,
+      },
     );
     _debugLog(
       'GET ${AttendancePaths.myCorrectionRequests} response',
       response.data,
     );
 
-    final records = ApiEnvelope.unwrapList(response.data)
-        .map(TimeCorrectionRecordModel.fromJson)
-        .whereType<TimeCorrectionRecord>()
-        .toList();
-    records.sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
-    return records;
+    // Kept in the server's order: re-sorting one page would put its rows out
+    // of step with the next page's (keyset paging).
+    final page = CursorPage.fromBody<TimeCorrectionRecord?>(
+      response.data,
+      TimeCorrectionRecordModel.fromJson,
+    );
+    return CursorPage(
+      items: page.items.whereType<TimeCorrectionRecord>().toList(),
+      nextCursor: page.nextCursor,
+      hasMore: page.hasMore,
+    );
   }
 
   @override
   Future<TimeCorrectionDetail> timeCorrectionDetail(String id) async {
     final path = AttendancePaths.correctionRequest(id);
-    final response = await _client.get<dynamic>(path);
-    _debugLog('GET $path response', response.data);
+    try {
+      final response = await _client.get<dynamic>(path);
+      _debugLog('GET $path response', response.data);
 
-    return TimeCorrectionDetailModel.fromJson(
-      ApiEnvelope.unwrapObject(response.data),
-    );
+      return TimeCorrectionDetailModel.fromJson(
+        ApiEnvelope.unwrapObject(response.data),
+      );
+    } on DioException catch (error) {
+      // Gone, or not the caller's to see: #37's "not available", no Retry.
+      if (error.response?.statusCode == 404) {
+        throw const Failure.validation(
+          message: CorrectionErrorCode.tokenRequestGone,
+        );
+      }
+      rethrow;
+    }
   }
 
   @override
@@ -308,6 +352,20 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
         'PUT $path error ${error.response?.statusCode}',
         error.response?.data,
       );
+      // Gone meanwhile: "not available", as the reload after it says.
+      if (error.response?.statusCode == 404) {
+        throw const Failure.validation(
+          message: CorrectionErrorCode.tokenRequestGone,
+        );
+      }
+      // By its code, not its status: not the caller's, or no longer pending.
+      final code = ApiError.tryParse(error.response?.data)?.code;
+      if (code == CorrectionErrorCode.cannotCancel) {
+        throw Failure.validation(
+          message: CorrectionErrorCode.tokenCannotCancel,
+          code: code,
+        );
+      }
       rethrow;
     }
   }

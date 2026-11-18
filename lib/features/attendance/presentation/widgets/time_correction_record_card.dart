@@ -125,11 +125,15 @@ class _MetaRow extends StatelessWidget {
                 ),
               ),
               customText(' · ', fontSize: 12, color: AppColors.gray400),
-              customText(
-                TimeCorrectionCopy.shortId(record.id),
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryVariant,
+              // Gives way too, so a long status pill ("Awaiting approval")
+              // fits on a narrow phone (#45: this card is the list's row).
+              Flexible(
+                child: customText(
+                  TimeCorrectionCopy.shortId(record.id),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryVariant,
+                ),
               ),
             ],
           ),

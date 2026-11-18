@@ -17,6 +17,17 @@ class CorrectionErrorCode {
   static const String tokenOutOfRange = 'correctionOutOfRange';
   static const String tokenInvalid = 'correctionInvalid';
 
+  /// `GET correction-requests/:id` answered 404: gone, or not the caller's
+  /// to see (#45). Said with #37's "this request is not available".
+  static const String tokenRequestGone = 'correctionRequestGone';
+
+  /// `PUT correction-requests/:id/cancel` answered `CANNOT_CANCEL`: not the
+  /// caller's, or no longer pending (#45). Said with #42's "already decided".
+  static const String tokenCannotCancel = 'correctionCannotCancel';
+
+  /// The wire code of that refusal.
+  static const String cannotCancel = 'CANNOT_CANCEL';
+
   static const String _separator = '|';
 
   static String encode(String token, [List<String> values = const []]) =>

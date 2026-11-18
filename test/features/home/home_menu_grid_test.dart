@@ -37,7 +37,7 @@ void main() {
 
     final lo = lookupAppLocalizations(const Locale('lo'));
     expect(tester.takeException(), isNull);
-    expect(find.text(lo.menuItemCount(7)), findsOneWidget);
+    expect(find.text(lo.menuItemCount(6)), findsOneWidget);
     expect(find.text(lo.approvalsMenu), findsNothing);
     expect(find.text(lo.otMenu), findsOneWidget);
   });
@@ -51,8 +51,9 @@ void main() {
     final lo = lookupAppLocalizations(const Locale('lo'));
     expect(tester.takeException(), isNull);
     expect(find.text(lo.homeServicesTitle), findsOneWidget);
-    // Seven, and the OT tile (#29).
-    expect(find.text(lo.menuItemCount(8)), findsOneWidget);
+    // Seven with the OT tile (#29), less the "forgot to scan" history tile
+    // (#45).
+    expect(find.text(lo.menuItemCount(7)), findsOneWidget);
     expect(find.text(lo.otMenu), findsOneWidget);
     expect(find.text(lo.salaryHistoryMenu), findsOneWidget);
     // The standalone "ອະນຸມັດແກ້ໄຂເວລາ" tile was folded into the combined
@@ -63,5 +64,8 @@ void main() {
     // first tab.
     expect(find.text(lo.attMyRequestsMenu), findsOneWidget);
     expect(find.text('ລົງເວລານອກພື້ນທີ່'), findsNothing);
+    // The "forgot to scan" history is its second tab now (#45): no tile of
+    // its own.
+    expect(find.text(lo.timeCorrectionHistoryMenu), findsNothing);
   });
 }

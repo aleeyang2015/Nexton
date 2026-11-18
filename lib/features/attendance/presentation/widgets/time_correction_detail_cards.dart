@@ -268,7 +268,10 @@ class _EmployeeBox extends StatelessWidget {
 class TimeCorrectionTimesCard extends StatelessWidget {
   final TimeCorrectionDetail detail;
 
-  const TimeCorrectionTimesCard({super.key, required this.detail});
+  /// The card's title; "Correction details" when null.
+  final String? title;
+
+  const TimeCorrectionTimesCard({super.key, required this.detail, this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -283,7 +286,7 @@ class TimeCorrectionTimesCard extends StatelessWidget {
         children: [
           TimeCorrectionSectionTitle(
             icon: Icons.schedule,
-            title: l10n.timeCorrectionDetailsSection,
+            title: title ?? l10n.timeCorrectionDetailsSection,
             trailing: TimeCorrectionTag(
               label: TimeCorrectionCopy.typeLabel(l10n, type),
             ),
@@ -694,6 +697,115 @@ class _SquareButton extends StatelessWidget {
               : Icon(icon, color: AppColors.primaryVariant, size: 22),
         ),
       ),
+    );
+  }
+}
+
+/// "ຜົນຫຼັງແກ້ໄຂ" (#45): the day as it stands once HR approved the request,
+/// with clock-in, clock-out and the day's status pill (#10's own copy).
+class TimeCorrectionResultCard extends StatelessWidget {
+  final TimeCorrectionResult result;
+
+  const TimeCorrectionResultCard({super.key, required this.result});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final status = AttendanceHistoryCopy.status(l10n, result.asDay);
+
+    return TimeCorrectionDetailCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TimeCorrectionSectionTitle(
+            icon: Icons.fact_check_outlined,
+            title: l10n.attCorrectionResult,
+            trailing: TimeCorrectionDotPill(
+              label: status.label,
+              color: status.color,
+            ),
+          ),
+          heightBx(h: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primaryTint,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _ResultTime(
+                    icon: Icons.login,
+                    iconColor: AppColors.attendancePresent,
+                    label: l10n.sessionClockInLabel,
+                    at: result.clockIn,
+                  ),
+                ),
+                Expanded(
+                  child: _ResultTime(
+                    icon: Icons.logout,
+                    iconColor: AppColors.danger,
+                    label: l10n.sessionClockOutLabel,
+                    at: result.clockOut,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResultTime extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final DateTime? at;
+
+  const _ResultTime({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.at,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final at = this.at;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: iconColor, size: 18),
+            widthBx(w: 6),
+            Expanded(
+              child: customText(
+                label,
+                fontSize: 12,
+                color: AppColors.secondaryTxt,
+              ),
+            ),
+          ],
+        ),
+        heightBx(h: 4),
+        // Wall clock as the server wrote it: never shifted to the phone's
+        // zone.
+        customText(
+          at == null
+              ? '--:--'
+              : TimeCorrectionCopy.hourMinuteOf(
+                  Duration(hours: at.hour, minutes: at.minute),
+                ),
+          fontSize: 28,
+          fontWeight: FontWeight.w800,
+          color: AppColors.textPrimary,
+        ),
+      ],
     );
   }
 }

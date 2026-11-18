@@ -1474,6 +1474,15 @@ class AppLocalizationsLo extends AppLocalizations {
   String get attView => 'ເບິ່ງ';
 
   @override
+  String get attCorrectionTab => 'ລືມລົງເວລາ';
+
+  @override
+  String get attCorrectionResult => 'ຜົນຫຼັງແກ້ໄຂ';
+
+  @override
+  String get attCorrectionRequested => 'ເວລາທີ່ຂໍ';
+
+  @override
   String get attOffsiteDetailTitle => 'ຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';
 
   @override

@@ -48,6 +48,42 @@ class TimeCorrectionJson {
     return Duration(hours: hour, minutes: minute);
   }
 
+  /// A company wall-clock time (`attendance_record`'s `clock_in`, #45), as
+  /// written: `2026-11-14 17:05:00`, `2026-11-14T17:05:00`, or `17:05` on
+  /// [day].
+  ///
+  /// A time with no zone is the company's clock as written, never shifted.
+  /// One that carries a zone (`Z`, `+07:00`) is a moment, read the way the
+  /// history page reads `records/my` (`AttendanceRecordModel`): on the
+  /// phone's clock, so the corrected day and the history row always show the
+  /// same time. A bare date has no time: null.
+  static DateTime? wallClock(dynamic value, {DateTime? day}) {
+    final text = LeaveJson.nonEmpty(value)?.trim();
+    if (text == null) return null;
+
+    final timeOnly = _timeOnly.firstMatch(text);
+    if (timeOnly != null) {
+      if (day == null) return null;
+      return DateTime(
+        day.year,
+        day.month,
+        day.day,
+        int.parse(timeOnly[1]!),
+        int.parse(timeOnly[2]!),
+        int.parse(timeOnly[3] ?? '0'),
+      );
+    }
+
+    if (!_hasTime.hasMatch(text)) return null;
+    final parsed = DateTime.tryParse(text);
+    return parsed != null && parsed.isUtc ? parsed.toLocal() : parsed;
+  }
+
+  static final RegExp _timeOnly = RegExp(r'^(\d{1,2}):(\d{2})(?::(\d{2}))?$');
+
+  /// A date with a time of day after it (`T` or a space, then `HH:MM`).
+  static final RegExp _hasTime = RegExp(r'\d[T ]\d{1,2}:\d{2}');
+
   /// The evidence arrives as a bare URL, the `POST /uploads` object, or a
   /// list of either; `""` or null means none.
   static List<String> attachmentUrls(dynamic value) {

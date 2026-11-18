@@ -112,7 +112,8 @@ class TimeCorrectionFormNotifier
 
   /// Validates the form and files the request, with the already-uploaded
   /// evidence file (if any) as `attachment_url`. Returns whether it went
-  /// through; on failure the reason is in `state.submission`'s error.
+  /// through; then `state.submission` holds the new request's id, and on
+  /// failure the reason is in its error.
   Future<bool> submit() async {
     if (state.isSubmitting) return false;
 
@@ -147,8 +148,8 @@ class TimeCorrectionFormNotifier
         );
         return false;
       },
-      (_) {
-        state = state.copyWith(submission: const AsyncValue.data(null));
+      (id) {
+        state = state.copyWith(submission: AsyncValue.data(id));
         return true;
       },
     );

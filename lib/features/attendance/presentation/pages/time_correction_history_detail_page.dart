@@ -2,26 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
+import '../../../../core/errors/failure.dart';
+import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
+import '../../../../core/widgets/image_viewer.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../attendance_providers.dart';
+import '../../domain/attendance_failure_x.dart';
 import '../../domain/entities/time_correction_detail.dart';
+import '../../domain/entities/time_correction_record.dart';
+import '../../domain/entities/time_correction_status.dart';
 import '../providers/time_correction_detail_notifier.dart';
 import '../widgets/time_correction_approval_workflow.dart';
 import '../widgets/time_correction_detail_cards.dart';
-import '../../../../core/widgets/image_viewer.dart';
+import '../widgets/time_correction_record_card.dart';
 
-/// "ລາຍລະອຽດຄຳຮ້ອງ" — one time-correction request in full, from
-/// `GET /attendance/correction-requests/:id`, with a cancel action while it
-/// is still pending. Pops with `true` once the request is cancelled, so the
-/// history list can reload.
+/// "ລາຍລະອຽດຄຳຮ້ອງ" — one of the employee's "forgot to scan" requests in
+/// full (#45), opened by its id from "My requests" or the send toast's
+/// "View": the day, the part, the type, the requested times, the reason,
+/// the photo, the steps, the corrected day once approved, and — while it
+/// still waits — "Cancel request".
+///
+/// Loads its own copy by id; [initial] (the list row) shows meanwhile. Pull
+/// to refresh.
 class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
   final String id;
+  final TimeCorrectionRecord? initial;
 
-  const TimeCorrectionHistoryDetailPage({super.key, required this.id});
+  const TimeCorrectionHistoryDetailPage({
+    super.key,
+    required this.id,
+    this.initial,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,6 +46,9 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
     final provider = timeCorrectionDetailNotifierProvider(id);
     final state = ref.watch(provider);
     final detail = state.detail;
+    final error = detail.error;
+    final gone = TimeCorrectionDetailNotifier.isGone(error);
+    final notLinked = error is Failure && error.isEmployeeNotLinked;
 
     return Container(
       color: Colors.white,
@@ -41,25 +61,33 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
               const _Header(),
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: ref.read(provider.notifier).refresh,
+                  onRefresh: () => _refresh(context, ref),
                   child: ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(15, 12, 15, 32),
                     children: [
-                      if (detail.hasValue)
+                      if (detail.hasValue && !gone)
                         _Body(
                           id: id,
                           detail: detail.requireValue,
                           cancelling: state.cancelling,
                           downloading: state.downloading,
                         )
-                      else if (detail.hasError)
+                      else if (detail.hasError && !detail.isLoading)
                         _LoadFailed(
-                          message: l10n.timeCorrectionDetailLoadFailed,
-                          onRetry: ref.read(provider.notifier).refresh,
+                          // Gone or not the user's: #37's text. No staff
+                          // record: #11's. Neither has anything to retry.
+                          message: gone
+                              ? l10n.apprRequestNotFound
+                              : notLinked
+                              ? error.localize(l10n)
+                              : l10n.timeCorrectionDetailLoadFailed,
+                          onRetry: gone || notLinked
+                              ? null
+                              : ref.read(provider.notifier).refresh,
                         )
                       else
-                        const _Loading(),
+                        _Loading(initial: initial),
                     ],
                   ),
                 ),
@@ -69,6 +97,17 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// A failed pull to refresh keeps the request on screen and says why.
+  Future<void> _refresh(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
+    final failure = await ref
+        .read(timeCorrectionDetailNotifierProvider(id).notifier)
+        .refresh();
+    if (failure != null && !TimeCorrectionDetailNotifier.isGone(failure)) {
+      AppToast.error(failure.localize(l10n));
+    }
   }
 }
 
@@ -89,12 +128,23 @@ class _Body extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final attachment = detail.attachmentUrl;
+    final result = detail.result;
+    final canCancel = detail.canCancelBy(
+      ref.watch(attendanceOwnEmployeeIdProvider),
+    );
 
     return Column(
       children: [
         TimeCorrectionSummaryCard(detail: detail),
+        if (result != null) ...[
+          heightBx(h: 16),
+          TimeCorrectionResultCard(result: result),
+        ],
         heightBx(h: 16),
-        TimeCorrectionTimesCard(detail: detail),
+        TimeCorrectionTimesCard(
+          detail: detail,
+          title: l10n.attCorrectionRequested,
+        ),
         if (detail.reason.isNotEmpty) ...[
           heightBx(h: 16),
           TimeCorrectionReasonCard(reason: detail.reason),
@@ -104,7 +154,11 @@ class _Body extends ConsumerWidget {
           TimeCorrectionAttachmentCard(
             url: attachment,
             downloading: downloading,
-            onView: () => showImageViewer(context, attachment),
+            onView: () => showImageViewer(
+              context,
+              attachment,
+              errorText: l10n.leaveFileOpenFailed,
+            ),
             onDownload: () => _download(context, ref),
           ),
         ],
@@ -113,9 +167,10 @@ class _Body extends ConsumerWidget {
           TimeCorrectionApprovalWorkflow(
             steps: detail.steps,
             currentStepNo: detail.currentStepNo,
+            cancelled: detail.status == TimeCorrectionStatus.cancelled,
           ),
         ],
-        if (detail.canCancel) ...[
+        if (canCancel) ...[
           heightBx(h: 24),
           _CancelButton(
             loading: cancelling,
@@ -134,27 +189,25 @@ class _Body extends ConsumerWidget {
     );
   }
 
+  /// Asks first, then withdraws it. The page stays and shows the request as
+  /// it now is: cancelled, or — "already decided" — as it was decided.
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
+    final notifier = ref.read(timeCorrectionDetailNotifierProvider(id).notifier);
     final confirmed = await AppDialog.ask(
       context,
-      title: l10n.timeCorrectionCancelAction,
+      title: l10n.leaveCancelAction,
       message: l10n.timeCorrectionCancelConfirm,
-      confirmLabel: l10n.timeCorrectionCancelAction,
+      confirmLabel: l10n.leaveCancelAction,
     );
-    if (!confirmed || !context.mounted) return;
+    if (!confirmed) return;
 
-    final ok = await ref
-        .read(timeCorrectionDetailNotifierProvider(id).notifier)
-        .cancel();
-    if (!context.mounted) return;
-
-    if (ok) {
-      AppToast.success(l10n.timeCorrectionCancelled);
-      context.pop(true);
-    } else {
-      AppToast.error(l10n.timeCorrectionCancelFailed);
-    }
+    final result = await notifier.cancel();
+    // Null: a withdrawal already on its way says how it went.
+    result?.fold(
+      (failure) => AppToast.error(failure.localize(l10n)),
+      (_) => AppToast.success(l10n.timeCorrectionCancelled),
+    );
   }
 
   Future<void> _download(BuildContext context, WidgetRef ref) async {
@@ -187,7 +240,11 @@ class _Header extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            onPressed: () => context.pop(),
+            // Opened from a toast or a link there may be no page underneath:
+            // "My requests" on its "forgot to scan" tab.
+            onPressed: () => context.canPop()
+                ? context.pop()
+                : context.go(AppRoutes.timeCorrectionHistory),
             icon: const Icon(
               Icons.arrow_back_ios_new,
               color: AppColors.textPrimary,
@@ -246,7 +303,7 @@ class _CancelButton extends StatelessWidget {
                       widthBx(w: 8),
                       Flexible(
                         child: customText(
-                          l10n.timeCorrectionCancelAction,
+                          l10n.leaveCancelAction,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: AppColors.danger,
@@ -261,13 +318,22 @@ class _CancelButton extends StatelessWidget {
   }
 }
 
+/// The list row while the request loads, when there is one, over
+/// placeholders for the rest.
 class _Loading extends StatelessWidget {
-  const _Loading();
+  final TimeCorrectionRecord? initial;
+
+  const _Loading({this.initial});
 
   @override
   Widget build(BuildContext context) {
+    final initial = this.initial;
     return Column(
       children: [
+        if (initial != null) ...[
+          TimeCorrectionRecordCard(record: initial),
+          heightBx(h: 16),
+        ],
         for (final height in const [150.0, 260.0, 110.0])
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
@@ -280,13 +346,14 @@ class _Loading extends StatelessWidget {
 
 class _LoadFailed extends StatelessWidget {
   final String message;
-  final VoidCallback onRetry;
+  final VoidCallback? onRetry;
 
-  const _LoadFailed({required this.message, required this.onRetry});
+  const _LoadFailed({required this.message, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final retry = onRetry;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 60),
@@ -300,15 +367,17 @@ class _LoadFailed extends StatelessWidget {
             alight: TextAlign.center,
             maxLine: 2,
           ),
-          heightBx(h: 12),
-          InkWell(
-            onTap: onRetry,
-            child: customText(
-              l10n.retry,
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
+          if (retry != null) ...[
+            heightBx(h: 12),
+            InkWell(
+              onTap: retry,
+              child: customText(
+                l10n.retry,
+                color: AppColors.primary,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
