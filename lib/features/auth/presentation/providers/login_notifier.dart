@@ -71,7 +71,10 @@ class LoginNotifier extends AutoDisposeNotifier<LoginState> {
     state = state.copyWith(obscurePassword: !state.obscurePassword);
   }
 
+  /// Held while a sign-in is on its way: what it saves was decided when it
+  /// was sent (#60), so the box must not say otherwise meanwhile.
   void toggleRememberMe() {
+    if (state.isSubmitting) return;
     state = state.copyWith(rememberMe: !state.rememberMe);
   }
 

@@ -566,6 +566,25 @@ void main() {
       expect(savedEmail(), isNull);
     });
 
+    test('the box cannot change while a sign-in is on its way: what is '
+        'saved is what was sent', () async {
+      await open();
+      signInSucceeds();
+      n()
+        ..emailChanged('noy.s@shop.la')
+        ..passwordChanged('password1')
+        ..toggleRememberMe();
+      repository.whileLoggingIn = () async {
+        // Unticked mid-flight: held.
+        n().toggleRememberMe();
+        expect(s().rememberMe, isTrue);
+      };
+
+      await n().submit();
+      await pumpEventQueue();
+      expect(savedEmail(), 'noy.s@shop.la');
+    });
+
     test('a wrong password, ticked: nothing new is saved', () async {
       await open(saved: {AppConstants.rememberedEmailKey: 'old@shop.la'});
       repository.loginResult = const Result.failure(

@@ -31,11 +31,6 @@ final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
 });
 
 /// Exposed as the abstract type so consumers never see the impl
-/// The email "Remember my email" keeps (#60).
-final rememberedEmailStoreProvider = Provider<RememberedEmailStore>(
-  (ref) => RememberedEmailStore(ref.watch(sharedPreferencesProvider)),
-);
-
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepositoryImpl(
     remote: ref.watch(authRemoteDataSourceProvider),
@@ -43,6 +38,11 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
     sessionExpired: ref.watch(authInterceptorProvider).onSessionExpired,
   );
 });
+
+/// The email "Remember my email" keeps (#60).
+final rememberedEmailStoreProvider = Provider<RememberedEmailStore>(
+  (ref) => RememberedEmailStore(ref.watch(sharedPreferencesProvider)),
+);
 
 final loginUseCaseProvider = Provider<LoginUseCase>((ref) {
   return LoginUseCase(ref.watch(authRepositoryProvider));
