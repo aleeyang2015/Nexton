@@ -208,9 +208,12 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
 
   Future<void>? _loggingOut;
 
+  /// The order matters: the phone's push row goes first (#52), then the
+  /// server ends the sign-in (#56) — after that the access token is refused
+  /// — then the phone's copy is cleared. Both server calls need the tokens.
   Future<void> _logout() async {
     await _signOffThisPhone(tokensLive: true);
-    await ref.read(logoutUseCaseProvider)();
+    await ref.read(logoutUseCaseProvider)(endSession: true);
     state = const AsyncValue.data(AuthSession.unauthenticated());
   }
 
@@ -242,7 +245,9 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
     }
 
     if (tokensLive) await _signOffThisPhone(tokensLive: true);
-    await ref.read(logoutUseCaseProvider)();
+    // The tokens still work only after a failed re-login: the server ends
+    // that sign-in too (#56). Otherwise they are already gone.
+    await ref.read(logoutUseCaseProvider)(endSession: tokensLive);
     state = AsyncValue.data(AuthSession.unauthenticated(endReason: reason));
     // The tokens are already gone: no `DELETE`, the FCM token only (#52).
     // After the sign-out, not before: reports of the same loss that arrive

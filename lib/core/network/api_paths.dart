@@ -9,4 +9,8 @@ class ApiPaths {
   static const String refresh = '/auth/refresh';
   static const String me = '/auth/me';
   static const String changePassword = '/auth/change-password';
+
+  /// Ends this phone's sign-in on the server (#56): the refresh token in the
+  /// body, no bearer; always `204`.
+  static const String logout = '/auth/logout';
 }

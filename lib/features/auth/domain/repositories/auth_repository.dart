@@ -28,9 +28,10 @@ abstract class AuthRepository {
     required String newPassword,
   });
 
-  /// Drop the current session. There is no logout endpoint — this is local
-  /// teardown only, and the refresh token is left to lapse server-side.
-  FutureResult<Unit> logout();
+  /// Drop the current session on the phone. With [endSession] the server
+  /// ends this phone's sign-in first (#56), so a copied refresh token stops
+  /// working; that call never stops the local sign-out.
+  FutureResult<Unit> logout({bool endSession = false});
 
   /// The cached profile, or null when nobody is signed in
   FutureResult<User?> currentUser();

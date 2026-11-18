@@ -33,6 +33,9 @@ abstract class AuthLocalDataSource {
   /// check the cold start runs before touching the network.
   Future<bool> hasTokens();
 
+  /// The saved refresh token, for the server's logout (#56).
+  Future<String?> readRefreshToken();
+
   Future<bool> readMustChangePassword();
 
   Future<void> writeMustChangePassword(bool value);
@@ -86,6 +89,9 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     final token = await _tokenStorage.readAccessToken();
     return token != null && token.isNotEmpty;
   }
+
+  @override
+  Future<String?> readRefreshToken() => _tokenStorage.readRefreshToken();
 
   @override
   Future<bool> readMustChangePassword() async =>

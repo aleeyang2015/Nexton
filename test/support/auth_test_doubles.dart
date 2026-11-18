@@ -86,6 +86,26 @@ class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
     lastNewPassword = newPassword;
     if (changePasswordError != null) throw changePasswordError!;
   }
+
+  /// The refresh token of each server logout (#56).
+  final List<String> logouts = [];
+  Duration? lastLogoutTimeout;
+  Object? logoutError;
+
+  /// When set, the logout waits for it (a server that never answers).
+  Completer<void>? holdLogout;
+
+  /// Called at the logout, to tell its order against other calls.
+  void Function()? onLogout;
+
+  @override
+  Future<void> logout(String refreshToken, {Duration? timeout}) async {
+    logouts.add(refreshToken);
+    lastLogoutTimeout = timeout;
+    onLogout?.call();
+    await holdLogout?.future;
+    if (logoutError != null) throw logoutError!;
+  }
 }
 
 /// Repository stand-in for the notifier tests, where the point is the session
@@ -158,9 +178,17 @@ class FakeAuthRepository implements AuthRepository {
     return changePasswordResult;
   }
 
+  /// The `endSession` of each logout (#56).
+  final List<bool> logoutEndSession = [];
+
+  /// Called at each logout, to tell its order against other calls.
+  void Function({required bool endSession})? onLogout;
+
   @override
-  FutureResult<Unit> logout() async {
+  FutureResult<Unit> logout({bool endSession = false}) async {
     logoutCalls++;
+    logoutEndSession.add(endSession);
+    onLogout?.call(endSession: endSession);
     return const Result.success(Unit.instance);
   }
 

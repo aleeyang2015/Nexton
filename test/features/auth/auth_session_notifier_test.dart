@@ -597,4 +597,88 @@ void main() {
       );
     });
   });
+
+  group('ending the sign-in on the server (#56)', () {
+    ProviderContainer withHook(
+      Future<void> Function({required bool tokensLive}) hook,
+    ) {
+      final c = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          beforeSignOutProvider.overrideWithValue(hook),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test('sign-out: the device row, then the server logout, then the clear',
+        () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      final order = <String>[];
+      repository.onLogout = ({required bool endSession}) =>
+          order.add('logout(endSession: $endSession)');
+      final c = withHook(({required bool tokensLive}) async {
+        order.add('device');
+      });
+      await c.read(authSessionProvider.future);
+
+      await c.read(authSessionProvider.notifier).logout();
+
+      expect(order, ['device', 'logout(endSession: true)']);
+      expect(
+        c.read(authSessionProvider).requireValue.status,
+        AuthStatus.unauthenticated,
+      );
+    });
+
+    test('a forced sign-out (tokens gone): no server logout', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      final c = withHook(({required bool tokensLive}) async {});
+      await c.read(authSessionProvider.future);
+
+      repository.sessionExpired.add(SessionEndReason.expired);
+      await pumpEventQueue();
+
+      expect(repository.logoutEndSession, [false]);
+    });
+
+    test('a failed re-login after a password change: the tokens still work, '
+        'so the server ends that sign-in too', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      final c = withHook(({required bool tokensLive}) async {});
+      await c.read(authSessionProvider.future);
+      repository.loginResult = const Result.failure(
+        Failure.network(message: 'No internet connection'),
+      );
+
+      await c.read(authSessionProvider.notifier).changePassword(
+        currentPassword: 'current-pass',
+        newPassword: 'new-password',
+        confirmPassword: 'new-password',
+      );
+
+      expect(repository.logoutEndSession, [true]);
+    });
+
+    test('a session the network gave up on mid-restore: no server logout',
+        () async {
+      final c = withHook(({required bool tokensLive}) async {});
+      repository.whileRestoring = () async {
+        repository.sessionExpired.add(SessionEndReason.expired);
+        await Future<void>.delayed(Duration.zero);
+      };
+
+      await c.read(authSessionProvider.future);
+      await pumpEventQueue();
+
+      expect(repository.logoutEndSession, [false]);
+    });
+  });
 }

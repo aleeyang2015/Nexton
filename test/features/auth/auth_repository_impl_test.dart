@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/constants/app_constants.dart';
 import 'package:next_on/core/errors/failure.dart';
@@ -378,6 +379,65 @@ void main() {
       final result = await repository.logout();
 
       expect(result.isSuccess, isTrue);
+      expect(store.values, isEmpty);
+    });
+
+    test('a sign-out ends the sign-in on the server with the saved refresh '
+        'token, then clears (#56)', () async {
+      await local.writeTokens(accessToken: 'a', refreshToken: 'r-1');
+      remote.onLogout = () => expect(store.values, isNotEmpty);
+
+      final result = await repository.logout(endSession: true);
+
+      expect(result.isSuccess, isTrue);
+      expect(remote.logouts, ['r-1']);
+      expect(remote.lastLogoutTimeout, AuthRepositoryImpl.logoutTimeout);
+      expect(store.values, isEmpty);
+    });
+
+    test('a logout that fails (500, no signal) still clears, quietly', () async {
+      await local.writeTokens(accessToken: 'a', refreshToken: 'r-1');
+      remote.logoutError = Exception('500');
+
+      final result = await repository.logout(endSession: true);
+
+      expect(result.isSuccess, isTrue);
+      expect(store.values, isEmpty);
+    });
+
+    test('a server that never answers: cleared after the limit', () {
+      fakeAsync((async) {
+        local.writeTokens(accessToken: 'a', refreshToken: 'r-1');
+        async.flushMicrotasks();
+        remote.holdLogout = Completer<void>();
+
+        var done = false;
+        repository.logout(endSession: true).then((_) => done = true);
+        async.elapse(
+          AuthRepositoryImpl.logoutTimeout - const Duration(milliseconds: 1),
+        );
+        expect(done, isFalse);
+        async.elapse(const Duration(milliseconds: 2));
+        expect(done, isTrue);
+        expect(store.values, isEmpty);
+      });
+    });
+
+    test('no refresh token saved: no call, still cleared', () async {
+      await local.writeUser(testUserModel());
+
+      await repository.logout(endSession: true);
+
+      expect(remote.logouts, isEmpty);
+      expect(store.values, isEmpty);
+    });
+
+    test('a forced sign-out (endSession false): no server call', () async {
+      await local.writeTokens(accessToken: 'a', refreshToken: 'r-1');
+
+      await repository.logout();
+
+      expect(remote.logouts, isEmpty);
       expect(store.values, isEmpty);
     });
   });
