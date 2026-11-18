@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/utils/base_repository.dart';
 import '../../../../core/utils/result.dart';
@@ -14,6 +13,7 @@ import '../datasources/device_remote_data_source.dart';
 import '../datasources/firebase_messaging_data_source.dart';
 import '../datasources/local_notification_data_source.dart';
 import '../models/device_registration_model.dart';
+import '../../../../core/app/app_version.dart';
 
 class PushNotificationRepositoryImpl extends BaseRepository
     implements PushNotificationRepository {
@@ -128,7 +128,7 @@ class PushNotificationRepositoryImpl extends BaseRepository
       deviceToken: token,
       isIOS: Platform.isIOS,
       rawOsVersion: Platform.operatingSystemVersion,
-      appVersion: AppConstants.appVersion,
+      appVersion: AppVersion.current,
       languageCode: languageCode,
     ),
   );

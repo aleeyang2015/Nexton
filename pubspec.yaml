@@ -64,6 +64,12 @@ dependencies:
   pdfx: ^2.11.0
   path_provider: ^2.1.5
 
+  # The App's real version (#57): the version gate and the User-Agent read
+  # it, never a hand-kept copy. Already in the build through Firebase.
+  package_info_plus: ^9.0.1
+  # Opens the store page from the "update needed" screen (#57).
+  url_launcher: ^6.3.1
+
 dev_dependencies:
   flutter_native_splash: ^2.4.7
 

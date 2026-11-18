@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
+import '../app/app_version.dart';
 
 /// REST API client using Dio
 class ApiClient {
@@ -22,7 +23,7 @@ class ApiClient {
     headers: {
       AppConstants.acceptHeader: AppConstants.jsonContentType,
       AppConstants.contentTypeHeader: AppConstants.jsonContentType,
-      AppConstants.userAgentHeader: 'NextOn App ${AppConstants.appVersion}',
+      AppConstants.userAgentHeader: 'NextOn App ${AppVersion.current}',
       // Dev servers only; the live server ignores it.
       if (tenantSlug.isNotEmpty) AppConstants.tenantSlugHeader: tenantSlug,
     },

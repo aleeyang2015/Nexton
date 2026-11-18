@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../constants/app_constants.dart';
 import 'api_error_mapper.dart';
+import '../app/app_version.dart';
 
 /// Interface for checking network connectivity
 abstract class NetworkInfo {
@@ -52,7 +53,7 @@ class NetworkInterceptor extends Interceptor {
     // Add common headers
     options.headers.addAll({
       AppConstants.acceptHeader: AppConstants.jsonContentType,
-      AppConstants.userAgentHeader: 'NextOn App ${AppConstants.appVersion}',
+      AppConstants.userAgentHeader: 'NextOn App ${AppVersion.current}',
     });
 
     super.onRequest(options, handler);
