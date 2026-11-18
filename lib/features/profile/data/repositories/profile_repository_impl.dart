@@ -27,6 +27,14 @@ class ProfileRepositoryImpl extends BaseRepository
 
   static Future<int> _sizeOnDisk(String path) => File(path).length();
 
+  /// A name the profile photo may have: `.jpg`, `.jpeg` or `.png`.
+  static bool isPhotoName(String name) {
+    final lower = name.toLowerCase();
+    return lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.png');
+  }
+
   @override
   FutureResult<EmployeeProfile> myProfile() => guard(() => _remote.myProfile());
 
@@ -37,6 +45,13 @@ class ProfileRepositoryImpl extends BaseRepository
   @override
   FutureResult<String> uploadMyPhoto(String employeeId, LocalFile file) =>
       guard(() async {
+        // JPEG and PNG only: a HEIC, WEBP or GIF from the gallery would be
+        // stored as an image HR's browser may not show.
+        if (!isPhotoName(file.name)) {
+          throw const Failure.validation(
+            message: ProfilePhotoErrorCode.tokenNotImage,
+          );
+        }
         try {
           if (await _sizeOf(file.path) > UploadRules.maxBytes) {
             throw const Failure.validation(

@@ -15,7 +15,17 @@ class ProfileNotifier extends AutoDisposeAsyncNotifier<EmployeeProfile> {
 
   /// The photo just changed (#59): the profile shows it at once, without
   /// asking for the whole record again. Nothing when no profile is loaded.
-  void showPhoto(String url) {
+  ///
+  /// A load on its way (a pull to refresh during the upload) is waited for
+  /// first: it may have been answered before the photo changed.
+  Future<void> showPhoto(String url) async {
+    if (state.isLoading) {
+      try {
+        await future;
+      } catch (_) {
+        return;
+      }
+    }
     final profile = state.valueOrNull;
     if (profile == null) return;
     state = AsyncValue.data(profile.withAvatar(url));

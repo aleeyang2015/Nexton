@@ -353,23 +353,23 @@ class _Avatar extends ConsumerWidget {
             ),
           ),
           if (canChange)
-          Positioned(
-            right: 2,
-            bottom: 2,
-            child: GestureDetector(
-              onTap: uploading ? null : () => _change(context, ref),
-              child: Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
+            Positioned(
+              right: 2,
+              bottom: 2,
+              child: GestureDetector(
+                onTap: uploading ? null : () => _change(context, ref),
+                child: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: const Icon(Icons.edit, color: Colors.white, size: 16),
                 ),
-                child: const Icon(Icons.edit, color: Colors.white, size: 16),
               ),
             ),
-          ),
         ],
       ),
     );

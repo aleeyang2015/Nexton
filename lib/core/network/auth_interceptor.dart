@@ -339,6 +339,11 @@ class AuthInterceptor extends Interceptor {
 
     request.extra[_retriedFlag] = true;
     request.headers[AppConstants.authorizationHeader] = 'Bearer $token';
+    // A multipart body is read once: the first send finalized it, so the
+    // replay sends a fresh copy (#59: a photo or file upload after the
+    // access token ran out failed with "already been finalized").
+    final data = request.data;
+    if (data is FormData) request.data = data.clone();
     return client.fetch<dynamic>(request);
   }
 

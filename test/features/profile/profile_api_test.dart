@@ -104,13 +104,12 @@ void main() {
     );
   });
 
-  test('an answer with no URL: choose another', () async {
+  test('a 200 that is not the answer (a Wi-Fi login page): a server '
+      'error, not the photo\'s fault', () async {
     adapter.reply = (200, {'success': true});
     await expectLater(
       source.uploadPhoto('emp-1', jpg),
-      throwsA(
-        const Failure.validation(message: ProfilePhotoErrorCode.tokenNotImage),
-      ),
+      throwsA(isA<ServerFailure>()),
     );
   });
 
@@ -127,6 +126,35 @@ void main() {
       );
       expect(adapter.last, isNull);
     });
+
+    test(
+      'a HEIC, WEBP or GIF from the gallery: "not a photo", never sent',
+      () async {
+        final repository = ProfileRepositoryImpl(
+          remote: source,
+          sizeOf: (_) async => 1000,
+        );
+        for (final name in [
+          'IMG_0001.HEIC',
+          'x.webp',
+          'x.gif',
+          'noextension',
+        ]) {
+          final result = await repository.uploadMyPhoto(
+            'emp-1',
+            LocalFile(path: '/tmp/$name', name: name),
+          );
+          expect(
+            result.failureOrNull,
+            const Failure.validation(
+              message: ProfilePhotoErrorCode.tokenNotImage,
+            ),
+            reason: name,
+          );
+        }
+        expect(adapter.last, isNull);
+      },
+    );
 
     test('exactly 5,000,000 bytes: sent', () async {
       final repository = ProfileRepositoryImpl(

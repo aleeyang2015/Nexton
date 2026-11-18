@@ -123,6 +123,16 @@ void main() {
         en.serverError,
       ),
       (
+        '403 FORBIDDEN',
+        const Failure.validation(message: 'forbidden', code: 'FORBIDDEN'),
+        en.accessForbidden,
+      ),
+      (
+        'a plain 500',
+        const Failure.server(message: 'boom', statusCode: 500),
+        en.serverError,
+      ),
+      (
         'no signal',
         const Failure.network(
           message: 'No internet connection',
@@ -143,6 +153,76 @@ void main() {
         expect(container.read(profileNotifierProvider).requireValue, before);
       });
     }
+  });
+
+  test(
+    'a pull to refresh during the upload does not lose the new photo',
+    () async {
+      await start();
+      profiles.holdPhoto = Completer<void>();
+      final upload = notifier().accept(const Captured(photo));
+      await pumpEventQueue();
+      // The refresh answers with the record as it was, before the change.
+      profiles.hold = Completer<void>();
+      final refresh = container
+          .read(profileNotifierProvider.notifier)
+          .refresh();
+      profiles.holdPhoto!.complete();
+      await pumpEventQueue();
+      profiles.hold!.complete();
+      await refresh;
+      await upload;
+
+      expect(
+        container.read(profileNotifierProvider).requireValue.avatarUrl,
+        'https://files.nexton.work/photos/new.jpg',
+      );
+    },
+  );
+
+  test('the page left mid-upload: the profile (the home header) still shows '
+      'the new photo, and the change is not dropped', () async {
+    container = ProviderContainer(
+      overrides: [profileRepositoryProvider.overrideWithValue(profiles)],
+    );
+    addTearDown(container.dispose);
+    container.listen(profileNotifierProvider, (_, _) {});
+    await container.read(profileNotifierProvider.future);
+    final page = container.listen(profilePhotoNotifierProvider, (_, _) {});
+    profiles.holdPhoto = Completer<void>();
+
+    final upload = container
+        .read(profilePhotoNotifierProvider.notifier)
+        .accept(const Captured(photo));
+    await pumpEventQueue();
+    page.close();
+    await pumpEventQueue();
+    // Back on the page meanwhile: still uploading, no second upload.
+    expect(container.read(profilePhotoNotifierProvider).uploading, isTrue);
+
+    profiles.holdPhoto!.complete();
+    await upload;
+    expect(
+      container.read(profileNotifierProvider).requireValue.avatarUrl,
+      'https://files.nexton.work/photos/new.jpg',
+    );
+  });
+
+  test('two failures in a row are both said', () async {
+    await start();
+    var said = 0;
+    container.listen(profilePhotoNotifierProvider, (_, next) {
+      if (next.status == ProfilePhotoStatus.failed) said++;
+    });
+    await notifier().accept(const CaptureFailed());
+    await notifier().accept(const CaptureFailed());
+    expect(said, 2);
+  });
+
+  test('the phone refused the camera or the photos: said so', () async {
+    await start();
+    await notifier().accept(const CaptureDenied());
+    expect(state().failure!.localize(en), en.uploadPermissionDenied);
   });
 
   test('the picker failed: "choose another"', () async {

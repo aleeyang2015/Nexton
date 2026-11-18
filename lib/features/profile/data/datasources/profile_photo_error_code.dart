@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../../../core/network/api_response.dart';
+import '../../domain/profile_photo_error.dart';
 
 /// The photo change's own refusals (#59) and the tokens they become, for
 /// `failure_localizer.dart` to say in plain words. Every other answer
@@ -9,8 +10,8 @@ import '../../../../core/network/api_response.dart';
 class ProfilePhotoErrorCode {
   const ProfilePhotoErrorCode._();
 
-  static const String tokenNotImage = 'profilePhotoNotImage';
-  static const String tokenTooLarge = 'profilePhotoTooLarge';
+  static const String tokenNotImage = ProfilePhotoError.tokenNotImage;
+  static const String tokenTooLarge = ProfilePhotoError.tokenTooLarge;
 
   /// The token [error] stands for, or null: a `413` (the server's body
   /// limit answers the generic `ERROR`) is too large; `INVALID_REQUEST` is

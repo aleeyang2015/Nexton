@@ -43,8 +43,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   );
 
   /// The part must say `image/…`: `MultipartFile` would otherwise send
-  /// `application/octet-stream`, which the server refuses. The picker only
-  /// gives `jpg`, `jpeg` and `png`.
+  /// `application/octet-stream`, which the server refuses. Only JPEG and
+  /// PNG reach here (the repository refuses any other).
   static DioMediaType photoType(String fileName) =>
       fileName.toLowerCase().endsWith('.png')
       ? DioMediaType('image', 'png')
@@ -75,9 +75,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       url = null;
     }
     if (url == null) {
-      throw const Failure.validation(
-        message: ProfilePhotoErrorCode.tokenNotImage,
-      );
+      // A 200 that is not the server's answer (a Wi-Fi login page): the
+      // photo is not at fault.
+      throw const Failure.server(message: 'Unreadable photo answer');
     }
     return url;
   }

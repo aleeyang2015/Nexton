@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/upload/domain/capture_policy.dart';
 import '../../../../core/upload/domain/local_file.dart';
-import '../../data/datasources/profile_photo_error_code.dart';
+import '../../../../core/upload/domain/upload_error_code.dart';
+import '../../domain/profile_photo_error.dart';
 import '../../profile_providers.dart';
 import 'profile_notifier.dart';
 
@@ -17,15 +18,20 @@ class ProfilePhotoState extends Equatable {
   /// Why the last change failed; the old photo stays.
   final Failure? failure;
 
+  /// Which change this is: two failures in a row are two states, so each
+  /// is said.
+  final int attempt;
+
   const ProfilePhotoState({
     this.status = ProfilePhotoStatus.idle,
     this.failure,
+    this.attempt = 0,
   });
 
   bool get uploading => status == ProfilePhotoStatus.uploading;
 
   @override
-  List<Object?> get props => [status, failure];
+  List<Object?> get props => [status, failure, attempt];
 }
 
 /// Changes the employee's own photo (#59): idle → uploading → done or
@@ -47,13 +53,23 @@ class ProfilePhotoNotifier extends AutoDisposeNotifier<ProfilePhotoState> {
     switch (result) {
       case Captured(:final file):
         await _upload(file);
-      case CaptureFailed() || CaptureDenied():
+      case CaptureFailed():
         if (state.uploading) return;
-        state = const ProfilePhotoState(
+        state = ProfilePhotoState(
           status: ProfilePhotoStatus.failed,
-          failure: Failure.validation(
-            message: ProfilePhotoErrorCode.tokenNotImage,
+          failure: const Failure.validation(
+            message: ProfilePhotoError.tokenNotImage,
           ),
+          attempt: state.attempt + 1,
+        );
+      case CaptureDenied():
+        if (state.uploading) return;
+        state = ProfilePhotoState(
+          status: ProfilePhotoStatus.failed,
+          failure: const Failure.validation(
+            message: UploadErrorCode.tokenPermissionDenied,
+          ),
+          attempt: state.attempt + 1,
         );
       case CaptureCancelled():
         break;
@@ -65,22 +81,42 @@ class ProfilePhotoNotifier extends AutoDisposeNotifier<ProfilePhotoState> {
     final employeeId = ref.read(profileNotifierProvider).valueOrNull?.id;
     if (employeeId == null || employeeId.isEmpty) return;
 
-    state = const ProfilePhotoState(status: ProfilePhotoStatus.uploading);
+    final attempt = state.attempt + 1;
+    state = ProfilePhotoState(
+      status: ProfilePhotoStatus.uploading,
+      attempt: attempt,
+    );
+    // Alive until the answer is in: a page left (or the avatar scrolled
+    // away) mid-upload comes back to the spinner and an off pencil, not to
+    // a second upload, and the outcome is still said.
+    final alive = ref.keepAlive();
+    // Taken now: the page (and this notifier) may be gone when the answer
+    // comes, while the profile, which the home header shows, lives on.
+    final profile = ref.read(profileNotifierProvider.notifier);
     final result = await ref.read(uploadMyPhotoUseCaseProvider)((
       employeeId: employeeId,
       file: file,
     ));
-    if (_disposed) return;
 
-    result.when(
-      success: (url) {
-        ref.read(profileNotifierProvider.notifier).showPhoto(url);
-        state = const ProfilePhotoState(status: ProfilePhotoStatus.done);
-      },
-      failure: (failure) => state = ProfilePhotoState(
+    final url = result.dataOrNull;
+    if (url != null) {
+      // The server has the new photo: show it, even if this page was left.
+      try {
+        await profile.showPhoto(url);
+      } catch (_) {
+        // The profile itself is gone (signed out): nothing to show.
+      }
+    }
+    alive.close();
+    if (_disposed) return;
+    state = result.fold(
+      (failure) => ProfilePhotoState(
         status: ProfilePhotoStatus.failed,
         failure: failure,
+        attempt: attempt,
       ),
+      (_) =>
+          ProfilePhotoState(status: ProfilePhotoStatus.done, attempt: attempt),
     );
   }
 }
