@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#58 merged, `2c35513`; next is #59, not started; #55 stays blocked on the backend). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#59 implemented on `59-profile-photo`, `13cb98c` + `371cea0`, waiting for "push issue 59 to main directly"). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 | | |
 |---|---|
 | Last finished work order | 57 of 60: #58, profile: see my personal information (read-only) |
-| Next work order | **58 of 60: #59**, profile: change my own photo. Not started, no branch, no plan shown yet. (#55 stays BLOCKED on Nexton-Backend#190.) |
+| Next work order | **58 of 60: #59**, profile: change my own photo. IMPLEMENTED on `59-profile-photo` (`13cb98c`, `371cea0`), both reviews done and fixed; waiting for the owner's merge word. (#55 stays BLOCKED on Nexton-Backend#190.) |
 | `origin/main` | `adad453` "Merge branch '51-push-setup' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -185,8 +185,15 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #59 (work order 58 of 60), "profile: change my own photo".** Not started: no branch, no plan shown yet.
-   Read the issue and its comments, plan, wait for "go". #55 stays blocked on Nexton-Backend#190.
+1. **Now: #59 (work order 58 of 60), "profile: change my own photo": IMPLEMENTED** on `59-profile-photo` (`13cb98c`,
+   review fixes `371cea0`), pushed, not merged. Gates: analyze 1 warning already on `main`; `flutter test` 2,368 passed;
+   debug APK built. Owner decisions: no shrinking package (a photo over 5,000,000 bytes is refused on the phone, as
+   #38); JPEG and PNG only (a gallery HEIC is refused as "not a photo"); on success the returned URL is shown in place
+   (no full refresh). Also fixed for every upload: the auth interceptor's replay after a token refresh sends a fresh
+   copy of a multipart form (it failed with "Unknown network error"). Device checks pending on `nexton-demo`: camera,
+   gallery and file photos change the profile and the home header without a restart, HR sees it; a file over 5 MB
+   refused on the phone; a double tap starts nothing; flight mode mid-upload keeps the old photo. Next after this: #60.
+   #55 stays blocked on Nexton-Backend#190.
 
    **#58 (work order 57 of 60): MERGED (`2c35513`)** on the owner's say, 2026-11-18, from `58-personal-info`
    (`dff359e`, review fixes `1792a0c`). Gates: analyze 1 warning already on
@@ -1058,7 +1065,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 55 | #56 | sign-in: signing out ends the session on the server | `56-server-logout` | `abba477`, `7564f53` | merged to main directly (`f3cb794`) | analyze: 1 warning already on `main`; `flutter test`: 2,283 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 56 | #57 | app: ask for an update when this version is too old, and show maintenance | `57-app-gate` | `d1a026a`, `5ccaa11` | merged to main directly (`cb69094`) | analyze: 1 warning already on `main`; `flutter test`: 2,320 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 57 | #58 | profile: see my personal information (read-only) | `58-personal-info` | `dff359e`, `1792a0c` | merged to main directly (`2c35513`) | analyze: 1 warning already on `main`; `flutter test`: 2,339 passed, 0 failed; debug APK | MERGED, device checks pending |
-| 58 | #59 | profile: change my own photo | | | | | NOT STARTED |
+| 58 | #59 | profile: change my own photo | `59-profile-photo` | `13cb98c`, `371cea0` | not merged | analyze: 1 warning already on `main`; `flutter test`: 2,368 passed, 0 failed; debug APK | IMPLEMENTED, waiting for merge word |
 | 59 | #60 | sign-in: "forgot password" says ask HR, and "remember my email" works | | | | | NOT STARTED |
 | 60 | #61 | app: hide what the company has not bought | | | | | NOT STARTED |
 
