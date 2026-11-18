@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/auth_interceptor.dart';
 import '../models/device_registration_model.dart';
 import 'push_api_paths.dart';
 
@@ -47,7 +48,13 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
   @override
   Future<void> unregister(String deviceId) async {
     try {
-      await _client.delete<dynamic>(PushPaths.device(deviceId));
+      // Sent at sign-out: a 401 here must not start a refresh that could
+      // land after the tokens are cleared (and write them back), nor end
+      // the session a second time.
+      await _client.delete<dynamic>(
+        PushPaths.device(deviceId),
+        options: Options(extra: {AuthInterceptor.noRefreshFlag: true}),
+      );
     } on DioException catch (error) {
       if (error.response?.statusCode == 404) return;
       rethrow;

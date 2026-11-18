@@ -261,6 +261,81 @@ void main() {
       await container.read(signOutThisDeviceProvider)(tokensLive: true);
     });
   });
+  group('races at sign-out (#52 reviews)', () {
+    late FakeMessaging messaging;
+    late FakeDeviceRemote remote;
+    late FakePushSession session;
+    late ProviderContainer container;
+
+    Future<void> launch() async {
+      SharedPreferences.setMockInitialValues({'push_permission_asked': true});
+      final prefs = await SharedPreferences.getInstance();
+      messaging = FakeMessaging();
+      remote = FakeDeviceRemote();
+      session = FakePushSession(signedIn: true);
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          pushAvailableProvider.overrideWithValue(true),
+          firebaseMessagingDataSourceProvider.overrideWithValue(messaging),
+          localNotificationDataSourceProvider.overrideWithValue(NoPopups()),
+          deviceRemoteDataSourceProvider.overrideWithValue(remote),
+          authSessionProvider.overrideWith(() => session),
+        ],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(pushNotificationsProvider, (_, _) {});
+      addTearDown(sub.close);
+      await container.read(authSessionProvider.future);
+      await pumpEventQueue();
+    }
+
+    test(
+      'a registration on its way lands before the DELETE, never after',
+      () async {
+        await launch();
+        final hold = Completer<void>();
+        remote.holdRegister = hold;
+        final order = <String>[];
+        remote.onRegister = () => order.add('POST');
+        remote.onUnregister = () => order.add('DELETE');
+        // A language change starts a registration that is still on its way.
+        await container
+            .read(localeProvider.notifier)
+            .setLocale(const Locale('en'));
+        await pumpEventQueue();
+
+        final signOff = container.read(signOutThisDeviceProvider)(
+          tokensLive: true,
+        );
+        await pumpEventQueue();
+        // The POST has not landed yet, and no DELETE has gone out.
+        expect(order, isEmpty);
+        hold.complete();
+        await signOff;
+
+        expect(order, ['POST', 'DELETE']);
+      },
+    );
+
+    test('a token delete that failed offline is tried again before the next '
+        'registration reads a token', () async {
+      await launch();
+      messaging.deleteFails = true;
+      await container.read(signOutThisDeviceProvider)(tokensLive: true);
+      await pumpEventQueue();
+      expect(messaging.tokenDeletes, 1);
+
+      messaging.deleteFails = false;
+      session.signOut();
+      await pumpEventQueue();
+      session.signIn();
+      await pumpEventQueue();
+
+      expect(messaging.tokenDeletes, 2);
+      expect(remote.registrations, greaterThanOrEqualTo(2));
+    });
+  });
 }
 
 DioException _status(int code) {

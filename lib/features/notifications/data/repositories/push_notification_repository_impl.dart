@@ -67,13 +67,48 @@ class PushNotificationRepositoryImpl extends BaseRepository
     return Unit.instance;
   });
 
+  /// A token delete still on its way (sign-out): the next registration
+  /// waits for it, or it would register the token being killed.
+  Future<void>? _deleting;
+
+  /// The last delete failed (no signal: Firebase needs the network): the
+  /// next registration tries it again first, so the old token dies then.
+  bool _deleteOwed = false;
+
   @override
   FutureResult<Unit> deleteToken() => guard(() async {
-    await _messaging.deleteToken();
+    final deleting = _messaging.deleteToken();
+    _deleting = deleting;
+    try {
+      await deleting;
+      _deleteOwed = false;
+    } catch (_) {
+      _deleteOwed = true;
+      rethrow;
+    } finally {
+      if (identical(_deleting, deleting)) _deleting = null;
+    }
     return Unit.instance;
   });
 
   Future<String> _token() async {
+    final deleting = _deleting;
+    if (deleting != null) {
+      try {
+        await deleting;
+      } catch (_) {
+        // Owed: tried again just below.
+      }
+    }
+    if (_deleteOwed) {
+      try {
+        await _messaging.deleteToken();
+        _deleteOwed = false;
+      } catch (_) {
+        // Still no signal: the old token is sent; the server's shared-phone
+        // rule moves it to whoever signs in now.
+      }
+    }
     final token = await _messaging.getToken();
     if (token == null) {
       // iOS without an APNs token: usually a simulator, or the Push
@@ -86,17 +121,16 @@ class PushNotificationRepositoryImpl extends BaseRepository
     return token;
   }
 
-  Future<void> _register(String token, String languageCode) =>
-      _remote.register(
-        DeviceRegistrationModel.forPhone(
-          deviceId: _local.deviceId(),
-          deviceToken: token,
-          isIOS: Platform.isIOS,
-          rawOsVersion: Platform.operatingSystemVersion,
-          appVersion: AppConstants.appVersion,
-          languageCode: languageCode,
-        ),
-      );
+  Future<void> _register(String token, String languageCode) => _remote.register(
+    DeviceRegistrationModel.forPhone(
+      deviceId: _local.deviceId(),
+      deviceToken: token,
+      isIOS: Platform.isIOS,
+      rawOsVersion: Platform.operatingSystemVersion,
+      appVersion: AppConstants.appVersion,
+      languageCode: languageCode,
+    ),
+  );
 
   @override
   Stream<String> get onTokenRefresh => _messaging.onTokenRefresh;

@@ -11,9 +11,11 @@ import '../repositories/push_notification_repository.dart';
 /// asked for): `DELETE` the backend's row, at most [deleteLimit], then kill
 /// the FCM token. A forced sign-out (the tokens already gone): the FCM token
 /// only. Never throws and never holds the sign-out up for long: every
-/// failure is silent (debug log only). A dead FCM token makes the server
-/// drop the row itself at its next send, so a `DELETE` that failed for want
-/// of signal still ends the pushes.
+/// failure is silent (debug log only). A deleted FCM token makes the server
+/// drop the row itself at its next send. Offline both may fail: the token
+/// delete is then owed and tried again before the next registration, and
+/// the server's own shared-phone rule (backend #213) moves the token to
+/// whoever signs in next.
 class SignOutThisDeviceUseCase {
   final PushNotificationRepository _repository;
 

@@ -13,6 +13,7 @@ import 'core/upload/presentation/file_capture.dart';
 import 'core/upload/upload_providers.dart';
 import 'features/auth/auth_providers.dart';
 import 'features/notifications/notifications_providers.dart';
+import 'features/notifications/presentation/providers/push_notifications_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

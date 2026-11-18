@@ -37,6 +37,7 @@ class FakeMessaging implements FirebaseMessagingDataSource {
   int tokenDeletes = 0;
   bool allows = true;
   bool throwOnPermission = false;
+  bool deleteFails = false;
   String token = 'fcm-token';
 
   /// When set, the prompt stays open until it completes.
@@ -66,7 +67,10 @@ class FakeMessaging implements FirebaseMessagingDataSource {
   Stream<PushMessage> get onMessage => const Stream.empty();
 
   @override
-  Future<void> deleteToken() async => tokenDeletes++;
+  Future<void> deleteToken() async {
+    tokenDeletes++;
+    if (deleteFails) throw Exception('SERVICE_NOT_AVAILABLE');
+  }
 }
 
 /// The backend's device calls, recorded; each can be made to fail.
@@ -85,12 +89,22 @@ class FakeDeviceRemote implements DeviceRemoteDataSource {
   /// When set, `DELETE` waits for it.
   Completer<void>? holdUnregister;
 
+  /// When set, the next `POST` waits for it (taken by that call).
+  Completer<void>? holdRegister;
+
+  /// Called at `POST`, to tell its order against other calls.
+  void Function()? onRegister;
+
   /// Called at `DELETE`, to tell its order against other calls.
   void Function()? onUnregister;
 
   @override
   Future<void> register(DeviceRegistrationModel body) async {
     registered.add(body);
+    final hold = holdRegister;
+    holdRegister = null;
+    await hold?.future;
+    onRegister?.call();
     final error = registerError;
     if (error != null) throw error;
   }

@@ -9,7 +9,6 @@ import 'data/datasources/local_notification_data_source.dart';
 import 'data/repositories/push_notification_repository_impl.dart';
 import 'domain/repositories/push_notification_repository.dart';
 import 'domain/usecases/register_device_usecase.dart';
-import 'domain/usecases/sign_out_this_device_usecase.dart';
 
 // Composition root for the notifications feature: the one place the data
 // layer is constructed and bound to the domain contracts.
@@ -47,21 +46,6 @@ final pushNotificationRepositoryProvider = Provider<PushNotificationRepository>(
     local: ref.watch(deviceLocalDataSourceProvider),
   ),
 );
-
-/// Signs this phone off before a sign-out (#52). Nothing at all when
-/// Firebase did not start (the phone was never registered, and its FCM
-/// cannot be touched). Wired into auth's `beforeSignOutProvider` in
-/// `main.dart`, so auth needs no import of this feature.
-final signOutThisDeviceProvider =
-    Provider<Future<void> Function({required bool tokensLive})>((ref) {
-      if (!ref.watch(pushAvailableProvider)) {
-        return ({required bool tokensLive}) async {};
-      }
-      final useCase = SignOutThisDeviceUseCase(
-        ref.watch(pushNotificationRepositoryProvider),
-      );
-      return useCase.call;
-    });
 
 final registerDeviceUseCaseProvider = Provider<RegisterDeviceUseCase>(
   (ref) => RegisterDeviceUseCase(ref.watch(pushNotificationRepositoryProvider)),
