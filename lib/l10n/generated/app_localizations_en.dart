@@ -2206,4 +2206,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get relationshipOther => 'Other';
+
+  @override
+  String get profilePhotoChanged => 'Profile photo changed';
+
+  @override
+  String get profilePhotoNotImage =>
+      'This file is not a photo. Please choose another.';
+
+  @override
+  String get profilePhotoTooLarge =>
+      'This photo is too large. Please choose another.';
 }

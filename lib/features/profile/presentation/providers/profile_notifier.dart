@@ -13,6 +13,24 @@ class ProfileNotifier extends AutoDisposeAsyncNotifier<EmployeeProfile> {
   @override
   Future<EmployeeProfile> build() => _load();
 
+  /// The photo just changed (#59): the profile shows it at once, without
+  /// asking for the whole record again. Nothing when no profile is loaded.
+  ///
+  /// A load on its way (a pull to refresh during the upload) is waited for
+  /// first: it may have been answered before the photo changed.
+  Future<void> showPhoto(String url) async {
+    if (state.isLoading) {
+      try {
+        await future;
+      } catch (_) {
+        return;
+      }
+    }
+    final profile = state.valueOrNull;
+    if (profile == null) return;
+    state = AsyncValue.data(profile.withAvatar(url));
+  }
+
   /// Re-runs the fetch, e.g. after the user retries a failed load.
   Future<void> refresh() async {
     state = const AsyncValue.loading();

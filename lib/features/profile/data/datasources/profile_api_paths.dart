@@ -7,4 +7,8 @@ class ProfilePaths {
   ProfilePaths._();
 
   static const String me = '/core_hr/employees/me';
+
+  /// The employee's photo (#59): `PUT`, multipart, one `photo` part.
+  static String photo(String employeeId) =>
+      '/core_hr/employees/${Uri.encodeComponent(employeeId)}/photo';
 }

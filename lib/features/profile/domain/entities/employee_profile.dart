@@ -54,6 +54,21 @@ class EmployeeProfile extends Equatable {
     this.personal = const EmployeePersonalInfo(),
   });
 
+  /// This profile with the photo at [url] (#59: the photo just changed).
+  EmployeeProfile withAvatar(String url) => EmployeeProfile(
+    id: id,
+    fullName: fullName,
+    positionTitle: positionTitle,
+    departmentName: departmentName,
+    email: email,
+    avatarUrl: url,
+    shiftName: shiftName,
+    shiftNameLo: shiftNameLo,
+    shiftDetails: shiftDetails,
+    canAskOt: canAskOt,
+    personal: personal,
+  );
+
   @override
   List<Object?> get props => [
     id,

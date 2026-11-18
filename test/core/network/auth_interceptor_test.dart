@@ -467,6 +467,28 @@ void main() {
       expect(h.sessionExpiredEvents, isEmpty);
     });
 
+    test('a multipart upload after the token ran out is sent again, from a '
+        'fresh copy of its form (#59)', () async {
+      final h = await _Harness.create();
+      const path = '/core_hr/employees/emp-1/photo';
+      h.adapter.queue(path, [_unauthorized, _okProfile]);
+      h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+
+      final response = await h.client.put<dynamic>(
+        path,
+        data: FormData.fromMap({
+          'photo': MultipartFile.fromBytes([1, 2, 3], filename: 'me.jpg'),
+        }),
+      );
+
+      expect(response.statusCode, 200);
+      expect(h.requestsTo(path), hasLength(2));
+      expect(
+        h.requestsTo(path).last.headers[AppConstants.authorizationHeader],
+        'Bearer access-2',
+      );
+    });
+
     test('a failed refresh clears the session and signals expiry', () async {
       final h = await _Harness.create();
       h.adapter.queue(ApiPaths.me, [_unauthorized]);

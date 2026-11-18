@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/core/upload/upload_providers.dart';
+import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/attendance/domain/entities/attendance_summary.dart';
 import 'package:next_on/features/auth/auth_providers.dart';
@@ -11,6 +15,7 @@ import 'package:next_on/features/profile/profile_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
 import '../../support/attendance_test_doubles.dart';
+import '../../support/file_capture_test_doubles.dart';
 import '../../support/auth_test_doubles.dart';
 import '../../support/profile_test_doubles.dart';
 import '../../support/test_asset_bundle.dart';
@@ -168,6 +173,92 @@ void main() {
 
       expect(find.text(en.errorModuleNotActive), findsOneWidget);
       expect(find.text('Retry'), findsNothing);
+    });
+  });
+
+  group('changing the photo (#59)', () {
+    late FakeFileCapture capture;
+
+    Future<void> pumpWithCapture(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(390, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            profileRepositoryProvider.overrideWithValue(profiles),
+            attendanceRepositoryProvider.overrideWithValue(attendance),
+            authRepositoryProvider.overrideWithValue(auth),
+            fileCaptureProvider.overrideWithValue(capture),
+          ],
+          child: DefaultAssetBundle(
+            bundle: TestAssetBundle(),
+            child: MaterialApp(
+              scaffoldMessengerKey: rootScaffoldMessengerKey,
+              locale: const Locale('en'),
+              supportedLocales: AppLocalizations.supportedLocales,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              home: const ProfilePage(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+    }
+
+    setUp(() => capture = FakeFileCapture());
+
+    testWidgets('camera, gallery and an image file are offered; a photo '
+        'taken is sent, the avatar spins, then "changed"', (tester) async {
+      profiles.holdPhoto = Completer<void>();
+      await pumpWithCapture(tester);
+
+      await tester.tap(find.byIcon(Icons.edit));
+      await tester.pumpAndSettle();
+      expect(find.text(en.uploadTakePhoto), findsOneWidget);
+      expect(find.text(en.uploadPickPhoto), findsOneWidget);
+      expect(find.text(en.uploadPickFile), findsOneWidget);
+
+      await tester.tap(find.text(en.uploadTakePhoto));
+      // The sheet closes (the spinner never settles: a fixed wait).
+      await tester.pump(const Duration(seconds: 1));
+      expect(profiles.photoUploads, hasLength(1));
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // A tap meanwhile opens nothing more.
+      await tester.tap(find.byIcon(Icons.edit), warnIfMissed: false);
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text(en.uploadTakePhoto), findsNothing);
+
+      profiles.holdPhoto!.complete();
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(en.profilePhotoChanged), findsOneWidget);
+      expect(capture.asked, ['camera']);
+    });
+
+    testWidgets('no pencil before the profile has loaded', (tester) async {
+      profiles.hold = Completer<void>();
+      await pumpWithCapture(tester);
+      expect(find.byIcon(Icons.edit), findsNothing);
+      profiles.hold!.complete();
+      await tester.pump();
+      await tester.pump();
+      expect(find.byIcon(Icons.edit), findsOneWidget);
+    });
+
+    testWidgets('a refusal says why', (tester) async {
+      profiles.photoResult = const Result.failure(
+        Failure.validation(message: 'profilePhotoTooLarge'),
+      );
+      await pumpWithCapture(tester);
+      await tester.tap(find.byIcon(Icons.edit));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(en.uploadPickFile));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(en.profilePhotoTooLarge), findsOneWidget);
     });
   });
 }

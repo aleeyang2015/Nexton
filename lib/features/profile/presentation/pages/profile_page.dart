@@ -15,6 +15,10 @@ import '../../../../features/auth/presentation/providers/auth_session_notifier.d
 import '../../../../l10n/generated/app_localizations.dart';
 import '../profile_error_copy.dart';
 import '../providers/profile_notifier.dart';
+import '../providers/profile_photo_notifier.dart';
+import '../../../../core/upload/presentation/file_source_sheet.dart';
+import '../../../../core/upload/domain/capture_policy.dart';
+import '../../../../core/l10n/failure_localizer.dart';
 
 /// "ໂປຣຟາຍ" screen, pushed from the home header. Profile summary + a
 /// settings-style menu.
@@ -54,7 +58,14 @@ class ProfilePage extends ConsumerWidget {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
                   children: [
-                    Center(child: _Avatar(avatarUrl: data?.avatarUrl)),
+                    Center(
+                      child: _Avatar(
+                        avatarUrl: data?.avatarUrl,
+                        // No employee id before the profile loads: nothing
+                        // to change yet (#59).
+                        canChange: data != null,
+                      ),
+                    ),
                     heightBx(h: 16),
                     if (loading) ...[
                       const Center(child: ShimmerBox(width: 140, height: 20)),
@@ -274,13 +285,42 @@ class _StatusPill extends StatelessWidget {
   }
 }
 
-class _Avatar extends StatelessWidget {
+/// The photo, and its pencil (#59): camera, gallery or an image file. While
+/// a new photo is on its way the avatar shows a spinner and the pencil is
+/// off; a toast says how it went.
+class _Avatar extends ConsumerWidget {
   final String? avatarUrl;
+  final bool canChange;
 
-  const _Avatar({required this.avatarUrl});
+  const _Avatar({required this.avatarUrl, required this.canChange});
+
+  Future<void> _change(BuildContext context, WidgetRef ref) async {
+    final picked = await FileSourceSheet.pick(
+      context,
+      ref,
+      CapturePolicy.photo,
+    );
+    await ref.read(profilePhotoNotifierProvider.notifier).accept(picked);
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final uploading = ref.watch(
+      profilePhotoNotifierProvider.select((s) => s.uploading),
+    );
+    ref.listen(profilePhotoNotifierProvider, (_, next) {
+      switch (next.status) {
+        case ProfilePhotoStatus.done:
+          AppToast.success(l10n.profilePhotoChanged);
+        case ProfilePhotoStatus.failed:
+          final failure = next.failure;
+          if (failure != null) AppToast.error(failure.localize(l10n));
+        case ProfilePhotoStatus.idle || ProfilePhotoStatus.uploading:
+          break;
+      }
+    });
+
     return SizedBox(
       width: 120,
       height: 120,
@@ -306,25 +346,30 @@ class _Avatar extends StatelessWidget {
                 ),
               ],
             ),
-            child: Center(child: appAvatar(url: avatarUrl, size: 96)),
-          ),
-          Positioned(
-            right: 2,
-            bottom: 2,
-            child: GestureDetector(
-              onTap: () => _showComingSoon(context),
-              child: Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: const Icon(Icons.edit, color: Colors.white, size: 16),
-              ),
+            child: Center(
+              child: uploading
+                  ? const CircularProgressIndicator(color: AppColors.primary)
+                  : appAvatar(url: avatarUrl, size: 96),
             ),
           ),
+          if (canChange)
+            Positioned(
+              right: 2,
+              bottom: 2,
+              child: GestureDetector(
+                onTap: uploading ? null : () => _change(context, ref),
+                child: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: const Icon(Icons.edit, color: Colors.white, size: 16),
+                ),
+              ),
+            ),
         ],
       ),
     );
