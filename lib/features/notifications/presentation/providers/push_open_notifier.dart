@@ -101,7 +101,7 @@ class PushOpenNotifier extends Notifier<PushTarget?> {
       final target = state;
       if (target == null) return;
       state = null;
-      ref.read(pushOpenerProvider)(target);
+      unawaited(ref.read(pushOpenerProvider)(target));
     });
   }
 }

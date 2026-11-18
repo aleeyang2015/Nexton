@@ -2123,4 +2123,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String attOtClockOutBy(String time) {
     return 'Clock out by $time';
   }
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsLoadFailed => 'Could not load notifications.';
 }

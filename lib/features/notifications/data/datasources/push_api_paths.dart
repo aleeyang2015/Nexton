@@ -8,6 +8,9 @@ class PushPaths {
 
   static const String devices = '/mobile/devices';
 
+  /// The caller's own notifications, newest first (#54).
+  static const String notifications = '/mobile/notifications';
+
   /// One device row, by the App's own `device_id` (#52).
   static String device(String deviceId) =>
       '$devices/${Uri.encodeComponent(deviceId)}';

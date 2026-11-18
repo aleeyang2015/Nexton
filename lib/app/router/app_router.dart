@@ -21,6 +21,7 @@ import '../../features/auth/domain/entities/auth_session.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_session_notifier.dart';
 import '../../features/change_password/presentation/pages/change_password_page.dart';
+import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/overtime/domain/entities/ot_request.dart';
 import '../../features/overtime/presentation/pages/ot_ask_page.dart';
 import '../../features/overtime/presentation/pages/ot_edit_page.dart';
@@ -118,6 +119,9 @@ class AppRoutes {
       '${timeOffRequest(id)}/edit';
   static const String timeOffLeaveTypePicker = '/time-off/leave-type';
   static const String salaryHistory = '/salary-history';
+
+  /// The bell list (#54): the user's recent pushes.
+  static const String notifications = '/notifications';
   /// One payslip, by its id. A route pattern; build a location with
   /// [payslip].
   static const String payslipDetail = '/salary-history/payslip/:id';
@@ -652,6 +656,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.salaryHistory,
         name: 'salaryHistory',
         builder: (context, state) => const SalaryHistoryPage(),
+      ),
+      // The bell list (#54): from the bell on Home, Profile, and a push
+      // this App has no screen for.
+      GoRoute(
+        path: AppRoutes.notifications,
+        name: 'notifications',
+        builder: (context, state) => const NotificationsPage(),
       ),
 
       ...payslipRoutes,

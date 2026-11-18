@@ -55,7 +55,7 @@ void main() {
         localNotificationDataSourceProvider.overrideWithValue(popups),
         deviceRemoteDataSourceProvider.overrideWithValue(FakeDeviceRemote()),
         authSessionProvider.overrideWith(() => session),
-        pushOpenerProvider.overrideWithValue(opened.add),
+        pushOpenerProvider.overrideWithValue((t) async => opened.add(t)),
         clockProvider.overrideWithValue(() => now),
       ],
     );
