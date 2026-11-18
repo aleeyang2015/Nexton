@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#59 merged, `08b8864`; next is #60, not started; #55 stays blocked on the backend). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#60 implemented on `60-login-forgot-remember`, `e88628d` + `27fd6a2`, waiting for "push issue 60 to main directly"). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 | | |
 |---|---|
 | Last finished work order | 58 of 60: #59, profile: change my own photo |
-| Next work order | **59 of 60: #60**, sign-in: "forgot password" says ask HR, and "remember my email" works. Not started, no branch, no plan shown yet. (#55 stays BLOCKED on Nexton-Backend#190.) |
+| Next work order | **59 of 60: #60**, sign-in: "forgot password" says ask HR, and "remember my email" works. IMPLEMENTED on `60-login-forgot-remember` (`e88628d`, `27fd6a2`), both reviews done and fixed; waiting for the owner's merge word. (#55 stays BLOCKED on Nexton-Backend#190.) |
 | `origin/main` | `adad453` "Merge branch '51-push-setup' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -185,9 +185,14 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #60 (work order 59 of 60), "sign-in: 'forgot password' says ask HR, and 'remember my email' works".**
-   Not started: no branch, no plan shown yet. Read the issue and its comments, plan, wait for "go". Then #61. #55
-   stays blocked on Nexton-Backend#190.
+1. **Now: #60 (work order 59 of 60), "sign-in: 'forgot password' says ask HR, and 'remember my email' works":
+   IMPLEMENTED** on `60-login-forgot-remember` (`e88628d`, review fixes `27fd6a2`), pushed, not merged. Gates: analyze 1
+   warning already on `main`; `flutter test` 2,383 passed; debug APK built. The email is kept in SharedPreferences
+   (`remembered_email`), saved or cleared only after a successful sign-in, kept at sign-out; the box is held while a
+   sign-in is on its way. For the owner: the 44 x 44 "Forgot password?" target makes the password label row ~13 px
+   taller (cosmetic). Device checks pending: the ask-HR dialog in Lao and English; ticked, sign in, sign out, kill
+   and reopen keeps the email; unticked clears it; a wrong password saves nothing new. Next after this: #61 (the
+   last work order). #55 stays blocked on Nexton-Backend#190.
 
    **#59 (work order 58 of 60): MERGED (`08b8864`)** on the owner's say, 2026-11-18, from `59-profile-photo`
    (`13cb98c`, review fixes `371cea0`). Gates: analyze 1 warning already on `main`; `flutter test` 2,368 passed;
@@ -1070,7 +1075,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 56 | #57 | app: ask for an update when this version is too old, and show maintenance | `57-app-gate` | `d1a026a`, `5ccaa11` | merged to main directly (`cb69094`) | analyze: 1 warning already on `main`; `flutter test`: 2,320 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 57 | #58 | profile: see my personal information (read-only) | `58-personal-info` | `dff359e`, `1792a0c` | merged to main directly (`2c35513`) | analyze: 1 warning already on `main`; `flutter test`: 2,339 passed, 0 failed; debug APK | MERGED, device checks pending |
 | 58 | #59 | profile: change my own photo | `59-profile-photo` | `13cb98c`, `371cea0` | merged to main directly (`08b8864`) | analyze: 1 warning already on `main`; `flutter test`: 2,368 passed, 0 failed; debug APK | MERGED, device checks pending |
-| 59 | #60 | sign-in: "forgot password" says ask HR, and "remember my email" works | | | | | NOT STARTED |
+| 59 | #60 | sign-in: "forgot password" says ask HR, and "remember my email" works | `60-login-forgot-remember` | `e88628d`, `27fd6a2` | not merged | analyze: 1 warning already on `main`; `flutter test`: 2,383 passed, 0 failed; debug APK | IMPLEMENTED, waiting for merge word |
 | 60 | #61 | app: hide what the company has not bought | | | | | NOT STARTED |
 
 ## Outside the work order
