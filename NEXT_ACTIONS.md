@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: end of 2026-11-17 (day's checkpoint: #44 merged; next is #45, not started). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#45 IMPLEMENTED on its branch, waiting for the owner's say to merge; #44 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 | | |
 |---|---|
 | Last finished work order | 43 of 60: #44, attendance: "forgot to scan" form, from a history day or the menu |
-| Next work order | **44 of 60: #45**, attendance: my "forgot to scan" requests — list, detail, cancel. Not started, no branch, no plan shown yet (see "Next" for the prepared steps) |
+| Next work order | **44 of 60: #45**, attendance: my "forgot to scan" requests — list, detail, cancel. IMPLEMENTED on `45-my-correction-requests` (`60fe12f`, `f0d87d0`), pushed, reviewed; waiting for the owner's say to merge. Then 45 of 60: #46 |
 | `origin/main` | `56b6c75` "Merge branch '44-correction-form-entries' into main" (2026-11-17) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -171,50 +171,32 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #45 (work order 44 of 60), "attendance: my "forgot to scan" requests — list, detail, cancel".** Not
-   started: no branch, no plan shown yet. Read the issue and its one comment again (13 Nov; checked 2026-11-17, no
-   change), show the plan below, wait for "go", then branch `45-my-correction-requests` from fresh `origin/main`.
-
-   What `main` has (so the plan builds on it, not anew):
-   - List: `attendance/presentation/pages/time_correction_history_page.dart` (`/attendance/time-correction/history`)
-     with `time_correction_history_notifier.dart`; one fetch of page 1 / 100, filtered on the phone.
-   - Detail: `time_correction_history_detail_page.dart` (`/attendance/time-correction/history/detail`, the id as
-     `extra`), with the steps timeline and Cancel while pending; `CANNOT_CANCEL` shows a generic toast, no reload.
-   - Calls in `attendance_remote_data_source.dart` (`myTimeCorrections`, `timeCorrectionDetail`,
-     `cancelTimeCorrection`); entity `domain/entities/time_correction_detail.dart` has no `attendance_record`.
-   - "My requests" from #42: `pages/my_requests_page.dart`, one tab (`widgets/offsite_requests_tab.dart`); its
-     paging/filter/detail/cancel pattern is the one to copy (`offsite_history_notifier.dart`, `offsite_detail_notifier.dart`,
-     `pages/offsite_request_detail_page.dart`).
-   - #44's success toast has no "View" yet (`time_correction_request_page.dart` `_submit`); the submit answer's
-     `id` is not kept (`submitTimeCorrection` returns `void`).
-
-   Steps (the comment's "Still to do"):
-   1. **Paging:** `GET correction-requests/my?status=&limit=20&cursor=` as a `CursorPage` (the off-site
-      `myRequests` shape); the history notifier on `PagedList` with the status as a server filter, scroll-based
-      load more (as #42's fix), pull to refresh keeping rows.
-   2. **"My requests" tab:** a second tab "ລືມລົງເວລາ" (`attCorrectionTab`) on `MyRequestsPage`, the history
-      list's body as a tab widget; the old `/attendance/time-correction/history` opens "My requests" (as #42 did for
-      off-site). Decide with the owner whether the separate menu tile "ປະຫວັດລືມລົງເວລາ" goes (as off-site's did).
-   3. **Detail by id:** `/attendance/requests/correction/:id` (row as `extra`), loading `GET correction-requests/:id`;
-      404 → "not available" (`apprRequestNotFound`), `EMPLOYEE_NOT_FOUND` → #11's text, no Retry.
-   4. **`attendance_record`:** read it into the detail (times as wall clock, `OffsiteSubmissionModel.wallClock`
-      style); a "ຜົນຫຼັງແກ້ໄຂ" card (`attCorrectionResult`) with clock-in, clock-out and the day's status pill (#10's copy)
-      only when set.
-   5. **Cancel:** `CANNOT_CANCEL` by code → "already decided" text, reload the detail; one at a time (as #42's fix);
-      the list and today's card read again.
-   6. **"View":** keep the 201's `id` from `submitTimeCorrection`; #44's success toast gets "ເບິ່ງ" (`attView`)
-      opening the detail (router taken before the pop, as #42 did).
-   7. **Strings:** `attCorrectionTab`, `attCorrectionResult`, `attCorrectionRequested`; reuse the rest.
-
-   Acceptance (the issue's "Done when"): the #44 request is listed waiting under "ຄຳຮ້ອງຂອງຂ້ອຍ" → "ລືມລົງເວລາ"; its
-   detail shows part, type, time, reason, timeline; Cancel → cancelled pill and the timeline's cancelled end; after
-   HR approves, the result card and the history show the corrected time. Tests: `correction_request_model_test`
-   (`attendance_record` present / null, wall-clock times, null approver step); `correction_request_detail_page_test`
-   (cancel only on own pending, reload after `CANNOT_CANCEL`, result card only when approved); paging (next page
-   once on scroll, server filter); "View" opens the detail. Gates as always. Phone check on `nexton-demo` pending.
-
-   Watch for: #73 (a request with a photo is always refused, `attachment_url` sent the wrong way) is a separate
-   priority bug, not part of #45.
+1. **#45 (work order 44 of 60), "attendance: my "forgot to scan" requests — list, detail, cancel": IMPLEMENTED, 2026-11-18,
+   waiting for the owner's say to merge.** Owner said go on 2026-11-18, with "remove the menu tile". Branch
+   `45-my-correction-requests` (pushed): `60fe12f` (feature), `f0d87d0` (review fixes). Gates on `f0d87d0`: analyze 1 warning
+   already on `main`; `flutter test` 1,987 passed; debug APK builds.
+   - "ຄຳຮ້ອງຂອງຂ້ອຍ" gets the tab "ລືມລົງເວລາ": `correction-requests/my?status=&limit=20&cursor=`, status as a server filter,
+     next page on scroll, pull to refresh; both tabs kept alive across switches. `/attendance/time-correction/history` opens
+     this tab; the "ປະຫວັດແກ້ໄຂເວລາ" menu tile is gone (owner's choice); the old history page is deleted.
+   - Detail by id `/attendance/requests/correction/:id` (row as `extra`); old `…/history/detail` (id as extra) opens the same
+     page. 404 → "not available", no staff record → #11's text, neither with Retry; back with nothing under → this tab.
+   - `attendance_record` read only on an approved request → "ຜົນຫຼັງແກ້ໄຂ" card (in, out, #10's pill). Zone-less times as
+     written; a time with a zone read as `records/my` is (on the phone's clock), so the card and history agree.
+   - Cancel only on own pending (hidden when the request's employee id and the login's differ; shown when either is
+     missing), one at a time; reloads detail and list; `CANNOT_CANCEL` by code → "already decided" + reload; cancel 404 →
+     "not available"; accepted but the reload failed → shown cancelled. Today's card is not reloaded (a waiting
+     correction cannot change it).
+   - The submit keeps the 201's `data.id`; #44's toast has "ເບິ່ງ" opening it.
+   - Row card: the id gives way so "Awaiting approval" fits at 400 px.
+   Open after #45, none built there:
+   - phone check on `nexton-demo` (the "Done when" walk); **check there whether the detail carries `employee.id` or
+     `employee_id`**: without one, an approver opening this page by link would see Cancel (the server refuses it). Matters
+     for #47;
+   - **check `attendance_record`'s time format** on a real approved request (with or without a zone);
+   - a page whose rows all fail to read (e.g. a new correction type) ends the list (`PagedList.append`, shared with #42):
+     worth an issue;
+   - the string `timeCorrectionHistoryMenu` is unused now; the `build_runner` run errors on `app_router.dart:64`
+     (`?partId`, on `main`; harmless: the router has no generated part).
 
    **#44 (work order 43 of 60), "attendance: "forgot to scan" form, from a history day or the menu": MERGED (`56b6c75`),
    2026-11-17.** Owner said go on 2026-11-17. Branch `44-correction-form-entries`: `fdc11a7` (feature), `a2ba160` (review fixes).
@@ -812,7 +794,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 41 | #42 | attendance: my off-site requests — list, detail, cancel | `42-my-offsite-requests` | `47cc6b0`, `8733133` | merged to main directly (`2385f00`) | analyze: 1 warning already on `main`; `flutter test`: 1,892 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 42 | #43 | attendance: "forgot to scan" — rules and sending (no screen) | `43-correction-rules` | `3bb78d8`, `3bffdd0` | merged to main directly (`da3fda8`) | analyze: 1 warning already on `main`; `flutter test`: 1,921 passed, 0 failed; debug APK builds | MERGED |
 | 43 | #44 | attendance: "forgot to scan" form, from a history day or the menu | `44-correction-form-entries` | `fdc11a7`, `a2ba160` | merged to main directly (`56b6c75`) | analyze: 1 warning already on `main`; `flutter test`: 1,944 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 44 | #45 | attendance: my "forgot to scan" requests — list, detail, cancel | | | | | NOT STARTED |
+| 44 | #45 | attendance: my "forgot to scan" requests — list, detail, cancel | `45-my-correction-requests` | `60fe12f`, `f0d87d0` | none yet | analyze: 1 warning already on `main`; `flutter test`: 1,987 passed, 0 failed; debug APK builds | IMPLEMENTED, waiting for the owner's say to merge; phone check on `nexton-demo` pending |
 | 45 | #46 | approvals: off-site scans for heads and HR | | | | | NOT STARTED |
 | 46 | #47 | approvals: "forgot to scan" requests for heads and HR | | | | | NOT STARTED |
 | 47 | #48 | approvals: OT waiting and decided lists for heads | | | | | NOT STARTED |
