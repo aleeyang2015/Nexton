@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: 2026-11-18 (#48 merged, `fbeb16e`; next is #49, not started). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-18 (#49 IMPLEMENTED on its branch, waiting for the owner's say to merge; #48 merged). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-17.
 | | |
 |---|---|
 | Last finished work order | 47 of 60: #48, approvals: OT waiting and decided lists for heads |
-| Next work order | **48 of 60: #49**, the OT decisions for heads. Not started, no branch, no plan shown yet |
+| Next work order | **48 of 60: #49**, approvals: approve or reject OT, and cancel an approved OT before it starts. IMPLEMENTED on `49-ot-decisions` (`1110d2d`, `bbefe8b`), pushed, reviewed; waiting for the owner's say to merge. Then 49 of 60: #50 |
 | `origin/main` | `fbeb16e` "Merge branch '48-ot-approvals-lists' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `44-…` (no `35-…`: #35 is BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -180,8 +180,30 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next: #49 (work order 48 of 60), the OT decisions for heads (adds Approve / Reject on #48's rows and #30's page).**
-   Not started: no branch, no plan shown yet. Read the issue and its comments, plan, wait for "go".
+1. **#49 (work order 48 of 60), "approvals: approve or reject OT, and cancel an approved OT before it starts":
+   IMPLEMENTED, 2026-11-18, waiting for the owner's say to merge.** Owner said go on 2026-11-18. Branch `49-ot-decisions`
+   (pushed): `1110d2d` (feature), `bbefe8b` (review fixes). Gates on `bbefe8b`: analyze 1 warning already on `main`;
+   `flutter test` 2,118 passed; debug APK builds.
+   - Data: `PUT ot-requests/:id/approve|reject` with `step_id` (always) and `comment` (typed; required on reject), never
+     `pieces`; the answer is the request (warnings ignored). `422 errors.comment` → "ກະລຸນາຂຽນເຫດຜົນ" (a toast: the
+     dialog has closed; it blocks an empty reason anyway). The head's cancel is #28's `PUT .../cancel`.
+   - `ApproverAccess.canDecideOt` (pending; the waiting step a dept_head / specific one naming me; not my own; not after
+     I approved an earlier step; HR rights add nothing) and `canCancelApprovedOt` (approved; a head step I approved; now
+     before `starts_at`, moments).
+   - `OtDecisionNotifier` per request: one approve / reject / cancel at a time from the row or the page. Success: the
+     page shows the server's answer, the row leaves waiting at once, both lists reload (not waited on). Failure keeps
+     the row: STEP_CHANGED / OT_ALREADY_DECIDED / NOT_APPROVER reload lists and page (NOT_APPROVER also takes the
+     buttons away); OT_STARTED / OT_ALREADY_PAID / OT_PAID_BY_HAND take Cancel away; 404 → "not available", the page
+     goes back; #28's texts.
+   - `OtDecisionButtons` on #48's waiting rows and on #30's page for someone else's request (the employee's own Edit /
+     Cancel / "ask the approver" unchanged): Approve → #37's note dialog (sent as `comment`), Reject → the reason
+     dialog, "ຍົກເລີກໂອທີ" with a confirm. Toasts `otApprovedToast` / `otRejectedToast` / `otCancelledToast` (existing).
+   Open after #49, none built there:
+   - phone check on `nexton-demo` (`dept_head_hr`; HR approves on the web, then the head cancels before `starts_at`;
+     the employee's OT switch off → `OT_NOT_ELIGIBLE` keeps the row);
+   - Cancel does not hide by itself when `starts_at` passes with the page open (the server's `OT_STARTED` covers it);
+   - after a decision the waiting list reloads from page 1 (later pages loaded before are dropped).
+
 
    **#48 (work order 47 of 60), "approvals: OT waiting and decided lists for heads": MERGED (`fbeb16e`), 2026-11-18.**
    Merged on the owner's "push issue 48 to main directly"; gates green on the merge commit (analyze 1 warning already on
@@ -896,7 +918,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 45 | #46 | approvals: off-site scans for heads and HR | `46-offsite-approvals` | `9aa91f0`, `961cfb5` | merged to main directly (`afedb4f`) | analyze: 1 warning already on `main`; `flutter test`: 2,031 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 46 | #47 | approvals: "forgot to scan" requests for heads and HR | `47-correction-approvals` | `3192f3e`, `9a86936` | merged to main directly (`227a9b3`) | analyze: 1 warning already on `main`; `flutter test`: 2,067 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 47 | #48 | approvals: OT waiting and decided lists for heads | `48-ot-approvals-lists` | `11db106`, `e1cd94d` | merged to main directly (`fbeb16e`) | analyze: 1 warning already on `main`; `flutter test`: 2,089 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 48 | #49 | approvals: approve or reject OT, and cancel an approved OT before it starts | | | | | NOT STARTED |
+| 48 | #49 | approvals: approve or reject OT, and cancel an approved OT before it starts | `49-ot-decisions` | `1110d2d`, `bbefe8b` | none yet | analyze: 1 warning already on `main`; `flutter test`: 2,118 passed, 0 failed; debug APK builds | IMPLEMENTED, waiting for the owner's say to merge; phone check on `nexton-demo` pending |
 | 49 | #50 | approvals: my team's leave and "forgot to scan" history (read-only) | | | | | NOT STARTED |
 | 50 | #51 | push: Firebase set up for nexton.hr on Android and iOS | | | | | NOT STARTED |
 | 51 | #52 | push: register this phone after sign-in, remove it before sign-out | | | | | NOT STARTED |
