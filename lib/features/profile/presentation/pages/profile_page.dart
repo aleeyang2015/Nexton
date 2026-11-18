@@ -479,8 +479,7 @@ class _MenuCard extends ConsumerWidget {
             icon: Icons.person_outline,
             color: AppColors.primary,
             label: l10n.personal,
-            onTap: () =>
-                _openComingSoon(context, l10n.personal, Icons.person_outline),
+            onTap: () => context.push(AppRoutes.personalInfo),
           ),
           _menuDivider(),
           _MenuRow(

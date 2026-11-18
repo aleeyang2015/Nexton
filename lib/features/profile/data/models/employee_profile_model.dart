@@ -1,4 +1,5 @@
 import '../../domain/entities/employee_profile.dart';
+import '../../domain/entities/personal_info.dart';
 import '../../domain/entities/shift_detail.dart';
 import '../../domain/entities/shift_detail_weekly.dart';
 
@@ -36,7 +37,69 @@ class EmployeeProfileModel {
       shiftDetails: _shiftDetails(shift),
       // Only a real bool counts: anything else is "the server did not say".
       canAskOt: json['can_ask_ot'] is bool ? json['can_ask_ot'] as bool : null,
+      personal: _personal(json),
     );
+  }
+
+  /// The personal page's fields (#58), and only those: the answer also
+  /// carries salary, ID card, passport, tax, social security and bank
+  /// values, which are never read. Every text is trimmed; empty is none.
+  static EmployeePersonalInfo _personal(Map<String, dynamic> json) {
+    String? text(Object? raw) => _nonEmpty(_string(raw)?.trim());
+    return EmployeePersonalInfo(
+      firstName: text(json['first_name']) ?? '',
+      lastName: text(json['last_name']) ?? '',
+      firstNameLo: text(json['first_name_lo']),
+      lastNameLo: text(json['last_name_lo']),
+      employeeNumber: text(json['employee_number']) ?? '',
+      mobilePhone: text(json['mobile_phone']),
+      workPhone: text(json['work_phone']),
+      workPhoneExtension: text(json['work_phone_extension']),
+      homePhone: text(json['home_phone']),
+      departmentName: text(json['department_name']),
+      // `" "` when there is no manager (a CONCAT over a LEFT JOIN): none.
+      managerName: text(json['reports_to_name']),
+      hireDate: _calendarDate(json['hire_date']),
+      emergencyContacts: _emergencyContacts(json['emergency_contacts']),
+    );
+  }
+
+  /// The `yyyy-MM-dd` an RFC 3339 date-time starts with, as a calendar date:
+  /// converting `…T00:00:00+07:00` to another zone would move it a day. Null
+  /// when it does not start with a real date.
+  static DateTime? _calendarDate(Object? raw) {
+    if (raw is! String) return null;
+    final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(raw.trim());
+    if (match == null) return null;
+    final year = int.parse(match.group(1)!);
+    final month = int.parse(match.group(2)!);
+    final day = int.parse(match.group(3)!);
+    final date = DateTime(year, month, day);
+    // 2024-02-31 would roll over into March: not a real date.
+    if (date.year != year || date.month != month || date.day != day) {
+      return null;
+    }
+    return date;
+  }
+
+  /// The web's list of `{name, name_lo?, relationship, phone?,
+  /// phone_secondary?, address?}`; the server does not check it. Anything
+  /// that is not a list is none; an item that is not an object, or has no
+  /// name, is skipped.
+  static List<EmergencyContact> _emergencyContacts(Object? raw) {
+    if (raw is! List) return const [];
+    String? text(Object? value) => _nonEmpty(_string(value)?.trim());
+    return [
+      for (final item in raw.whereType<Map>())
+        if (text(item['name']) case final String name)
+          EmergencyContact(
+            name: name,
+            nameLo: text(item['name_lo']),
+            relationship: text(item['relationship']),
+            phone: text(item['phone']),
+            phoneSecondary: text(item['phone_secondary']),
+          ),
+    ];
   }
 
   static Map<String, dynamic>? _shift(Map<String, dynamic> json) {

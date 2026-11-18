@@ -32,6 +32,7 @@ import '../../features/overtime/presentation/pages/ot_edit_page.dart';
 import '../../features/overtime/presentation/pages/ot_list_page.dart';
 import '../../features/overtime/presentation/pages/ot_posts_page.dart';
 import '../../features/overtime/presentation/pages/ot_request_detail_page.dart';
+import '../../features/profile/presentation/pages/personal_info_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/salary_history/domain/entities/payslip_record.dart';
 import '../../features/salary_history/presentation/pages/payslip_detail_page.dart';
@@ -54,6 +55,9 @@ class AppRoutes {
   static const String login = '/login';
   static const String changePassword = '/change-password';
   static const String profile = '/profile';
+
+  /// The employee's own record, read-only (#58).
+  static const String personalInfo = '/profile/personal';
   static const String settings = '/settings';
   static const String attendanceHistory = '/attendance-history';
   static const String timeCorrectionRequest = '/attendance/time-correction';
@@ -553,6 +557,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.profile,
         name: 'profile',
         builder: (context, state) => const ProfilePage(),
+      ),
+      GoRoute(
+        path: AppRoutes.personalInfo,
+        name: 'personalInfo',
+        builder: (context, state) => const PersonalInfoPage(),
       ),
 
       // Settings
