@@ -25,10 +25,23 @@ import 'leave_types_notifier.dart';
 ///
 /// The family key is the id of the request being edited, or `null` for a new
 /// request. Edit mode is entered by calling [seed] once with the request.
+///
+/// Not `autoDispose`: a draft is kept while its user looks at another screen.
+/// It is that user's only. The form is built again, empty, when the
+/// signed-in user changes or signs out (#83), so the next login on a shared
+/// phone never finds the last one's days, reason or files.
 class LeaveRequestFormNotifier
     extends FamilyNotifier<LeaveRequestFormState, String?> {
   @override
-  LeaveRequestFormState build(String? arg) => const LeaveRequestFormState();
+  LeaveRequestFormState build(String? arg) {
+    ref.watch(leaveDraftOwnerProvider);
+    // The same notifier is built again for the next user: nothing of the
+    // last form stays, and an upload still on its way finds its form gone.
+    _stale = false;
+    _seededFrom = null;
+    _form++;
+    return const LeaveRequestFormState();
+  }
 
   /// Tells the form the company's days off, or null while they are not known
   /// (still loading, or the load failed): the counts that need them are then

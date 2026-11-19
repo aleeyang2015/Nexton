@@ -81,6 +81,16 @@ final leaveOwnEmployeeIdProvider = Provider<String?>(
   ),
 );
 
+/// Whose unsent leave drafts the request form holds: the signed-in user's
+/// id, or null when no one is signed in. The form's notifier is not
+/// `autoDispose` (a draft outlives the screen), so it watches this instead:
+/// a sign-out, or another user, starts every form empty (#83).
+final leaveDraftOwnerProvider = Provider<String?>(
+  (ref) => ref.watch(
+    authSessionProvider.select((session) => session.valueOrNull?.user?.id),
+  ),
+);
+
 final getTeamLeaveUseCaseProvider = Provider<GetTeamLeaveUseCase>(
   (ref) => GetTeamLeaveUseCase(ref.watch(leaveRepositoryProvider)),
 );
