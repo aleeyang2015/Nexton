@@ -47,8 +47,8 @@ Waiting for the owner (asked on 2026-11-19, not answered):
 - **#62's children (#2 to #19):** all in `main`, all open on GitHub. Close #13 now (it needs no phone) and the
   other 17 after their phone checks, or all now with a note; and who closes (the public API here only reads). The
   same question then applies to the trackers #63 to #66.
-- **#35 rounding:** the issue asks for one decimal, so 1 h 15 min shows "OT 1.3 h" while the payslip shows 1.25.
-  Keep one decimal, or show two.
+- **#35 rounding: ANSWERED, two decimals** (owner, 2026-11-19). Built on `35-ot-hours-two-decimals` (`7c2ead8`),
+  pushed, gates green (2,454 tests); it waits for the owner's merge word. `main` does not have it yet.
 - **#35 Lao tile label at 320 dp:** "OT hours" and "work hours" both start with `ຊົ່ວໂມງ` and are cut to it on the
   smallest phones. Keep `ຊົ່ວໂມງໂອທີ`, or shorten to `ໂອທີ`.
 - The older questions in `NEXT_ACTIONS.md` "Waiting for the owner".

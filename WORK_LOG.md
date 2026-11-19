@@ -155,3 +155,9 @@ one file (the committed ones are formatted), and restore the rest.
 server's new order for `employee_id` and says the App reads it. Found while checking: a `null` `employee_id` hides
 the Approvals entry and the decision buttons. Merged on the owner's "push issue 75 to main directly": `2b2f5dc`
 (`--no-ff`, `Refs #75`), gates green on the merge commit, fast-forward push.
+
+**#55 re-checked** (end of day): still one comment, 13 Nov; no new comment on any issue since 18 Nov 17:00 UTC; no
+issue newer than #76.
+
+**#35, two decimals:** the owner chose two decimals so OT hours read as on the payslip. On
+`35-ot-hours-two-decimals` (`7c2ead8`), pushed; gates green, 2,454 tests. Not merged: waits for the owner's word.
