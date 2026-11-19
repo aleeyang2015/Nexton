@@ -34,13 +34,12 @@ class HomePage extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               heightBx(),
-              const HomeHeader(),
+              HomeHeader(coreHr: coreHr),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
                   children: [
-                    // Without it, the header above already says so: its
-                    // profile call gets the same refusal.
+                    // Without it, the header above says so.
                     if (coreHr) ...[
                       const AttendanceStatusCard(),
                       heightBx(h: 22),

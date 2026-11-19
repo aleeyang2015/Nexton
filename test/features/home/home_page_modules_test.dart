@@ -67,6 +67,39 @@ void main() {
     expect(find.text(en.homeServicesTitle), findsNothing);
   });
 
+  testWidgets('no Core HR and no signal: still "not turned on", said once, '
+      'with no Retry; it comes from the company\'s modules, not from a call '
+      'that happened to fail', (tester) async {
+    tester.view.physicalSize = const Size(390, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final profiles = FakeProfileRepository()
+      ..profile = const Result.failure(Failure.network(message: 'offline'));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeModulesProvider.overrideWithValue(const []),
+          approverAccessOf(),
+          profileRepositoryProvider.overrideWithValue(profiles),
+        ],
+        child: DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: const HomePage(),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text(en.errorModuleNotActive), findsOneWidget);
+    expect(find.text(en.retry), findsNothing);
+    expect(find.byType(AttendanceStatusCard), findsNothing);
+  });
+
   testWidgets('a deep link into Salary for a company without Payroll: the '
       '"not turned on" text, not a crash or a blank page', (tester) async {
     final repository = FakeSalaryRepository()
