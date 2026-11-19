@@ -186,3 +186,7 @@ owner's say. #70: not done: the approver was shown the employee's "You don't hav
 on `70-approve-insufficient-balance` (`c49f42a`) and merged on the owner's "push issue 70 to main directly":
 `3daed16`, gates green on the merge commit (2,459 tests), fast-forward push. The merge word came while the
 fresh-eyes review was still running; its findings, if any, are a follow-up. `main` = `origin/main` = `3daed16`.
+
+**#70 closed** on the owner's say after its review (no defect). **#70, dialog:** the owner chose a dialog with OK
+over the 3-second toast for "not enough days left". On `70-insufficient-balance-dialog` (`94a6403`), pushed; gates
+green, 2,460 tests. Not merged: waits for the owner's word.

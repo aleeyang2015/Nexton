@@ -72,8 +72,9 @@ Known risks to keep in mind:
 - Left open on purpose although the work is merged: #75 (docs done, but the backend question sits on it), #71
   (covered by #52, whose phone check is pending), #20 (wants a real `nexton-demo` payslip).
 - #70's review (after the merge) found no defect. Two points left for people: the Lao second sentence can be read
-  as "have HR add days or reject" (for the native read), and the toast shows for 3 seconds like every other, which
-  may be short for two sentences (the owner was asked: a longer time, a dialog, or wait for the phone check).
+  as "have HR add days or reject" (for the native read), and the 3-second toast was short for two
+  sentences: the owner chose a dialog with OK (2026-11-19). Built on `70-insufficient-balance-dialog` (`94a6403`),
+  pushed, gates green (2,460 tests); it waits for the owner's merge word. `main` does not have it yet.
 - In the trackers the boxes of the closed children are ticked (owner's say, 2026-11-19): #13 in #62, #22 in #63,
   #27 and #28 in #64, #43 in #65. Tick a box only when its issue is closed. (#68, #74 and #76 are in no tracker's
   list.)
