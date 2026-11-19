@@ -27,6 +27,14 @@ class TimeCorrectionFormNotifier
     extends AutoDisposeNotifier<TimeCorrectionFormState> {
   @override
   TimeCorrectionFormState build() {
+    // A rebuilt notifier starts clean.
+    _disposed = false;
+    _months.clear();
+    _reading.clear();
+    _sessionPart = null;
+    _wantedPartId = null;
+    _partPicked = false;
+    _timesEdited = false;
     // The profile may still be loading when the form opens; take the first
     // segment once it lands, unless the user has picked one already.
     ref.listen(profileNotifierProvider, (_, next) {
@@ -39,12 +47,16 @@ class TimeCorrectionFormNotifier
       final match = wanted == null ? null : _partWithId(profile, wanted);
       if (match != null) {
         _wantedPartId = null;
-        if (state.shiftDetail != match) state = _withShiftDetail(state, match);
+        _partPicked = true;
+        if (state.shiftDetail != match) _setPart(match);
         return;
       }
+      // The profile has landed without it: there is nothing left to wait
+      // for, and the parts on offer decide.
+      if (profile != null) _wantedPartId = null;
       final detail = _firstDetail(profile);
       if (state.shiftDetail == null && detail != null) {
-        selectShiftDetail(detail);
+        state = _withShiftDetail(state, detail);
       }
       // The profile landed after the day's parts: a part chosen from the
       // day's record gives way to the profile's full copy of it, and the
@@ -68,19 +80,15 @@ class TimeCorrectionFormNotifier
   /// moves to that day too).
   void setDate(DateTime date) {
     final day = DateTime(date.year, date.month, date.day);
+    // A part picked for another day is not a pick for this one.
+    if (day != state.date) _partPicked = false;
+    _timesEdited = false;
     final next = state.copyWith(date: day, dayParts: _partsOn(day));
     final part = next.shiftDetail;
     state = part == null ? next : _withShiftDetail(next, part);
     _choosePart();
     _readDay(day);
   }
-
-  /// The months of history read so far, by their first day. A month is read
-  /// once for the form's life; one that failed is asked again on the next
-  /// date picked in it.
-  final Map<DateTime, List<AttendanceDay>> _months = {};
-  final Set<DateTime> _reading = {};
-  bool _disposed = false;
 
   /// Reads [day]'s month of history, unless it is known or on its way, then
   /// offers the parts of whichever day is picked by then.
@@ -126,10 +134,13 @@ class TimeCorrectionFormNotifier
     return parts;
   }
 
-  /// Keeps the chosen part one of those on offer. A part still on offer is
-  /// kept (as the profile's full copy, when the profile has it); otherwise
-  /// the first one offered is chosen. A part a prefill still waits for is
-  /// left to the profile's listener.
+  /// Keeps the chosen part right for the day picked.
+  ///
+  /// A part of the day's own sessions is kept, and so is one the user (or a
+  /// history row, or a link) picked for this day, as long as it is on offer.
+  /// Otherwise the first part offered is chosen: the day's own first, when
+  /// it has any. A part a prefill still waits for (the profile has not
+  /// loaded) is left to the profile's listener.
   void _choosePart() {
     if (_wantedPartId != null) return;
     final profile = ref.read(profileNotifierProvider).valueOrNull;
@@ -139,11 +150,26 @@ class TimeCorrectionFormNotifier
     if (offered.isEmpty) return;
 
     final chosenId = state.shiftDetail?.id;
+    final ofDay = state.dayParts.any((p) => p.id == chosenId);
+    final keep = ofDay || _partPicked || state.dayParts.isEmpty;
     final part = offered.firstWhere(
-      (p) => p.id == chosenId,
+      (p) => keep && p.id == chosenId,
       orElse: () => offered.first,
     );
-    if (state.shiftDetail != part) state = _withShiftDetail(state, part);
+    if (state.shiftDetail != part) _setPart(part);
+  }
+
+  /// Chooses [part]. The times become its schedule, unless it is the part
+  /// already chosen in a fuller or newer copy and the user has set the
+  /// times: those are theirs.
+  void _setPart(ShiftDetail part) {
+    final sameAsChosen = part.id == state.shiftDetail?.id;
+    if (sameAsChosen && _timesEdited) {
+      state = state.copyWith(shiftDetail: part);
+    } else {
+      _timesEdited = false;
+      state = _withShiftDetail(state, part);
+    }
   }
 
   /// Fills the form for a day and part (#44): from a history row, or a link
@@ -160,29 +186,37 @@ class TimeCorrectionFormNotifier
       ref.read(profileNotifierProvider).valueOrNull,
       partId,
     );
-    // Not in the profile yet (still loading): its listener lands on it.
-    if (fromProfile == null) _wantedPartId = partId;
+    // Not in the profile yet because it is still loading: its listener
+    // lands on it. A loaded profile without it has nothing to wait for.
+    final profileLoaded =
+        ref.read(profileNotifierProvider).valueOrNull != null;
+    _wantedPartId = fromProfile == null && !profileLoaded ? partId : null;
     final part = fromProfile ?? _sessionPart;
-    if (part != null) state = _withShiftDetail(state, part);
+    if (part != null) {
+      _partPicked = true;
+      _timesEdited = false;
+      state = _withShiftDetail(state, part);
+    }
   }
 
-  /// The parts to offer: the picked day's own, when its history has any
-  /// (each as the profile's full copy, when [profileParts] has it: the
-  /// weekday rows and the minutes). Else the profile's [profileParts], after
-  /// the history session's own part when the profile does not have it.
+  /// The parts to offer, each once: first the picked day's own, those of
+  /// its history sessions (as the profile's full copy, when [profileParts]
+  /// has it: the weekday rows and the minutes); then the history row's own
+  /// part a prefill was given; then the rest of the profile's
+  /// [profileParts], for a part of the day that was never scanned.
   List<ShiftDetail> offeredParts(List<ShiftDetail> profileParts) {
-    final ofDay = state.dayParts;
-    if (ofDay.isNotEmpty) {
-      return [
-        for (final part in ofDay)
-          profileParts.firstWhere((p) => p.id == part.id, orElse: () => part),
-      ];
+    final parts = <ShiftDetail>[];
+    void add(ShiftDetail part) {
+      if (!parts.any((p) => p.id == part.id)) parts.add(part);
+    }
+
+    for (final part in state.dayParts) {
+      add(profileParts.firstWhere((p) => p.id == part.id, orElse: () => part));
     }
     final own = _sessionPart;
-    return [
-      if (own != null && !profileParts.any((p) => p.id == own.id)) own,
-      ...profileParts,
-    ];
+    if (own != null && !profileParts.any((p) => p.id == own.id)) add(own);
+    profileParts.forEach(add);
+    return parts;
   }
 
   /// The history session's part a prefill was given.
@@ -191,17 +225,39 @@ class TimeCorrectionFormNotifier
   /// The part a prefill asked for, kept until the profile has loaded.
   String? _wantedPartId;
 
+  /// The chosen part was picked for the day now on the form: by the user,
+  /// a history row or a link. A day's history landing late does not undo it.
+  bool _partPicked = false;
+
+  /// The user set a time since the part's schedule was last filled in.
+  bool _timesEdited = false;
+
+  /// The months of history read so far, by their first day. A month is read
+  /// once for the form's life; one that failed is asked again on the next
+  /// date picked in it.
+  final Map<DateTime, List<AttendanceDay>> _months = {};
+  final Set<DateTime> _reading = {};
+  bool _disposed = false;
+
   void setType(TimeCorrectionType type) => state = state.copyWith(type: type);
 
   /// The user's own pick: it outranks a part a prefill still waits for.
   void selectShiftDetail(ShiftDetail detail) {
     _wantedPartId = null;
+    _partPicked = true;
+    _timesEdited = false;
     state = _withShiftDetail(state, detail);
   }
 
-  void setClockIn(TimeOfDay time) => state = state.copyWith(clockIn: time);
+  void setClockIn(TimeOfDay time) {
+    _timesEdited = true;
+    state = state.copyWith(clockIn: time);
+  }
 
-  void setClockOut(TimeOfDay time) => state = state.copyWith(clockOut: time);
+  void setClockOut(TimeOfDay time) {
+    _timesEdited = true;
+    state = state.copyWith(clockOut: time);
+  }
 
   void setReason(String reason) => state = state.copyWith(reason: reason);
 

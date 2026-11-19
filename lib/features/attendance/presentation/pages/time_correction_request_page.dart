@@ -360,8 +360,7 @@ class _ShiftSection extends ConsumerWidget {
     }
 
     final value = profile.valueOrNull;
-    // The profile's parts, and the history session's own when the profile
-    // no longer has it (#44).
+    // The picked day's own parts first, then the profile's (#44).
     final details = notifier.offeredParts(
       value?.shiftDetails ?? const <ShiftDetail>[],
     );

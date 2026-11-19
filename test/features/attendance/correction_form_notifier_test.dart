@@ -329,7 +329,7 @@ void main() {
     ];
 
     test('opened from the menu, then a date picked: that day\'s part is '
-        'offered and chosen, not the profile\'s', () async {
+        'offered first and chosen, ahead of the profile\'s', () async {
       container = make();
       historyHas([old]);
       await settle();
@@ -338,7 +338,7 @@ void main() {
       await settle();
 
       final state = container.read(timeCorrectionFormNotifierProvider);
-      expect(offeredIds(), ['p-old']);
+      expect(offeredIds(), ['p-old', 'p-am', 'p-pm']);
       expect(state.shiftDetail?.id, 'p-old');
       expect(state.clockIn, const TimeOfDay(hour: 7, minute: 0));
       expect(state.clockOut, const TimeOfDay(hour: 11, minute: 0));
@@ -447,11 +447,120 @@ void main() {
       form().prefill(date: weekAgo, partId: 'p-pm');
       await settle();
 
-      expect(offeredIds(), ['p-old', 'p-pm']);
+      expect(offeredIds(), ['p-old', 'p-pm', 'p-am']);
       expect(
         container.read(timeCorrectionFormNotifierProvider).shiftDetail,
         afternoon,
       );
+    });
+
+    test('one of the day\'s two parts was scanned: the other, never '
+        'scanned, can still be picked', () async {
+      container = make();
+      historyHas([const AttendanceSession(partId: 'p-am')]);
+      await settle();
+
+      form().setDate(weekAgo);
+      await settle();
+
+      expect(offeredIds(), ['p-am', 'p-pm']);
+      form().selectShiftDetail(afternoon);
+      await settle();
+      expect(
+        container.read(timeCorrectionFormNotifierProvider).shiftDetail,
+        afternoon,
+      );
+    });
+
+    test('a link to a part the day has no session on: the asked part stays, '
+        'whichever of the profile and the history answers first', () async {
+      // The profile first, then the history.
+      container = make();
+      historyHas([const AttendanceSession(partId: 'p-am')]);
+      await settle();
+      form().prefill(date: weekAgo, partId: 'p-pm');
+      await settle();
+      expect(
+        container.read(timeCorrectionFormNotifierProvider).shiftDetail,
+        afternoon,
+      );
+      container.dispose();
+
+      // Asked before either has answered.
+      container = make();
+      historyHas([const AttendanceSession(partId: 'p-am')]);
+      form().prefill(date: weekAgo, partId: 'p-pm');
+      await settle();
+      expect(
+        container.read(timeCorrectionFormNotifierProvider).shiftDetail,
+        afternoon,
+      );
+    });
+
+    test('from a history row on a part the profile no longer has, then '
+        'another day picked: that day\'s own part, not the old one', () async {
+      container = make();
+      const oldPart = ShiftDetail(
+        id: 'p-old',
+        startTime: '07:00',
+        endTime: '11:00',
+      );
+      final dayAfter = DateTime(weekAgo.year, weekAgo.month, weekAgo.day + 1);
+      attendance.monthRecords = Result.success([
+        AttendanceDay(date: weekAgo, sessions: const [old]),
+        AttendanceDay(
+          date: dayAfter,
+          sessions: const [AttendanceSession(partId: 'p-pm')],
+        ),
+      ]);
+      await settle();
+      form().prefill(date: weekAgo, partId: 'p-old', sessionPart: oldPart);
+      await settle();
+      expect(
+        container.read(timeCorrectionFormNotifierProvider).shiftDetail?.id,
+        'p-old',
+      );
+
+      form().setDate(dayAfter);
+      await settle();
+
+      expect(
+        container.read(timeCorrectionFormNotifierProvider).shiftDetail,
+        afternoon,
+      );
+    });
+
+    test('a link with a part id nobody knows: the day\'s own part is '
+        'chosen', () async {
+      container = make();
+      historyHas([const AttendanceSession(partId: 'p-pm')]);
+      await settle();
+
+      form().prefill(date: weekAgo, partId: 'p-gone');
+      await settle();
+
+      expect(
+        container.read(timeCorrectionFormNotifierProvider).shiftDetail,
+        afternoon,
+      );
+    });
+
+    test('the history answering late does not undo the user\'s own part or '
+        'the times they set', () async {
+      container = make();
+      // The history names the morning part for that day, but answers only
+      // after the user has picked the afternoon and set a time.
+      historyHas([const AttendanceSession(partId: 'p-am')]);
+      form()
+        ..setDate(weekAgo)
+        ..selectShiftDetail(afternoon)
+        ..setClockIn(const TimeOfDay(hour: 13, minute: 7));
+      await settle();
+
+      expect(offeredIds(), ['p-am', 'p-pm']);
+      final state = container.read(timeCorrectionFormNotifierProvider);
+      expect(state.shiftDetail, afternoon);
+      expect(state.clockIn, const TimeOfDay(hour: 13, minute: 7));
     });
 
     test('a month is read once, however many of its days are picked',
