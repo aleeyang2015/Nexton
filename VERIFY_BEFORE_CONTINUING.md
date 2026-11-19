@@ -44,10 +44,9 @@ file on branch `docs/next-actions`, with `WORK_LOG.md` (the day-by-day log). Non
 | Phone checks | none done for any issue; all pending on `nexton-demo` |
 
 Waiting for the owner (asked on 2026-11-19, not answered):
-- **#62's children (#2 to #19): ANSWERED** (owner, 2026-11-19): close **#13 now**, and the other 17 **after their
-  phone checks**. #13 is NOT closed yet: nothing here can write to GitHub (no `gh`, the connector does not connect,
-  the public API only reads). The owner closes it in the browser, or gives a way to write. The same rule then
-  applies to the trackers #63 to #66: each closes when its children have.
+- **#62's children (#2 to #19): ANSWERED** (owner, 2026-11-19): close #13 now, and the other 17 **after their
+  phone checks**. **#13 is CLOSED** (2026-11-19, with a note naming its merge commit). The other 17 stay open until
+  someone has walked their phone boxes on `nexton-demo`; the trackers #63 to #66 close when their children have.
 - **#35 rounding: ANSWERED, two decimals** (owner, 2026-11-19): built and merged (`30dd634`). Nothing left.
 - **#35 Lao tile label: ANSWERED, `ໂອທີ`** (owner, 2026-11-19): built and merged (`12b3019`). Nothing left.
 - The older questions in `NEXT_ACTIONS.md` "Waiting for the owner".
@@ -62,7 +61,8 @@ Waiting for other people:
   `POST /uploads` returns as `url` (the App loads it as it is, so #73's photo shows only if the phone can reach it).
 
 Known risks to keep in mind:
-- GitHub issues #2 to #76 are all open although their work is merged; closing them is the owner's.
+- GitHub issues #2 to #76 are open although their work is merged, except #13 (closed 2026-11-19). Each closes on
+  the owner's say, after its phone check.
 - #35's phone check needs an approved, clocked OT on `nexton-demo` first: the backend says no company has one yet.
 - Follow-ups proposed and not filed: see `NEXT_ACTIONS.md` "Next", item 2.
 
@@ -144,6 +144,10 @@ curl -s "https://api.github.com/repos/aleeyang2015/Nexton/pulls?state=all&per_pa
 
 The public API allows about 60 requests an hour without a login. It can read; it cannot create a PR, comment or
 close an issue. Those are the owner's to do, or need a login the owner provides.
+
+Since 2026-11-19 the GitHub CLI is installed and signed in as the owner (`gh`, scopes `repo`): `gh issue view <n>
+--comments` reads without the hourly limit, and it can comment and close. Close or comment only when the owner has
+said so for that issue.
 
 ## 6. Read the next issue, with its comments
 
