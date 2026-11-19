@@ -121,7 +121,9 @@ void main() {
 
       await pumpPage(tester, initial: pending);
 
-      expect(find.text(en.leaveRequestGone), findsOneWidget);
+      // #53's text: a push can open a request that is gone or not theirs.
+      expect(find.text(en.pushItemUnavailable), findsOneWidget);
+      expect(find.text(en.leaveRequestGone), findsNothing);
       expect(find.text(en.retry), findsNothing);
       expect(find.text('Family trip'), findsNothing);
       expect(find.byIcon(Icons.arrow_back_ios), findsOneWidget);

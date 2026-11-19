@@ -142,7 +142,11 @@ class PushNotificationRepositoryImpl extends BaseRepository
   @override
   FutureResult<Unit> showForeground(PushMessage message) {
     return guard(() async {
-      if (Platform.isAndroid && message.hasContent) {
+      // Android only: iOS shows a foreground push by itself. Asked through
+      // `defaultTargetPlatform` (the same answer on a phone), so a test can
+      // say which phone it is.
+      if (defaultTargetPlatform == TargetPlatform.android &&
+          message.hasContent) {
         await _localNotifications.show(message);
       }
       return Unit.instance;

@@ -185,7 +185,7 @@ void main() {
       await pumpAt(tester, '/time-off/request/req-waiting/edit');
       await tester.pump();
 
-      expect(find.text(en.leaveRequestGone), findsOneWidget);
+      expect(find.text(en.pushItemUnavailable), findsOneWidget);
       expect(find.text(en.leaveEditAction), findsOneWidget); // the title only
     });
 
