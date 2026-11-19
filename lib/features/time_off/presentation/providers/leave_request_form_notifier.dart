@@ -36,11 +36,28 @@ class LeaveRequestFormNotifier
   LeaveRequestFormState build(String? arg) {
     ref.watch(leaveDraftOwnerProvider);
     // The same notifier is built again for the next user: nothing of the
-    // last form stays, and an upload still on its way finds its form gone.
+    // last form stays.
     _stale = false;
     _seededFrom = null;
     _form++;
+    _builds++;
     return const LeaveRequestFormState();
+  }
+
+  /// Counts the times the form was built: once, then again each time the
+  /// signed-in user changed.
+  int _builds = 0;
+
+  /// True when the form was built again since [builds] was read: an upload
+  /// or a send that started under one user must leave the next user's form
+  /// alone.
+  ///
+  /// With no screen on the form it is built again only when next read, so
+  /// this reads it first: comparing the counter alone would say "the same
+  /// form" for one that is about to be emptied.
+  bool _rebuiltSince(int builds) {
+    state;
+    return builds != _builds;
   }
 
   /// Tells the form the company's days off, or null while they are not known
@@ -126,6 +143,7 @@ class LeaveRequestFormNotifier
   Future<void> addFile(LocalFile file) async {
     if (state.submission.isLoading) return;
     final form = _form;
+    final builds = _builds;
     state = state.copyWith(
       uploadingFiles: state.uploadingFiles + 1,
       fileFailure: null,
@@ -134,7 +152,7 @@ class LeaveRequestFormNotifier
       file: file,
       folder: UploadFolder.leave,
     ));
-    if (form != _form) return;
+    if (_rebuiltSince(builds) || form != _form) return;
     state = result.fold(
       (failure) => state.copyWith(
         uploadingFiles: _less(state.uploadingFiles),
@@ -148,8 +166,8 @@ class LeaveRequestFormNotifier
     );
   }
 
-  /// Counts the times the form was filled anew (seeded, or emptied after a
-  /// send), so a late upload can tell its form is gone.
+  /// Counts the times the form was filled anew (seeded, emptied after a
+  /// send, or built again), so a late upload can tell its form is gone.
   int _form = 0;
 
   /// Takes the file at [index] off the request.
@@ -330,12 +348,16 @@ class LeaveRequestFormNotifier
     );
 
     final editingId = state.editingRequestId;
+    final builds = _builds;
     final result = editingId == null
         ? await ref.read(submitLeaveRequestUseCaseProvider)(draft)
         : await ref.read(updateLeaveRequestUseCaseProvider)((
             id: editingId,
             draft: draft,
           ));
+    // Answered after its user signed out: the form is the next user's now,
+    // and so are the lists. Nothing of this answer belongs on them.
+    if (_rebuiltSince(builds)) return false;
 
     return result.fold(
       (failure) {
