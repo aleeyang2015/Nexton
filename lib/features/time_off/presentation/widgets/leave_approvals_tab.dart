@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../core/network/paged_list.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/paged_list_end.dart';
@@ -401,7 +402,8 @@ class _PendingApprovalCard extends ConsumerWidget {
     );
     if (note == null) return;
 
-    _report(l10n, await notifier.approve(request, note: note));
+    final outcome = await notifier.approve(request, note: note);
+    _report(context.mounted ? context : null, l10n, outcome);
   }
 
   // Everything the reject needs is taken before the dialog opens. While the
@@ -416,10 +418,20 @@ class _PendingApprovalCard extends ConsumerWidget {
     final reason = await RejectReasonDialog.show(context);
     if (reason == null) return;
 
-    _report(l10n, await notifier.reject(request, reason), rejected: true);
+    final outcome = await notifier.reject(request, reason);
+    _report(
+      context.mounted ? context : null,
+      l10n,
+      outcome,
+      rejected: true,
+    );
   }
 
+  /// [context] is the card's, when the card is still on screen. Only the
+  /// one refusal that has to be read and answered with OK needs it; without
+  /// it (the list reloaded and took the card away) that one is a toast too.
   void _report(
+    BuildContext? context,
     AppLocalizations l10n,
     LeaveDecisionOutcome outcome, {
     bool rejected = false,
@@ -432,6 +444,11 @@ class _PendingApprovalCard extends ConsumerWidget {
     }
     final text = LeaveCopy.decisionRefusal(l10n, outcome);
     if (text == null) return;
+
+    if (context != null && LeaveCopy.refusalNeedsOk(outcome)) {
+      AppDialog.warning(context, message: text, barrierDismissible: false);
+      return;
+    }
 
     switch (outcome.kind) {
       case LeaveDecisionKind.success:

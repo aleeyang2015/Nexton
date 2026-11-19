@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/paged_list.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/core/widgets/app_dialog.dart';
 import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
@@ -163,10 +164,32 @@ void main() {
       const Failure.validation(message: 'leaveInsufficientBalance'),
     );
 
+    // In a dialog that stays until OK is tapped, not a toast that is gone
+    // in three seconds: it is two sentences, and it says what to do next.
+    final dialog = find.byType(AppDialog);
+    expect(dialog, findsOneWidget);
+    expect(
+      find.descendant(
+        of: dialog,
+        matching: find.text(en.leaveApprovalInsufficientBalance),
+      ),
+      findsOneWidget,
+    );
     expect(find.text(en.leaveApprovalInsufficientBalance), findsOneWidget);
     // Not the employee's own "you don't have enough", nor the general toast.
     expect(find.text(en.leaveInsufficientBalance), findsNothing);
     expect(find.text(en.leaveApprovalDecideFailed), findsNothing);
+
+    // It does not go away by itself, nor by a tap beside it.
+    await tester.pump(const Duration(seconds: 10));
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pump();
+    expect(dialog, findsOneWidget);
+
+    await tester.tap(find.descendant(of: dialog, matching: find.text(en.ok)));
+    await tester.pumpAndSettle();
+
+    expect(dialog, findsNothing);
     expect(find.text('Approve'), findsOneWidget);
     expect(find.text('Reject'), findsOneWidget);
     expect(repository.myApprovalsCalls, hasLength(before));
