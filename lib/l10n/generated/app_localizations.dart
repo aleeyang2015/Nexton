@@ -4153,6 +4153,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} new'**
   String notificationsUnreadCount(int count);
+
+  /// No description provided for @pushItemUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This item is no longer there, or it is not yours to see.'**
+  String get pushItemUnavailable;
 }
 
 class _AppLocalizationsDelegate

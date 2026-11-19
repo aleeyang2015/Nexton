@@ -385,7 +385,11 @@ void main() {
 
       await openPage(tester, locale: 'lo', id: 'someone-elses');
 
-      expect(find.text('ຄຳຂໍໂອທີນີ້ບໍ່ມີແລ້ວ'), findsOneWidget);
+      // #53's text: gone, or not this user's to see.
+      expect(
+        find.text('ລາຍການນີ້ບໍ່ມີແລ້ວ ຫຼື ທ່ານບໍ່ມີສິດເບິ່ງ.'),
+        findsOneWidget,
+      );
       expect(find.byType(OtRequestDetailPage), findsNothing);
       expect(find.byType(OtListPage), findsOneWidget);
       await tester.pumpAndSettle(const Duration(seconds: 5));

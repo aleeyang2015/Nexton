@@ -41,7 +41,9 @@ class OtRequestDetailPage extends ConsumerWidget {
     ref.listen(provider, (previous, next) {
       if (!next.hasError || next.isLoading) return;
       if (OtDetailNotifier.isGone(next.error)) {
-        AppToast.error(l10n.otRequestGone);
+        // Gone, or not this user's to see (a push opened on a shared
+        // phone): #53's text.
+        AppToast.error(l10n.pushItemUnavailable);
         _goBack(context);
       } else if (initial != null && previous?.hasError != true) {
         // The list's copy is on screen and the page's own load failed: say

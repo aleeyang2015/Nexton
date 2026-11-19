@@ -2292,4 +2292,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String notificationsUnreadCount(int count) {
     return '$count new';
   }
+
+  @override
+  String get pushItemUnavailable =>
+      'This item is no longer there, or it is not yours to see.';
 }

@@ -106,10 +106,10 @@ class TimeCorrectionHistoryDetailPage extends ConsumerWidget {
                         )
                       else if (detail.hasError && !detail.isLoading)
                         _LoadFailed(
-                          // Gone or not the user's: #37's text. No staff
+                          // Gone or not the user's: #53's text. No staff
                           // record: #11's. Neither has anything to retry.
                           message: gone
-                              ? l10n.apprRequestNotFound
+                              ? l10n.pushItemUnavailable
                               : notLinked
                               ? error.localize(l10n)
                               : l10n.timeCorrectionDetailLoadFailed,
