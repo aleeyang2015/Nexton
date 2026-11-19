@@ -12,8 +12,7 @@ part of 'leave_request_form_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$LeaveRequestFormState {
@@ -46,14 +45,11 @@ mixin _$LeaveRequestFormState {
   /// form keeps offering it even after HR switched it off.
   String? get originalLeaveTypeId => throw _privateConstructorUsedError;
 
-  /// Edit mode only: how many days the request asked for when it was
-  /// opened. The balance is checked on an edit only when the count grows
-  /// past this, as the server does.
-  double? get originalTotalDays => throw _privateConstructorUsedError;
-
-  /// Edit mode only: the year the request's days were charged to when it
-  /// was opened (the year of its first leave day).
-  int? get originalBalanceYear => throw _privateConstructorUsedError;
+  /// Edit mode only: how many days the request had in each year when it
+  /// was opened. Each leave day is charged to its own year, and an edit is
+  /// checked against a year's balance only when it asks for more days in
+  /// that year than this, as the server does.
+  Map<int, double> get originalDaysByYear => throw _privateConstructorUsedError;
 
   /// The request's files: on an edit, those it had (as the server sent
   /// them), then any uploaded here.
@@ -78,41 +74,36 @@ mixin _$LeaveRequestFormState {
 
 /// @nodoc
 abstract class $LeaveRequestFormStateCopyWith<$Res> {
-  factory $LeaveRequestFormStateCopyWith(
-    LeaveRequestFormState value,
-    $Res Function(LeaveRequestFormState) then,
-  ) = _$LeaveRequestFormStateCopyWithImpl<$Res, LeaveRequestFormState>;
+  factory $LeaveRequestFormStateCopyWith(LeaveRequestFormState value,
+          $Res Function(LeaveRequestFormState) then) =
+      _$LeaveRequestFormStateCopyWithImpl<$Res, LeaveRequestFormState>;
   @useResult
-  $Res call({
-    String? editingRequestId,
-    String? leaveTypeId,
-    LeaveDaysMode mode,
-    List<DateTime> dates,
-    DateTime? rangeStart,
-    DateTime? rangeEnd,
-    LeaveDurationType durationType,
-    DateTime? returnToWorkOverride,
-    String reason,
-    CompanyDaysOff? daysOff,
-    bool typeRefused,
-    String? originalLeaveTypeId,
-    double? originalTotalDays,
-    int? originalBalanceYear,
-    List<LeaveAttachment> files,
-    bool filesChanged,
-    int uploadingFiles,
-    Failure? fileFailure,
-    AsyncValue<LeaveRequest?> submission,
-  });
+  $Res call(
+      {String? editingRequestId,
+      String? leaveTypeId,
+      LeaveDaysMode mode,
+      List<DateTime> dates,
+      DateTime? rangeStart,
+      DateTime? rangeEnd,
+      LeaveDurationType durationType,
+      DateTime? returnToWorkOverride,
+      String reason,
+      CompanyDaysOff? daysOff,
+      bool typeRefused,
+      String? originalLeaveTypeId,
+      Map<int, double> originalDaysByYear,
+      List<LeaveAttachment> files,
+      bool filesChanged,
+      int uploadingFiles,
+      Failure? fileFailure,
+      AsyncValue<LeaveRequest?> submission});
 
   $FailureCopyWith<$Res>? get fileFailure;
 }
 
 /// @nodoc
-class _$LeaveRequestFormStateCopyWithImpl<
-  $Res,
-  $Val extends LeaveRequestFormState
->
+class _$LeaveRequestFormStateCopyWithImpl<$Res,
+        $Val extends LeaveRequestFormState>
     implements $LeaveRequestFormStateCopyWith<$Res> {
   _$LeaveRequestFormStateCopyWithImpl(this._value, this._then);
 
@@ -136,95 +127,87 @@ class _$LeaveRequestFormStateCopyWithImpl<
     Object? daysOff = freezed,
     Object? typeRefused = null,
     Object? originalLeaveTypeId = freezed,
-    Object? originalTotalDays = freezed,
-    Object? originalBalanceYear = freezed,
+    Object? originalDaysByYear = null,
     Object? files = null,
     Object? filesChanged = null,
     Object? uploadingFiles = null,
     Object? fileFailure = freezed,
     Object? submission = null,
   }) {
-    return _then(
-      _value.copyWith(
-            editingRequestId: freezed == editingRequestId
-                ? _value.editingRequestId
-                : editingRequestId // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            leaveTypeId: freezed == leaveTypeId
-                ? _value.leaveTypeId
-                : leaveTypeId // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            mode: null == mode
-                ? _value.mode
-                : mode // ignore: cast_nullable_to_non_nullable
-                      as LeaveDaysMode,
-            dates: null == dates
-                ? _value.dates
-                : dates // ignore: cast_nullable_to_non_nullable
-                      as List<DateTime>,
-            rangeStart: freezed == rangeStart
-                ? _value.rangeStart
-                : rangeStart // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-            rangeEnd: freezed == rangeEnd
-                ? _value.rangeEnd
-                : rangeEnd // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-            durationType: null == durationType
-                ? _value.durationType
-                : durationType // ignore: cast_nullable_to_non_nullable
-                      as LeaveDurationType,
-            returnToWorkOverride: freezed == returnToWorkOverride
-                ? _value.returnToWorkOverride
-                : returnToWorkOverride // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-            reason: null == reason
-                ? _value.reason
-                : reason // ignore: cast_nullable_to_non_nullable
-                      as String,
-            daysOff: freezed == daysOff
-                ? _value.daysOff
-                : daysOff // ignore: cast_nullable_to_non_nullable
-                      as CompanyDaysOff?,
-            typeRefused: null == typeRefused
-                ? _value.typeRefused
-                : typeRefused // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            originalLeaveTypeId: freezed == originalLeaveTypeId
-                ? _value.originalLeaveTypeId
-                : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            originalTotalDays: freezed == originalTotalDays
-                ? _value.originalTotalDays
-                : originalTotalDays // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            originalBalanceYear: freezed == originalBalanceYear
-                ? _value.originalBalanceYear
-                : originalBalanceYear // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            files: null == files
-                ? _value.files
-                : files // ignore: cast_nullable_to_non_nullable
-                      as List<LeaveAttachment>,
-            filesChanged: null == filesChanged
-                ? _value.filesChanged
-                : filesChanged // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            uploadingFiles: null == uploadingFiles
-                ? _value.uploadingFiles
-                : uploadingFiles // ignore: cast_nullable_to_non_nullable
-                      as int,
-            fileFailure: freezed == fileFailure
-                ? _value.fileFailure
-                : fileFailure // ignore: cast_nullable_to_non_nullable
-                      as Failure?,
-            submission: null == submission
-                ? _value.submission
-                : submission // ignore: cast_nullable_to_non_nullable
-                      as AsyncValue<LeaveRequest?>,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      editingRequestId: freezed == editingRequestId
+          ? _value.editingRequestId
+          : editingRequestId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      leaveTypeId: freezed == leaveTypeId
+          ? _value.leaveTypeId
+          : leaveTypeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      mode: null == mode
+          ? _value.mode
+          : mode // ignore: cast_nullable_to_non_nullable
+              as LeaveDaysMode,
+      dates: null == dates
+          ? _value.dates
+          : dates // ignore: cast_nullable_to_non_nullable
+              as List<DateTime>,
+      rangeStart: freezed == rangeStart
+          ? _value.rangeStart
+          : rangeStart // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      rangeEnd: freezed == rangeEnd
+          ? _value.rangeEnd
+          : rangeEnd // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      durationType: null == durationType
+          ? _value.durationType
+          : durationType // ignore: cast_nullable_to_non_nullable
+              as LeaveDurationType,
+      returnToWorkOverride: freezed == returnToWorkOverride
+          ? _value.returnToWorkOverride
+          : returnToWorkOverride // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      reason: null == reason
+          ? _value.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as String,
+      daysOff: freezed == daysOff
+          ? _value.daysOff
+          : daysOff // ignore: cast_nullable_to_non_nullable
+              as CompanyDaysOff?,
+      typeRefused: null == typeRefused
+          ? _value.typeRefused
+          : typeRefused // ignore: cast_nullable_to_non_nullable
+              as bool,
+      originalLeaveTypeId: freezed == originalLeaveTypeId
+          ? _value.originalLeaveTypeId
+          : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      originalDaysByYear: null == originalDaysByYear
+          ? _value.originalDaysByYear
+          : originalDaysByYear // ignore: cast_nullable_to_non_nullable
+              as Map<int, double>,
+      files: null == files
+          ? _value.files
+          : files // ignore: cast_nullable_to_non_nullable
+              as List<LeaveAttachment>,
+      filesChanged: null == filesChanged
+          ? _value.filesChanged
+          : filesChanged // ignore: cast_nullable_to_non_nullable
+              as bool,
+      uploadingFiles: null == uploadingFiles
+          ? _value.uploadingFiles
+          : uploadingFiles // ignore: cast_nullable_to_non_nullable
+              as int,
+      fileFailure: freezed == fileFailure
+          ? _value.fileFailure
+          : fileFailure // ignore: cast_nullable_to_non_nullable
+              as Failure?,
+      submission: null == submission
+          ? _value.submission
+          : submission // ignore: cast_nullable_to_non_nullable
+              as AsyncValue<LeaveRequest?>,
+    ) as $Val);
   }
 
   @override
@@ -244,32 +227,30 @@ class _$LeaveRequestFormStateCopyWithImpl<
 abstract class _$$LeaveRequestFormStateImplCopyWith<$Res>
     implements $LeaveRequestFormStateCopyWith<$Res> {
   factory _$$LeaveRequestFormStateImplCopyWith(
-    _$LeaveRequestFormStateImpl value,
-    $Res Function(_$LeaveRequestFormStateImpl) then,
-  ) = __$$LeaveRequestFormStateImplCopyWithImpl<$Res>;
+          _$LeaveRequestFormStateImpl value,
+          $Res Function(_$LeaveRequestFormStateImpl) then) =
+      __$$LeaveRequestFormStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String? editingRequestId,
-    String? leaveTypeId,
-    LeaveDaysMode mode,
-    List<DateTime> dates,
-    DateTime? rangeStart,
-    DateTime? rangeEnd,
-    LeaveDurationType durationType,
-    DateTime? returnToWorkOverride,
-    String reason,
-    CompanyDaysOff? daysOff,
-    bool typeRefused,
-    String? originalLeaveTypeId,
-    double? originalTotalDays,
-    int? originalBalanceYear,
-    List<LeaveAttachment> files,
-    bool filesChanged,
-    int uploadingFiles,
-    Failure? fileFailure,
-    AsyncValue<LeaveRequest?> submission,
-  });
+  $Res call(
+      {String? editingRequestId,
+      String? leaveTypeId,
+      LeaveDaysMode mode,
+      List<DateTime> dates,
+      DateTime? rangeStart,
+      DateTime? rangeEnd,
+      LeaveDurationType durationType,
+      DateTime? returnToWorkOverride,
+      String reason,
+      CompanyDaysOff? daysOff,
+      bool typeRefused,
+      String? originalLeaveTypeId,
+      Map<int, double> originalDaysByYear,
+      List<LeaveAttachment> files,
+      bool filesChanged,
+      int uploadingFiles,
+      Failure? fileFailure,
+      AsyncValue<LeaveRequest?> submission});
 
   @override
   $FailureCopyWith<$Res>? get fileFailure;
@@ -277,13 +258,12 @@ abstract class _$$LeaveRequestFormStateImplCopyWith<$Res>
 
 /// @nodoc
 class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
-    extends
-        _$LeaveRequestFormStateCopyWithImpl<$Res, _$LeaveRequestFormStateImpl>
+    extends _$LeaveRequestFormStateCopyWithImpl<$Res,
+        _$LeaveRequestFormStateImpl>
     implements _$$LeaveRequestFormStateImplCopyWith<$Res> {
-  __$$LeaveRequestFormStateImplCopyWithImpl(
-    _$LeaveRequestFormStateImpl _value,
-    $Res Function(_$LeaveRequestFormStateImpl) _then,
-  ) : super(_value, _then);
+  __$$LeaveRequestFormStateImplCopyWithImpl(_$LeaveRequestFormStateImpl _value,
+      $Res Function(_$LeaveRequestFormStateImpl) _then)
+      : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -300,123 +280,116 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
     Object? daysOff = freezed,
     Object? typeRefused = null,
     Object? originalLeaveTypeId = freezed,
-    Object? originalTotalDays = freezed,
-    Object? originalBalanceYear = freezed,
+    Object? originalDaysByYear = null,
     Object? files = null,
     Object? filesChanged = null,
     Object? uploadingFiles = null,
     Object? fileFailure = freezed,
     Object? submission = null,
   }) {
-    return _then(
-      _$LeaveRequestFormStateImpl(
-        editingRequestId: freezed == editingRequestId
-            ? _value.editingRequestId
-            : editingRequestId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        leaveTypeId: freezed == leaveTypeId
-            ? _value.leaveTypeId
-            : leaveTypeId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        mode: null == mode
-            ? _value.mode
-            : mode // ignore: cast_nullable_to_non_nullable
-                  as LeaveDaysMode,
-        dates: null == dates
-            ? _value._dates
-            : dates // ignore: cast_nullable_to_non_nullable
-                  as List<DateTime>,
-        rangeStart: freezed == rangeStart
-            ? _value.rangeStart
-            : rangeStart // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-        rangeEnd: freezed == rangeEnd
-            ? _value.rangeEnd
-            : rangeEnd // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-        durationType: null == durationType
-            ? _value.durationType
-            : durationType // ignore: cast_nullable_to_non_nullable
-                  as LeaveDurationType,
-        returnToWorkOverride: freezed == returnToWorkOverride
-            ? _value.returnToWorkOverride
-            : returnToWorkOverride // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-        reason: null == reason
-            ? _value.reason
-            : reason // ignore: cast_nullable_to_non_nullable
-                  as String,
-        daysOff: freezed == daysOff
-            ? _value.daysOff
-            : daysOff // ignore: cast_nullable_to_non_nullable
-                  as CompanyDaysOff?,
-        typeRefused: null == typeRefused
-            ? _value.typeRefused
-            : typeRefused // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        originalLeaveTypeId: freezed == originalLeaveTypeId
-            ? _value.originalLeaveTypeId
-            : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        originalTotalDays: freezed == originalTotalDays
-            ? _value.originalTotalDays
-            : originalTotalDays // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        originalBalanceYear: freezed == originalBalanceYear
-            ? _value.originalBalanceYear
-            : originalBalanceYear // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        files: null == files
-            ? _value._files
-            : files // ignore: cast_nullable_to_non_nullable
-                  as List<LeaveAttachment>,
-        filesChanged: null == filesChanged
-            ? _value.filesChanged
-            : filesChanged // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        uploadingFiles: null == uploadingFiles
-            ? _value.uploadingFiles
-            : uploadingFiles // ignore: cast_nullable_to_non_nullable
-                  as int,
-        fileFailure: freezed == fileFailure
-            ? _value.fileFailure
-            : fileFailure // ignore: cast_nullable_to_non_nullable
-                  as Failure?,
-        submission: null == submission
-            ? _value.submission
-            : submission // ignore: cast_nullable_to_non_nullable
-                  as AsyncValue<LeaveRequest?>,
-      ),
-    );
+    return _then(_$LeaveRequestFormStateImpl(
+      editingRequestId: freezed == editingRequestId
+          ? _value.editingRequestId
+          : editingRequestId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      leaveTypeId: freezed == leaveTypeId
+          ? _value.leaveTypeId
+          : leaveTypeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      mode: null == mode
+          ? _value.mode
+          : mode // ignore: cast_nullable_to_non_nullable
+              as LeaveDaysMode,
+      dates: null == dates
+          ? _value._dates
+          : dates // ignore: cast_nullable_to_non_nullable
+              as List<DateTime>,
+      rangeStart: freezed == rangeStart
+          ? _value.rangeStart
+          : rangeStart // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      rangeEnd: freezed == rangeEnd
+          ? _value.rangeEnd
+          : rangeEnd // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      durationType: null == durationType
+          ? _value.durationType
+          : durationType // ignore: cast_nullable_to_non_nullable
+              as LeaveDurationType,
+      returnToWorkOverride: freezed == returnToWorkOverride
+          ? _value.returnToWorkOverride
+          : returnToWorkOverride // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      reason: null == reason
+          ? _value.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as String,
+      daysOff: freezed == daysOff
+          ? _value.daysOff
+          : daysOff // ignore: cast_nullable_to_non_nullable
+              as CompanyDaysOff?,
+      typeRefused: null == typeRefused
+          ? _value.typeRefused
+          : typeRefused // ignore: cast_nullable_to_non_nullable
+              as bool,
+      originalLeaveTypeId: freezed == originalLeaveTypeId
+          ? _value.originalLeaveTypeId
+          : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      originalDaysByYear: null == originalDaysByYear
+          ? _value._originalDaysByYear
+          : originalDaysByYear // ignore: cast_nullable_to_non_nullable
+              as Map<int, double>,
+      files: null == files
+          ? _value._files
+          : files // ignore: cast_nullable_to_non_nullable
+              as List<LeaveAttachment>,
+      filesChanged: null == filesChanged
+          ? _value.filesChanged
+          : filesChanged // ignore: cast_nullable_to_non_nullable
+              as bool,
+      uploadingFiles: null == uploadingFiles
+          ? _value.uploadingFiles
+          : uploadingFiles // ignore: cast_nullable_to_non_nullable
+              as int,
+      fileFailure: freezed == fileFailure
+          ? _value.fileFailure
+          : fileFailure // ignore: cast_nullable_to_non_nullable
+              as Failure?,
+      submission: null == submission
+          ? _value.submission
+          : submission // ignore: cast_nullable_to_non_nullable
+              as AsyncValue<LeaveRequest?>,
+    ));
   }
 }
 
 /// @nodoc
 
 class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
-  const _$LeaveRequestFormStateImpl({
-    this.editingRequestId,
-    this.leaveTypeId,
-    this.mode = LeaveDaysMode.range,
-    final List<DateTime> dates = const <DateTime>[],
-    this.rangeStart,
-    this.rangeEnd,
-    this.durationType = LeaveDurationType.fullDay,
-    this.returnToWorkOverride,
-    this.reason = '',
-    this.daysOff,
-    this.typeRefused = false,
-    this.originalLeaveTypeId,
-    this.originalTotalDays,
-    this.originalBalanceYear,
-    final List<LeaveAttachment> files = const <LeaveAttachment>[],
-    this.filesChanged = false,
-    this.uploadingFiles = 0,
-    this.fileFailure,
-    this.submission = const AsyncValue<LeaveRequest?>.data(null),
-  }) : _dates = dates,
-       _files = files,
-       super._();
+  const _$LeaveRequestFormStateImpl(
+      {this.editingRequestId,
+      this.leaveTypeId,
+      this.mode = LeaveDaysMode.range,
+      final List<DateTime> dates = const <DateTime>[],
+      this.rangeStart,
+      this.rangeEnd,
+      this.durationType = LeaveDurationType.fullDay,
+      this.returnToWorkOverride,
+      this.reason = '',
+      this.daysOff,
+      this.typeRefused = false,
+      this.originalLeaveTypeId,
+      final Map<int, double> originalDaysByYear = const <int, double>{},
+      final List<LeaveAttachment> files = const <LeaveAttachment>[],
+      this.filesChanged = false,
+      this.uploadingFiles = 0,
+      this.fileFailure,
+      this.submission = const AsyncValue<LeaveRequest?>.data(null)})
+      : _dates = dates,
+        _originalDaysByYear = originalDaysByYear,
+        _files = files,
+        super._();
 
   /// Non-null once [LeaveRequestFormNotifier.seed] has run — i.e. edit mode.
   @override
@@ -471,16 +444,24 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   @override
   final String? originalLeaveTypeId;
 
-  /// Edit mode only: how many days the request asked for when it was
-  /// opened. The balance is checked on an edit only when the count grows
-  /// past this, as the server does.
-  @override
-  final double? originalTotalDays;
+  /// Edit mode only: how many days the request had in each year when it
+  /// was opened. Each leave day is charged to its own year, and an edit is
+  /// checked against a year's balance only when it asks for more days in
+  /// that year than this, as the server does.
+  final Map<int, double> _originalDaysByYear;
 
-  /// Edit mode only: the year the request's days were charged to when it
-  /// was opened (the year of its first leave day).
+  /// Edit mode only: how many days the request had in each year when it
+  /// was opened. Each leave day is charged to its own year, and an edit is
+  /// checked against a year's balance only when it asks for more days in
+  /// that year than this, as the server does.
   @override
-  final int? originalBalanceYear;
+  @JsonKey()
+  Map<int, double> get originalDaysByYear {
+    if (_originalDaysByYear is EqualUnmodifiableMapView)
+      return _originalDaysByYear;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_originalDaysByYear);
+  }
 
   /// The request's files: on an edit, those it had (as the server sent
   /// them), then any uploaded here.
@@ -516,7 +497,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
 
   @override
   String toString() {
-    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, typeRefused: $typeRefused, originalLeaveTypeId: $originalLeaveTypeId, originalTotalDays: $originalTotalDays, originalBalanceYear: $originalBalanceYear, files: $files, filesChanged: $filesChanged, uploadingFiles: $uploadingFiles, fileFailure: $fileFailure, submission: $submission)';
+    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, typeRefused: $typeRefused, originalLeaveTypeId: $originalLeaveTypeId, originalDaysByYear: $originalDaysByYear, files: $files, filesChanged: $filesChanged, uploadingFiles: $uploadingFiles, fileFailure: $fileFailure, submission: $submission)';
   }
 
   @override
@@ -544,10 +525,8 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
                 other.typeRefused == typeRefused) &&
             (identical(other.originalLeaveTypeId, originalLeaveTypeId) ||
                 other.originalLeaveTypeId == originalLeaveTypeId) &&
-            (identical(other.originalTotalDays, originalTotalDays) ||
-                other.originalTotalDays == originalTotalDays) &&
-            (identical(other.originalBalanceYear, originalBalanceYear) ||
-                other.originalBalanceYear == originalBalanceYear) &&
+            const DeepCollectionEquality()
+                .equals(other._originalDaysByYear, _originalDaysByYear) &&
             const DeepCollectionEquality().equals(other._files, _files) &&
             (identical(other.filesChanged, filesChanged) ||
                 other.filesChanged == filesChanged) &&
@@ -560,65 +539,60 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   }
 
   @override
-  int get hashCode => Object.hashAll([
-    runtimeType,
-    editingRequestId,
-    leaveTypeId,
-    mode,
-    const DeepCollectionEquality().hash(_dates),
-    rangeStart,
-    rangeEnd,
-    durationType,
-    returnToWorkOverride,
-    reason,
-    daysOff,
-    typeRefused,
-    originalLeaveTypeId,
-    originalTotalDays,
-    originalBalanceYear,
-    const DeepCollectionEquality().hash(_files),
-    filesChanged,
-    uploadingFiles,
-    fileFailure,
-    submission,
-  ]);
+  int get hashCode => Object.hash(
+      runtimeType,
+      editingRequestId,
+      leaveTypeId,
+      mode,
+      const DeepCollectionEquality().hash(_dates),
+      rangeStart,
+      rangeEnd,
+      durationType,
+      returnToWorkOverride,
+      reason,
+      daysOff,
+      typeRefused,
+      originalLeaveTypeId,
+      const DeepCollectionEquality().hash(_originalDaysByYear),
+      const DeepCollectionEquality().hash(_files),
+      filesChanged,
+      uploadingFiles,
+      fileFailure,
+      submission);
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$LeaveRequestFormStateImplCopyWith<_$LeaveRequestFormStateImpl>
-  get copyWith =>
-      __$$LeaveRequestFormStateImplCopyWithImpl<_$LeaveRequestFormStateImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith => __$$LeaveRequestFormStateImplCopyWithImpl<
+          _$LeaveRequestFormStateImpl>(this, _$identity);
 }
 
 abstract class _LeaveRequestFormState extends LeaveRequestFormState {
-  const factory _LeaveRequestFormState({
-    final String? editingRequestId,
-    final String? leaveTypeId,
-    final LeaveDaysMode mode,
-    final List<DateTime> dates,
-    final DateTime? rangeStart,
-    final DateTime? rangeEnd,
-    final LeaveDurationType durationType,
-    final DateTime? returnToWorkOverride,
-    final String reason,
-    final CompanyDaysOff? daysOff,
-    final bool typeRefused,
-    final String? originalLeaveTypeId,
-    final double? originalTotalDays,
-    final int? originalBalanceYear,
-    final List<LeaveAttachment> files,
-    final bool filesChanged,
-    final int uploadingFiles,
-    final Failure? fileFailure,
-    final AsyncValue<LeaveRequest?> submission,
-  }) = _$LeaveRequestFormStateImpl;
+  const factory _LeaveRequestFormState(
+          {final String? editingRequestId,
+          final String? leaveTypeId,
+          final LeaveDaysMode mode,
+          final List<DateTime> dates,
+          final DateTime? rangeStart,
+          final DateTime? rangeEnd,
+          final LeaveDurationType durationType,
+          final DateTime? returnToWorkOverride,
+          final String reason,
+          final CompanyDaysOff? daysOff,
+          final bool typeRefused,
+          final String? originalLeaveTypeId,
+          final Map<int, double> originalDaysByYear,
+          final List<LeaveAttachment> files,
+          final bool filesChanged,
+          final int uploadingFiles,
+          final Failure? fileFailure,
+          final AsyncValue<LeaveRequest?> submission}) =
+      _$LeaveRequestFormStateImpl;
   const _LeaveRequestFormState._() : super._();
 
   @override
+
   /// Non-null once [LeaveRequestFormNotifier.seed] has run — i.e. edit mode.
   String? get editingRequestId;
   @override
@@ -626,9 +600,11 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   @override
   LeaveDaysMode get mode;
   @override
+
   /// Separate-days mode: the days picked, sorted.
   List<DateTime> get dates;
   @override
+
   /// Range mode: the first and the last day asked for, both included.
   DateTime? get rangeStart;
   @override
@@ -640,40 +616,45 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   @override
   String get reason;
   @override
+
   /// The company's days off, or null while they are not known (still
   /// loading, or the load failed). Handed in by the form on screen
   /// (`setDaysOff`) so the counts below need nothing passed to them.
   CompanyDaysOff? get daysOff;
   @override
+
   /// The server refused the chosen leave type as switched off or gone.
   /// Until the user picks a type again nothing is sent, and the form does
   /// not pick one for them.
   bool get typeRefused;
   @override
+
   /// Edit mode only: the leave type the request had when it was opened. The
   /// form keeps offering it even after HR switched it off.
   String? get originalLeaveTypeId;
   @override
-  /// Edit mode only: how many days the request asked for when it was
-  /// opened. The balance is checked on an edit only when the count grows
-  /// past this, as the server does.
-  double? get originalTotalDays;
+
+  /// Edit mode only: how many days the request had in each year when it
+  /// was opened. Each leave day is charged to its own year, and an edit is
+  /// checked against a year's balance only when it asks for more days in
+  /// that year than this, as the server does.
+  Map<int, double> get originalDaysByYear;
   @override
-  /// Edit mode only: the year the request's days were charged to when it
-  /// was opened (the year of its first leave day).
-  int? get originalBalanceYear;
-  @override
+
   /// The request's files: on an edit, those it had (as the server sent
   /// them), then any uploaded here.
   List<LeaveAttachment> get files;
   @override
+
   /// True once a file was added or removed here: only then does an edit
   /// send `attachments` (the whole list), which replaces the request's.
   bool get filesChanged;
   @override
+
   /// How many files are being uploaded now. Nothing is sent meanwhile.
   int get uploadingFiles;
   @override
+
   /// Why the last upload failed; cleared by the next pick.
   Failure? get fileFailure;
   @override
@@ -681,5 +662,5 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   @override
   @JsonKey(ignore: true)
   _$$LeaveRequestFormStateImplCopyWith<_$LeaveRequestFormStateImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }

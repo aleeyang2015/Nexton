@@ -188,18 +188,23 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     ref.listen(companyDaysOffNotifierProvider, (_, next) {
       _notifier.setDaysOff(next.valueOrNull);
     });
-    // A request is charged to the year of its first leave day, so that is the
-    // year whose balance the card shows and the form checks.
-    final balanceYear = LeaveFormRules.balanceYear(
+    // Each leave day is charged to its own year, so the form reads the
+    // balance of every year the request touches: two for a leave across the
+    // new year, one otherwise.
+    final balanceYears = LeaveFormRules.balanceYears(
       state,
       ref.watch(clockProvider)(),
     );
-    final balancesAsync = ref.watch(leaveBalancesNotifierProvider(balanceYear));
-    final balances = balancesAsync.valueOrNull;
+    final balancesByYear = {
+      for (final year in balanceYears)
+        year: ref.watch(leaveBalancesNotifierProvider(year)),
+    };
     // Each year is loaded the first time a day in it is picked. Until it
     // answers, what is left is not known, and the form waits rather than send
     // a request the server is about to refuse.
-    final balanceLoading = balancesAsync.isLoading && !balancesAsync.hasValue;
+    final balanceLoading = balancesByYear.values.any(
+      (balances) => balances.isLoading && !balances.hasValue,
+    );
 
     final allTypes = typesAsync.valueOrNull ?? const <LeaveType>[];
     // Only the types HR has switched on, plus, when editing, the request's
@@ -209,8 +214,27 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       keepId: state.originalLeaveTypeId,
     );
     final selectedType = _selectedType(types, state.leaveTypeId);
-    final balance = leaveBalanceFor(balances, state.leaveTypeId);
-    final remaining = LeaveFormRules.remainingDays(balances, state.leaveTypeId);
+    final remainingByYear = {
+      for (final entry in balancesByYear.entries)
+        entry.key: LeaveFormRules.remainingDays(
+          entry.value.valueOrNull,
+          state.leaveTypeId,
+        ),
+    };
+    // The card shows the year that cannot pay for its days, so the user sees
+    // which balance is short; otherwise the first year.
+    final cardYear =
+        LeaveFormRules.shortYear(
+          state: state,
+          type: selectedType,
+          remainingByYear: remainingByYear,
+        ) ??
+        balanceYears.first;
+    final balance = leaveBalanceFor(
+      balancesByYear[cardYear]?.valueOrNull,
+      state.leaveTypeId,
+    );
+    final remaining = remainingByYear[cardYear];
 
     // Seed the reason field once, and default the leave type to the first one.
     if (!_reasonSeeded && state.reason.isNotEmpty) {
@@ -243,7 +267,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       LeaveFormRules.block(
         state: state,
         type: selectedType,
-        remaining: remaining,
+        remainingByYear: remainingByYear,
       ),
       selectedType,
     );
@@ -266,7 +290,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
           _BalanceCard(
             balance: balance,
             remaining: selectedType == null ? null : remaining,
-            year: balanceYear,
+            year: cardYear,
           ),
           heightBx(h: 16),
           _SectionCard(

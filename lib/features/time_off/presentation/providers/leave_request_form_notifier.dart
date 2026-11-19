@@ -78,10 +78,26 @@ class LeaveRequestFormNotifier
       returnToWorkOverride: request.returnDate,
       reason: request.reason,
       originalLeaveTypeId: request.leaveType.id,
-      originalTotalDays: request.totalDays,
-      originalBalanceYear: (days.isEmpty ? request.startDate : days.first).year,
+      originalDaysByYear: _daysByYear(request, days),
       files: request.attachments,
     );
+  }
+
+  /// How many days [request] has in each year: each of its [days] is
+  /// charged to its own year. A half day is the one day's half. A request
+  /// that came without its days is counted whole in the year it starts.
+  static Map<int, double> _daysByYear(
+    LeaveRequest request,
+    List<DateTime> days,
+  ) {
+    if (days.isEmpty) return {request.startDate.year: request.totalDays};
+    if (request.durationType.isHalfDay) return {days.first.year: 0.5};
+
+    final byYear = <int, double>{};
+    for (final day in days) {
+      byYear[day.year] = (byYear[day.year] ?? 0) + 1;
+    }
+    return byYear;
   }
 
   /// Uploads [file] (`POST /uploads`, folder `leave`) and adds it to the

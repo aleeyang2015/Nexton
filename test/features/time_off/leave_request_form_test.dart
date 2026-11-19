@@ -367,16 +367,135 @@ void main() {
       expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
     });
 
-    testWidgets('a leave across the new year is checked against its first '
-        'year', (tester) async {
-      await pumpForm(tester);
+    group('a leave across the new year: each day is charged to its own '
+        'year (Nexton-Backend#193)', () {
+      /// 30 and 31 December 2026, then 4 and 5 January 2027: 2 days in each
+      /// year.
+      final acrossNewYear = [
+        DateTime(2026, 12, 30),
+        DateTime(2026, 12, 31),
+        DateTime(2027, 1, 4),
+        DateTime(2027, 1, 5),
+      ];
 
-      form().setDates([DateTime(2026, 12, 31), DateTime(2027, 1, 2)]);
-      await tester.pump();
-      await tester.pump();
+      testWidgets('both years\' balances are read', (tester) async {
+        repository.balancesByYear[2027] = Result.success([
+          sampleLeaveBalance(year: 2027, remainingDays: 12, usedDays: 0),
+        ]);
+        await pumpForm(tester);
 
-      expect(find.text(en.leaveYearLabel(2026)), findsOneWidget);
-      expect(repository.balancesCalls, isNot(contains(2027)));
+        form().setDates(acrossNewYear);
+        await tester.pump();
+        await tester.pump();
+
+        expect(repository.balancesCalls, containsAll([2026, 2027]));
+      });
+
+      testWidgets('enough days in both years: not blocked, and the card '
+          'shows the first year', (tester) async {
+        repository.balancesByYear[2027] = Result.success([
+          sampleLeaveBalance(year: 2027, remainingDays: 12, usedDays: 0),
+        ]);
+        await pumpForm(tester);
+
+        form().setDates(acrossNewYear);
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text(en.leaveYearLabel(2026)), findsOneWidget);
+        expect(find.text(en.leaveInsufficientBalanceHint), findsNothing);
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+      });
+
+      testWidgets('4 days with 6 left this year, but none given for next '
+          'year: blocked, and the card shows next year\'s 0', (tester) async {
+        // The first year alone could pay for all 4; the 2 January days are
+        // charged to 2027, where HR has given nothing yet.
+        repository.balancesByYear[2027] = const Result.success(
+          <LeaveBalance>[],
+        );
+        await pumpForm(tester);
+
+        form().setDates(acrossNewYear);
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text(en.leaveYearLabel(2027)), findsOneWidget);
+        expect(find.text('0 days'), findsOneWidget);
+        expect(find.text(en.leaveInsufficientBalanceHint), findsOneWidget);
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
+      });
+
+      testWidgets('not enough this year, plenty next year: blocked, and the '
+          'card shows this year', (tester) async {
+        repository
+          ..balancesByYear[2026] = Result.success([
+            sampleLeaveBalance(remainingDays: 1),
+          ])
+          ..balancesByYear[2027] = Result.success([
+            sampleLeaveBalance(year: 2027, remainingDays: 12, usedDays: 0),
+          ]);
+        await pumpForm(tester);
+
+        form().setDates(acrossNewYear);
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text(en.leaveYearLabel(2026)), findsOneWidget);
+        expect(find.text(en.leaveInsufficientBalanceHint), findsOneWidget);
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
+      });
+
+      testWidgets('each year is checked on its own days, not the whole '
+          'count: 4 days fit with 2 left in each year', (tester) async {
+        repository
+          ..balancesByYear[2026] = Result.success([
+            sampleLeaveBalance(remainingDays: 2),
+          ])
+          ..balancesByYear[2027] = Result.success([
+            sampleLeaveBalance(year: 2027, remainingDays: 2, usedDays: 0),
+          ]);
+        await pumpForm(tester);
+
+        form().setDates(acrossNewYear);
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text(en.leaveInsufficientBalanceHint), findsNothing);
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+      });
+
+      testWidgets('while the second year\'s balance is on its way the form '
+          'waits', (tester) async {
+        repository.balancesByYear[2027] = Result.success([
+          sampleLeaveBalance(year: 2027, remainingDays: 12, usedDays: 0),
+        ]);
+        await pumpForm(tester);
+
+        form().setDates(acrossNewYear);
+        // One frame: 2027 is now watched and has not answered yet.
+        await tester.pump();
+
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
+
+        await tester.pump();
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+      });
+
+      testWidgets('the second year\'s balance failed to load: not blocked on '
+          'it, the server decides', (tester) async {
+        repository.balancesByYear[2027] = const Result.failure(
+          Failure.network(message: 'offline'),
+        );
+        await pumpForm(tester);
+
+        form().setDates(acrossNewYear);
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text(en.leaveInsufficientBalanceHint), findsNothing);
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+      });
     });
 
     testWidgets('no balance for that year shows 0 and blocks', (tester) async {
@@ -544,6 +663,65 @@ void main() {
 
       expect(find.text(en.leaveInsufficientBalanceHint), findsNothing);
       expect(submitEnabled(tester, en.leaveEditAction), isTrue);
+    });
+    group('an edit across the new year is checked year by year', () {
+      /// One day in each year: 31 December 2026 and 4 January 2027.
+      LeaveRequest pendingAcrossNewYear() => sampleLeaveRequest(
+        id: 'req-7',
+        leaveType: annual,
+        requestDays: [DateTime(2026, 12, 31), DateTime(2027, 1, 4)],
+        reason: 'Trip',
+      );
+
+      setUp(() {
+        // Nothing left in either year: only the days the request already
+        // has are covered.
+        repository
+          ..balancesByYear[2026] = Result.success([
+            sampleLeaveBalance(remainingDays: 0),
+          ])
+          ..balancesByYear[2027] = Result.success([
+            sampleLeaveBalance(year: 2027, remainingDays: 0, usedDays: 0),
+          ]);
+      });
+
+      testWidgets('the same days in each year: allowed', (tester) async {
+        form('req-7').seed(pendingAcrossNewYear());
+        await pumpForm(tester, requestId: 'req-7');
+
+        form('req-7').setReason('Family trip');
+        await tester.pump();
+
+        expect(find.text(en.leaveInsufficientBalanceHint), findsNothing);
+        expect(submitEnabled(tester, en.leaveEditAction), isTrue);
+      });
+
+      testWidgets('the same day count, but a day moved from this year into '
+          'next year: next year now has more than it had, and is checked', (
+        tester,
+      ) async {
+        form('req-7').seed(pendingAcrossNewYear());
+        await pumpForm(tester, requestId: 'req-7');
+
+        form('req-7').setDates([DateTime(2027, 1, 4), DateTime(2027, 1, 5)]);
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text(en.leaveYearLabel(2027)), findsOneWidget);
+        expect(find.text(en.leaveInsufficientBalanceHint), findsOneWidget);
+        expect(submitEnabled(tester, en.leaveEditAction), isFalse);
+      });
+
+      testWidgets('dropping next year\'s day is allowed', (tester) async {
+        form('req-7').seed(pendingAcrossNewYear());
+        await pumpForm(tester, requestId: 'req-7');
+
+        form('req-7').setDates([DateTime(2026, 12, 31)]);
+        await tester.pump();
+
+        expect(find.text(en.leaveInsufficientBalanceHint), findsNothing);
+        expect(submitEnabled(tester, en.leaveEditAction), isTrue);
+      });
     });
   });
 
