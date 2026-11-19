@@ -908,6 +908,55 @@ void main() {
       expect(stateOf(container, 'req-7').reason, 'typed by the user');
     });
 
+    test('a type the server says is switched off or gone: the leave types '
+        'are asked for again, and what was typed stays', () async {
+      for (final failure in const [
+        Failure.validation(message: 'leaveRuleTypeInactive'),
+        Failure.validation(message: 'leaveRuleTypeNotFound'),
+        Failure.validation(
+          message: 'leave type not found',
+          code: 'VALIDATION_ERROR',
+        ),
+      ]) {
+        repository = FakeLeaveRepository()
+          ..submitResult = Result.failure(failure);
+        final container = containerWith();
+        container.listen(leaveTypesNotifierProvider, (_, _) {});
+        await container.read(leaveTypesNotifierProvider.future);
+        expect(repository.leaveTypesCalls, 1);
+        final form = formOf(container)
+          ..setLeaveType('lt-annual')
+          ..setDates([DateTime(2026, 11, 18)])
+          ..setReason('kept');
+
+        expect(await form.submit(), isFalse);
+        await container.read(leaveTypesNotifierProvider.future);
+
+        expect(repository.leaveTypesCalls, 2, reason: '$failure');
+        expect(stateOf(container).reason, 'kept');
+        expect(stateOf(container).dates, [DateTime(2026, 11, 18)]);
+      }
+    });
+
+    test('another rule (too long) does not ask for the leave types again',
+        () async {
+      repository.submitResult = const Result.failure(
+        Failure.validation(message: 'leaveRuleTooLong|5|7'),
+      );
+      final container = containerWith();
+      container.listen(leaveTypesNotifierProvider, (_, _) {});
+      await container.read(leaveTypesNotifierProvider.future);
+      final form = formOf(container)
+        ..setLeaveType('lt-annual')
+        ..setDates([DateTime(2026, 11, 18)])
+        ..setReason('kept');
+
+      expect(await form.submit(), isFalse);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.leaveTypesCalls, 1);
+    });
+
     test('a new request refused with the same code is not an edit: nothing '
         'is marked', () async {
       final container = containerWith();

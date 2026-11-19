@@ -445,8 +445,65 @@ void main() {
       await expectLater(source.submit(draft), throwsA(isA<DioException>()));
     });
 
+    test('a leave type rule refuses a new request and an edit with its own '
+        'token (Nexton-Backend#192)', () async {
+      refuse(422, 'LEAVE_HALF_DAY_NOT_ALLOWED');
+      final isRule = throwsA(
+        isA<ValidationFailure>().having(
+          (f) => f.message,
+          'message',
+          'leaveRuleHalfDayNotAllowed',
+        ),
+      );
+
+      await expectLater(source.submit(draft), isRule);
+      await expectLater(source.update('req-1', draft), isRule);
+    });
+
+    test('the rule\'s values are read from error.details', () async {
+      adapter
+        ..status = 422
+        ..body = {
+          'success': false,
+          'error': {
+            'code': 'LEAVE_NOTICE_TOO_SHORT',
+            'message': 'server english',
+            'details': {
+              'min_notice_days': 3,
+              'earliest_start_date': '2026-11-23',
+            },
+          },
+        };
+
+      await expectLater(
+        source.submit(draft),
+        throwsA(
+          isA<ValidationFailure>().having(
+            (f) => f.message,
+            'message',
+            'leaveRuleNoticeTooShort|3|23/11/2026',
+          ),
+        ),
+      );
+    });
+
+    test('the rules are about asking: cancel, approve and reject do not map '
+        'them', () async {
+      refuse(422, 'LEAVE_TYPE_INACTIVE');
+
+      await expectLater(source.cancel('req-1'), throwsA(isA<DioException>()));
+      await expectLater(
+        source.approve(id: 'req-1'),
+        throwsA(isA<DioException>()),
+      );
+      await expectLater(
+        source.reject(id: 'req-1', reason: 'no'),
+        throwsA(isA<DioException>()),
+      );
+    });
+
     test('an unknown code rethrows the DioException untouched', () async {
-      refuse(409, 'LEAVE_SPAN_TOO_LONG');
+      refuse(409, 'A_RULE_NOT_KNOWN_YET');
 
       await expectLater(
         source.submit(draft),

@@ -25,6 +25,7 @@ extension FailureLocalization on Failure {
         message,
     validation: (message, _, code) =>
         _byCorrection(l10n, message) ??
+        _byLeaveRule(l10n, message) ??
         _byValidationCode(l10n, message) ??
         _byErrorCode(l10n, code) ??
         message,
@@ -298,6 +299,36 @@ String? _byCorrection(AppLocalizations l10n, String message) {
     'correctionTooEarly' => l10n.attCorrectionTooEarly(at(0)),
     'correctionOutOfRange' => l10n.attCorrectionOutOfRange(at(0), at(1)),
     'correctionInvalid' => l10n.attCorrectionInvalid,
+    _ => null,
+  };
+}
+
+/// A leave request refused by its leave type's own rules, with the date or
+/// the numbers it names: the token, then its values after `|` (time off's
+/// `LeaveRuleCode`). A token that came without its values reads as the
+/// rule's general sentence.
+String? _byLeaveRule(AppLocalizations l10n, String message) {
+  final parts = message.split('|');
+  final values = parts.sublist(1);
+  return switch (parts.first) {
+    'leaveRuleTypeInactive' => l10n.leaveRuleTypeInactive,
+    'leaveRuleTypeNotFound' => l10n.leaveRuleTypeNotFound,
+    'leaveRuleGenderNotAllowed' => l10n.leaveRuleGenderNotAllowed,
+    'leaveRuleGenderNotSet' => l10n.leaveRuleGenderNotSet,
+    'leaveRuleHalfDayNotAllowed' => l10n.leaveRuleHalfDayNotAllowed,
+    'leaveRuleSpanTooLong' => l10n.leaveRuleSpanTooLong,
+    'leaveRuleNotYetAvailable' =>
+      values.length == 1
+          ? l10n.leaveRuleNotYetAvailableFrom(values[0])
+          : l10n.leaveRuleNotYetAvailable,
+    'leaveRuleNoticeTooShort' =>
+      values.length == 2
+          ? l10n.leaveRuleNoticeTooShortBy(values[0], values[1])
+          : l10n.leaveRuleNoticeTooShort,
+    'leaveRuleTooLong' =>
+      values.length == 2
+          ? l10n.leaveRuleTooLongBy(values[0], values[1])
+          : l10n.leaveRuleTooLong,
     _ => null,
   };
 }

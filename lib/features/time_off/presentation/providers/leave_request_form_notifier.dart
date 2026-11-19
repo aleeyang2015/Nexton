@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/leave_error_code.dart';
+import '../../data/datasources/leave_rule_code.dart';
 import '../../../../core/upload/domain/local_file.dart';
 import '../../../../core/upload/domain/upload_rules.dart';
 import '../../../../core/upload/domain/uploaded_attachment.dart';
@@ -318,6 +319,11 @@ class LeaveRequestFormNotifier
         if (LeaveErrorCode.tokenOf(failure) ==
             LeaveErrorCode.tokenPendingRequestExists) {
           ref.invalidate(leavePendingRequestNotifierProvider);
+        }
+        // The type picked is switched off or gone: ask for the types again,
+        // so the form offers what can still be picked. What was typed stays.
+        if (LeaveRuleCode.reloadsTypes(failure)) {
+          ref.invalidate(leaveTypesNotifierProvider);
         }
         if (editingId != null && LeaveErrorCode.isStaleForOwner(failure)) {
           _stale = true;

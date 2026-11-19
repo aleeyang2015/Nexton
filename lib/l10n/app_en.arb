@@ -724,6 +724,27 @@
   "leaveRequestPendingBanner": "You have a leave request waiting for approval. You can send a new one once it is decided.",
   "leaveViewRequest": "View request",
   "leaveCancelApprovedConfirm": "This leave is approved. Cancel it and return the days to your balance?",
+  "leaveRuleTypeInactive": "This leave type has been switched off. Please choose another.",
+  "leaveRuleTypeNotFound": "This leave type no longer exists. Please choose another.",
+  "leaveRuleGenderNotAllowed": "This leave type is not available for your gender.",
+  "leaveRuleGenderNotSet": "Your staff record has no gender set. Please ask HR to set it.",
+  "leaveRuleNotYetAvailable": "You cannot use this leave type yet. Please ask HR.",
+  "leaveRuleNotYetAvailableFrom": "You can use this leave type from {date}.",
+  "@leaveRuleNotYetAvailableFrom": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "leaveRuleHalfDayNotAllowed": "This leave type cannot be taken as a half day.",
+  "leaveRuleNoticeTooShort": "This leave type must be requested further ahead.",
+  "leaveRuleNoticeTooShortBy": "This leave type must be requested at least {days} days ahead. The earliest first day is {date}.",
+  "@leaveRuleNoticeTooShortBy": {
+    "placeholders": {"days": {"type": "String"}, "date": {"type": "String"}}
+  },
+  "leaveRuleTooLong": "This is more days than this leave type allows in one request.",
+  "leaveRuleTooLongBy": "This leave type allows at most {max} days at a time; you asked for {requested}.",
+  "@leaveRuleTooLongBy": {
+    "placeholders": {"max": {"type": "String"}, "requested": {"type": "String"}}
+  },
+  "leaveRuleSpanTooLong": "The first and last day of one request can be at most 1 year apart.",
   "leaveStartedContactHr": "This leave has started, so it cannot be cancelled in the App. To change it, contact HR.",
   "listLoadMoreFailed": "Could not load more.",
   "leaveOwnRequestNoActions": "This is your own request. Someone else must decide it.",

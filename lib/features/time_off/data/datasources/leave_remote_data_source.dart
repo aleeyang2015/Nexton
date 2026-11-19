@@ -18,6 +18,7 @@ import '../models/leave_type_model.dart';
 import '../models/rest_day_model.dart';
 import 'leave_api_paths.dart';
 import 'leave_error_code.dart';
+import 'leave_rule_code.dart';
 
 /// The leave calls the time-off screen can make (leave-request-flutter.md §3).
 abstract class LeaveRemoteDataSource {
@@ -200,7 +201,7 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
       return LeaveRequestModel.fromJson(
         ApiEnvelope.unwrapObject(response.data),
       );
-    });
+    }, asking: true);
   }
 
   @override
@@ -213,7 +214,7 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
       return LeaveRequestModel.fromJson(
         ApiEnvelope.unwrapObject(response.data),
       );
-    }, onRequest: true);
+    }, onRequest: true, asking: true);
   }
 
   @override
@@ -315,9 +316,14 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
   /// [onRequest] is set by the calls about one existing request (edit,
   /// cancel, approve, reject): there a `NOT_FOUND` means that request is
   /// gone. Creating a request does not set it.
+  ///
+  /// [asking] is set by the two calls that ask for leave (create, edit):
+  /// only those are checked against the leave type's rules
+  /// ([LeaveRuleCode]).
   Future<T> _business<T>(
     Future<T> Function() call, {
     bool onRequest = false,
+    bool asking = false,
   }) async {
     try {
       return await call();
@@ -329,6 +335,8 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
       if (token != null) {
         throw Failure.validation(message: token);
       }
+      final rule = asking ? LeaveRuleCode.fromResponse(error) : null;
+      if (rule != null) throw rule;
       rethrow;
     }
   }

@@ -1739,6 +1739,57 @@ class AppLocalizationsEn extends AppLocalizations {
       'This leave is approved. Cancel it and return the days to your balance?';
 
   @override
+  String get leaveRuleTypeInactive =>
+      'This leave type has been switched off. Please choose another.';
+
+  @override
+  String get leaveRuleTypeNotFound =>
+      'This leave type no longer exists. Please choose another.';
+
+  @override
+  String get leaveRuleGenderNotAllowed =>
+      'This leave type is not available for your gender.';
+
+  @override
+  String get leaveRuleGenderNotSet =>
+      'Your staff record has no gender set. Please ask HR to set it.';
+
+  @override
+  String get leaveRuleNotYetAvailable =>
+      'You cannot use this leave type yet. Please ask HR.';
+
+  @override
+  String leaveRuleNotYetAvailableFrom(String date) {
+    return 'You can use this leave type from $date.';
+  }
+
+  @override
+  String get leaveRuleHalfDayNotAllowed =>
+      'This leave type cannot be taken as a half day.';
+
+  @override
+  String get leaveRuleNoticeTooShort =>
+      'This leave type must be requested further ahead.';
+
+  @override
+  String leaveRuleNoticeTooShortBy(String days, String date) {
+    return 'This leave type must be requested at least $days days ahead. The earliest first day is $date.';
+  }
+
+  @override
+  String get leaveRuleTooLong =>
+      'This is more days than this leave type allows in one request.';
+
+  @override
+  String leaveRuleTooLongBy(String max, String requested) {
+    return 'This leave type allows at most $max days at a time; you asked for $requested.';
+  }
+
+  @override
+  String get leaveRuleSpanTooLong =>
+      'The first and last day of one request can be at most 1 year apart.';
+
+  @override
   String get leaveStartedContactHr =>
       'This leave has started, so it cannot be cancelled in the App. To change it, contact HR.';
 
