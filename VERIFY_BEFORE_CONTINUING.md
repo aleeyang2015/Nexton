@@ -44,9 +44,10 @@ file on branch `docs/next-actions`, with `WORK_LOG.md` (the day-by-day log). Non
 | Phone checks | none done for any issue; all pending on `nexton-demo` |
 
 Waiting for the owner (asked on 2026-11-19, not answered):
-- **#62's children (#2 to #19):** all in `main`, all open on GitHub. Close #13 now (it needs no phone) and the
-  other 17 after their phone checks, or all now with a note; and who closes (the public API here only reads). The
-  same question then applies to the trackers #63 to #66.
+- **#62's children (#2 to #19): ANSWERED** (owner, 2026-11-19): close **#13 now**, and the other 17 **after their
+  phone checks**. #13 is NOT closed yet: nothing here can write to GitHub (no `gh`, the connector does not connect,
+  the public API only reads). The owner closes it in the browser, or gives a way to write. The same rule then
+  applies to the trackers #63 to #66: each closes when its children have.
 - **#35 rounding: ANSWERED, two decimals** (owner, 2026-11-19): built and merged (`30dd634`). Nothing left.
 - **#35 Lao tile label: ANSWERED, `ໂອທີ`** (owner, 2026-11-19): built and merged (`12b3019`). Nothing left.
 - The older questions in `NEXT_ACTIONS.md` "Waiting for the owner".

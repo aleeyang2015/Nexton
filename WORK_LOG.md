@@ -167,3 +167,6 @@ merge commit, fast-forward push.
 `salaryOvertimeLabel` is also the payslip's and the history row's. On `35-ot-tile-label-lao` (`a48d855`), pushed;
 gates green, 2,454 tests. Merged on the owner's say: `12b3019` (`--no-ff`, `Refs #35`), gates green on the merge
 commit, fast-forward push. `main` = `origin/main` = `12b3019` at the end of the day.
+
+**#62, the owner's call:** close #13 now, the other 17 children after their phone checks. #13 could not be closed
+from here (no way to write to GitHub); left for the owner, with the closing note to paste.
