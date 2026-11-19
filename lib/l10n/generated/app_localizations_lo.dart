@@ -1726,6 +1726,57 @@ class AppLocalizationsLo extends AppLocalizations {
       'ການລານີ້ອະນຸມັດແລ້ວ. ຍົກເລີກ ແລະ ຄືນວັນລາເຂົ້າຍອດຄົງເຫຼືອບໍ?';
 
   @override
+  String get leaveRuleTypeInactive =>
+      'ປະເພດການລານີ້ຖືກປິດໃຊ້ງານແລ້ວ ກະລຸນາເລືອກປະເພດອື່ນ.';
+
+  @override
+  String get leaveRuleTypeNotFound =>
+      'ບໍ່ພົບປະເພດການລານີ້ແລ້ວ ກະລຸນາເລືອກປະເພດອື່ນ.';
+
+  @override
+  String get leaveRuleGenderNotAllowed =>
+      'ປະເພດການລານີ້ບໍ່ສາມາດໃຊ້ກັບເພດຂອງທ່ານໄດ້.';
+
+  @override
+  String get leaveRuleGenderNotSet =>
+      'ຂໍ້ມູນພະນັກງານຂອງທ່ານຍັງບໍ່ໄດ້ລະບຸເພດ ກະລຸນາຕິດຕໍ່ HR ເພື່ອລະບຸ.';
+
+  @override
+  String get leaveRuleNotYetAvailable =>
+      'ທ່ານຍັງບໍ່ສາມາດໃຊ້ປະເພດການລານີ້ໄດ້ ກະລຸນາສອບຖາມ HR.';
+
+  @override
+  String leaveRuleNotYetAvailableFrom(String date) {
+    return 'ປະເພດການລານີ້ໃຊ້ໄດ້ສຳລັບວັນລາຕັ້ງແຕ່ວັນທີ $date ເປັນຕົ້ນໄປ.';
+  }
+
+  @override
+  String get leaveRuleHalfDayNotAllowed =>
+      'ປະເພດການລານີ້ບໍ່ສາມາດລາເຄິ່ງມື້ໄດ້.';
+
+  @override
+  String get leaveRuleNoticeTooShort =>
+      'ການລາປະເພດນີ້ຕ້ອງຂໍລ່ວງໜ້າຫຼາຍກວ່ານີ້.';
+
+  @override
+  String leaveRuleNoticeTooShortBy(String days, String date) {
+    return 'ການລາປະເພດນີ້ຕ້ອງຂໍລ່ວງໜ້າຢ່າງໜ້ອຍ $days ວັນ. ວັນທຳອິດທີ່ລາໄດ້ແມ່ນ $date.';
+  }
+
+  @override
+  String get leaveRuleTooLong =>
+      'ຈຳນວນວັນລາຕິດຕໍ່ກັນເກີນກວ່າທີ່ປະເພດການລານີ້ອະນຸຍາດ. ວັນພັກທີ່ຢູ່ລະຫວ່າງກາງກໍນັບລວມ.';
+
+  @override
+  String leaveRuleTooLongBy(String max) {
+    return 'ປະເພດການລານີ້ລາຕິດຕໍ່ກັນໄດ້ສູງສຸດ $max ວັນ. ວັນພັກທີ່ຢູ່ລະຫວ່າງກາງກໍນັບລວມ.';
+  }
+
+  @override
+  String get leaveRuleSpanTooLong =>
+      'ວັນທຳອິດ ແລະ ວັນສຸດທ້າຍຂອງຄຳຮ້ອງດຽວຕ້ອງຫ່າງກັນບໍ່ເກີນ 1 ປີ.';
+
+  @override
   String get leaveStartedContactHr =>
       'ການລານີ້ເລີ່ມແລ້ວ ຈຶ່ງຍົກເລີກໃນແອັບບໍ່ໄດ້. ຖ້າຕ້ອງການປ່ຽນ, ກະລຸນາຕິດຕໍ່ HR.';
 

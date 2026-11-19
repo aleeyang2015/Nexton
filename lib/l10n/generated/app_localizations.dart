@@ -3200,6 +3200,78 @@ abstract class AppLocalizations {
   /// **'This leave is approved. Cancel it and return the days to your balance?'**
   String get leaveCancelApprovedConfirm;
 
+  /// No description provided for @leaveRuleTypeInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave type has been switched off. Please choose another.'**
+  String get leaveRuleTypeInactive;
+
+  /// No description provided for @leaveRuleTypeNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave type no longer exists. Please choose another.'**
+  String get leaveRuleTypeNotFound;
+
+  /// No description provided for @leaveRuleGenderNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave type is not available for your gender.'**
+  String get leaveRuleGenderNotAllowed;
+
+  /// No description provided for @leaveRuleGenderNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Your staff record has no gender set. Please ask HR to set it.'**
+  String get leaveRuleGenderNotSet;
+
+  /// No description provided for @leaveRuleNotYetAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot use this leave type yet. Please ask HR.'**
+  String get leaveRuleNotYetAvailable;
+
+  /// No description provided for @leaveRuleNotYetAvailableFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave type can be used for leave days from {date} onwards.'**
+  String leaveRuleNotYetAvailableFrom(String date);
+
+  /// No description provided for @leaveRuleHalfDayNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave type cannot be taken as a half day.'**
+  String get leaveRuleHalfDayNotAllowed;
+
+  /// No description provided for @leaveRuleNoticeTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave type must be requested further ahead.'**
+  String get leaveRuleNoticeTooShort;
+
+  /// No description provided for @leaveRuleNoticeTooShortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave type needs {days} day(s) of notice. The earliest first day is {date}.'**
+  String leaveRuleNoticeTooShortBy(String days, String date);
+
+  /// No description provided for @leaveRuleTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'This is more days in a row than this leave type allows. Days off in between count too.'**
+  String get leaveRuleTooLong;
+
+  /// No description provided for @leaveRuleTooLongBy.
+  ///
+  /// In en, this message translates to:
+  /// **'This leave type allows at most {max} day(s) in a row. Days off in between count too.'**
+  String leaveRuleTooLongBy(String max);
+
+  /// No description provided for @leaveRuleSpanTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'The first and last day of one request can be at most 1 year apart.'**
+  String get leaveRuleSpanTooLong;
+
   /// No description provided for @leaveStartedContactHr.
   ///
   /// In en, this message translates to:

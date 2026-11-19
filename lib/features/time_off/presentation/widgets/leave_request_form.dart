@@ -220,8 +220,11 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     // A new request starts on the first type on offer, and goes back to it
     // when the type it was on is no longer offered (HR switched it off while
     // the form was open). An edit keeps its own type, which stays on offer.
+    // A type the server refused is not replaced either: the user was told to
+    // pick another, and picks it.
     final needsDefault =
         types.isNotEmpty &&
+        !state.typeRefused &&
         (state.leaveTypeId == null ||
             (!state.isEditing && selectedType == null));
     if (needsDefault) {
@@ -245,7 +248,8 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       selectedType,
     );
     // Never enable submit before the chosen type's rules are known.
-    final typeResolved = types.isNotEmpty && selectedType != null;
+    final typeResolved =
+        types.isNotEmpty && selectedType != null && !state.typeRefused;
     final canSubmit =
         !widget.submitBlocked &&
         state.hasValidShape &&
@@ -272,7 +276,9 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
               types: types,
               loading: typesAsync.isLoading,
               failed: typesAsync.hasError,
-              selectedId: state.leaveTypeId,
+              // A refused type is shown as not picked: it has to be picked
+              // again (or another one) before anything is sent.
+              selectedId: state.typeRefused ? null : state.leaveTypeId,
               onSelect: _notifier.setLeaveType,
             ),
           ),

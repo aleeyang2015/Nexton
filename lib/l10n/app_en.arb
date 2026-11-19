@@ -724,6 +724,27 @@
   "leaveRequestPendingBanner": "You have a leave request waiting for approval. You can send a new one once it is decided.",
   "leaveViewRequest": "View request",
   "leaveCancelApprovedConfirm": "This leave is approved. Cancel it and return the days to your balance?",
+  "leaveRuleTypeInactive": "This leave type has been switched off. Please choose another.",
+  "leaveRuleTypeNotFound": "This leave type no longer exists. Please choose another.",
+  "leaveRuleGenderNotAllowed": "This leave type is not available for your gender.",
+  "leaveRuleGenderNotSet": "Your staff record has no gender set. Please ask HR to set it.",
+  "leaveRuleNotYetAvailable": "You cannot use this leave type yet. Please ask HR.",
+  "leaveRuleNotYetAvailableFrom": "This leave type can be used for leave days from {date} onwards.",
+  "@leaveRuleNotYetAvailableFrom": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "leaveRuleHalfDayNotAllowed": "This leave type cannot be taken as a half day.",
+  "leaveRuleNoticeTooShort": "This leave type must be requested further ahead.",
+  "leaveRuleNoticeTooShortBy": "This leave type needs {days} day(s) of notice. The earliest first day is {date}.",
+  "@leaveRuleNoticeTooShortBy": {
+    "placeholders": {"days": {"type": "String"}, "date": {"type": "String"}}
+  },
+  "leaveRuleTooLong": "This is more days in a row than this leave type allows. Days off in between count too.",
+  "leaveRuleTooLongBy": "This leave type allows at most {max} day(s) in a row. Days off in between count too.",
+  "@leaveRuleTooLongBy": {
+    "placeholders": {"max": {"type": "String"}}
+  },
+  "leaveRuleSpanTooLong": "The first and last day of one request can be at most 1 year apart.",
   "leaveStartedContactHr": "This leave has started, so it cannot be cancelled in the App. To change it, contact HR.",
   "listLoadMoreFailed": "Could not load more.",
   "leaveOwnRequestNoActions": "This is your own request. Someone else must decide it.",
