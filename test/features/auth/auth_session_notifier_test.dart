@@ -195,6 +195,172 @@ void main() {
       expect(current().endReason, SessionEndReason.passwordChanged);
     });
 
+    group('a session-end report while the password is being changed (#91)',
+        () {
+      /// Every status the session went through, in order.
+      List<AuthStatus> watchStatuses() {
+        final seen = <AuthStatus>[];
+        container.listen(authSessionProvider, (_, next) {
+          final status = next.valueOrNull?.status;
+          if (status != null) seen.add(status);
+        });
+        return seen;
+      }
+
+      Future<Result<Unit>> change() => container
+          .read(authSessionProvider.notifier)
+          .changePassword(
+            currentPassword: 'current-pass',
+            newPassword: 'new-password',
+            confirmPassword: 'new-password',
+          );
+
+      /// The network layer reports the session lost, and the report is
+      /// delivered.
+      Future<void> report(SessionEndReason reason) async {
+        repository.sessionExpired.add(reason);
+        await pumpEventQueue();
+      }
+
+      test('the old refresh token refused while the App signs in again: the '
+          'user is never signed out', () async {
+        await session();
+        final seen = watchStatuses();
+        repository
+          ..loginResult = Result.success(AuthSession.signedIn(testUser()))
+          // What is stored after the sign-in: the new session.
+          ..restoreResult = Result.success(AuthSession.signedIn(testUser()))
+          ..whileLoggingIn = () => report(SessionEndReason.expired);
+
+        final result = await change();
+        await pumpEventQueue();
+
+        expect(result.isSuccess, isTrue);
+        expect(seen, isNot(contains(AuthStatus.unauthenticated)));
+        expect(current().status, AuthStatus.authenticated);
+        expect(current().mustChangePassword, isFalse);
+        expect(current().endReason, isNull);
+        expect(repository.logoutCalls, 0);
+      });
+
+      test('the report\'s clearing of the tokens landed on the new pair: '
+          'nothing is stored after the sign-in, so the session ends as '
+          '"password changed", not as a signed-in App with no tokens',
+          () async {
+        await session();
+        repository
+          ..loginResult = Result.success(AuthSession.signedIn(testUser()))
+          ..restoreResult = const Result.success(
+            AuthSession.unauthenticated(),
+          )
+          ..whileLoggingIn = () => report(SessionEndReason.expired);
+
+        await change();
+        await pumpEventQueue();
+
+        expect(current().status, AuthStatus.unauthenticated);
+        expect(current().endReason, SessionEndReason.passwordChanged);
+      });
+
+      test('no report came: the session is the sign-in\'s own, and nothing '
+          'is read back', () async {
+        await session();
+        final restores = repository.restoreCalls;
+        repository.loginResult = Result.success(
+          AuthSession.signedIn(testUser(id: 'refreshed')),
+        );
+
+        await change();
+
+        expect(current().user!.id, 'refreshed');
+        expect(repository.restoreCalls, restores);
+      });
+
+      test('refused while the change itself is still on its way, and the '
+          'change and the sign-in then succeed: never signed out', () async {
+        await session();
+        final seen = watchStatuses();
+        repository
+          ..loginResult = Result.success(AuthSession.signedIn(testUser()))
+          ..restoreResult = Result.success(AuthSession.signedIn(testUser()))
+          ..whileChangingPassword = () => report(SessionEndReason.expired);
+
+        await change();
+        await pumpEventQueue();
+
+        expect(seen, isNot(contains(AuthStatus.unauthenticated)));
+        expect(current().status, AuthStatus.authenticated);
+        expect(repository.logoutCalls, 0);
+      });
+
+      test('the sign-in then fails: the session ends once, as "password '
+          'changed"', () async {
+        await session();
+        final seen = watchStatuses();
+        repository
+          ..loginResult = const Result.failure(
+            Failure.network(message: 'No internet connection'),
+          )
+          ..whileLoggingIn = () => report(SessionEndReason.expired);
+
+        await change();
+        await pumpEventQueue();
+
+        expect(current().status, AuthStatus.unauthenticated);
+        expect(current().endReason, SessionEndReason.passwordChanged);
+        expect(
+          seen.where((s) => s == AuthStatus.unauthenticated),
+          hasLength(1),
+        );
+      });
+
+      test('the sign-in fails and the report said why (account disabled): '
+          'that reason is the one shown', () async {
+        await session();
+        repository
+          ..loginResult = const Result.failure(
+            Failure.network(message: 'No internet connection'),
+          )
+          ..whileLoggingIn = () => report(SessionEndReason.accountDisabled);
+
+        await change();
+        await pumpEventQueue();
+
+        expect(current().status, AuthStatus.unauthenticated);
+        expect(current().endReason, SessionEndReason.accountDisabled);
+      });
+
+      test('the change itself is refused: a report held meanwhile is acted '
+          'on, the session did end', () async {
+        await session();
+        repository
+          ..changePasswordResult = const Result.failure(
+            Failure.network(message: 'No internet connection'),
+          )
+          ..whileChangingPassword = () => report(SessionEndReason.expired);
+
+        final result = await change();
+        await pumpEventQueue();
+
+        expect(result.isFailure, isTrue);
+        expect(current().status, AuthStatus.unauthenticated);
+        expect(current().endReason, SessionEndReason.expired);
+      });
+
+      test('once the change is over, a report signs out as before', () async {
+        await session();
+        repository.loginResult = Result.success(
+          AuthSession.signedIn(testUser()),
+        );
+        await change();
+
+        await report(SessionEndReason.expired);
+
+        expect(current().status, AuthStatus.unauthenticated);
+        expect(current().endReason, SessionEndReason.expired);
+      });
+    });
+
     test('a rejected change keeps the user on the hook', () async {
       await session();
       repository.changePasswordResult = const Result.failure(

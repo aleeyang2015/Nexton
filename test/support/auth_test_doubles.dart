@@ -156,9 +156,12 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   FutureResult<AuthSession> restoreSession() async {
+    restoreCalls++;
     await whileRestoring?.call();
     return restoreResult;
   }
+
+  int restoreCalls = 0;
 
   /// When set, the next [fetchProfile] waits for it before answering with
   /// the [profileResult] set when it was called.
@@ -180,8 +183,12 @@ class FakeAuthRepository implements AuthRepository {
     required String newPassword,
   }) async {
     changePasswordCalls++;
+    await whileChangingPassword?.call();
     return changePasswordResult;
   }
+
+  /// Runs while a password change is on its way, before it answers (#91).
+  Future<void> Function()? whileChangingPassword;
 
   /// The `endSession` of each logout (#56).
   final List<bool> logoutEndSession = [];
