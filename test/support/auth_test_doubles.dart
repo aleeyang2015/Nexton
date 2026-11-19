@@ -156,9 +156,12 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   FutureResult<AuthSession> restoreSession() async {
+    restoreCalls++;
     await whileRestoring?.call();
     return restoreResult;
   }
+
+  int restoreCalls = 0;
 
   /// When set, the next [fetchProfile] waits for it before answering with
   /// the [profileResult] set when it was called.

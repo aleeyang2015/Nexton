@@ -228,6 +228,8 @@ void main() {
         final seen = watchStatuses();
         repository
           ..loginResult = Result.success(AuthSession.signedIn(testUser()))
+          // What is stored after the sign-in: the new session.
+          ..restoreResult = Result.success(AuthSession.signedIn(testUser()))
           ..whileLoggingIn = () => report(SessionEndReason.expired);
 
         final result = await change();
@@ -236,8 +238,42 @@ void main() {
         expect(result.isSuccess, isTrue);
         expect(seen, isNot(contains(AuthStatus.unauthenticated)));
         expect(current().status, AuthStatus.authenticated);
+        expect(current().mustChangePassword, isFalse);
         expect(current().endReason, isNull);
         expect(repository.logoutCalls, 0);
+      });
+
+      test('the report\'s clearing of the tokens landed on the new pair: '
+          'nothing is stored after the sign-in, so the session ends as '
+          '"password changed", not as a signed-in App with no tokens',
+          () async {
+        await session();
+        repository
+          ..loginResult = Result.success(AuthSession.signedIn(testUser()))
+          ..restoreResult = const Result.success(
+            AuthSession.unauthenticated(),
+          )
+          ..whileLoggingIn = () => report(SessionEndReason.expired);
+
+        await change();
+        await pumpEventQueue();
+
+        expect(current().status, AuthStatus.unauthenticated);
+        expect(current().endReason, SessionEndReason.passwordChanged);
+      });
+
+      test('no report came: the session is the sign-in\'s own, and nothing '
+          'is read back', () async {
+        await session();
+        final restores = repository.restoreCalls;
+        repository.loginResult = Result.success(
+          AuthSession.signedIn(testUser(id: 'refreshed')),
+        );
+
+        await change();
+
+        expect(current().user!.id, 'refreshed');
+        expect(repository.restoreCalls, restores);
       });
 
       test('refused while the change itself is still on its way, and the '
@@ -246,6 +282,7 @@ void main() {
         final seen = watchStatuses();
         repository
           ..loginResult = Result.success(AuthSession.signedIn(testUser()))
+          ..restoreResult = Result.success(AuthSession.signedIn(testUser()))
           ..whileChangingPassword = () => report(SessionEndReason.expired);
 
         await change();

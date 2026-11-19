@@ -101,9 +101,11 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
   /// has stored its pair, the refresh token on the phone is a dead one. A
   /// request refused in that gap makes the network layer try it, be refused,
   /// and report the session lost (#91). Such a report is held while this
-  /// runs, not acted on: a sign-in that then succeeds proves the session is
-  /// fine, and the user is never shown the sign-in screen for having changed
-  /// their password (#5).
+  /// runs, not acted on, so the user is never shown the sign-in screen for
+  /// having changed their password (#5). The network layer clears the
+  /// stored tokens as it reports, which can land on the pair the sign-in
+  /// has just stored: after a held report the session is read back from
+  /// what is stored, and stands only if it is still there.
   Future<Result<Unit>> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -176,8 +178,22 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
       return result;
     }
 
-    // Signed in again: a report held meanwhile was the dead refresh token's.
-    state = AsyncValue.data(session);
+    if (_endedWhileChangingPassword == null) {
+      state = AsyncValue.data(session);
+      return result;
+    }
+
+    // Signed in again, and a report was held: it was the dead refresh
+    // token's. Its clearing of the tokens may have landed on the new pair,
+    // so the session is the one that can be read back from what is stored.
+    final stored = (await ref.read(restoreSessionUseCaseProvider)()).getOrElse(
+      const AuthSession.unauthenticated(),
+    );
+    if (!stored.hasSession) {
+      await _forceLogout(SessionEndReason.passwordChanged);
+      return result;
+    }
+    state = AsyncValue.data(stored);
     return result;
   }
 
