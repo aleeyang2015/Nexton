@@ -56,6 +56,10 @@ class _FakeAdapter implements HttpClientAdapter {
   /// When set, the refresh's answer waits for it: a slow server (#56).
   Completer<void>? holdRefresh;
 
+  /// The next answer on a path waits for the completer set here (#89): a
+  /// request that left the phone and is answered much later.
+  final Map<String, Completer<void>> holdPath = {};
+
   void queue(String path, List<_Reply> answers) => replies[path] = answers;
 
   @override
@@ -67,6 +71,7 @@ class _FakeAdapter implements HttpClientAdapter {
     requests.add(options);
     if (slow) await Future<void>.delayed(const Duration(milliseconds: 10));
     if (options.path == ApiPaths.refresh) await holdRefresh?.future;
+    await holdPath.remove(options.path)?.future;
 
     final queued = replies[options.path];
     final reply = queued == null || queued.isEmpty
@@ -446,6 +451,159 @@ void main() {
       expect(await h.tokens.readAccessToken(), 'access-b');
       expect(await h.tokens.readRefreshToken(), 'refresh-b');
       expect(h.sessionExpiredEvents, isEmpty);
+    });
+
+    group('a 401 for a request of another sign-in (#89)', () {
+      const leave = '/core_hr/leave/requests';
+
+      /// Starts a POST that leaves with the tokens stored now and is
+      /// answered only when the returned completer completes.
+      Future<(Future<dynamic>, Completer<void>)> sendHeld(_Harness h) async {
+        final hold = Completer<void>();
+        h.adapter.holdPath[leave] = hold;
+        final call = h.client.post<dynamic>(leave, data: {'reason': 'A'});
+        while (h.requestsTo(leave).isEmpty) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        return (call, hold);
+      }
+
+      test('the last user\'s request, refused after someone else signed in, '
+          'is not renewed and not sent again under the new sign-in', () async {
+        final h = await _Harness.create();
+        h.adapter.queue(leave, [_unauthorized, _okProfile]);
+        h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+
+        final (call, hold) = await sendHeld(h);
+        expect(h.authHeaderOf(0), 'Bearer access-1');
+        // A signs out; B signs in.
+        await h.tokens.clear();
+        await h.tokens.writeAccessToken('access-b');
+        await h.tokens.writeRefreshToken('refresh-b');
+        hold.complete();
+
+        // The caller gets its 401.
+        await expectLater(call, throwsA(isA<DioException>()));
+        // A's leave request was sent once, and never with B's token.
+        expect(h.requestsTo(leave), hasLength(1));
+        expect(h.requestsTo(ApiPaths.refresh), isEmpty);
+        // B's sign-in is untouched.
+        expect(await h.tokens.readAccessToken(), 'access-b');
+        expect(await h.tokens.readRefreshToken(), 'refresh-b');
+        expect(h.sessionExpiredEvents, isEmpty);
+      });
+
+      test('a refused renewal can no longer sign the next user out for the '
+          'last user\'s request', () async {
+        final h = await _Harness.create();
+        h.adapter.queue(leave, [_unauthorized]);
+        h.adapter.queue(ApiPaths.refresh, [_unauthorized]);
+
+        final (call, hold) = await sendHeld(h);
+        await h.tokens.clear();
+        await h.tokens.writeAccessToken('access-b');
+        await h.tokens.writeRefreshToken('refresh-b');
+        hold.complete();
+        await expectLater(call, throwsA(isA<DioException>()));
+
+        expect(await h.tokens.readAccessToken(), 'access-b');
+        expect(h.sessionExpiredEvents, isEmpty);
+      });
+
+      test('a request sent while nobody was signed in is not sent again '
+          'under whoever signed in since', () async {
+        final h = await _Harness.create(accessToken: null, refreshToken: null);
+        h.adapter.queue(leave, [_unauthorized, _okProfile]);
+        h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+
+        final (call, hold) = await sendHeld(h);
+        expect(h.authHeaderOf(0), isNull);
+        await h.tokens.writeAccessToken('access-b');
+        await h.tokens.writeRefreshToken('refresh-b');
+        hold.complete();
+
+        await expectLater(call, throwsA(isA<DioException>()));
+        expect(h.requestsTo(leave), hasLength(1));
+        expect(h.requestsTo(ApiPaths.refresh), isEmpty);
+        expect(await h.tokens.readAccessToken(), 'access-b');
+      });
+
+      test('the same sign-in, renewed meanwhile by another request: the late '
+          '401 is still renewed and sent again (unchanged)', () async {
+        final h = await _Harness.create();
+        h.adapter.queue(leave, [_unauthorized, _okProfile]);
+        h.adapter.queue(ApiPaths.me, [_unauthorized, _okProfile]);
+        h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+
+        // Leaves with access-1 and is answered late.
+        final (call, hold) = await sendHeld(h);
+        // Meanwhile another request of the same sign-in renews the token.
+        await h.client.get<dynamic>(ApiPaths.me);
+        expect(await h.tokens.readAccessToken(), 'access-2');
+        hold.complete();
+
+        await call;
+        expect(h.requestsTo(leave), hasLength(2));
+        expect(
+          h.requestsTo(leave).last.headers[AppConstants.authorizationHeader],
+          'Bearer access-2',
+        );
+        expect(h.sessionExpiredEvents, isEmpty);
+      });
+
+      test('renewed twice meanwhile: still the same sign-in', () async {
+        final h = await _Harness.create();
+        h.adapter.queue(leave, [_unauthorized, _okProfile]);
+        h.adapter.queue(ApiPaths.me, [
+          _unauthorized,
+          _okProfile,
+          _unauthorized,
+          _okProfile,
+        ]);
+        h.adapter.queue(ApiPaths.refresh, [
+          _rotatedTokens,
+          const _Reply(200, {
+            'success': true,
+            'data': {'access_token': 'access-3', 'expires_at': 1773505562},
+          }),
+          const _Reply(200, {
+            'success': true,
+            'data': {'access_token': 'access-4', 'expires_at': 1773505562},
+          }),
+        ]);
+
+        final (call, hold) = await sendHeld(h);
+        await h.client.get<dynamic>(ApiPaths.me);
+        await h.client.get<dynamic>(ApiPaths.me);
+        expect(await h.tokens.readAccessToken(), 'access-3');
+        hold.complete();
+
+        await call;
+        expect(h.requestsTo(leave), hasLength(2));
+      });
+
+      test('the last user\'s token renewed earlier does not make their late '
+          'request the next user\'s', () async {
+        final h = await _Harness.create();
+        h.adapter.queue(leave, [_unauthorized, _okProfile]);
+        h.adapter.queue(ApiPaths.me, [_unauthorized, _okProfile]);
+        h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+
+        // A's request leaves with access-1; A's token is then renewed to
+        // access-2; then A signs out and B signs in.
+        final (call, hold) = await sendHeld(h);
+        await h.client.get<dynamic>(ApiPaths.me);
+        await h.tokens.clear();
+        await h.tokens.writeAccessToken('access-b');
+        await h.tokens.writeRefreshToken('refresh-b');
+        hold.complete();
+
+        await expectLater(call, throwsA(isA<DioException>()));
+        expect(h.requestsTo(leave), hasLength(1));
+        expect(h.requestsTo(ApiPaths.refresh), hasLength(1));
+        expect(await h.tokens.readAccessToken(), 'access-b');
+        expect(h.sessionExpiredEvents, isEmpty);
+      });
     });
 
     test('a refresh that sends no new refresh token (#56: no rotation) keeps '

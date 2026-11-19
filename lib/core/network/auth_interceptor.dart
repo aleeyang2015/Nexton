@@ -60,6 +60,9 @@ class _Unreachable extends _RefreshOutcome {
 ///   "server error" instead of signing out;
 /// * a `401` that arrives when no token is stored any more (the session has
 ///   already ended) passes straight on: there is nothing left to end;
+/// * a `401` for a request that went out under another sign-in than the one
+///   stored now (the last user's, after someone else signed in) passes
+///   straight on too: no refresh, no replay, no session ended (#89);
 /// * a second `401` on `/auth/me` after a successful refresh ends the session.
 ///   A second `401` on any other path propagates as a normal error and leaves
 ///   the session alone;
@@ -166,6 +169,15 @@ class AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
+    // A request of another sign-in (#89): the user it was sent for has
+    // signed out and someone else is signed in. Renewing would use that
+    // person's refresh token, and the replay would send the last user's
+    // request under their name. The caller gets its 401, and the sign-in
+    // on the phone now is left alone.
+    if (!await _isOfStoredSignIn(request)) {
+      return handler.next(err);
+    }
+
     if (request.extra[_retriedFlag] == true) {
       // A refreshed token still can't read the profile: the session is gone.
       // On any other path, let the caller deal with the 401.
@@ -243,6 +255,7 @@ class AuthInterceptor extends Interceptor {
       // outliving it. The refresh token is kept as it is when none comes
       // back (#56: the server no longer rotates it) and replaced when one
       // does.
+      await _remember(renewed: access);
       await _tokenStorage.writeAccessToken(access);
       if (rotated is String && rotated.isNotEmpty) {
         await _tokenStorage.writeRefreshToken(rotated);
@@ -265,6 +278,39 @@ class AuthInterceptor extends Interceptor {
       // The body could not be read as the refresh response.
       return const _Unreachable(null);
     }
+  }
+
+  /// The access tokens the stored one took the place of, through this
+  /// interceptor's own refreshes: all of one sign-in. Keyed by the newest,
+  /// so a later sign-in (whose token no refresh here produced) has none.
+  final Map<String, Set<String>> _earlierTokens = {};
+
+  /// Notes that [renewed] is about to take the stored access token's place
+  /// in the same sign-in.
+  Future<void> _remember({required String renewed}) async {
+    final previous = await _tokenStorage.readAccessToken();
+    if (previous == null || previous.isEmpty || previous == renewed) return;
+    final earlier = _earlierTokens.remove(previous) ?? const <String>{};
+    // Only the stored token's own line is kept.
+    _earlierTokens
+      ..clear()
+      ..[renewed] = {previous, ...earlier};
+  }
+
+  /// True when [request] went out under the sign-in stored now: with the
+  /// stored access token, or with one a refresh here has since replaced.
+  /// A request that carried another token, or none while one is stored now,
+  /// belongs to a sign-in that has ended.
+  Future<bool> _isOfStoredSignIn(RequestOptions request) async {
+    final stored = await _tokenStorage.readAccessToken() ?? '';
+    final header = request.headers[AppConstants.authorizationHeader];
+    const prefix = 'Bearer ';
+    final sent = header is String && header.startsWith(prefix)
+        ? header.substring(prefix.length)
+        : '';
+    if (sent == stored) return true;
+    return sent.isNotEmpty &&
+        (_earlierTokens[stored]?.contains(sent) ?? false);
   }
 
   /// True when [sent] is still the saved refresh token: the sign-in a
