@@ -137,5 +137,6 @@ main directly": `5081e0a` (`--no-ff`, `Refs #35`), gates green on the merge comm
 
 **#73:** planned and built on the owner's "go" on `73-correction-photo-url` (`9fb5730`): the request sends the
 photo's URL as text. One review; its test gap (the photo travelling from the form into the request) closed in
-`e11571a`. Gates: analyze 1 old warning, 2,411 tests, debug APK. Not merged: waits for the owner's word. Open: what
+`e11571a`. Gates: analyze 1 old warning, 2,411 tests, debug APK. Merged on the owner's "push issue 73 to main
+directly": `139f1c5` (`--no-ff`, `Refs #73`), gates green on the merge commit, fast-forward push. Open: what
 `POST /uploads` returns as `url` on `nexton-demo`, since the detail page loads it as it is.
