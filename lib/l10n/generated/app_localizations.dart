@@ -4159,6 +4159,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This item is no longer there, or it is not yours to see.'**
   String get pushItemUnavailable;
+
+  /// No description provided for @leaveBalanceShortIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough leave days left in {year}: {remaining} left, {requested} asked for.'**
+  String leaveBalanceShortIn(String year, String remaining, String requested);
 }
 
 class _AppLocalizationsDelegate

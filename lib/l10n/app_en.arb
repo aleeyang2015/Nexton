@@ -915,5 +915,19 @@
       }
     }
   },
-  "pushItemUnavailable": "This item is no longer there, or it is not yours to see."
+  "pushItemUnavailable": "This item is no longer there, or it is not yours to see.",
+  "leaveBalanceShortIn": "Not enough leave days left in {year}: {remaining} left, {requested} asked for.",
+  "@leaveBalanceShortIn": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "requested": {
+        "type": "String"
+      }
+    }
+  }
 }

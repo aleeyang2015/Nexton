@@ -62,6 +62,12 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
     /// not pick one for them.
     @Default(false) bool typeRefused,
 
+    /// The year the server said is short of days when it refused what this
+    /// form last sent (#87): the card shows that year's balance. Forgotten
+    /// as soon as the days or the type change, since the refusal was about
+    /// the request as it was sent.
+    int? balanceRefusedYear,
+
     /// Edit mode only: the leave type the request had when it was opened. The
     /// form keeps offering it even after HR switched it off.
     String? originalLeaveTypeId,

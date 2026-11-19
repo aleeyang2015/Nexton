@@ -329,6 +329,12 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
       return await call();
     } on DioException catch (error) {
       final code = ApiError.tryParse(error.response?.data)?.code;
+      // Asking for leave and short of days: when the server names the year
+      // it is said with the year (#87). Otherwise the plain token below.
+      if (asking && code == LeaveErrorCode.insufficientBalance) {
+        final named = LeaveRuleCode.fromResponse(error);
+        if (named != null) throw named;
+      }
       final token = (onRequest && code == LeaveErrorCode.notFound)
           ? LeaveErrorCode.tokenRequestGone
           : LeaveErrorCode.tokenByWire[code];

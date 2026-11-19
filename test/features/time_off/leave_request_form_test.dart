@@ -646,6 +646,86 @@ void main() {
       expect(submitEnabled(tester, en.leaveEditAction), isFalse);
     });
 
+    group('the server refuses for a year the form could not check (#87)', () {
+      /// 30 December to 2 January, asked for with the company's days off not
+      /// loaded: the form cannot split the days by year, shows this year and
+      /// leaves the count to the server. Then sent, and answered [refusal].
+      Future<void> sentAndRefused(WidgetTester tester, Failure refusal) async {
+        repository
+          ..companyDaysOffResult = const Result.failure(
+            Failure.network(message: 'offline'),
+          )
+          ..balancesByYear[2027] = const Result.success(<LeaveBalance>[])
+          ..submitResult = Result.failure(refusal);
+        await pumpForm(tester);
+        form()
+          ..setRange(DateTime(2026, 12, 30), DateTime(2027, 1, 2))
+          ..setReason('New year');
+        await tester.pump();
+        await tester.pump();
+        expect(find.text(en.leaveYearLabel(2026)), findsOneWidget);
+        expect(find.text('6 days'), findsOneWidget);
+        expect(repository.balancesCalls, isNot(contains(2027)));
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+
+        await tester.runAsync(() => form().submit());
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
+      }
+
+      testWidgets('the card shows the year the server named, with what is '
+          'left there', (tester) async {
+        await sentAndRefused(
+          tester,
+          const Failure.validation(message: 'leaveBalanceShortIn|2027|0|2'),
+        );
+
+        expect(find.text(en.leaveYearLabel(2027)), findsOneWidget);
+        expect(find.text(en.leaveYearLabel(2026)), findsNothing);
+        expect(find.text('0 days'), findsOneWidget);
+        expect(repository.balancesCalls, contains(2027));
+        // What was asked for is still there, and can be changed and sent.
+        expect(form().state.reason, 'New year');
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+      });
+
+      testWidgets('this year\'s balance is read again too', (tester) async {
+        await sentAndRefused(
+          tester,
+          const Failure.validation(message: 'leaveBalanceShortIn|2027|0|2'),
+        );
+
+        expect(repository.balancesCalls.where((y) => y == 2026).length, 2);
+      });
+
+      testWidgets('picking other days takes the card back to their own '
+          'year', (tester) async {
+        await sentAndRefused(
+          tester,
+          const Failure.validation(message: 'leaveBalanceShortIn|2027|0|2'),
+        );
+
+        form().setRange(DateTime(2026, 12, 28), DateTime(2026, 12, 30));
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text(en.leaveYearLabel(2026)), findsOneWidget);
+        expect(find.text(en.leaveYearLabel(2027)), findsNothing);
+      });
+
+      testWidgets('a refusal that names no year leaves the card on the '
+          'year it showed', (tester) async {
+        await sentAndRefused(
+          tester,
+          const Failure.validation(message: 'leaveInsufficientBalance'),
+        );
+
+        expect(find.text(en.leaveYearLabel(2026)), findsOneWidget);
+        expect(repository.balancesCalls, isNot(contains(2027)));
+      });
+    });
+
     testWidgets('an edit that asks for more days the balance can cover is '
         'allowed', (tester) async {
       repository.balancesByYear[2026] = Result.success([

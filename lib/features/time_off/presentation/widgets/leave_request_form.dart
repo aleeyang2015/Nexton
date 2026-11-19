@@ -190,8 +190,9 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     });
     // Each leave day is charged to its own year, so the form reads the
     // balance of every year the request touches: two for a leave across the
-    // new year, one otherwise.
-    final balanceYears = LeaveFormRules.balanceYears(
+    // new year, one otherwise. And the year the server named as short when
+    // it refused what was sent, if the form could not tell it (#87).
+    final balanceYears = LeaveFormRules.yearsToRead(
       state,
       ref.watch(clockProvider)(),
     );

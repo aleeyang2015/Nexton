@@ -235,6 +235,123 @@ void main() {
     });
   });
 
+  group('not enough balance, with the year the server names (#87)', () {
+    Object details({
+      Object? year = 2027,
+      Object? remaining = 0,
+      Object? requested = 2,
+    }) => {
+      'year': ?year,
+      'remaining_days': ?remaining,
+      'requested_days': ?requested,
+    };
+
+    test('the year, the days left and the days asked travel in the token', () {
+      expect(
+        messageOf(refusal(422, 'INSUFFICIENT_BALANCE', details: details())),
+        'leaveBalanceShortIn|2027|0|2',
+      );
+    });
+
+    test('halves are kept, and numbers sent as text are read', () {
+      expect(
+        messageOf(
+          refusal(
+            422,
+            'INSUFFICIENT_BALANCE',
+            details: details(year: '2027', remaining: 1.5, requested: '2.50'),
+          ),
+        ),
+        'leaveBalanceShortIn|2027|1.5|2.5',
+      );
+    });
+
+    test('the failure keeps the server\'s code', () {
+      final failure = LeaveRuleCode.fromResponse(
+        refusal(422, 'INSUFFICIENT_BALANCE', details: details()),
+      );
+      expect(
+        failure,
+        isA<ValidationFailure>().having(
+          (f) => f.code,
+          'code',
+          'INSUFFICIENT_BALANCE',
+        ),
+      );
+    });
+
+    test('no details, or a value missing or not a number: not named, so the '
+        'older plain text is used', () {
+      final unreadable = <Object?>[
+        null,
+        'not a map',
+        details(year: null),
+        details(remaining: null),
+        details(requested: null),
+        details(year: 'next year'),
+        details(year: 27),
+        details(year: 2027.5),
+        details(remaining: -1),
+        details(requested: 0),
+        details(requested: 'many'),
+      ];
+      for (final value in unreadable) {
+        expect(
+          LeaveRuleCode.fromResponse(
+            refusal(422, 'INSUFFICIENT_BALANCE', details: value),
+          ),
+          isNull,
+          reason: '$value',
+        );
+      }
+    });
+
+    test('balanceYearOf reads the year, and nothing from another failure', () {
+      expect(
+        LeaveRuleCode.balanceYearOf(
+          const Failure.validation(message: 'leaveBalanceShortIn|2027|0|2'),
+        ),
+        2027,
+      );
+      for (final other in const [
+        Failure.validation(message: 'leaveInsufficientBalance'),
+        Failure.validation(message: 'leaveBalanceShortIn'),
+        Failure.validation(message: 'leaveRuleTooLong|5'),
+        Failure.network(message: 'offline'),
+      ]) {
+        expect(LeaveRuleCode.balanceYearOf(other), isNull, reason: '$other');
+      }
+    });
+
+    test('the words name the year, the days left and the days asked', () {
+      const failure = Failure.validation(
+        message: 'leaveBalanceShortIn|2027|0|2',
+      );
+      expect(
+        failure.localize(en),
+        'Not enough leave days left in 2027: 0 left, 2 asked for.',
+      );
+      expect(
+        failure.localize(lo),
+        'ວັນລາຂອງປີ 2027 ບໍ່ພຽງພໍ: ເຫຼືອ 0 ວັນ, ຂໍ 2 ວັນ.',
+      );
+    });
+
+    test('a token without its three values reads as the plain text', () {
+      for (final message in const [
+        'leaveBalanceShortIn',
+        'leaveBalanceShortIn|2027',
+        'leaveBalanceShortIn|2027|0',
+      ]) {
+        expect(
+          Failure.validation(message: message).localize(en),
+          en.leaveInsufficientBalance,
+          reason: message,
+        );
+      }
+    });
+  });
+
   group('the words', () {
     const laoByMessage = {
       'leaveRuleTypeInactive':
@@ -370,6 +487,15 @@ void main() {
           reason: '$failure',
         );
       }
+    });
+
+    test('not enough balance is not about the type', () {
+      expect(
+        LeaveRuleCode.isTypeRefused(
+          const Failure.validation(message: 'leaveBalanceShortIn|2027|0|2'),
+        ),
+        isFalse,
+      );
     });
 
     test('tokenOf reads the token under its values', () {

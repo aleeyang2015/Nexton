@@ -208,6 +208,7 @@ class LeaveRequestFormNotifier
     state = state.copyWith(
       leaveTypeId: leaveTypeId,
       typeRefused: false,
+      balanceRefusedYear: null,
       durationType: wholeDaysOnly
           ? LeaveDurationType.fullDay
           : state.durationType,
@@ -232,6 +233,7 @@ class LeaveRequestFormNotifier
         dates: state.chargedDays ?? const [],
         rangeStart: null,
         rangeEnd: null,
+        balanceRefusedYear: null,
       );
       return;
     }
@@ -242,6 +244,7 @@ class LeaveRequestFormNotifier
       rangeStart: picked.isEmpty ? null : picked.first,
       rangeEnd: picked.isEmpty ? null : picked.last,
       dates: const [],
+      balanceRefusedYear: null,
     );
   }
 
@@ -257,6 +260,7 @@ class LeaveRequestFormNotifier
       rangeStart: ordered.$1,
       rangeEnd: ordered.$2,
       dates: const [],
+      balanceRefusedYear: null,
     );
   }
 
@@ -275,18 +279,22 @@ class LeaveRequestFormNotifier
       dates: updated,
       rangeStart: null,
       rangeEnd: null,
+      balanceRefusedYear: null,
     );
   }
 
   void removeDate(DateTime date) {
-    state = state.copyWith(dates: state.dates.where((d) => d != date).toList());
+    state = state.copyWith(
+      dates: state.dates.where((d) => d != date).toList(),
+      balanceRefusedYear: null,
+    );
   }
 
   /// A half day is exactly one date, so choosing one moves the form to
   /// separate days and keeps the earliest day picked so far.
   void setDurationType(LeaveDurationType type) {
     if (!type.isHalfDay) {
-      state = state.copyWith(durationType: type);
+      state = state.copyWith(durationType: type, balanceRefusedYear: null);
       return;
     }
 
@@ -304,6 +312,7 @@ class LeaveRequestFormNotifier
       dates: first == null ? const [] : [first],
       rangeStart: null,
       rangeEnd: null,
+      balanceRefusedYear: null,
     );
   }
 
@@ -328,7 +337,10 @@ class LeaveRequestFormNotifier
       return false;
     }
 
-    state = state.copyWith(submission: const AsyncValue.loading());
+    state = state.copyWith(
+      submission: const AsyncValue.loading(),
+      balanceRefusedYear: null,
+    );
     final draft = LeaveRequestDraft(
       leaveTypeId: leaveTypeId,
       // A range goes as its two ends and the server leaves out the days off;
@@ -384,6 +396,16 @@ class LeaveRequestFormNotifier
                 .read(leaveTypesNotifierProvider.notifier)
                 .reloadKeepingList(),
           );
+        }
+        // Not enough days left: what the card showed was not what the
+        // server counted with, so the balances are read again. When the
+        // server names the short year, the card shows that one (#87).
+        final shortYear = LeaveRuleCode.balanceYearOf(failure);
+        if (shortYear != null ||
+            LeaveErrorCode.tokenOf(failure) ==
+                LeaveErrorCode.tokenInsufficientBalance) {
+          state = state.copyWith(balanceRefusedYear: shortYear);
+          ref.invalidate(leaveBalancesNotifierProvider);
         }
         if (editingId != null && LeaveErrorCode.isStaleForOwner(failure)) {
           _stale = true;

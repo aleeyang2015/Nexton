@@ -26,6 +26,15 @@ class LeaveRuleCode {
   static const String tokenTooLong = 'leaveRuleTooLong';
   static const String tokenSpanTooLong = 'leaveRuleSpanTooLong';
 
+  /// Not a rule of the type, but refused on the same two calls and carried
+  /// the same way: not enough days left in the year the server names, with
+  /// the days left there and the days asked for (#87; `details` since
+  /// Nexton-Backend#193). Without all three it is not this token at all, and
+  /// the refusal keeps `LeaveErrorCode.tokenInsufficientBalance`.
+  static const String tokenBalanceShortIn = 'leaveBalanceShortIn';
+
+  static const String _insufficientBalance = 'INSUFFICIENT_BALANCE';
+
   static const String _separator = '|';
 
   /// A leave type that was deleted (or an id that is no type) is refused
@@ -43,6 +52,7 @@ class LeaveRuleCode {
     tokenNoticeTooShort,
     tokenTooLong,
     tokenSpanTooLong,
+    tokenBalanceShortIn,
   };
 
   /// The failure a refused new request or edit stands for, or null when it
@@ -84,6 +94,14 @@ class LeaveRuleCode {
         // counts the days off between leave days, so that number need not
         // be the days the form showed, nor even be over the limit.
         message = _encode(tokenTooLong, [_days(details['max_days'])]);
+      case _insufficientBalance:
+        final named = _encode(tokenBalanceShortIn, [
+          _year(details['year']),
+          _count(details['remaining_days']),
+          _days(details['requested_days']),
+        ]);
+        // No year to name: not this token, the plain one.
+        message = named == tokenBalanceShortIn ? null : named;
       case ApiErrorCodes.validationError:
         message = _isTypeNotFound(apiError?.message)
             ? tokenTypeNotFound
@@ -102,6 +120,16 @@ class LeaveRuleCode {
     validation: (message, _, _) {
       final token = message.split(_separator).first;
       return _tokens.contains(token) ? token : null;
+    },
+    orElse: () => null,
+  );
+
+  /// The year [failure] says is short of days, or null when it names none.
+  static int? balanceYearOf(Failure failure) => failure.maybeWhen(
+    validation: (message, _, _) {
+      final parts = message.split(_separator);
+      if (parts.first != tokenBalanceShortIn || parts.length != 4) return null;
+      return int.tryParse(parts[1]);
     },
     orElse: () => null,
   );
@@ -149,6 +177,33 @@ class LeaveRuleCode {
     if (date.year != year || date.month != month || date.day != day) return '';
     if (year < 2000) return '';
     return '${match.group(3)}/${match.group(2)}/${match.group(1)}';
+  }
+
+  /// A year as text, from a whole number or one sent as text. Empty for
+  /// anything that is not a year a balance could be for.
+  static String _year(dynamic value) {
+    final number = switch (value) {
+      int n => n,
+      double d when d == d.truncateToDouble() => d.toInt(),
+      String s => int.tryParse(s.trim()),
+      _ => null,
+    };
+    if (number == null || number < 2000 || number > 2200) return '';
+    return '$number';
+  }
+
+  /// The days left as text: like [_days], but none left (`0`) is a real
+  /// answer here. Empty for a negative or absurd number.
+  static String _count(dynamic value) {
+    final number = switch (value) {
+      num n => n.toDouble(),
+      String s => double.tryParse(s.trim()),
+      _ => null,
+    };
+    if (number == null || !number.isFinite) return '';
+    if (number < 0 || number > 3660) return '';
+    final text = number.toStringAsFixed(2);
+    return text.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 
   /// A day count as text: `5` for 5 or 5.0, `7.5` for a half. Read from a
