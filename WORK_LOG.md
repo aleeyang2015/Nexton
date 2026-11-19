@@ -153,4 +153,5 @@ one file (the committed ones are formatted), and restore the rest.
 
 **#75:** docs only, on `75-auth-me-employee-id-docs` (`d419130`), pushed; gates green. `auth.md` now gives the
 server's new order for `employee_id` and says the App reads it. Found while checking: a `null` `employee_id` hides
-the Approvals entry and the decision buttons. Not merged: waits for the owner's word.
+the Approvals entry and the decision buttons. Merged on the owner's "push issue 75 to main directly": `2b2f5dc`
+(`--no-ff`, `Refs #75`), gates green on the merge commit, fast-forward push.
