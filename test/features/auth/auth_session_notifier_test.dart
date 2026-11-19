@@ -361,6 +361,139 @@ void main() {
       });
     });
 
+    group('the user signs out while the password is being changed (#93)',
+        () {
+      Future<Result<Unit>> changeIn(ProviderContainer c) => c
+          .read(authSessionProvider.notifier)
+          .changePassword(
+            currentPassword: 'current-pass',
+            newPassword: 'new-password',
+            confirmPassword: 'new-password',
+          );
+
+      Future<Result<Unit>> change() => changeIn(container);
+
+      test('"Sign out" finished while the App signs in again: the user stays '
+          'signed out, and the sign-in that came back is ended too', () async {
+        await session();
+        repository
+          ..loginResult = Result.success(AuthSession.signedIn(testUser()))
+          // The whole sign-out runs before the sign-in answers.
+          ..whileLoggingIn = () =>
+              container.read(authSessionProvider.notifier).logout();
+
+        final result = await change();
+        await pumpEventQueue();
+
+        // The password did change.
+        expect(result.isSuccess, isTrue);
+        expect(current().status, AuthStatus.unauthenticated);
+        expect(current().endReason, isNull);
+        // The user's own sign-out, then the new sign-in's pair: both ended
+        // on the server, and nothing left stored.
+        expect(repository.logoutCalls, 2);
+        expect(repository.logoutEndSession, [true, true]);
+      });
+
+      test('"Sign out" still on its way (signing the phone off for push) '
+          'when the sign-in answers: the App is never shown as signed in, '
+          'and the sign-out ends the new sign-in itself', () async {
+        final signOff = Completer<void>();
+        final c = ProviderContainer(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(repository),
+            beforeSignOutProvider.overrideWithValue(
+              ({required bool tokensLive}) => signOff.future,
+            ),
+          ],
+        );
+        addTearDown(c.dispose);
+        await c.read(authSessionProvider.future);
+        final seen = <AuthStatus>[];
+        c.listen(authSessionProvider, (_, next) {
+          final status = next.valueOrNull?.status;
+          if (status != null) seen.add(status);
+        });
+        late Future<void> signingOut;
+        repository
+          ..loginResult = Result.success(AuthSession.signedIn(testUser()))
+          ..whileLoggingIn = () async {
+            signingOut = c.read(authSessionProvider.notifier).logout();
+            await pumpEventQueue();
+          };
+
+        await changeIn(c);
+        // The sign-in has answered; the sign-out is still signing off.
+        expect(seen, isNot(contains(AuthStatus.authenticated)));
+        expect(repository.logoutCalls, 0);
+
+        signOff.complete();
+        await signingOut;
+
+        expect(seen, isNot(contains(AuthStatus.authenticated)));
+        expect(
+          c.read(authSessionProvider).requireValue.status,
+          AuthStatus.unauthenticated,
+        );
+        // Once: by the sign-out, for the pair stored by then.
+        expect(repository.logoutEndSession, [true]);
+      });
+
+      test('"Sign out" while the session is read back after a held report: '
+          'stays signed out', () async {
+        await session();
+        repository
+          ..loginResult = Result.success(AuthSession.signedIn(testUser()))
+          ..restoreResult = Result.success(AuthSession.signedIn(testUser()))
+          ..whileLoggingIn = () async {
+            repository.sessionExpired.add(SessionEndReason.expired);
+            await pumpEventQueue();
+          }
+          ..whileRestoring = () =>
+              container.read(authSessionProvider.notifier).logout();
+
+        await change();
+        await pumpEventQueue();
+
+        expect(current().status, AuthStatus.unauthenticated);
+        expect(current().endReason, isNull);
+      });
+
+      test('the sign-in fails after the user left: still signed out, with '
+          'no "password changed" message for a sign-out they asked for',
+          () async {
+        await session();
+        repository
+          ..loginResult = const Result.failure(
+            Failure.network(message: 'No internet connection'),
+          )
+          ..whileLoggingIn = () =>
+              container.read(authSessionProvider.notifier).logout();
+
+        await change();
+        await pumpEventQueue();
+
+        expect(current().status, AuthStatus.unauthenticated);
+        expect(current().endReason, isNull);
+        // Only the user's own sign-out: there is no new sign-in to end.
+        expect(repository.logoutCalls, 1);
+      });
+
+      test('nobody left: the new session is published, and no sign-in is '
+          'ended', () async {
+        await session();
+        repository.loginResult = Result.success(
+          AuthSession.signedIn(testUser(id: 'refreshed')),
+        );
+
+        await change();
+
+        expect(current().status, AuthStatus.authenticated);
+        expect(current().user!.id, 'refreshed');
+        expect(repository.logoutCalls, 0);
+      });
+    });
+
     test('a rejected change keeps the user on the hook', () async {
       await session();
       repository.changePasswordResult = const Result.failure(

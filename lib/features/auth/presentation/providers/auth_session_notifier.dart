@@ -106,6 +106,9 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
   /// stored tokens as it reports, which can land on the pair the sign-in
   /// has just stored: after a held report the session is read back from
   /// what is stored, and stands only if it is still there.
+  ///
+  /// The user's own "Sign out" is not held: a session the user ended while
+  /// this ran stays ended (#93, see [_leftDuringChange]).
   Future<Result<Unit>> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -136,6 +139,7 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
     required String newPassword,
     required String confirmPassword,
   }) async {
+    final signedInAs = state.valueOrNull?.user?.id;
     final result = await ref.read(changePasswordUseCaseProvider)(
       ChangePasswordParams(
         currentPassword: currentPassword,
@@ -178,6 +182,9 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
       return result;
     }
 
+    // The user left while the sign-in was on its way (#93).
+    if (await _leftDuringChange(signedInAs)) return result;
+
     if (_endedWhileChangingPassword == null) {
       state = AsyncValue.data(session);
       return result;
@@ -189,12 +196,40 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
     final stored = (await ref.read(restoreSessionUseCaseProvider)()).getOrElse(
       const AuthSession.unauthenticated(),
     );
+    // Or while the session was being read back.
+    if (await _leftDuringChange(signedInAs)) return result;
     if (!stored.hasSession) {
       await _forceLogout(SessionEndReason.passwordChanged);
       return result;
     }
     state = AsyncValue.data(stored);
     return result;
+  }
+
+  /// True when the user signed out while [changePassword] was waiting
+  /// (#93): "Sign out" on the forced-change page stays open while the change
+  /// is sent. The new session is then not published, so a sign-out is never
+  /// undone by the change finishing.
+  ///
+  /// A sign-out still on its way ends the sign-in itself: the session is
+  /// still this user's when it gets there, and what is stored by then is the
+  /// pair the change's own sign-in wrote. One that has finished cannot, so
+  /// that pair is ended on the server and cleared here, and no working
+  /// sign-in is left on a phone its user has walked away from. The state
+  /// stays as the sign-out left it.
+  ///
+  /// The phone was not registered for push under the new sign-in (that
+  /// happens when a session is published), so there is no row to remove.
+  /// Should someone else be signed in by now, nothing is touched.
+  Future<bool> _leftDuringChange(String? signedInAs) async {
+    if (_loggingOut != null) return true;
+    if (_stillSignedInAs(signedInAs)) return false;
+
+    final current = state.valueOrNull;
+    if (current == null || !current.hasSession) {
+      await ref.read(logoutUseCaseProvider)(endSession: true);
+    }
+    return true;
   }
 
   /// The sign-in screen has told the user why the last session ended.
