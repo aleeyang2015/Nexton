@@ -540,12 +540,21 @@ void main() {
       expect(status.color, AppColors.attendancePresent);
     });
 
-    test('hours show at most one decimal, and a whole number without one', () {
+    test('hours show up to two decimals, as the payslip does, with no '
+        'zeros on the end', () {
       expect(AttendanceHistoryCopy.hours(0), '0');
       expect(AttendanceHistoryCopy.hours(2), '2');
       expect(AttendanceHistoryCopy.hours(1.5), '1.5');
-      expect(AttendanceHistoryCopy.hours(6.25), '6.3');
-      expect(AttendanceHistoryCopy.hours(1.96), '2');
+      // A quarter hour stays a quarter hour: 1 h 15 min is 1.25, not 1.3.
+      expect(AttendanceHistoryCopy.hours(1.25), '1.25');
+      expect(AttendanceHistoryCopy.hours(0.75), '0.75');
+      expect(AttendanceHistoryCopy.hours(6.25), '6.25');
+      expect(AttendanceHistoryCopy.hours(1.96), '1.96');
+      expect(AttendanceHistoryCopy.hours(2.50), '2.5');
+      expect(AttendanceHistoryCopy.hours(110.10), '110.1');
+      // A third decimal is rounded away.
+      expect(AttendanceHistoryCopy.hours(1.333), '1.33');
+      expect(AttendanceHistoryCopy.hours(1.999), '2');
       // Never below zero, and never "-0".
       expect(AttendanceHistoryCopy.hours(-0.04), '0');
       expect(AttendanceHistoryCopy.hours(-1.5), '0');
@@ -557,6 +566,24 @@ void main() {
 
       expect(AttendanceHistoryCopy.overtimeLine(en, day), 'OT 1.5 h');
       expect(AttendanceHistoryCopy.overtimeLine(lo, day), 'ໂອທີ 1.5 ຊົ່ວໂມງ');
+    });
+
+    test('two days of 1 h 15 min read 1.25 each, which adds up to the '
+        'month\'s 2.5', () {
+      const day = AttendanceDay(totalWorkHours: 9.25, overtimeHours: 1.25);
+
+      expect(AttendanceHistoryCopy.overtimeLine(en, day), 'OT 1.25 h');
+      expect(AttendanceHistoryCopy.hours(2.5), '2.5');
+    });
+
+    test('a few minutes of approved OT still show: 0.05 h is not hidden', () {
+      expect(
+        AttendanceHistoryCopy.overtimeLine(
+          en,
+          const AttendanceDay(totalWorkHours: 8, overtimeHours: 0.05),
+        ),
+        'OT 0.05 h',
+      );
     });
 
     test('no OT line without approved OT, however long the day was', () {
@@ -571,7 +598,7 @@ void main() {
       expect(
         AttendanceHistoryCopy.overtimeLine(
           en,
-          const AttendanceDay(totalWorkHours: 10, overtimeHours: 0.04),
+          const AttendanceDay(totalWorkHours: 10, overtimeHours: 0.004),
         ),
         isNull,
       );

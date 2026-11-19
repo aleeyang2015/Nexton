@@ -85,13 +85,16 @@ class AttendanceHistoryCopy {
     return (_isLao(l10n) ? _weekdaysShortLo : _weekdaysShortEn)[date.weekday % 7];
   }
 
-  /// An hour count with at most one decimal: `1.5`, and `2` or `0` rather
-  /// than `2.0` or `0.0`. Hours are never below zero: a negative count, or
-  /// one that would round to "-0", reads `0`.
+  /// An hour count with up to two decimals and no zeros on the end: `1.25`,
+  /// `1.5`, and `2` or `0` rather than `2.00` or `0.00`. Two, so the hours
+  /// read the same as on the payslip (1 h 15 min is 1.25 on both) and the
+  /// days add up to the month (owner's call on #35). Hours are never below
+  /// zero: a negative count, or one that would round to "-0", reads `0`.
   static String hours(double value) {
     if (value <= 0) return '0';
-    final text = value.toStringAsFixed(1);
-    return text.endsWith('.0') ? text.substring(0, text.length - 2) : text;
+    final text = value.toStringAsFixed(2);
+    // "1.50" → "1.5", "2.00" → "2".
+    return text.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 
   /// The "OT 1.5 h" line under a day, or null when the day has no approved
@@ -99,7 +102,7 @@ class AttendanceHistoryCopy {
   ///
   /// The hours are the server's `overtime_hours` and nothing else: a long
   /// day without approved OT has none, and the line is never worked out from
-  /// the hours worked. An amount too small to show as a number (under 0.05 h)
+  /// the hours worked. An amount too small to show as a number (under 0.005 h)
   /// shows no line rather than "OT 0 h".
   static String? overtimeLine(AppLocalizations l10n, AttendanceDay day) {
     if (day.overtimeHours <= 0) return null;
