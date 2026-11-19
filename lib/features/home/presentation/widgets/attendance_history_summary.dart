@@ -9,10 +9,12 @@ import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../attendance/presentation/providers/attendance_month_summary_notifier.dart';
 import '../../../attendance/presentation/widgets/attendance_copy.dart';
+import '../../../attendance/presentation/widgets/attendance_history_copy.dart';
 
 /// Attendance stats under the home screen's clock card: this month's days as
 /// the server counted them — present, late, half day, incomplete, absent and
-/// leave — and the hours worked, out of the month's working days. All from
+/// leave — the hours worked and the approved OT hours, out of the month's
+/// working days. All from
 /// [attendanceMonthSummaryNotifierProvider]. "View all" opens
 /// [AttendanceHistoryPage], which covers the same data with a month picker.
 ///
@@ -110,8 +112,14 @@ class AttendanceHistorySummary extends ConsumerWidget {
                 unit: l10n.hoursUnit,
                 icon: Icons.work_outline,
               ),
-              // Keeps the three tiles the same width as the four above.
-              const SizedBox.shrink(),
+              // Approved OT only, as the server totals it.
+              _SummaryTile(
+                color: AppColors.primary,
+                label: l10n.salaryOvertimeLabel,
+                value: AttendanceHistoryCopy.hours(data.totalOvertimeHours),
+                unit: l10n.hoursUnit,
+                icon: Icons.more_time,
+              ),
             ],
           ),
         ],

@@ -226,7 +226,20 @@ class _SummaryRow extends ConsumerWidget {
           ],
         ),
         heightBx(h: 10),
-        _WorkHoursRow(hours: data.totalWorkHours),
+        _HoursRow(
+          icon: Icons.trending_up,
+          label: l10n.workHours,
+          value: '${data.totalWorkHours.toStringAsFixed(1)} ${l10n.hoursUnit}',
+        ),
+        heightBx(h: 10),
+        // Approved OT only, as the server totals it: never summed here.
+        _HoursRow(
+          icon: Icons.more_time,
+          label: l10n.salaryOvertimeLabel,
+          value:
+              '${AttendanceHistoryCopy.hours(data.totalOvertimeHours)} '
+              '${l10n.hoursUnit}',
+        ),
       ],
     );
   }
@@ -254,16 +267,21 @@ class _SummaryCardRow extends StatelessWidget {
   }
 }
 
-/// The month's hours worked, on one row under the day counts.
-class _WorkHoursRow extends StatelessWidget {
-  final double hours;
+/// One of the month's hour totals (worked, approved OT), on a row of its
+/// own under the day counts.
+class _HoursRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
 
-  const _WorkHoursRow({required this.hours});
+  const _HoursRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
       decoration: BoxDecoration(
@@ -273,17 +291,13 @@ class _WorkHoursRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.trending_up, color: AppColors.primary, size: 18),
+          Icon(icon, color: AppColors.primary, size: 18),
           widthBx(w: 10),
           Expanded(
-            child: customText(
-              l10n.workHours,
-              fontSize: 13,
-              color: AppColors.subTitle,
-            ),
+            child: customText(label, fontSize: 13, color: AppColors.subTitle),
           ),
           customText(
-            '${hours.toStringAsFixed(1)} ${l10n.hoursUnit}',
+            value,
             fontSize: 15,
             fontWeight: FontWeight.w700,
             color: AppColors.primary,
@@ -501,6 +515,7 @@ class _DayCard extends ConsumerWidget {
     );
     final date = day.date;
     final status = AttendanceHistoryCopy.status(l10n, day);
+    final overtimeLine = AttendanceHistoryCopy.overtimeLine(l10n, day);
     // Only read for its shift, so a slow or failing profile lookup just
     // means the generic "Morning"/"Afternoon" fallback shows instead.
     final shiftDetails =
@@ -544,6 +559,15 @@ class _DayCard extends ConsumerWidget {
                         color: AppColors.subTitle,
                         fontSize: 12,
                       ),
+                      if (overtimeLine != null) ...[
+                        heightBx(h: 2),
+                        customText(
+                          overtimeLine,
+                          color: AppColors.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ],
                     ],
                   ),
                 ),

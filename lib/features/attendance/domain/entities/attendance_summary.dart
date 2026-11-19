@@ -26,6 +26,12 @@ class AttendanceSummary extends Equatable {
   final int leaveDays;
   final double totalWorkHours;
 
+  /// Approved OT hours only: the clocked time inside approved OT, the same
+  /// minutes payroll pays. Staying late without approved OT adds nothing.
+  /// It counts OT on a day off too, which has no day row, so it is shown as
+  /// sent and never summed from the days.
+  final double totalOvertimeHours;
+
   const AttendanceSummary({
     this.totalWorkingDays = 0,
     this.presentDays = 0,
@@ -35,6 +41,7 @@ class AttendanceSummary extends Equatable {
     this.absentDays = 0,
     this.leaveDays = 0,
     this.totalWorkHours = 0,
+    this.totalOvertimeHours = 0,
   });
 
   static const empty = AttendanceSummary();
@@ -49,5 +56,6 @@ class AttendanceSummary extends Equatable {
     absentDays,
     leaveDays,
     totalWorkHours,
+    totalOvertimeHours,
   ];
 }

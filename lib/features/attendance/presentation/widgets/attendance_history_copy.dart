@@ -85,6 +85,28 @@ class AttendanceHistoryCopy {
     return (_isLao(l10n) ? _weekdaysShortLo : _weekdaysShortEn)[date.weekday % 7];
   }
 
+  /// An hour count with at most one decimal: `1.5`, and `2` or `0` rather
+  /// than `2.0` or `0.0`. Hours are never below zero: a negative count, or
+  /// one that would round to "-0", reads `0`.
+  static String hours(double value) {
+    if (value <= 0) return '0';
+    final text = value.toStringAsFixed(1);
+    return text.endsWith('.0') ? text.substring(0, text.length - 2) : text;
+  }
+
+  /// The "OT 1.5 h" line under a day, or null when the day has no approved
+  /// OT to show.
+  ///
+  /// The hours are the server's `overtime_hours` and nothing else: a long
+  /// day without approved OT has none, and the line is never worked out from
+  /// the hours worked. An amount too small to show as a number (under 0.05 h)
+  /// shows no line rather than "OT 0 h".
+  static String? overtimeLine(AppLocalizations l10n, AttendanceDay day) {
+    if (day.overtimeHours <= 0) return null;
+    final text = hours(day.overtimeHours);
+    return text == '0' ? null : l10n.attOvertimeHoursLine(text);
+  }
+
   /// The day statuses the backend rolls a record up to that the pill names
   /// outright. `present` and `late` are not here: for those the pill is
   /// decided by the late and early-exit flags below.
@@ -104,7 +126,7 @@ class AttendanceHistoryCopy {
   /// session carries the flag.
   ///
   /// There is no overtime pill. Time worked past the shift is not overtime
-  /// unless it was approved, and this list cannot know that.
+  /// unless it was approved; approved OT has its own line, [overtimeLine].
   ///
   /// Exact minutes show only when the backend reports them; otherwise the
   /// pill still names the status without a fabricated number.

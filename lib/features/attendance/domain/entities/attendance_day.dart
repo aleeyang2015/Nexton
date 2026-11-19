@@ -147,11 +147,17 @@ class AttendanceDay extends Equatable {
   final List<AttendanceSession> sessions;
   final double? totalWorkHours;
 
+  /// Approved OT hours clocked on this day, as the server counted them; 0
+  /// when there is none. Never worked out from [totalWorkHours]: a long day
+  /// without approved OT is not OT.
+  final double overtimeHours;
+
   const AttendanceDay({
     this.date,
     this.status,
     this.sessions = const [],
     this.totalWorkHours,
+    this.overtimeHours = 0,
   });
 
   /// The state to assume before `records/my` has answered — and the state a
@@ -291,13 +297,21 @@ class AttendanceDay extends Equatable {
     String? status,
     List<AttendanceSession>? sessions,
     double? totalWorkHours,
+    double? overtimeHours,
   }) => AttendanceDay(
     date: date ?? this.date,
     status: status ?? this.status,
     sessions: sessions ?? this.sessions,
     totalWorkHours: totalWorkHours ?? this.totalWorkHours,
+    overtimeHours: overtimeHours ?? this.overtimeHours,
   );
 
   @override
-  List<Object?> get props => [date, status, sessions, totalWorkHours];
+  List<Object?> get props => [
+    date,
+    status,
+    sessions,
+    totalWorkHours,
+    overtimeHours,
+  ];
 }
