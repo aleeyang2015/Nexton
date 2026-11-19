@@ -37,6 +37,11 @@ mixin _$LeaveRequestFormState {
   /// (`setDaysOff`) so the counts below need nothing passed to them.
   CompanyDaysOff? get daysOff => throw _privateConstructorUsedError;
 
+  /// The server refused the chosen leave type as switched off or gone.
+  /// Until the user picks a type again nothing is sent, and the form does
+  /// not pick one for them.
+  bool get typeRefused => throw _privateConstructorUsedError;
+
   /// Edit mode only: the leave type the request had when it was opened. The
   /// form keeps offering it even after HR switched it off.
   String? get originalLeaveTypeId => throw _privateConstructorUsedError;
@@ -89,6 +94,7 @@ abstract class $LeaveRequestFormStateCopyWith<$Res> {
     DateTime? returnToWorkOverride,
     String reason,
     CompanyDaysOff? daysOff,
+    bool typeRefused,
     String? originalLeaveTypeId,
     double? originalTotalDays,
     int? originalBalanceYear,
@@ -128,6 +134,7 @@ class _$LeaveRequestFormStateCopyWithImpl<
     Object? returnToWorkOverride = freezed,
     Object? reason = null,
     Object? daysOff = freezed,
+    Object? typeRefused = null,
     Object? originalLeaveTypeId = freezed,
     Object? originalTotalDays = freezed,
     Object? originalBalanceYear = freezed,
@@ -179,6 +186,10 @@ class _$LeaveRequestFormStateCopyWithImpl<
                 ? _value.daysOff
                 : daysOff // ignore: cast_nullable_to_non_nullable
                       as CompanyDaysOff?,
+            typeRefused: null == typeRefused
+                ? _value.typeRefused
+                : typeRefused // ignore: cast_nullable_to_non_nullable
+                      as bool,
             originalLeaveTypeId: freezed == originalLeaveTypeId
                 ? _value.originalLeaveTypeId
                 : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
@@ -249,6 +260,7 @@ abstract class _$$LeaveRequestFormStateImplCopyWith<$Res>
     DateTime? returnToWorkOverride,
     String reason,
     CompanyDaysOff? daysOff,
+    bool typeRefused,
     String? originalLeaveTypeId,
     double? originalTotalDays,
     int? originalBalanceYear,
@@ -286,6 +298,7 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
     Object? returnToWorkOverride = freezed,
     Object? reason = null,
     Object? daysOff = freezed,
+    Object? typeRefused = null,
     Object? originalLeaveTypeId = freezed,
     Object? originalTotalDays = freezed,
     Object? originalBalanceYear = freezed,
@@ -337,6 +350,10 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
             ? _value.daysOff
             : daysOff // ignore: cast_nullable_to_non_nullable
                   as CompanyDaysOff?,
+        typeRefused: null == typeRefused
+            ? _value.typeRefused
+            : typeRefused // ignore: cast_nullable_to_non_nullable
+                  as bool,
         originalLeaveTypeId: freezed == originalLeaveTypeId
             ? _value.originalLeaveTypeId
             : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
@@ -388,6 +405,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     this.returnToWorkOverride,
     this.reason = '',
     this.daysOff,
+    this.typeRefused = false,
     this.originalLeaveTypeId,
     this.originalTotalDays,
     this.originalBalanceYear,
@@ -441,6 +459,13 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   @override
   final CompanyDaysOff? daysOff;
 
+  /// The server refused the chosen leave type as switched off or gone.
+  /// Until the user picks a type again nothing is sent, and the form does
+  /// not pick one for them.
+  @override
+  @JsonKey()
+  final bool typeRefused;
+
   /// Edit mode only: the leave type the request had when it was opened. The
   /// form keeps offering it even after HR switched it off.
   @override
@@ -491,7 +516,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
 
   @override
   String toString() {
-    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, originalLeaveTypeId: $originalLeaveTypeId, originalTotalDays: $originalTotalDays, originalBalanceYear: $originalBalanceYear, files: $files, filesChanged: $filesChanged, uploadingFiles: $uploadingFiles, fileFailure: $fileFailure, submission: $submission)';
+    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, typeRefused: $typeRefused, originalLeaveTypeId: $originalLeaveTypeId, originalTotalDays: $originalTotalDays, originalBalanceYear: $originalBalanceYear, files: $files, filesChanged: $filesChanged, uploadingFiles: $uploadingFiles, fileFailure: $fileFailure, submission: $submission)';
   }
 
   @override
@@ -515,6 +540,8 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
                 other.returnToWorkOverride == returnToWorkOverride) &&
             (identical(other.reason, reason) || other.reason == reason) &&
             (identical(other.daysOff, daysOff) || other.daysOff == daysOff) &&
+            (identical(other.typeRefused, typeRefused) ||
+                other.typeRefused == typeRefused) &&
             (identical(other.originalLeaveTypeId, originalLeaveTypeId) ||
                 other.originalLeaveTypeId == originalLeaveTypeId) &&
             (identical(other.originalTotalDays, originalTotalDays) ||
@@ -533,7 +560,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     editingRequestId,
     leaveTypeId,
@@ -545,6 +572,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     returnToWorkOverride,
     reason,
     daysOff,
+    typeRefused,
     originalLeaveTypeId,
     originalTotalDays,
     originalBalanceYear,
@@ -553,7 +581,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     uploadingFiles,
     fileFailure,
     submission,
-  );
+  ]);
 
   @JsonKey(ignore: true)
   @override
@@ -578,6 +606,7 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
     final DateTime? returnToWorkOverride,
     final String reason,
     final CompanyDaysOff? daysOff,
+    final bool typeRefused,
     final String? originalLeaveTypeId,
     final double? originalTotalDays,
     final int? originalBalanceYear,
@@ -615,6 +644,11 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   /// loading, or the load failed). Handed in by the form on screen
   /// (`setDaysOff`) so the counts below need nothing passed to them.
   CompanyDaysOff? get daysOff;
+  @override
+  /// The server refused the chosen leave type as switched off or gone.
+  /// Until the user picks a type again nothing is sent, and the form does
+  /// not pick one for them.
+  bool get typeRefused;
   @override
   /// Edit mode only: the leave type the request had when it was opened. The
   /// form keeps offering it even after HR switched it off.

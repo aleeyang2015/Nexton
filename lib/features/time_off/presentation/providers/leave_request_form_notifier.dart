@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/leave_error_code.dart';
@@ -158,6 +160,7 @@ class LeaveRequestFormNotifier
 
     state = state.copyWith(
       leaveTypeId: leaveTypeId,
+      typeRefused: false,
       durationType: wholeDaysOnly
           ? LeaveDurationType.fullDay
           : state.durationType,
@@ -320,10 +323,16 @@ class LeaveRequestFormNotifier
             LeaveErrorCode.tokenPendingRequestExists) {
           ref.invalidate(leavePendingRequestNotifierProvider);
         }
-        // The type picked is switched off or gone: ask for the types again,
-        // so the form offers what can still be picked. What was typed stays.
-        if (LeaveRuleCode.reloadsTypes(failure)) {
-          ref.invalidate(leaveTypesNotifierProvider);
+        // The type picked is switched off or gone: the user picks again
+        // (the form does not pick for them), from a list asked for again. A
+        // reload that fails leaves the list as it is. What was typed stays.
+        if (LeaveRuleCode.isTypeRefused(failure)) {
+          state = state.copyWith(typeRefused: true);
+          unawaited(
+            ref
+                .read(leaveTypesNotifierProvider.notifier)
+                .reloadKeepingList(),
+          );
         }
         if (editingId != null && LeaveErrorCode.isStaleForOwner(failure)) {
           _stale = true;

@@ -326,8 +326,8 @@ String? _byLeaveRule(AppLocalizations l10n, String message) {
           ? l10n.leaveRuleNoticeTooShortBy(values[0], values[1])
           : l10n.leaveRuleNoticeTooShort,
     'leaveRuleTooLong' =>
-      values.length == 2
-          ? l10n.leaveRuleTooLongBy(values[0], values[1])
+      values.length == 1
+          ? l10n.leaveRuleTooLongBy(values[0])
           : l10n.leaveRuleTooLong,
     _ => null,
   };

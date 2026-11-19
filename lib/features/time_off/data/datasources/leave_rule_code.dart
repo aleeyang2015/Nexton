@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../../../core/errors/failure.dart';
+import '../../../../core/network/api_error_mapper.dart';
 import '../../../../core/network/api_response.dart';
 
 /// The leave type's own rules, as `POST /leave/requests` and
@@ -8,7 +9,7 @@ import '../../../../core/network/api_response.dart';
 /// Nexton-Backend#192), as tokens `failure_localizer.dart` says in plain
 /// words.
 ///
-/// Three refusals carry the date or the numbers the text names
+/// Three refusals carry the date or the number the text names
 /// (`error.details`). They travel inside the token, after [_separator], so
 /// the failure stays a plain `Failure.validation`: the same way
 /// attendance's `CorrectionErrorCode` does it.
@@ -27,10 +28,9 @@ class LeaveRuleCode {
 
   static const String _separator = '|';
 
-  /// The server's general "invalid" code. A leave type that was deleted (or
-  /// an id that is no type) is refused with it and the message
-  /// [_typeNotFoundMessage]: that refusal has no code of its own.
-  static const String validationError = 'VALIDATION_ERROR';
+  /// A leave type that was deleted (or an id that is no type) is refused
+  /// with the server's general "invalid" code and this message: that refusal
+  /// has no code of its own.
   static const String _typeNotFoundMessage = 'leave type not found';
 
   static const Set<String> _tokens = {
@@ -76,15 +76,15 @@ class LeaveRuleCode {
         ]);
       case 'LEAVE_NOTICE_TOO_SHORT':
         message = _encode(tokenNoticeTooShort, [
-          _number(details['min_notice_days']),
+          _days(details['min_notice_days']),
           _date(details['earliest_start_date']),
         ]);
       case 'LEAVE_TOO_LONG':
-        message = _encode(tokenTooLong, [
-          _number(details['max_days']),
-          _number(details['requested_days']),
-        ]);
-      case validationError:
+        // Only the limit is said. `requested_days` is not: the rule also
+        // counts the days off between leave days, so that number need not
+        // be the days the form showed, nor even be over the limit.
+        message = _encode(tokenTooLong, [_days(details['max_days'])]);
+      case ApiErrorCodes.validationError:
         message = _isTypeNotFound(apiError?.message)
             ? tokenTypeNotFound
             : null;
@@ -106,17 +106,12 @@ class LeaveRuleCode {
     orElse: () => null,
   );
 
-  /// Refusals after which the leave type list is asked for again, so the
-  /// form offers what can still be picked: the type was switched off, or is
-  /// gone. Any other `VALIDATION_ERROR` reloads it too: that one has only
-  /// its message to go by, and asking again costs one small call.
-  static bool reloadsTypes(Failure failure) {
+  /// True when the server refused the leave type itself: it was switched
+  /// off, or is gone. The type list is then asked for again and the form
+  /// waits for the user to pick another.
+  static bool isTypeRefused(Failure failure) {
     final token = tokenOf(failure);
-    if (token == tokenTypeInactive || token == tokenTypeNotFound) return true;
-    return failure.maybeWhen(
-      validation: (_, _, code) => code == validationError,
-      orElse: () => false,
-    );
+    return token == tokenTypeInactive || token == tokenTypeNotFound;
   }
 
   static bool _isTypeNotFound(String? message) {
@@ -141,26 +136,32 @@ class LeaveRuleCode {
   /// Empty when it is not a real date.
   static String _date(dynamic value) {
     if (value is! String) return '';
-    final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(value.trim());
+    final match = RegExp(
+      r'^(\d{4})-(\d{2})-(\d{2})(?!\d)',
+    ).firstMatch(value.trim());
     if (match == null) return '';
     final year = int.parse(match.group(1)!);
     final month = int.parse(match.group(2)!);
     final day = int.parse(match.group(3)!);
     final date = DateTime(year, month, day);
-    // `2027-13-45` rolls over into another day: not a date the server meant.
+    // `2027-13-45` rolls over into another day, and year 1 is an empty
+    // value: neither is a date the server meant.
     if (date.year != year || date.month != month || date.day != day) return '';
+    if (year < 2000) return '';
     return '${match.group(3)}/${match.group(2)}/${match.group(1)}';
   }
 
   /// A day count as text: `5` for 5 or 5.0, `7.5` for a half. Read from a
-  /// number or from a number sent as text; empty for anything else.
-  static String _number(dynamic value) {
+  /// number or from a number sent as text. Empty for anything that is not a
+  /// count of days a sentence could name: zero, negative, or absurdly large.
+  static String _days(dynamic value) {
     final number = switch (value) {
-      num n => n,
-      String s => num.tryParse(s.trim()),
+      num n => n.toDouble(),
+      String s => double.tryParse(s.trim()),
       _ => null,
     };
-    if (number == null || !number.isFinite || number < 0) return '';
+    if (number == null || !number.isFinite) return '';
+    if (number < 0.5 || number > 3660) return '';
     final text = number.toStringAsFixed(2);
     return text.replaceFirst(RegExp(r'\.?0+$'), '');
   }

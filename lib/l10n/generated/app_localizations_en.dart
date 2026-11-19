@@ -1760,7 +1760,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String leaveRuleNotYetAvailableFrom(String date) {
-    return 'You can use this leave type from $date.';
+    return 'This leave type can be used for leave days from $date onwards.';
   }
 
   @override
@@ -1773,16 +1773,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String leaveRuleNoticeTooShortBy(String days, String date) {
-    return 'This leave type must be requested at least $days days ahead. The earliest first day is $date.';
+    return 'This leave type needs $days day(s) of notice. The earliest first day is $date.';
   }
 
   @override
   String get leaveRuleTooLong =>
-      'This is more days than this leave type allows in one request.';
+      'This is more days in a row than this leave type allows. Days off in between count too.';
 
   @override
-  String leaveRuleTooLongBy(String max, String requested) {
-    return 'This leave type allows at most $max days at a time; you asked for $requested.';
+  String leaveRuleTooLongBy(String max) {
+    return 'This leave type allows at most $max day(s) in a row. Days off in between count too.';
   }
 
   @override

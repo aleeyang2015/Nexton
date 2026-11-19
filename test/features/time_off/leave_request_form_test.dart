@@ -201,6 +201,102 @@ void main() {
       );
     });
 
+    group('the server refuses the type as switched off or gone', () {
+      /// A new request on Sick Leave with a day and a reason, sent and
+      /// refused; the leave types then answer [typesAfter].
+      Future<void> refused(
+        WidgetTester tester, {
+        required Result<List<LeaveType>> typesAfter,
+      }) async {
+        repository.balancesByYear[2026] = Result.success([
+          sampleLeaveBalance(remainingDays: 6),
+          sampleLeaveBalance(
+            leaveTypeId: 'lt-sick',
+            leaveTypeName: 'Sick Leave',
+            remainingDays: 6,
+          ),
+        ]);
+        await pumpForm(tester);
+        form()
+          ..setLeaveType('lt-sick')
+          ..setDates([DateTime(2026, 12, 22)])
+          ..setReason('Fever');
+        await tester.pump();
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+
+        repository
+          ..submitResult = const Result.failure(
+            Failure.validation(message: 'leaveRuleTypeNotFound'),
+          )
+          ..leaveTypesResult = typesAfter;
+        await tester.runAsync(() => form().submit());
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
+      }
+
+      LeaveRequestFormState state() =>
+          container.read(leaveRequestFormNotifierProvider(null));
+
+      testWidgets('the form does not pick another type for the user: '
+          'nothing can be sent until they pick', (tester) async {
+        await refused(tester, typesAfter: Result.success([annual]));
+
+        // The list is the new one, and the form did not move to it by itself.
+        expect(chipLabels(tester), ['Annual Leave']);
+        expect(state().leaveTypeId, 'lt-sick');
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
+        // What was typed is still there.
+        expect(state().reason, 'Fever');
+        expect(state().dates, [DateTime(2026, 12, 22)]);
+
+        await tester.tap(find.text('Annual Leave'));
+        await tester.pump();
+
+        expect(state().leaveTypeId, 'lt-annual');
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+      });
+
+      testWidgets('the type is still in the list: it has to be picked again '
+          'all the same', (tester) async {
+        await refused(tester, typesAfter: Result.success([annual, sick]));
+
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
+        expect(
+          tester
+              .widgetList<LeaveFilterChip>(find.byType(LeaveFilterChip))
+              .where((chip) => chip.label == 'Sick Leave')
+              .single
+              .selected,
+          isFalse,
+        );
+
+        await tester.tap(find.text('Sick Leave'));
+        await tester.pump();
+
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+      });
+
+      testWidgets('the reload fails: the types stay on offer, not "could not '
+          'load"', (tester) async {
+        await refused(
+          tester,
+          typesAfter: const Result.failure(
+            Failure.network(message: 'No internet connection'),
+          ),
+        );
+
+        expect(chipLabels(tester), ['Annual Leave', 'Sick Leave']);
+        expect(find.text(en.leaveTypeLoadFailed), findsNothing);
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
+
+        await tester.tap(find.text('Annual Leave'));
+        await tester.pump();
+
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+      });
+    });
+
     testWidgets('the type list loads once for the form', (tester) async {
       await pumpForm(tester);
 

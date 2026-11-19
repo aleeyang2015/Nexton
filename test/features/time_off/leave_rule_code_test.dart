@@ -115,27 +115,26 @@ void main() {
       );
     });
 
-    test('too long: the most allowed and what was asked, halves kept', () {
+    test('too long: the most days allowed, halves kept; what was asked is '
+        'not said', () {
       expect(
         messageOf(
           refusal(
             422,
             'LEAVE_TOO_LONG',
-            details: {'max_days': 5, 'requested_days': 7.5},
+            details: {'max_days': 5, 'requested_days': 3},
           ),
         ),
-        'leaveRuleTooLong|5|7.5',
+        'leaveRuleTooLong|5',
       );
-      // Numbers sent as text, and a whole number sent with a decimal.
       expect(
-        messageOf(
-          refusal(
-            422,
-            'LEAVE_TOO_LONG',
-            details: {'max_days': '5.0', 'requested_days': '8'},
-          ),
-        ),
-        'leaveRuleTooLong|5|8',
+        messageOf(refusal(422, 'LEAVE_TOO_LONG', details: {'max_days': 2.5})),
+        'leaveRuleTooLong|2.5',
+      );
+      // A number sent as text, and a whole number sent with a decimal.
+      expect(
+        messageOf(refusal(422, 'LEAVE_TOO_LONG', details: {'max_days': '5.0'})),
+        'leaveRuleTooLong|5',
       );
     });
 
@@ -162,27 +161,41 @@ void main() {
         ),
         'leaveRuleNoticeTooShort',
       );
+      // Not a count of days a sentence could name.
+      for (final max in <Object?>['many', 0, -2, '0x1F', 1e21, '5|9', true]) {
+        expect(
+          messageOf(refusal(422, 'LEAVE_TOO_LONG', details: {'max_days': max})),
+          'leaveRuleTooLong',
+          reason: '$max',
+        );
+      }
       expect(
         messageOf(
           refusal(
             422,
-            'LEAVE_TOO_LONG',
-            details: {'max_days': 'many', 'requested_days': 7},
+            'LEAVE_NOTICE_TOO_SHORT',
+            details: {
+              'min_notice_days': 0,
+              'earliest_start_date': '2026-11-23',
+            },
           ),
         ),
-        'leaveRuleTooLong',
+        'leaveRuleNoticeTooShort',
       );
-      // A value cannot carry the separator and shift the ones after it.
-      expect(
-        messageOf(
-          refusal(
-            422,
-            'LEAVE_TOO_LONG',
-            details: {'max_days': '5|9', 'requested_days': 7},
+      // An empty date (year 1) and a date with a digit too many.
+      for (final date in ['0001-01-01T00:00:00Z', '2026-11-234']) {
+        expect(
+          messageOf(
+            refusal(
+              422,
+              'LEAVE_NOT_YET_AVAILABLE',
+              details: {'available_from': date},
+            ),
           ),
-        ),
-        'leaveRuleTooLong',
-      );
+          'leaveRuleNotYetAvailable',
+          reason: date,
+        );
+      }
     });
 
     test('"leave type not found" has no code of its own: told by its '
@@ -233,16 +246,18 @@ void main() {
       'leaveRuleNotYetAvailable':
           'ທ່ານຍັງບໍ່ສາມາດໃຊ້ປະເພດການລານີ້ໄດ້ ກະລຸນາສອບຖາມ HR.',
       'leaveRuleNotYetAvailable|05/03/2027':
-          'ທ່ານສາມາດໃຊ້ປະເພດການລານີ້ໄດ້ຕັ້ງແຕ່ວັນທີ 05/03/2027.',
+          'ປະເພດການລານີ້ໃຊ້ໄດ້ສຳລັບວັນລາຕັ້ງແຕ່ວັນທີ 05/03/2027 ເປັນຕົ້ນໄປ.',
       'leaveRuleHalfDayNotAllowed': 'ປະເພດການລານີ້ບໍ່ສາມາດລາເຄິ່ງມື້ໄດ້.',
       'leaveRuleNoticeTooShort': 'ການລາປະເພດນີ້ຕ້ອງຂໍລ່ວງໜ້າຫຼາຍກວ່ານີ້.',
       'leaveRuleNoticeTooShort|3|23/11/2026':
-          'ການລາປະເພດນີ້ຕ້ອງຂໍລ່ວງໜ້າຢ່າງໜ້ອຍ 3 ມື້. '
+          'ການລາປະເພດນີ້ຕ້ອງຂໍລ່ວງໜ້າຢ່າງໜ້ອຍ 3 ວັນ. '
           'ວັນທຳອິດທີ່ລາໄດ້ແມ່ນ 23/11/2026.',
       'leaveRuleTooLong':
-          'ຈຳນວນມື້ເກີນກວ່າທີ່ປະເພດການລານີ້ອະນຸຍາດໃນຄຳຮ້ອງດຽວ.',
-      'leaveRuleTooLong|5|7.5':
-          'ປະເພດການລານີ້ລາໄດ້ສູງສຸດ 5 ມື້ຕໍ່ຄັ້ງ ແຕ່ທ່ານຂໍ 7.5 ມື້.',
+          'ຈຳນວນວັນລາຕິດຕໍ່ກັນເກີນກວ່າທີ່ປະເພດການລານີ້ອະນຸຍາດ. '
+          'ວັນພັກທີ່ຢູ່ລະຫວ່າງກາງກໍນັບລວມ.',
+      'leaveRuleTooLong|5':
+          'ປະເພດການລານີ້ລາຕິດຕໍ່ກັນໄດ້ສູງສຸດ 5 ວັນ. '
+          'ວັນພັກທີ່ຢູ່ລະຫວ່າງກາງກໍນັບລວມ.',
       'leaveRuleSpanTooLong':
           'ວັນທຳອິດ ແລະ ວັນສຸດທ້າຍຂອງຄຳຮ້ອງດຽວຕ້ອງຫ່າງກັນບໍ່ເກີນ 1 ປີ.',
     };
@@ -266,6 +281,41 @@ void main() {
       }
     });
 
+    test('the English sentences with values, word for word: each value '
+        'in its own place', () {
+      String say(String message) =>
+          Failure.validation(message: message).localize(en);
+
+      expect(
+        say('leaveRuleNotYetAvailable|05/03/2027'),
+        'This leave type can be used for leave days from 05/03/2027 onwards.',
+      );
+      expect(
+        say('leaveRuleNoticeTooShort|3|23/11/2026'),
+        'This leave type needs 3 day(s) of notice. '
+        'The earliest first day is 23/11/2026.',
+      );
+      expect(
+        say('leaveRuleTooLong|5'),
+        'This leave type allows at most 5 day(s) in a row. '
+        'Days off in between count too.',
+      );
+    });
+
+    test('a token with the wrong number of values reads as the general '
+        'sentence', () {
+      expect(
+        const Failure.validation(message: 'leaveRuleTooLong|5|7').localize(en),
+        en.leaveRuleTooLong,
+      );
+      expect(
+        const Failure.validation(
+          message: 'leaveRuleNoticeTooShort|3',
+        ).localize(en),
+        en.leaveRuleNoticeTooShort,
+      );
+    });
+
     test('the token wins over the server\'s code and English message', () {
       expect(
         const Failure.validation(
@@ -287,27 +337,35 @@ void main() {
     });
   });
 
-  group('which refusals reload the leave types', () {
-    test('a type switched off or gone, and any VALIDATION_ERROR', () {
+  group('which refusals are about the leave type itself', () {
+    test('a type switched off, or gone', () {
       for (final failure in const [
         Failure.validation(message: 'leaveRuleTypeInactive'),
         Failure.validation(message: 'leaveRuleTypeNotFound'),
-        Failure.validation(message: 'whatever', code: 'VALIDATION_ERROR'),
       ]) {
-        expect(LeaveRuleCode.reloadsTypes(failure), isTrue, reason: '$failure');
+        expect(
+          LeaveRuleCode.isTypeRefused(failure),
+          isTrue,
+          reason: '$failure',
+        );
       }
     });
 
-    test('not the other rules, nor a failure of another kind', () {
+    test('not the other rules, another VALIDATION_ERROR, nor a failure of '
+        'another kind', () {
       for (final failure in const [
-        Failure.validation(message: 'leaveRuleTooLong|5|7.5'),
+        Failure.validation(message: 'leaveRuleTooLong|5'),
         Failure.validation(message: 'leaveRuleGenderNotSet'),
         Failure.validation(message: 'leaveInsufficientBalance'),
+        Failure.validation(
+          message: 'reason is required',
+          code: 'VALIDATION_ERROR',
+        ),
         Failure.network(message: 'No internet connection'),
         Failure.server(message: 'boom', statusCode: 500),
       ]) {
         expect(
-          LeaveRuleCode.reloadsTypes(failure),
+          LeaveRuleCode.isTypeRefused(failure),
           isFalse,
           reason: '$failure',
         );
@@ -317,7 +375,7 @@ void main() {
     test('tokenOf reads the token under its values', () {
       expect(
         LeaveRuleCode.tokenOf(
-          const Failure.validation(message: 'leaveRuleTooLong|5|7.5'),
+          const Failure.validation(message: 'leaveRuleTooLong|5'),
         ),
         'leaveRuleTooLong',
       );

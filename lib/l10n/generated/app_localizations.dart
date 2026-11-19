@@ -3233,7 +3233,7 @@ abstract class AppLocalizations {
   /// No description provided for @leaveRuleNotYetAvailableFrom.
   ///
   /// In en, this message translates to:
-  /// **'You can use this leave type from {date}.'**
+  /// **'This leave type can be used for leave days from {date} onwards.'**
   String leaveRuleNotYetAvailableFrom(String date);
 
   /// No description provided for @leaveRuleHalfDayNotAllowed.
@@ -3251,20 +3251,20 @@ abstract class AppLocalizations {
   /// No description provided for @leaveRuleNoticeTooShortBy.
   ///
   /// In en, this message translates to:
-  /// **'This leave type must be requested at least {days} days ahead. The earliest first day is {date}.'**
+  /// **'This leave type needs {days} day(s) of notice. The earliest first day is {date}.'**
   String leaveRuleNoticeTooShortBy(String days, String date);
 
   /// No description provided for @leaveRuleTooLong.
   ///
   /// In en, this message translates to:
-  /// **'This is more days than this leave type allows in one request.'**
+  /// **'This is more days in a row than this leave type allows. Days off in between count too.'**
   String get leaveRuleTooLong;
 
   /// No description provided for @leaveRuleTooLongBy.
   ///
   /// In en, this message translates to:
-  /// **'This leave type allows at most {max} days at a time; you asked for {requested}.'**
-  String leaveRuleTooLongBy(String max, String requested);
+  /// **'This leave type allows at most {max} day(s) in a row. Days off in between count too.'**
+  String leaveRuleTooLongBy(String max);
 
   /// No description provided for @leaveRuleSpanTooLong.
   ///

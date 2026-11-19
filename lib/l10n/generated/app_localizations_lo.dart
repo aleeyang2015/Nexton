@@ -1747,7 +1747,7 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String leaveRuleNotYetAvailableFrom(String date) {
-    return 'ທ່ານສາມາດໃຊ້ປະເພດການລານີ້ໄດ້ຕັ້ງແຕ່ວັນທີ $date.';
+    return 'ປະເພດການລານີ້ໃຊ້ໄດ້ສຳລັບວັນລາຕັ້ງແຕ່ວັນທີ $date ເປັນຕົ້ນໄປ.';
   }
 
   @override
@@ -1760,16 +1760,16 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String leaveRuleNoticeTooShortBy(String days, String date) {
-    return 'ການລາປະເພດນີ້ຕ້ອງຂໍລ່ວງໜ້າຢ່າງໜ້ອຍ $days ມື້. ວັນທຳອິດທີ່ລາໄດ້ແມ່ນ $date.';
+    return 'ການລາປະເພດນີ້ຕ້ອງຂໍລ່ວງໜ້າຢ່າງໜ້ອຍ $days ວັນ. ວັນທຳອິດທີ່ລາໄດ້ແມ່ນ $date.';
   }
 
   @override
   String get leaveRuleTooLong =>
-      'ຈຳນວນມື້ເກີນກວ່າທີ່ປະເພດການລານີ້ອະນຸຍາດໃນຄຳຮ້ອງດຽວ.';
+      'ຈຳນວນວັນລາຕິດຕໍ່ກັນເກີນກວ່າທີ່ປະເພດການລານີ້ອະນຸຍາດ. ວັນພັກທີ່ຢູ່ລະຫວ່າງກາງກໍນັບລວມ.';
 
   @override
-  String leaveRuleTooLongBy(String max, String requested) {
-    return 'ປະເພດການລານີ້ລາໄດ້ສູງສຸດ $max ມື້ຕໍ່ຄັ້ງ ແຕ່ທ່ານຂໍ $requested ມື້.';
+  String leaveRuleTooLongBy(String max) {
+    return 'ປະເພດການລານີ້ລາຕິດຕໍ່ກັນໄດ້ສູງສຸດ $max ວັນ. ວັນພັກທີ່ຢູ່ລະຫວ່າງກາງກໍນັບລວມ.';
   }
 
   @override

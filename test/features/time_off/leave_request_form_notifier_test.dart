@@ -908,13 +908,107 @@ void main() {
       expect(stateOf(container, 'req-7').reason, 'typed by the user');
     });
 
-    test('a type the server says is switched off or gone: the leave types '
-        'are asked for again, and what was typed stays', () async {
-      for (final failure in const [
+    group('a type the server says is switched off or gone', () {
+      const refusals = [
         Failure.validation(message: 'leaveRuleTypeInactive'),
         Failure.validation(message: 'leaveRuleTypeNotFound'),
+      ];
+
+      /// A container whose leave types are loaded and listened to, as the
+      /// form on screen keeps them.
+      Future<ProviderContainer> withTypes() async {
+        final container = containerWith();
+        container.listen(leaveTypesNotifierProvider, (_, _) {});
+        await container.read(leaveTypesNotifierProvider.future);
+        return container;
+      }
+
+      test('a new request: the types are asked for again, the user must '
+          'pick again, and what was typed stays', () async {
+        for (final failure in refusals) {
+          repository = FakeLeaveRepository()
+            ..submitResult = Result.failure(failure);
+          final container = await withTypes();
+          expect(repository.leaveTypesCalls, 1);
+          final form = formOf(container)
+            ..setLeaveType('lt-annual')
+            ..setDates([DateTime(2026, 11, 18)])
+            ..setReason('kept');
+
+          expect(await form.submit(), isFalse);
+          await Future<void>.delayed(Duration.zero);
+
+          expect(repository.leaveTypesCalls, 2, reason: '$failure');
+          expect(stateOf(container).typeRefused, isTrue);
+          expect(stateOf(container).reason, 'kept');
+          expect(stateOf(container).dates, [DateTime(2026, 11, 18)]);
+
+          // Picking a type (the same one or another) is the answer.
+          form.setLeaveType('lt-annual');
+          expect(stateOf(container).typeRefused, isFalse);
+        }
+      });
+
+      test('an edit too', () async {
+        repository.updateResult = Result.failure(refusals.first);
+        final container = await withTypes();
+        final form = formOf(container, 'req-7')
+          ..seed(asOpened)
+          ..setReason('typed by the user');
+
+        expect(await form.submit(), isFalse);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(repository.leaveTypesCalls, 2);
+        expect(stateOf(container, 'req-7').typeRefused, isTrue);
+        expect(stateOf(container, 'req-7').reason, 'typed by the user');
+      });
+
+      test('the reload fails: the list on screen is kept, not lost to an '
+          'error', () async {
+        repository.submitResult = Result.failure(refusals.first);
+        final container = await withTypes();
+        final before = container.read(leaveTypesNotifierProvider).value;
+        final form = formOf(container)
+          ..setLeaveType('lt-annual')
+          ..setDates([DateTime(2026, 11, 18)])
+          ..setReason('kept');
+        repository.leaveTypesResult = const Result.failure(
+          Failure.network(message: 'No internet connection'),
+        );
+
+        await form.submit();
+        await Future<void>.delayed(Duration.zero);
+
+        final types = container.read(leaveTypesNotifierProvider);
+        expect(repository.leaveTypesCalls, 2);
+        expect(types.hasError, isFalse);
+        expect(types.value, before);
+      });
+
+      test('the reload answers a new list: the form gets it', () async {
+        repository.submitResult = Result.failure(refusals.first);
+        final container = await withTypes();
+        final form = formOf(container)
+          ..setLeaveType('lt-annual')
+          ..setDates([DateTime(2026, 11, 18)])
+          ..setReason('kept');
+        repository.leaveTypesResult = const Result.success([]);
+
+        await form.submit();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(container.read(leaveTypesNotifierProvider).value, isEmpty);
+      });
+    });
+
+    test('another refusal (too long, or an unrelated VALIDATION_ERROR) does '
+        'not ask for the leave types again, and nothing has to be picked',
+        () async {
+      for (final failure in const [
+        Failure.validation(message: 'leaveRuleTooLong|5'),
         Failure.validation(
-          message: 'leave type not found',
+          message: 'reason is required',
           code: 'VALIDATION_ERROR',
         ),
       ]) {
@@ -923,38 +1017,17 @@ void main() {
         final container = containerWith();
         container.listen(leaveTypesNotifierProvider, (_, _) {});
         await container.read(leaveTypesNotifierProvider.future);
-        expect(repository.leaveTypesCalls, 1);
         final form = formOf(container)
           ..setLeaveType('lt-annual')
           ..setDates([DateTime(2026, 11, 18)])
           ..setReason('kept');
 
         expect(await form.submit(), isFalse);
-        await container.read(leaveTypesNotifierProvider.future);
+        await Future<void>.delayed(Duration.zero);
 
-        expect(repository.leaveTypesCalls, 2, reason: '$failure');
-        expect(stateOf(container).reason, 'kept');
-        expect(stateOf(container).dates, [DateTime(2026, 11, 18)]);
+        expect(repository.leaveTypesCalls, 1, reason: '$failure');
+        expect(stateOf(container).typeRefused, isFalse);
       }
-    });
-
-    test('another rule (too long) does not ask for the leave types again',
-        () async {
-      repository.submitResult = const Result.failure(
-        Failure.validation(message: 'leaveRuleTooLong|5|7'),
-      );
-      final container = containerWith();
-      container.listen(leaveTypesNotifierProvider, (_, _) {});
-      await container.read(leaveTypesNotifierProvider.future);
-      final form = formOf(container)
-        ..setLeaveType('lt-annual')
-        ..setDates([DateTime(2026, 11, 18)])
-        ..setReason('kept');
-
-      expect(await form.submit(), isFalse);
-      await Future<void>.delayed(Duration.zero);
-
-      expect(repository.leaveTypesCalls, 1);
     });
 
     test('a new request refused with the same code is not an edit: nothing '

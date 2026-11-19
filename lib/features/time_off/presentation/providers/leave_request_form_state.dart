@@ -57,6 +57,11 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
     /// (`setDaysOff`) so the counts below need nothing passed to them.
     CompanyDaysOff? daysOff,
 
+    /// The server refused the chosen leave type as switched off or gone.
+    /// Until the user picks a type again nothing is sent, and the form does
+    /// not pick one for them.
+    @Default(false) bool typeRefused,
+
     /// Edit mode only: the leave type the request had when it was opened. The
     /// form keeps offering it even after HR switched it off.
     String? originalLeaveTypeId,

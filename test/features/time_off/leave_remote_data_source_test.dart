@@ -487,6 +487,49 @@ void main() {
       );
     });
 
+    test('"leave type not found" on a new request and on an edit', () async {
+      adapter
+        ..status = 400
+        ..body = {
+          'success': false,
+          'error': {
+            'code': 'VALIDATION_ERROR',
+            'message': 'leave type not found',
+          },
+        };
+      final isTypeGone = throwsA(
+        isA<ValidationFailure>().having(
+          (f) => f.message,
+          'message',
+          'leaveRuleTypeNotFound',
+        ),
+      );
+
+      await expectLater(source.submit(draft), isTypeGone);
+      await expectLater(source.update('req-1', draft), isTypeGone);
+      // Not on a decision: there it stays what the server said.
+      await expectLater(
+        source.approve(id: 'req-1'),
+        throwsA(isA<DioException>()),
+      );
+    });
+
+    test('an older code keeps its own token when both could apply', () async {
+      // The older table is looked at first.
+      refuse(422, 'INSUFFICIENT_BALANCE');
+
+      await expectLater(
+        source.update('req-1', draft),
+        throwsA(
+          isA<ValidationFailure>().having(
+            (f) => f.message,
+            'message',
+            'leaveInsufficientBalance',
+          ),
+        ),
+      );
+    });
+
     test('the rules are about asking: cancel, approve and reject do not map '
         'them', () async {
       refuse(422, 'LEAVE_TYPE_INACTIVE');
