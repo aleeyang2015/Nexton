@@ -29,6 +29,11 @@ class TimeCorrectionFormState with _$TimeCorrectionFormState {
     required DateTime date,
     @Default(TimeCorrectionType.both) TimeCorrectionType type,
     ShiftDetail? shiftDetail,
+
+    /// The parts of [date]'s own history sessions, as its record knows them
+    /// (#44). Empty when the day has none, or while its history is not read
+    /// yet (or could not be): the profile's parts are offered then.
+    @Default(<ShiftDetail>[]) List<ShiftDetail> dayParts,
     @Default(TimeOfDay(hour: 8, minute: 0)) TimeOfDay clockIn,
     @Default(TimeOfDay(hour: 17, minute: 0)) TimeOfDay clockOut,
     @Default('') String reason,
