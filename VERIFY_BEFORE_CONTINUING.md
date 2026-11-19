@@ -48,8 +48,8 @@ Waiting for the owner (asked on 2026-11-19, not answered):
   other 17 after their phone checks, or all now with a note; and who closes (the public API here only reads). The
   same question then applies to the trackers #63 to #66.
 - **#35 rounding: ANSWERED, two decimals** (owner, 2026-11-19): built and merged (`30dd634`). Nothing left.
-- **#35 Lao tile label at 320 dp:** "OT hours" and "work hours" both start with `ຊົ່ວໂມງ` and are cut to it on the
-  smallest phones. Keep `ຊົ່ວໂມງໂອທີ`, or shorten to `ໂອທີ`.
+- **#35 Lao tile label: ANSWERED, `ໂອທີ`** (owner, 2026-11-19). Built on `35-ot-tile-label-lao` (`a48d855`), pushed,
+  gates green (2,454 tests); it waits for the owner's merge word. `main` does not have it yet.
 - The older questions in `NEXT_ACTIONS.md` "Waiting for the owner".
 
 Waiting for other people:

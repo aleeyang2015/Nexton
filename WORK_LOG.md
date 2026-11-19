@@ -162,3 +162,7 @@ issue newer than #76.
 **#35, two decimals:** the owner chose two decimals so OT hours read as on the payslip. On
 `35-ot-hours-two-decimals` (`7c2ead8`), pushed; gates green, 2,454 tests. Merged on the owner's say: `30dd634` (`--no-ff`, `Refs #35`), gates green on the
 merge commit, fast-forward push. `main` = `origin/main` = `30dd634` at the end of the day.
+
+**#35, Lao tile label:** the owner chose `ໂອທີ` for the home OT tile. Its own key (`attOvertimeTileLabel`), since
+`salaryOvertimeLabel` is also the payslip's and the history row's. On `35-ot-tile-label-lao` (`a48d855`), pushed;
+gates green, 2,454 tests. Not merged: waits for the owner's word.
