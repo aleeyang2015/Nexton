@@ -11,23 +11,30 @@ file on branch `docs/next-actions`, with `WORK_LOG.md` (the day-by-day log). Non
 ## Resume here (next session, after 2026-11-19)
 
 1. Read the project rules: `CLAUDE.md` on `main`. There is no `PROJECT_RULES.md`; `CLAUDE.md` is the rules file.
-2. Read this file, then `NEXT_ACTIONS.md` (both on `origin/docs/next-actions`; they are not in the working tree
-   of `main`: read them with `git show origin/docs/next-actions:<file>`). The files of the same names under
-   `../nexton_app_flutter/docs/handover/` belong to an older project and say nothing about this one.
+2. Read this file, then `NEXT_ACTIONS.md` and `WORK_LOG.md`. All three are on `origin/docs/next-actions` only, not
+   in the working tree of `main`: read them with `git show origin/docs/next-actions:<file>`. The files of the same
+   names under `../nexton_app_flutter/docs/handover/` belong to an older project and say nothing about this one.
 3. Check the real Git and project state before changing anything (steps 3 to 5 below).
 4. Confirm the last merge is there:
    `git merge-base --is-ancestor origin/70-insufficient-balance-dialog origin/main && echo "in main"`.
 5. **Nothing buildable is queued.** Every work order is merged except **#55** (unread dots and a count on the
-   bell), which waits on Nexton-Backend#190. Start by re-reading the comments on #55 for a "now live", and by
-   checking for issues newer than #76 and for new backend comments on any issue
-   (`curl -s "https://api.github.com/repos/aleeyang2015/Nexton/issues/comments?since=2026-11-19T00:00:00Z&per_page=100&sort=updated"`).
-   On 2026-11-19 exactly that check found #35 unblocked and new live rules on #16.
-6. Then put the owner's open items in front of them (the list under the table below); each answer may become a
-   small piece of work with its own branch.
+   bell), which waits on Nexton-Backend#190. Start with the three checks that found work on 2026-11-19:
+   ```sh
+   gh issue view 55 --comments          # a "now live" from the backend?
+   gh issue list --state all --limit 5  # an issue newer than #76?
+   gh api "repos/aleeyang2015/Nexton/issues/comments?since=2026-11-19T00:00:00Z&per_page=100&sort=updated" \
+     -q '.[] | select(.user.login != "aleeyang2015") | (.issue_url|split("/")|last)+" "+.user.login+" "+.created_at'
+   ```
+   The last one lists every comment that is not the owner's since the questions below were posted: the backend's
+   answers on #75, #16 and #73 will show there. Last run at the end of 2026-11-19: #55 unchanged (one comment, 13
+   Nov), no issue newer than #76, no comment from anyone else.
+6. Then put what is waiting in front of the owner (the lists under the table); each answer may become a small
+   piece of work with its own branch.
 7. Follow the existing architecture, conventions and workflow; do not restart planning, regenerate these documents,
    or redo a MERGED issue.
-8. Do not create a branch, close an issue, or change anything on GitHub until the owner says so. For a new piece
-   of work: show the plan, wait for "go", build on a branch, and merge only on "push issue N to main directly".
+8. For a new piece of work: show the plan, wait for "go", build on a branch, push it, review, and merge only on the
+   owner's "push … to main directly". Close an issue, comment on one, or edit one only when the owner has said so
+   for that issue.
 
 ### State at the end of 2026-11-19
 
@@ -38,55 +45,66 @@ file on branch `docs/next-actions`, with `WORK_LOG.md` (the day-by-day log). Non
 | Working tree | clean: nothing modified, staged or untracked; no stashes |
 | Unpushed commits | none, on any local branch (every branch equals its remote) |
 | Gates on `2c333e8` | `flutter analyze lib test`: 1 warning, already on `main` (`_ShiftHoursLine` unused); `flutter test`: 2,460 passed, 0 failed; `flutter build apk --debug`: builds |
-| Done on 2026-11-19 | #62 checked (read-only); #35 (`5081e0a`); #73 (`139f1c5`); the #16 follow-up, leave rule refusals in Lao, no issue of its own (`2599166`); #75, docs (`2b2f5dc`); #35's OT hours to two decimals (`30dd634`) and its Lao tile label `ໂອທີ` (`12b3019`), both the owner's calls; #70, the approver's "not enough days left" text (`3daed16`), then as a dialog with OK (`2c333e8`). Each merged on the owner's say |
 | Still blocked | #55 (Nexton-Backend#190, unread count): the only work order not merged |
-| Next | no code queued: re-check #55 and new backend comments, then the owner's open items below |
+| Next | no code queued: the three checks of step 5, then what is waiting below |
 | Phone checks | none done for any issue; all pending on `nexton-demo` |
+| GitHub | `gh` is installed and signed in as the owner (since 2026-11-19): it reads without the hourly limit, and can comment, close and edit |
 
-Waiting for the owner (asked on 2026-11-19, not answered):
-- **#62's children (#2 to #19): ANSWERED** (owner, 2026-11-19): close #13 now, and the other 17 **after their
-  phone checks**. **#13 is CLOSED** (2026-11-19, with a note naming its merge commit). The other 17 stay open until
-  someone has walked their phone boxes on `nexton-demo`; the trackers #63 to #66 close when their children have.
-- **#35 rounding: ANSWERED, two decimals** (owner, 2026-11-19): built and merged (`30dd634`). Nothing left.
-- **#35 Lao tile label: ANSWERED, `ໂອທີ`** (owner, 2026-11-19): built and merged (`12b3019`). Nothing left.
-- The older questions in `NEXT_ACTIONS.md` "Waiting for the owner".
+Merged on 2026-11-19, each on the owner's say (merge commit on `main`):
+
+| What | Merge |
+|---|---|
+| #35: approved OT hours on the home card and the history | `5081e0a` |
+| #73: a "forgot to scan" request with a photo sends the photo's URL as text | `139f1c5` |
+| #16 follow-up (no issue of its own): the leave type's own refusals in Lao; a refused type is picked again | `2599166` |
+| #75: `auth.md` on how `/auth/me` finds `employee_id` (docs only) | `2b2f5dc` |
+| #35: OT hours to two decimals, as on the payslip (owner's call) | `30dd634` |
+| #35: the home OT tile says `ໂອທີ` in Lao (owner's call) | `12b3019` |
+| #70: an approver's own text for "not enough days left" | `3daed16` |
+| #70: that message as a dialog with OK, not a toast (owner's call) | `2c333e8` |
+
+Issues on GitHub:
+- **Closed on 2026-11-19, on the owner's say** (no box of theirs needs a phone; each has a note naming its merge
+  commit and its tests): #13, #22, #27, #28, #43, #68, #69, #70, #74; and #76, a notice, as "not planned".
+- **The owner's rule for the rest:** an issue closes after its phone check on `nexton-demo`. The trackers #62 to #66
+  close when their children have. In a tracker, tick a child's box only when that child is closed (ticked so far:
+  #13 in #62, #22 in #63, #27 and #28 in #64, #43 in #65).
+- **Open on purpose although the work is merged:** #75 (the backend question sits on it), #71 (covered by #52,
+  whose shared-phone check is pending), #20 (wants a real `nexton-demo` payslip), #73 (its photo has to be seen
+  on a phone), and every other issue from #2 to #61 not listed above.
+
+Waiting for the owner:
+- Nothing asked on 2026-11-19 is left unanswered (closing #62's children, #35's rounding and tile label, #70's
+  toast: all decided and done).
+- The older questions in `NEXT_ACTIONS.md` "Waiting for the owner" are still open.
 
 Waiting for other people:
-- **A native read of the Lao** written on 2026-11-19 (`lib/l10n/app_lo.arb`): the twelve `leaveRule…` strings and
-  `leaveApprovalInsufficientBalance`.
-- **Backend team or HR, asked on #75** (comment of 2026-11-19): is any login linked to its staff record only by
-  the old `users.employee_id`? Since 17 Nov `/auth/me` answers `employee_id: null` for it, and the App then shows
-  that login no Approvals entry and no Approve or Reject buttons (`ApproverAccess.canSeeApprovals`).
-- **Backend team, asked on #16** (comment of 2026-11-19): a real code for "leave type not found" (the App tells it
-  by its English message); what `requested_days` holds on `LEAVE_TOO_LONG` when days off join the run (the App
-  does not show it).
-- **Backend team, asked on #73** (comment of 2026-11-19): what `POST /uploads` returns as `url` (the App loads it
-  as it is, so the photo shows only if the phone can reach it).
-- Read the answers with `gh issue view <n> --comments`; an answer may become a small piece of work.
+- **A native read of the Lao written on 2026-11-19** (`lib/l10n/app_lo.arb`): the twelve `leaveRule…` strings,
+  and `leaveApprovalInsufficientBalance`, whose second sentence (`ໃຫ້ HR ເພີ່ມວັນລາ ຫຼື ປະຕິເສດຄຳຮ້ອງນີ້`) can be
+  read as "have HR add days or reject", when it is the approver who rejects.
+- **Backend team or HR, asked on #75:** is any login linked to its staff record only by the old
+  `users.employee_id`? Since 17 Nov `/auth/me` answers `employee_id: null` for it, and the App then shows that
+  login no Approvals entry and no Approve or Reject buttons (`ApproverAccess.canSeeApprovals`).
+- **Backend team, asked on #16:** a real code for "leave type not found" (the App tells it by its English
+  message); what `requested_days` holds on `LEAVE_TOO_LONG` when days off join the run (the App shows only the
+  limit).
+- **Backend team, asked on #73:** what `POST /uploads` returns as `url` (the App loads it as it is, so the photo
+  shows only if the phone can reach it).
+- **Phone checks on `nexton-demo`**, by someone with a test login and a device. Three need something set up
+  first: #35 an approved, clocked OT (the backend says no company has one yet); the #16 follow-up a new employee
+  asking for Annual Leave (refused for the first 12 months); #70 a last-step approve for an employee with no days
+  left on a type that allows no negative balance.
 
-Known risks to keep in mind:
-- GitHub issues #2 to #76 are open although their work is merged, except the eight closed on 2026-11-19 on the
-  owner's say because no box of theirs needs a phone: #13, #22, #27, #28, #43, #68, #69, #70, #74 (each with a note naming
-  its merge commit and tests) and #76 (a notice, closed as not planned). Every other issue closes on the owner's
-  say, after its phone check.
-- Left open on purpose although the work is merged: #75 (docs done, but the backend question sits on it), #71
-  (covered by #52, whose phone check is pending), #20 (wants a real `nexton-demo` payslip).
-- #70's review (after the merge) found no defect. Two points left for people: the Lao second sentence can be read
-  as "have HR add days or reject" (for the native read), and the 3-second toast was short for two
-  sentences: the owner chose a dialog with OK (2026-11-19): built and merged (`2c333e8`). To see
-  on a phone with #70's other behaviour; nothing else left.
-- In the trackers the boxes of the closed children are ticked (owner's say, 2026-11-19): #13 in #62, #22 in #63,
-  #27 and #28 in #64, #43 in #65. Tick a box only when its issue is closed. (#68, #74 and #76 are in no tracker's
-  list.)
-- #35's phone check needs an approved, clocked OT on `nexton-demo` first: the backend says no company has one yet.
-- Follow-ups proposed and not filed: see `NEXT_ACTIONS.md` "Next", item 2.
+Follow-ups proposed and not filed: see `NEXT_ACTIONS.md` "Next", item 2.
 
-Two things about the tools here, learned on 2026-11-19:
+Three things about the tools here, learned on 2026-11-19:
 - Do not run `dart format` on a folder: `main` is not formatted to the tool's style and it rewrites untouched
   files. Leave formatting alone.
 - `dart run build_runner build` rewrites every generated file in an older layout and reports SEVERE on files with
   newer syntax (already so on `main`). Keep only the generated file of the class changed, run `dart format` on
   that one file, and restore the rest (`git checkout -- <paths>`).
+- These three files are edited in a separate worktree of `docs/next-actions`
+  (`git worktree add <dir> docs/next-actions`), so `main` stays checked out and clean.
 
 ## Do not
 
@@ -170,8 +188,7 @@ The next issue is the first item under "Next" in `NEXT_ACTIONS.md` (at the time 
 none to build: every work order is merged except #55, blocked on the backend; the example below reads #55).
 
 ```sh
-curl -s https://api.github.com/repos/aleeyang2015/Nexton/issues/55
-curl -s https://api.github.com/repos/aleeyang2015/Nexton/issues/55/comments
+gh issue view 55 --comments
 ```
 
 Read the body to the end and every comment. A comment headed "Checked against branch `clock-in-out-location`"
@@ -218,4 +235,5 @@ One issue, one branch. Never start an issue on top of an unmerged one.
 - Trying a change on a phone against `nexton-demo`: there is no test login in this environment. Every phone check
   is recorded as pending in `NEXT_ACTIONS.md`; never report one as done.
 - Reading the backend's code: `phoudssp/Nexton-Backend` is private.
-- Opening a pull request, commenting on an issue, closing an issue.
+- Without `gh` signed in: opening a pull request, commenting on an issue, closing an issue. With it (the owner
+  signed it in on 2026-11-19) these work, and are done only on the owner's say for that issue.

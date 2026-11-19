@@ -191,3 +191,7 @@ fresh-eyes review was still running; its findings, if any, are a follow-up. `mai
 over the 3-second toast for "not enough days left". On `70-insufficient-balance-dialog` (`94a6403`), pushed; gates
 green, 2,460 tests. Merged on the owner's say: `2c333e8` (`--no-ff`, `Refs #70`), gates green on the merge commit,
 fast-forward push. `main` = `origin/main` = `2c333e8`.
+
+**End of 2026-11-19.** `main` = `origin/main` = `2c333e8`, clean; gates green (2,460 tests). #70's dialog merged and
+a note added to #70. Last check of the day: #55 unchanged, no backend answer yet on #75, #16 or #73, no issue
+newer than #76. "Resume here" in `VERIFY_BEFORE_CONTINUING.md` rewritten for the next session.
