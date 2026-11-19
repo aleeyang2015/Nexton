@@ -66,13 +66,14 @@ Waiting for other people:
 
 Known risks to keep in mind:
 - GitHub issues #2 to #76 are open although their work is merged, except the eight closed on 2026-11-19 on the
-  owner's say because no box of theirs needs a phone: #13, #22, #27, #28, #43, #68, #69, #74 (each with a note naming
+  owner's say because no box of theirs needs a phone: #13, #22, #27, #28, #43, #68, #69, #70, #74 (each with a note naming
   its merge commit and tests) and #76 (a notice, closed as not planned). Every other issue closes on the owner's
   say, after its phone check.
 - Left open on purpose although the work is merged: #75 (docs done, but the backend question sits on it), #71
-  (covered by #52, whose phone check is pending), #20 (wants a real `nexton-demo` payslip), and #70: it was NOT
-  covered by #16 (the approver got the employee's "You don't have enough…" text); fixed and merged on 2026-11-19
-  (`3daed16`), still open on GitHub. Its three boxes are proved by tests, so it can close on the owner's say.
+  (covered by #52, whose phone check is pending), #20 (wants a real `nexton-demo` payslip).
+- #70's review (after the merge) found no defect. Two points left for people: the Lao second sentence can be read
+  as "have HR add days or reject" (for the native read), and the toast shows for 3 seconds like every other, which
+  may be short for two sentences (the owner was asked: a longer time, a dialog, or wait for the phone check).
 - In the trackers the boxes of the closed children are ticked (owner's say, 2026-11-19): #13 in #62, #22 in #63,
   #27 and #28 in #64, #43 in #65. Tick a box only when its issue is closed. (#68, #74 and #76 are in no tracker's
   list.)
