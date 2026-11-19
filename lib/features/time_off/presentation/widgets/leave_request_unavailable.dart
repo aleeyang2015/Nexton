@@ -13,6 +13,9 @@ import '../../data/datasources/leave_error_code.dart';
 /// No Retry when the server said the request is gone (or is not the
 /// caller's), or that this login has no staff record: asking again gets the
 /// same answer. The page's own back arrow is the way out.
+///
+/// Gone or not the caller's is said in #53's words, the same on every page
+/// a push can open: on a shared phone the tap may be the next user's.
 class LeaveRequestUnavailable extends StatelessWidget {
   final Object? error;
   final VoidCallback onRetry;
@@ -32,9 +35,11 @@ class LeaveRequestUnavailable extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final failure = error;
-    final message = failure is Failure
-        ? failure.localize(l10n)
-        : l10n.genericError;
+    final message = failure is! Failure
+        ? l10n.genericError
+        : LeaveErrorCode.isRequestGone(failure)
+        ? l10n.pushItemUnavailable
+        : failure.localize(l10n);
 
     return Center(
       child: Padding(

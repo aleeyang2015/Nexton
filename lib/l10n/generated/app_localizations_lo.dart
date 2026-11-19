@@ -2274,4 +2274,7 @@ class AppLocalizationsLo extends AppLocalizations {
   String notificationsUnreadCount(int count) {
     return '$count ລາຍການໃໝ່';
   }
+
+  @override
+  String get pushItemUnavailable => 'ລາຍການນີ້ບໍ່ມີແລ້ວ ຫຼື ທ່ານບໍ່ມີສິດເບິ່ງ.';
 }

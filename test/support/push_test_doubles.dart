@@ -39,7 +39,6 @@ class FakePushSession extends AuthSessionNotifier {
     );
   }
 
-
   void signIn() =>
       state = AsyncValue.data(AuthSession.signedIn(approverTestUser()));
 
@@ -80,8 +79,11 @@ class FakeMessaging implements FirebaseMessagingDataSource {
   @override
   Stream<String> get onTokenRefresh => refresh.stream;
 
+  /// Pushes that arrive while the App is open (#53).
+  final foreground = StreamController<PushMessage>.broadcast();
+
   @override
-  Stream<PushMessage> get onMessage => const Stream.empty();
+  Stream<PushMessage> get onMessage => foreground.stream;
 
   @override
   Future<void> deleteToken() async {
@@ -166,8 +168,15 @@ class FailingDeviceStore implements DeviceLocalDataSource {
   Future<void> markPermissionAsked() async => throw Exception('prefs');
 }
 
-/// No pop-ups in tests; a tap on one can be played (#53).
+/// No real pop-ups in tests: the ones asked for are kept in [shown], and a
+/// tap on one can be played (#53).
 class NoPopups implements LocalNotificationDataSource {
+  /// Every pop-up the App asked for, in order.
+  final List<PushMessage> shown = [];
+
+  /// When set, showing a pop-up fails with it.
+  Object? showError;
+
   /// The banner whose tap started the App.
   Map<String, String>? launchedBy;
 
@@ -175,7 +184,11 @@ class NoPopups implements LocalNotificationDataSource {
   final taps = StreamController<Map<String, String>>.broadcast();
 
   @override
-  Future<void> show(PushMessage message) async {}
+  Future<void> show(PushMessage message) async {
+    final error = showError;
+    if (error != null) throw error;
+    shown.add(message);
+  }
 
   @override
   Stream<Map<String, String>> get onTap => taps.stream;

@@ -150,6 +150,7 @@ void main() {
 
       expect(find.text('Noy Phommachanh'), findsWidgets);
       expect(find.text(en.leaveRequestGone), findsNothing);
+      expect(find.text(en.pushItemUnavailable), findsNothing);
     });
   });
 

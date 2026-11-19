@@ -313,7 +313,8 @@ void main() {
   });
 
   group('when there is no request to show', () {
-    testWidgets('gone, or not the user\'s (404): "not available", no Retry', (
+    testWidgets('gone, or not the user\'s (404): "no longer there, or not '
+        'yours to see" (#53), no Retry', (
       tester,
     ) async {
       repository.timeCorrectionDetailResults = [
@@ -323,7 +324,7 @@ void main() {
       ];
       await open(tester, initial: row('tc-1'));
 
-      expect(find.text(en.apprRequestNotFound), findsOneWidget);
+      expect(find.text(en.pushItemUnavailable), findsOneWidget);
       expect(find.text(en.retry), findsNothing);
     });
 
