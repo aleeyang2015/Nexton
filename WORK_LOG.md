@@ -150,3 +150,7 @@ warning, 2,452 tests, debug APK. Merged on the owner's "push the #16 follow-up t
 **Lesson:** `build_runner` here rewrites every generated file in an older layout and reports SEVERE on files with
 newer syntax (already so on `main`). Keep only the generated file of the class changed, run `dart format` on that
 one file (the committed ones are formatted), and restore the rest.
+
+**#75:** docs only, on `75-auth-me-employee-id-docs` (`d419130`), pushed; gates green. `auth.md` now gives the
+server's new order for `employee_id` and says the App reads it. Found while checking: a `null` `employee_id` hides
+the Approvals entry and the decision buttons. Not merged: waits for the owner's word.
