@@ -1,8 +1,8 @@
 import '../../domain/entities/app_notification.dart';
 
 /// Reads one row of `GET /mobile/notifications` (#54), defensively: `data`
-/// may be null or hold non-text values, `sent_at` may be missing, and a
-/// value this App does not know is kept, not refused. A row with no id or
+/// may be null or hold non-text values, `sent_at` and `is_read` may be
+/// missing, and a value this App does not know is kept, not refused. A row with no id or
 /// no readable `created_at` cannot be listed: null, and the page skips it.
 abstract final class NotificationModel {
   static AppNotification? fromJson(Map<String, dynamic> json) {
@@ -22,6 +22,9 @@ abstract final class NotificationModel {
             }
           : const {},
       status: NotificationSendStatus.fromWire(json['status']),
+      // Unread only when the server says so in so many words (#55): a
+      // server that sends no `is_read` must not make every row look new.
+      isRead: json['is_read'] != false,
       sentAt: _time(json['sent_at']),
       createdAt: createdAt,
     );

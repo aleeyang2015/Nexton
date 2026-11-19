@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,12 +15,17 @@ import '../../../attendance/presentation/widgets/requests_list_message.dart';
 import '../../domain/entities/app_notification.dart';
 import '../../domain/push_route.dart';
 import '../providers/notifications_notifier.dart';
+import '../providers/unread_count_notifier.dart';
 import '../push_router.dart';
 import '../widgets/notification_row.dart';
 
 /// "ແຈ້ງເຕືອນ" (#54): the user's recent pushes, newest first, a page at a
 /// time. A row opens what its push opens (#53). Opened from the bell on
 /// Home and from Profile.
+///
+/// Unread rows carry a dot (#55). A tap marks the row read and opens it;
+/// "ອ່ານທັງໝົດ" in the app bar marks every row read, and shows only while
+/// the bell's count is above zero.
 class NotificationsPage extends ConsumerStatefulWidget {
   const NotificationsPage({super.key});
 
@@ -47,6 +54,9 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     final notifier = ref.read(notificationsNotifierProvider.notifier);
     final rows = state.rows;
     final list = rows.valueOrNull;
+    final hasUnread = ref.watch(
+      unreadCountProvider.select((count) => (count ?? 0) > 0),
+    );
 
     final List<Widget> body;
     if (rows.isLoading && list == null) {
@@ -93,6 +103,18 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
               color: AppColors.primary,
               fontSize: 20,
             ),
+            actions: [
+              if (hasUnread)
+                TextButton(
+                  onPressed: notifier.markAllRead,
+                  child: customText(
+                    l10n.notificationsMarkAllRead,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+            ],
           ),
           body: RefreshIndicator(
             color: AppColors.primary,
@@ -122,9 +144,20 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
 
   Widget _row(AppNotification row) {
     final target = row.target;
+    // Nothing to do for a read row with nowhere of its own to open.
+    if (target == null && row.isRead) return NotificationRow(notification: row);
     return NotificationRow(
       notification: row,
-      onTap: target == null ? null : () => _open(target),
+      onTap: () {
+        // Another row's page is opening: this tap opens nothing, so it
+        // marks nothing read either.
+        if (_opening) return;
+        // Marked read first, and not waited for: the page opens at once.
+        unawaited(
+          ref.read(notificationsNotifierProvider.notifier).markRead(row.id),
+        );
+        if (target != null) _open(target);
+      },
     );
   }
 }

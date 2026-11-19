@@ -3,9 +3,14 @@ import 'entities/app_notification.dart';
 /// How close in time two copies of one push are (#54).
 const Duration repeatWindow = Duration(seconds: 60);
 
-/// [rows] (newest first) without the copies a user with two phones gets:
-/// the server logs one row per phone, not per push (until
-/// Nexton-Backend#190). A row is left out when a row already kept, created
+/// [rows] (newest first) without the copies a user with two phones got
+/// before Nexton-Backend#190 (19 Nov 2026): the server then logged one row
+/// per phone, not per push, and those old rows were left as they are. Rows
+/// since then never come in pairs.
+///
+/// An unread row is never left out (#55): old rows all count as read, so an
+/// unread one is a push of its own, and hiding it would leave the bell
+/// counting a row the list does not show. A read row is left out when a row already kept, created
 /// within [repeatWindow] of it, matches it — the same type, title, body and
 /// data (the data's own `notification_type` aside: the first copy of a push
 /// is logged without it). So copies collapse whether they come next to each
@@ -16,6 +21,10 @@ const Duration repeatWindow = Duration(seconds: 60);
 List<AppNotification> collapseRepeats(List<AppNotification> rows) {
   final kept = <AppNotification>[];
   for (final row in rows) {
+    if (!row.isRead) {
+      kept.add(row);
+      continue;
+    }
     var copy = false;
     // Newest first: the kept rows within the window are the last ones.
     for (var i = kept.length - 1; i >= 0; i--) {

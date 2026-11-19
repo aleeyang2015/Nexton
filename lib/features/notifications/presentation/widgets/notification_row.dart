@@ -7,7 +7,7 @@ import '../../domain/entities/app_notification.dart';
 import 'notification_copy.dart';
 
 /// One row of the bell list (#54): the kind, the server's title and body
-/// as sent, and when.
+/// as sent, and when. An unread row carries a dot (#55).
 class NotificationRow extends StatelessWidget {
   final AppNotification notification;
   final VoidCallback? onTap;
@@ -56,6 +56,18 @@ class NotificationRow extends StatelessWidget {
                             fontSize: 12,
                             color: AppColors.subTitle,
                           ),
+                          if (!row.isRead) ...[
+                            widthBx(w: 8),
+                            Container(
+                              key: ValueKey('notification-unread-${row.id}'),
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: AppColors.danger,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                       if (row.title.isNotEmpty) ...[

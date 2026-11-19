@@ -14,4 +14,19 @@ class NotificationsRepositoryImpl extends BaseRepository
   @override
   FutureResult<NumberedPage<AppNotification>> notifications({int page = 1}) =>
       guard(() => _remote.notifications(page: page));
+
+  @override
+  FutureResult<Unit> markRead(String id) => guard(() async {
+    await _remote.markRead(id);
+    return Unit.instance;
+  });
+
+  @override
+  FutureResult<Unit> markAllRead() => guard(() async {
+    await _remote.markAllRead();
+    return Unit.instance;
+  });
+
+  @override
+  FutureResult<int> unreadCount() => guard(_remote.unreadCount);
 }

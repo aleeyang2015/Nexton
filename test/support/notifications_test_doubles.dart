@@ -35,4 +35,60 @@ class FakeNotificationsRepository implements NotificationsRepository {
       pages[page] ?? NumberedPage(items: const [], page: page, totalPages: 1),
     );
   }
+
+  // --- Read and unread (#55) ---
+
+  /// What `unreadCount()` answers, one per call; the last one is repeated.
+  /// A [Failure] in the list is a failed call.
+  List<Object> unreadAnswers = [0];
+  int unreadCalls = 0;
+
+  /// When set, the next `unreadCount()` waits for it.
+  Completer<void>? holdUnread;
+
+  final List<String> markedRead = [];
+  int markAllCalls = 0;
+
+  /// When set, `markRead` and `markAllRead` fail with it.
+  Failure? markFailure;
+
+  /// When set, the next `markRead` or `markAllRead` waits for it.
+  Completer<void>? holdMark;
+
+  @override
+  FutureResult<int> unreadCount() async {
+    final index = unreadCalls < unreadAnswers.length
+        ? unreadCalls
+        : unreadAnswers.length - 1;
+    final answer = unreadAnswers[index];
+    unreadCalls++;
+    final wait = holdUnread;
+    holdUnread = null;
+    await wait?.future;
+    return answer is Failure ? Result.failure(answer) : Result.success(answer as int);
+  }
+
+  @override
+  FutureResult<Unit> markRead(String id) async {
+    markedRead.add(id);
+    final wait = holdMark;
+    holdMark = null;
+    await wait?.future;
+    final failure = markFailure;
+    return failure == null
+        ? const Result.success(Unit.instance)
+        : Result.failure(failure);
+  }
+
+  @override
+  FutureResult<Unit> markAllRead() async {
+    markAllCalls++;
+    final wait = holdMark;
+    holdMark = null;
+    await wait?.future;
+    final failure = markFailure;
+    return failure == null
+        ? const Result.success(Unit.instance)
+        : Result.failure(failure);
+  }
 }

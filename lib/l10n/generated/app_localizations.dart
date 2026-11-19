@@ -4141,6 +4141,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please ask your HR to reset your password.'**
   String get forgotPasswordAskHr;
+
+  /// No description provided for @notificationsMarkAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get notificationsMarkAllRead;
+
+  /// No description provided for @notificationsUnreadCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} new'**
+  String notificationsUnreadCount(int count);
 }
 
 class _AppLocalizationsDelegate

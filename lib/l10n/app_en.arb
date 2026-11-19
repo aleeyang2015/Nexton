@@ -905,5 +905,14 @@
   "profilePhotoChanged": "Profile photo changed",
   "profilePhotoNotImage": "This file is not a photo. Please choose another.",
   "profilePhotoTooLarge": "This photo is too large. Please choose another.",
-  "forgotPasswordAskHr": "Please ask your HR to reset your password."
+  "forgotPasswordAskHr": "Please ask your HR to reset your password.",
+  "notificationsMarkAllRead": "Mark all as read",
+  "notificationsUnreadCount": "{count} new",
+  "@notificationsUnreadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

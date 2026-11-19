@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../notifications/presentation/providers/unread_count_notifier.dart';
 import '../../../profile/presentation/profile_error_copy.dart';
 import '../../../profile/presentation/providers/profile_notifier.dart';
 
@@ -199,26 +200,42 @@ class _PositionLine extends StatelessWidget {
 }
 
 /// The notification bell on a white rounded tile: opens the bell list
-/// (#54).
-class _BellButton extends StatelessWidget {
+/// (#54). A small count sits on it while rows are unread (#55): "99+"
+/// above 99, and nothing at all when the count is zero or not known.
+class _BellButton extends ConsumerWidget {
   const _BellButton();
 
   @override
-  Widget build(BuildContext context) {
-    final label = AppLocalizations.of(context)!.notifications;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final unread = ref.watch(unreadCountProvider) ?? 0;
+    final label = unread > 0
+        ? '${l10n.notifications}, ${l10n.notificationsUnreadCount(unread)}'
+        : l10n.notifications;
     // One label for screen readers: the tooltip's own is left out.
     return Semantics(
       button: true,
       label: label,
       excludeSemantics: true,
       child: Tooltip(
-        message: label,
+        message: l10n.notifications,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(14),
             onTap: () => context.push(AppRoutes.notifications),
-            child: _tile(),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                _tile(),
+                if (unread > 0)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: _UnreadCount(unread),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -246,6 +263,34 @@ class _BellButton extends StatelessWidget {
         width: 24,
         height: 24,
         color: AppColors.primary,
+      ),
+    );
+  }
+}
+
+/// The count on the bell: a red pill, "99+" above 99.
+class _UnreadCount extends StatelessWidget {
+  final int count;
+
+  const _UnreadCount(this.count);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const ValueKey('bell-unread-count'),
+      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.danger,
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: Colors.white, width: 1.5),
+      ),
+      child: customText(
+        count > 99 ? '99+' : '$count',
+        color: Colors.white,
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
       ),
     );
   }

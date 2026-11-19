@@ -41,6 +41,7 @@ void main() {
       'reference_id': 'lr-1',
     },
     NotificationSendStatus status = NotificationSendStatus.sent,
+    bool isRead = true,
   }) => AppNotification(
     id: id,
     type: type,
@@ -48,6 +49,7 @@ void main() {
     body: 'Body $id',
     data: data,
     status: status,
+    isRead: isRead,
     createdAt: DateTime(2026, 11, 18, 14, 5),
   );
 
@@ -210,6 +212,229 @@ void main() {
     await pumpPage(tester);
     await tester.tap(find.text('Title a'));
     expect(opened, isEmpty);
+  });
+
+  group('read and unread (#55)', () {
+    Finder dot(String id) => find.byKey(ValueKey('notification-unread-$id'));
+
+    void rows(List<AppNotification> items) => repository.pages[1] =
+        NumberedPage(items: items, page: 1, totalPages: 1);
+
+    testWidgets('a dot on each unread row, none on a read one', (tester) async {
+      rows([row('a', isRead: false), row('b')]);
+      repository.unreadAnswers = [1];
+      await pumpPage(tester);
+
+      expect(dot('a'), findsOneWidget);
+      expect(dot('b'), findsNothing);
+    });
+
+    testWidgets('tapping an unread row marks it read and opens it, without '
+        'waiting for the server', (tester) async {
+      rows([row('a', isRead: false)]);
+      repository
+        ..unreadAnswers = [1, 0]
+        ..holdMark = Completer<void>();
+      final hold = repository.holdMark!;
+      await pumpPage(tester);
+
+      await tester.tap(find.text('Title a'));
+      await tester.pump();
+
+      // Opened and shown as read while the mark-read call is still out.
+      expect(opened, [const LeaveRequestTarget('lr-1')]);
+      expect(repository.markedRead, ['a']);
+      expect(dot('a'), findsNothing);
+
+      hold.complete();
+      await tester.pumpAndSettle();
+      expect(dot('a'), findsNothing);
+    });
+
+    testWidgets('a second row tapped while the first one\'s page is opening '
+        'is neither opened nor marked read', (tester) async {
+      rows([row('a', isRead: false), row('b', isRead: false)]);
+      repository.unreadAnswers = [2];
+      final closing = Completer<void>();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            notificationsRepositoryProvider.overrideWithValue(repository),
+            pushOpenerProvider.overrideWithValue((t) {
+              opened.add(t);
+              return closing.future;
+            }),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: const NotificationsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Title a'));
+      await tester.tap(find.text('Title b'));
+      await tester.pump();
+
+      expect(opened, hasLength(1));
+      expect(repository.markedRead, ['a']);
+      expect(dot('b'), findsOneWidget);
+      closing.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('tapping a row already read marks nothing', (tester) async {
+      rows([row('a')]);
+      await pumpPage(tester);
+
+      await tester.tap(find.text('Title a'));
+      await tester.pump();
+
+      expect(opened, hasLength(1));
+      expect(repository.markedRead, isEmpty);
+    });
+
+    testWidgets('an unread row with nowhere to open is still marked read by '
+        'a tap', (tester) async {
+      rows([row('a', type: 'payslip_ready', data: const {}, isRead: false)]);
+      repository.unreadAnswers = [1, 0];
+      await pumpPage(tester);
+
+      await tester.tap(find.text('Title a'));
+      await tester.pumpAndSettle();
+
+      expect(opened, isEmpty);
+      expect(repository.markedRead, ['a']);
+      expect(dot('a'), findsNothing);
+    });
+
+    testWidgets('mark-read fails: the row stays shown as read here, and no '
+        'error is shown', (tester) async {
+      rows([row('a', isRead: false)]);
+      repository
+        ..unreadAnswers = [1]
+        ..markFailure = const Failure.network(message: 'offline');
+      await pumpPage(tester);
+
+      await tester.tap(find.text('Title a'));
+      await tester.pumpAndSettle();
+
+      expect(dot('a'), findsNothing);
+      expect(find.text(en.notificationsLoadFailed), findsNothing);
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('"Mark all as read" shows only while something is unread', (
+      tester,
+    ) async {
+      rows([row('a')]);
+      repository.unreadAnswers = [0];
+      await pumpPage(tester);
+      expect(find.text(en.notificationsMarkAllRead), findsNothing);
+    });
+
+    testWidgets('"Mark all as read" hidden when the count is not known', (
+      tester,
+    ) async {
+      rows([row('a', isRead: false)]);
+      repository.unreadAnswers = [const Failure.server(message: 'down')];
+      await pumpPage(tester);
+      expect(find.text(en.notificationsMarkAllRead), findsNothing);
+    });
+
+    testWidgets('"Mark all as read": every dot goes, the button goes, one '
+        'call even on a double tap', (tester) async {
+      rows([row('a', isRead: false), row('b', isRead: false), row('c')]);
+      // Read when the page opens and again when its list has loaded; then
+      // after "mark all".
+      repository.unreadAnswers = [2, 2, 0];
+      await pumpPage(tester);
+      expect(find.text(en.notificationsMarkAllRead), findsOneWidget);
+      repository.holdMark = Completer<void>();
+      final hold = repository.holdMark!;
+
+      await tester.tap(find.text(en.notificationsMarkAllRead));
+      await tester.pump();
+      // Shown as read at once.
+      expect(dot('a'), findsNothing);
+      expect(dot('b'), findsNothing);
+      expect(find.text(en.notificationsMarkAllRead), findsNothing);
+
+      hold.complete();
+      await tester.pumpAndSettle();
+      expect(repository.markAllCalls, 1);
+      expect(dot('a'), findsNothing);
+      expect(find.text(en.notificationsMarkAllRead), findsNothing);
+    });
+  });
+
+  group('the count on the bell (#55)', () {
+    Future<void> pumpBell(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(390, 300);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            profileRepositoryProvider.overrideWithValue(
+              FakeProfileRepository(),
+            ),
+            notificationsRepositoryProvider.overrideWithValue(repository),
+          ],
+          child: DefaultAssetBundle(
+            bundle: TestAssetBundle(),
+            child: MaterialApp(
+              locale: const Locale('en'),
+              supportedLocales: AppLocalizations.supportedLocales,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              home: const Scaffold(body: HomeHeader()),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('unread rows: the number, and it is read out', (tester) async {
+      repository.unreadAnswers = [3];
+      await pumpBell(tester);
+
+      expect(find.text('3'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(
+          '${en.notifications}, ${en.notificationsUnreadCount(3)}',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('nothing unread: no number', (tester) async {
+      repository.unreadAnswers = [0];
+      await pumpBell(tester);
+
+      expect(find.text('0'), findsNothing);
+      expect(find.bySemanticsLabel(en.notifications), findsOneWidget);
+    });
+
+    testWidgets('more than 99: "99+"', (tester) async {
+      repository.unreadAnswers = [120];
+      await pumpBell(tester);
+      expect(find.text('99+'), findsOneWidget);
+    });
+
+    testWidgets('the count cannot be read: no number, not an old one', (
+      tester,
+    ) async {
+      repository.unreadAnswers = [const Failure.server(message: 'down')];
+      await pumpBell(tester);
+
+      expect(find.byKey(const ValueKey('bell-unread-count')), findsNothing);
+      expect(find.bySemanticsLabel(en.notifications), findsOneWidget);
+    });
   });
 
   group('the ways in', () {

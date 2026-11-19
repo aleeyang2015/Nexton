@@ -2284,4 +2284,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get forgotPasswordAskHr =>
       'Please ask your HR to reset your password.';
+
+  @override
+  String get notificationsMarkAllRead => 'Mark all as read';
+
+  @override
+  String notificationsUnreadCount(int count) {
+    return '$count new';
+  }
 }

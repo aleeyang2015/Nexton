@@ -2266,4 +2266,12 @@ class AppLocalizationsLo extends AppLocalizations {
   @override
   String get forgotPasswordAskHr =>
       'ກະລຸນາຕິດຕໍ່ HR ເພື່ອຕັ້ງລະຫັດຜ່ານໃໝ່ໃຫ້ທ່ານ.';
+
+  @override
+  String get notificationsMarkAllRead => 'ອ່ານທັງໝົດ';
+
+  @override
+  String notificationsUnreadCount(int count) {
+    return '$count ລາຍການໃໝ່';
+  }
 }
