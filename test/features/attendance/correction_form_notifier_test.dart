@@ -3,9 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/core/upload/domain/local_file.dart';
+import 'package:next_on/core/upload/upload_providers.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_request.dart';
+import 'package:next_on/features/attendance/presentation/providers/time_correction_attachment_notifier.dart';
 import 'package:next_on/features/attendance/presentation/providers/time_correction_form_notifier.dart';
 import 'package:next_on/features/profile/domain/entities/employee_profile.dart';
 import 'package:next_on/features/profile/domain/entities/shift_detail.dart';
@@ -15,6 +18,7 @@ import 'package:next_on/features/profile/profile_providers.dart';
 
 import '../../support/attendance_test_doubles.dart';
 import '../../support/profile_test_doubles.dart';
+import '../../support/upload_test_doubles.dart';
 
 /// The "forgot to scan" form, filled from a history day (#44).
 void main() {
@@ -63,6 +67,7 @@ void main() {
       overrides: [
         attendanceRepositoryProvider.overrideWithValue(attendance),
         profileRepositoryProvider.overrideWithValue(profiles),
+        uploadRepositoryProvider.overrideWithValue(FakeUploads()),
       ],
     );
     c.listen(timeCorrectionFormNotifierProvider, (_, _) {});
@@ -157,6 +162,30 @@ void main() {
           .errorFor(TimeCorrectionFields.shift),
       isNotNull,
     );
+  });
+
+  test('the uploaded photo goes with the request; a removed one does not '
+      '(#73)', () async {
+    container = make();
+    container.listen(timeCorrectionAttachmentNotifierProvider, (_, _) {});
+    await settle();
+    form().setReason('Forgot');
+    final photo = container.read(
+      timeCorrectionAttachmentNotifierProvider.notifier,
+    );
+
+    await photo.upload(
+      const LocalFile(path: '/no/such/sheet.jpg', name: 'sheet.jpg'),
+    );
+    expect(await form().submit(), isTrue);
+    expect(
+      attendance.timeCorrectionRequests.last.attachment?.url,
+      'https://files.nexton.work/uploads/sheet.jpg',
+    );
+
+    photo.clear();
+    expect(await form().submit(), isTrue);
+    expect(attendance.timeCorrectionRequests.last.attachment, isNull);
   });
 
   test('a double tap on Send sends once', () async {
