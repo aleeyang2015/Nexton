@@ -105,11 +105,8 @@ class AttendanceStatusCard extends ConsumerWidget {
               maxLine: 2,
             ),
           ],
-          // Both hidden when the profile has no shift to show.
+          // Hidden when the profile has no shift to show.
           if (shiftDetails.isNotEmpty) ...[
-            // heightBx(h: 6),
-            // _ShiftHoursLine(details: shiftDetails, locale: locale),
-            // heightBx(h: 14),
             AttendanceSessionGrid(slots: slots, locale: locale, day: cardDay),
           ],
           heightBx(h: 16),
@@ -234,51 +231,6 @@ class _LiveClockState extends ConsumerState<_LiveClock> {
       fontWeight: FontWeight.w800,
       fontSize: 38,
       color: const Color(0xFF111827),
-    );
-  }
-}
-
-/// The employee's shift segments on one line — each name muted, its hours
-/// bold — e.g. "ກະເຊົ້າ: **08:00 - 12:00** | ກະແລງ: **13:00 - 17:00**".
-class _ShiftHoursLine extends StatelessWidget {
-  final List<ShiftDetail> details;
-  final Locale locale;
-
-  const _ShiftHoursLine({required this.details, required this.locale});
-
-  static const _muted = TextStyle(color: AppColors.gray500);
-  static const _bold = TextStyle(
-    color: AppColors.secondaryTxt,
-    fontWeight: FontWeight.w700,
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    final spans = <TextSpan>[];
-    for (final detail in details) {
-      final name = AttendanceCopy.shiftDetailName(locale, detail);
-      final hours = AttendanceCopy.shiftDetailHours(detail);
-      if (name.isEmpty && hours.isEmpty) continue;
-
-      if (spans.isNotEmpty) {
-        spans.add(const TextSpan(text: '  |  ', style: _muted));
-      }
-      if (name.isNotEmpty) {
-        spans.add(
-          TextSpan(text: hours.isEmpty ? name : '$name: ', style: _muted),
-        );
-      }
-      if (hours.isNotEmpty) spans.add(TextSpan(text: hours, style: _bold));
-    }
-
-    // Scales down rather than truncating, so every segment stays readable.
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.centerLeft,
-      child: Text.rich(
-        TextSpan(style: const TextStyle(fontSize: 13), children: spans),
-        maxLines: 1,
-      ),
     );
   }
 }
