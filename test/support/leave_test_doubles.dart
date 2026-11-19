@@ -167,8 +167,15 @@ class FakeLeaveRepository implements LeaveRepository {
   @override
   FutureResult<LeaveRequest> submit(LeaveRequestDraft draft) async {
     submitCalls.add(draft);
-    return submitResult;
+    final answer = submitResult;
+    final hold = holdSubmit;
+    holdSubmit = null;
+    await hold?.future;
+    return answer;
   }
+
+  /// When set, the next `submit` waits for it before answering.
+  Completer<void>? holdSubmit;
 
   @override
   FutureResult<LeaveRequest> update(String id, LeaveRequestDraft draft) async {
