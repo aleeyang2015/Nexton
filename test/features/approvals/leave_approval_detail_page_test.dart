@@ -8,6 +8,7 @@ import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/paged_list.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/core/widgets/app_dialog.dart';
 import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/features/approvals/presentation/pages/leave_approval_detail_page.dart';
 import 'package:next_on/features/approvals/presentation/providers/leave_approval_decision_notifier.dart';
@@ -332,9 +333,24 @@ void main() {
     await tester.pump();
     await tester.pump();
 
+    // In a dialog that stays until OK is tapped, not a toast.
+    final dialog = find.byType(AppDialog);
+    expect(
+      find.descendant(
+        of: dialog,
+        matching: find.text(en.leaveApprovalInsufficientBalance),
+      ),
+      findsOneWidget,
+    );
     expect(find.text(en.leaveApprovalInsufficientBalance), findsOneWidget);
     expect(find.text(en.leaveInsufficientBalance), findsNothing);
-    await tester.pumpAndSettle(const Duration(seconds: 5));
+    await tester.pump(const Duration(seconds: 10));
+    expect(dialog, findsOneWidget);
+
+    await tester.tap(find.descendant(of: dialog, matching: find.text(en.ok)));
+    await tester.pumpAndSettle();
+
+    expect(dialog, findsNothing);
     expect(find.byType(LeaveApprovalDetailPage), findsOneWidget);
     expect(find.text(en.leaveApprovalApproveAction), findsOneWidget);
     expect(find.text(en.leaveApprovalRejectAction), findsOneWidget);

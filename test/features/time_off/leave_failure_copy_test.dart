@@ -137,6 +137,36 @@ void main() {
       );
     });
 
+    test('it is the one refusal an approver has to say OK to; the others '
+        'stay toasts', () {
+      expect(
+        LeaveCopy.refusalNeedsOk(LeaveDecisionOutcome.failed(refusal)),
+        isTrue,
+      );
+      for (final other in const [
+        Failure.validation(message: 'leaveInvalidStatus'),
+        Failure.validation(message: 'A leave request can run at most 1 year'),
+        Failure.network(message: 'offline'),
+      ]) {
+        expect(
+          LeaveCopy.refusalNeedsOk(LeaveDecisionOutcome.failed(other)),
+          isFalse,
+          reason: '$other',
+        );
+      }
+      expect(
+        LeaveCopy.refusalNeedsOk(
+          LeaveDecisionOutcome.reloaded(
+            const Failure.validation(message: 'leaveStepChanged'),
+          ),
+        ),
+        isFalse,
+      );
+      expect(LeaveCopy.refusalNeedsOk(LeaveDecisionOutcome.success), isFalse);
+      // A second tap that was dropped says nothing at all.
+      expect(LeaveCopy.refusalNeedsOk(LeaveDecisionOutcome.gone), isFalse);
+    });
+
     test('the employee who asks still gets their own wording', () {
       expect(
         refusal.localize(en),

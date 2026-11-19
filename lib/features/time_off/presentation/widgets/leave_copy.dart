@@ -140,6 +140,19 @@ class LeaveCopy {
     };
   }
 
+  /// Whether the approver has to say OK to [outcome]'s refusal, in a dialog
+  /// that stays, rather than be told in a toast that is gone in three
+  /// seconds. Only "not enough days left" (#70): it is two sentences, the
+  /// request looks unchanged underneath, and it says what to do next.
+  static bool refusalNeedsOk(LeaveDecisionOutcome outcome) {
+    final failure = outcome.failure;
+    return outcome.kind == LeaveDecisionKind.failed &&
+        !outcome.abandoned &&
+        failure != null &&
+        LeaveErrorCode.tokenOf(failure) ==
+            LeaveErrorCode.tokenInsufficientBalance;
+  }
+
   /// "3 days" / "7.5 days" — or the half-day wording for exactly half a day.
   static String daysLabel(AppLocalizations l10n, double days) {
     if (days == 0.5) return l10n.leaveHalfDayLabel;
