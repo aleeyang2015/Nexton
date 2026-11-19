@@ -66,14 +66,11 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
     /// form keeps offering it even after HR switched it off.
     String? originalLeaveTypeId,
 
-    /// Edit mode only: how many days the request asked for when it was
-    /// opened. The balance is checked on an edit only when the count grows
-    /// past this, as the server does.
-    double? originalTotalDays,
-
-    /// Edit mode only: the year the request's days were charged to when it
-    /// was opened (the year of its first leave day).
-    int? originalBalanceYear,
+    /// Edit mode only: how many days the request had in each year when it
+    /// was opened. Each leave day is charged to its own year, and an edit is
+    /// checked against a year's balance only when it asks for more days in
+    /// that year than this, as the server does.
+    @Default(<int, double>{}) Map<int, double> originalDaysByYear,
 
     /// The request's files: on an edit, those it had (as the server sent
     /// them), then any uploaded here.
@@ -125,19 +122,37 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
   /// nothing to ask for, and the server would refuse it.
   bool get isAllDaysOff => isRange && hasDays && totalDays == 0;
 
+  /// How many days the request asks for in each year: every leave day is
+  /// charged to the balance of its own year. Null when the count is not
+  /// known (a range whose days off are not known); empty when nothing is
+  /// picked.
+  Map<int, double>? get daysByYear {
+    final charged = chargedDays;
+    if (charged == null) return null;
+    if (durationType.isHalfDay) {
+      return charged.isEmpty ? const {} : {charged.first.year: 0.5};
+    }
+    final byYear = <int, double>{};
+    for (final day in charged) {
+      byYear[day.year] = (byYear[day.year] ?? 0) + 1;
+    }
+    return byYear;
+  }
+
   /// The first leave day (normalized to midnight), or null when none is
-  /// picked. Its year is the one whose balance the request spends. For a
-  /// range it is the first day that is not a day off, or the range's own
-  /// first day while the days off are not known.
+  /// picked. For a range it is the first day that is not a day off, or the
+  /// range's own first day while the days off are not known.
   DateTime? get firstLeaveDate => _dateOnly(_edge(first: true));
 
-  /// True for an edit that still draws on the balance the request already
-  /// drew on: the same leave type, in the same year. Only then do the days it
-  /// already had count as covered.
-  bool get editsSameBalance =>
-      isEditing &&
-      leaveTypeId == originalLeaveTypeId &&
-      firstLeaveDate?.year == originalBalanceYear;
+  /// The days in [year] an edit already has, and so does not need the
+  /// balance for: what the request had there when it was opened, as long as
+  /// it is still on the same leave type. Moved to another type it is
+  /// spending a balance it never had days in, so nothing is covered; a new
+  /// request has none either.
+  double coveredDays(int year) =>
+      isEditing && leaveTypeId == originalLeaveTypeId
+      ? originalDaysByYear[year] ?? 0
+      : 0;
 
   /// The last leave day (normalized to midnight), or null when none is
   /// picked.

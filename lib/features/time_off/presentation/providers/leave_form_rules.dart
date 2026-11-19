@@ -39,16 +39,21 @@ class LeaveFormRules {
       if (type.isActive || type.id == keepId) type,
   ];
 
-  /// The year whose balance a request is charged to: the year of its first
-  /// leave day, or [now]'s when no day is picked yet.
+  /// The years whose balance a request is charged to, earliest first: each
+  /// leave day is charged to its own year, so a leave across the new year
+  /// spends two balances. [now]'s year when no day is picked yet.
   ///
-  /// A leave that runs across the new year is checked against that first year
-  /// only, which is what the server charges today (Nexton-Backend#193 will
-  /// split it; this check changes with it).
-  static int balanceYear(LeaveRequestFormState state, DateTime now) =>
-      state.firstLeaveDate?.year ?? now.year;
+  /// While a range's days off are not known its days cannot be told apart by
+  /// year, and nothing is checked: the year of its first day is given, for
+  /// the card to show.
+  static List<int> balanceYears(LeaveRequestFormState state, DateTime now) {
+    final years = [...?state.daysByYear?.keys]..sort();
+    if (years.isNotEmpty) return years;
+    return [state.firstLeaveDate?.year ?? now.year];
+  }
 
-  /// The days the selected type has left in the year being checked.
+  /// The days the selected type has left in one year, from that year's
+  /// [balances].
   ///
   /// Null while the year's balances have not loaded, when nothing is known
   /// yet. Once they have, a type with no row for that year has **0** left:
@@ -61,14 +66,58 @@ class LeaveFormRules {
     return 0;
   }
 
+  /// The earliest year in which [state] asks for more days than [type] has
+  /// left, or null when every year can pay for its own days.
+  ///
+  /// [remainingByYear] holds [remainingDays] for each year the request
+  /// touches. A year that is missing or null is not known yet (still
+  /// loading, or its load failed), and nothing is blocked on it.
+  ///
+  /// A new request is checked in every year it touches. An edit is checked
+  /// in a year only when it asks for **more** days there than the request
+  /// already had (`coveredDays`): the server does the same, so fixing the
+  /// reason on a request made before the balance dropped is never refused.
+  static int? shortYear({
+    required LeaveRequestFormState state,
+    required LeaveType? type,
+    required Map<int, double?> remainingByYear,
+  }) {
+    if (type == null || type.allowNegativeBalance) return null;
+
+    // Not known while the company's days off are not: the server counts.
+    final asked = state.daysByYear;
+    if (asked == null) return null;
+
+    for (final year in asked.keys.toList()..sort()) {
+      final remaining = remainingByYear[year];
+      if (remaining == null) continue;
+
+      final days = asked[year]!;
+      if (days <= state.coveredDays(year)) continue;
+      if (days > remaining) return year;
+    }
+    return null;
+  }
+
+  /// The year whose balance the form's card shows: the one [shortYear] names,
+  /// so the user sees which balance is short, else the first of [years]
+  /// (from [balanceYears]).
+  static int cardYear({
+    required LeaveRequestFormState state,
+    required LeaveType? type,
+    required List<int> years,
+    required Map<int, double?> remainingByYear,
+  }) =>
+      shortYear(state: state, type: type, remainingByYear: remainingByYear) ??
+      years.first;
+
   /// Why [state] cannot be sent, or null when it can.
   ///
-  /// [remaining] is from [remainingDays]; null means the balance is not known
-  /// yet, and nothing is blocked on it.
+  /// [remainingByYear] is as for [shortYear].
   static LeaveFormBlock? block({
     required LeaveRequestFormState state,
     required LeaveType? type,
-    required double? remaining,
+    required Map<int, double?> remainingByYear,
   }) {
     // Independent of the leave type: the return-to-work date can't land on or
     // before the last leave day.
@@ -93,32 +142,11 @@ class LeaveFormRules {
     final max = type.maxDaysPerRequest;
     if (max != null && total > max) return LeaveFormBlock.maxDays;
 
-    if (remaining != null &&
-        !type.allowNegativeBalance &&
-        _exceedsBalance(state, total, remaining)) {
-      return LeaveFormBlock.insufficientBalance;
-    }
-    return null;
-  }
-
-  /// A new request is checked against what is left. An edit is checked only
-  /// when it asks for **more** days than the request already had: the server
-  /// does the same, so fixing the reason on a request made before the balance
-  /// dropped is never refused.
-  ///
-  /// That holds only while the edit still draws on the balance the request
-  /// already drew on. Moved to another leave type, or to days in another
-  /// year, it is spending a balance it never had days in, and is checked like
-  /// a new request.
-  static bool _exceedsBalance(
-    LeaveRequestFormState state,
-    double total,
-    double remaining,
-  ) {
-    final original = state.originalTotalDays;
-    if (state.editsSameBalance && original != null && total <= original) {
-      return false;
-    }
-    return total > remaining;
+    final short = shortYear(
+      state: state,
+      type: type,
+      remainingByYear: remainingByYear,
+    );
+    return short == null ? null : LeaveFormBlock.insufficientBalance;
   }
 }

@@ -46,14 +46,11 @@ mixin _$LeaveRequestFormState {
   /// form keeps offering it even after HR switched it off.
   String? get originalLeaveTypeId => throw _privateConstructorUsedError;
 
-  /// Edit mode only: how many days the request asked for when it was
-  /// opened. The balance is checked on an edit only when the count grows
-  /// past this, as the server does.
-  double? get originalTotalDays => throw _privateConstructorUsedError;
-
-  /// Edit mode only: the year the request's days were charged to when it
-  /// was opened (the year of its first leave day).
-  int? get originalBalanceYear => throw _privateConstructorUsedError;
+  /// Edit mode only: how many days the request had in each year when it
+  /// was opened. Each leave day is charged to its own year, and an edit is
+  /// checked against a year's balance only when it asks for more days in
+  /// that year than this, as the server does.
+  Map<int, double> get originalDaysByYear => throw _privateConstructorUsedError;
 
   /// The request's files: on an edit, those it had (as the server sent
   /// them), then any uploaded here.
@@ -96,8 +93,7 @@ abstract class $LeaveRequestFormStateCopyWith<$Res> {
     CompanyDaysOff? daysOff,
     bool typeRefused,
     String? originalLeaveTypeId,
-    double? originalTotalDays,
-    int? originalBalanceYear,
+    Map<int, double> originalDaysByYear,
     List<LeaveAttachment> files,
     bool filesChanged,
     int uploadingFiles,
@@ -136,8 +132,7 @@ class _$LeaveRequestFormStateCopyWithImpl<
     Object? daysOff = freezed,
     Object? typeRefused = null,
     Object? originalLeaveTypeId = freezed,
-    Object? originalTotalDays = freezed,
-    Object? originalBalanceYear = freezed,
+    Object? originalDaysByYear = null,
     Object? files = null,
     Object? filesChanged = null,
     Object? uploadingFiles = null,
@@ -194,14 +189,10 @@ class _$LeaveRequestFormStateCopyWithImpl<
                 ? _value.originalLeaveTypeId
                 : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
                       as String?,
-            originalTotalDays: freezed == originalTotalDays
-                ? _value.originalTotalDays
-                : originalTotalDays // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            originalBalanceYear: freezed == originalBalanceYear
-                ? _value.originalBalanceYear
-                : originalBalanceYear // ignore: cast_nullable_to_non_nullable
-                      as int?,
+            originalDaysByYear: null == originalDaysByYear
+                ? _value.originalDaysByYear
+                : originalDaysByYear // ignore: cast_nullable_to_non_nullable
+                      as Map<int, double>,
             files: null == files
                 ? _value.files
                 : files // ignore: cast_nullable_to_non_nullable
@@ -262,8 +253,7 @@ abstract class _$$LeaveRequestFormStateImplCopyWith<$Res>
     CompanyDaysOff? daysOff,
     bool typeRefused,
     String? originalLeaveTypeId,
-    double? originalTotalDays,
-    int? originalBalanceYear,
+    Map<int, double> originalDaysByYear,
     List<LeaveAttachment> files,
     bool filesChanged,
     int uploadingFiles,
@@ -300,8 +290,7 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
     Object? daysOff = freezed,
     Object? typeRefused = null,
     Object? originalLeaveTypeId = freezed,
-    Object? originalTotalDays = freezed,
-    Object? originalBalanceYear = freezed,
+    Object? originalDaysByYear = null,
     Object? files = null,
     Object? filesChanged = null,
     Object? uploadingFiles = null,
@@ -358,14 +347,10 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
             ? _value.originalLeaveTypeId
             : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
                   as String?,
-        originalTotalDays: freezed == originalTotalDays
-            ? _value.originalTotalDays
-            : originalTotalDays // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        originalBalanceYear: freezed == originalBalanceYear
-            ? _value.originalBalanceYear
-            : originalBalanceYear // ignore: cast_nullable_to_non_nullable
-                  as int?,
+        originalDaysByYear: null == originalDaysByYear
+            ? _value._originalDaysByYear
+            : originalDaysByYear // ignore: cast_nullable_to_non_nullable
+                  as Map<int, double>,
         files: null == files
             ? _value._files
             : files // ignore: cast_nullable_to_non_nullable
@@ -407,14 +392,14 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     this.daysOff,
     this.typeRefused = false,
     this.originalLeaveTypeId,
-    this.originalTotalDays,
-    this.originalBalanceYear,
+    final Map<int, double> originalDaysByYear = const <int, double>{},
     final List<LeaveAttachment> files = const <LeaveAttachment>[],
     this.filesChanged = false,
     this.uploadingFiles = 0,
     this.fileFailure,
     this.submission = const AsyncValue<LeaveRequest?>.data(null),
   }) : _dates = dates,
+       _originalDaysByYear = originalDaysByYear,
        _files = files,
        super._();
 
@@ -471,16 +456,24 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   @override
   final String? originalLeaveTypeId;
 
-  /// Edit mode only: how many days the request asked for when it was
-  /// opened. The balance is checked on an edit only when the count grows
-  /// past this, as the server does.
-  @override
-  final double? originalTotalDays;
+  /// Edit mode only: how many days the request had in each year when it
+  /// was opened. Each leave day is charged to its own year, and an edit is
+  /// checked against a year's balance only when it asks for more days in
+  /// that year than this, as the server does.
+  final Map<int, double> _originalDaysByYear;
 
-  /// Edit mode only: the year the request's days were charged to when it
-  /// was opened (the year of its first leave day).
+  /// Edit mode only: how many days the request had in each year when it
+  /// was opened. Each leave day is charged to its own year, and an edit is
+  /// checked against a year's balance only when it asks for more days in
+  /// that year than this, as the server does.
   @override
-  final int? originalBalanceYear;
+  @JsonKey()
+  Map<int, double> get originalDaysByYear {
+    if (_originalDaysByYear is EqualUnmodifiableMapView)
+      return _originalDaysByYear;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_originalDaysByYear);
+  }
 
   /// The request's files: on an edit, those it had (as the server sent
   /// them), then any uploaded here.
@@ -516,7 +509,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
 
   @override
   String toString() {
-    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, typeRefused: $typeRefused, originalLeaveTypeId: $originalLeaveTypeId, originalTotalDays: $originalTotalDays, originalBalanceYear: $originalBalanceYear, files: $files, filesChanged: $filesChanged, uploadingFiles: $uploadingFiles, fileFailure: $fileFailure, submission: $submission)';
+    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, typeRefused: $typeRefused, originalLeaveTypeId: $originalLeaveTypeId, originalDaysByYear: $originalDaysByYear, files: $files, filesChanged: $filesChanged, uploadingFiles: $uploadingFiles, fileFailure: $fileFailure, submission: $submission)';
   }
 
   @override
@@ -544,10 +537,10 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
                 other.typeRefused == typeRefused) &&
             (identical(other.originalLeaveTypeId, originalLeaveTypeId) ||
                 other.originalLeaveTypeId == originalLeaveTypeId) &&
-            (identical(other.originalTotalDays, originalTotalDays) ||
-                other.originalTotalDays == originalTotalDays) &&
-            (identical(other.originalBalanceYear, originalBalanceYear) ||
-                other.originalBalanceYear == originalBalanceYear) &&
+            const DeepCollectionEquality().equals(
+              other._originalDaysByYear,
+              _originalDaysByYear,
+            ) &&
             const DeepCollectionEquality().equals(other._files, _files) &&
             (identical(other.filesChanged, filesChanged) ||
                 other.filesChanged == filesChanged) &&
@@ -560,7 +553,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   }
 
   @override
-  int get hashCode => Object.hashAll([
+  int get hashCode => Object.hash(
     runtimeType,
     editingRequestId,
     leaveTypeId,
@@ -574,14 +567,13 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     daysOff,
     typeRefused,
     originalLeaveTypeId,
-    originalTotalDays,
-    originalBalanceYear,
+    const DeepCollectionEquality().hash(_originalDaysByYear),
     const DeepCollectionEquality().hash(_files),
     filesChanged,
     uploadingFiles,
     fileFailure,
     submission,
-  ]);
+  );
 
   @JsonKey(ignore: true)
   @override
@@ -608,8 +600,7 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
     final CompanyDaysOff? daysOff,
     final bool typeRefused,
     final String? originalLeaveTypeId,
-    final double? originalTotalDays,
-    final int? originalBalanceYear,
+    final Map<int, double> originalDaysByYear,
     final List<LeaveAttachment> files,
     final bool filesChanged,
     final int uploadingFiles,
@@ -654,14 +645,11 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   /// form keeps offering it even after HR switched it off.
   String? get originalLeaveTypeId;
   @override
-  /// Edit mode only: how many days the request asked for when it was
-  /// opened. The balance is checked on an edit only when the count grows
-  /// past this, as the server does.
-  double? get originalTotalDays;
-  @override
-  /// Edit mode only: the year the request's days were charged to when it
-  /// was opened (the year of its first leave day).
-  int? get originalBalanceYear;
+  /// Edit mode only: how many days the request had in each year when it
+  /// was opened. Each leave day is charged to its own year, and an edit is
+  /// checked against a year's balance only when it asks for more days in
+  /// that year than this, as the server does.
+  Map<int, double> get originalDaysByYear;
   @override
   /// The request's files: on an edit, those it had (as the server sent
   /// them), then any uploaded here.

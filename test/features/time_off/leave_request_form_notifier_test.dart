@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_duration_type.dart';
+import 'package:next_on/features/time_off/domain/entities/leave_type.dart';
 import 'package:next_on/core/upload/domain/local_file.dart';
 import 'package:next_on/core/upload/upload_providers.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_attachment.dart';
@@ -337,60 +338,203 @@ void main() {
       expect(state.reason, 'Trip');
     });
 
-    test('seed records the type and the day count the request had', () {
+    test('seed records the type and the days the request had in each year',
+        () {
       final container = containerWith();
 
       formOf(container, 'req-7').seed(existing);
 
       final state = stateOf(container, 'req-7');
       expect(state.originalLeaveTypeId, existing.leaveType.id);
-      expect(state.originalTotalDays, 2);
-      // The year of its first leave day, whatever order the days came in.
-      expect(state.originalBalanceYear, 2026);
-      expect(state.editsSameBalance, isTrue);
+      expect(state.originalDaysByYear, {2026: 2});
+      expect(state.coveredDays(2026), 2);
+      expect(state.coveredDays(2027), 0);
     });
 
-    test('an edit moved to another type, or to another year, no longer draws '
-        'on the balance it had', () {
+    test('seed splits a request across the new year by the year of each day, '
+        'whatever order the days came in', () {
+      final container = containerWith();
+
+      formOf(container, 'req-8').seed(
+        sampleLeaveRequest(
+          id: 'req-8',
+          requestDays: [
+            DateTime(2027, 1, 4),
+            DateTime(2026, 12, 30),
+            DateTime(2026, 12, 31),
+          ],
+        ),
+      );
+
+      expect(stateOf(container, 'req-8').originalDaysByYear, {
+        2026: 2,
+        2027: 1,
+      });
+    });
+
+    test('seed counts a half-day request as half a day in its year', () {
+      final container = containerWith();
+
+      formOf(container, 'req-9').seed(
+        sampleLeaveRequest(
+          id: 'req-9',
+          requestDays: [DateTime(2026, 11, 18)],
+          totalDays: 0.5,
+          durationType: LeaveDurationType.firstHalf,
+        ),
+      );
+
+      expect(stateOf(container, 'req-9').originalDaysByYear, {2026: 0.5});
+    });
+
+    test('an edit moved to another type no longer has any days covered; '
+        'moved back, it has them again', () {
       final container = containerWith();
       final form = formOf(container, 'req-7')..seed(existing);
 
       form.setLeaveType('lt-sick');
-      expect(stateOf(container, 'req-7').editsSameBalance, isFalse);
+      expect(stateOf(container, 'req-7').coveredDays(2026), 0);
 
-      form
-        ..setLeaveType(existing.leaveType.id)
-        ..setDates([DateTime(2027, 1, 5), DateTime(2027, 1, 6)]);
-      expect(stateOf(container, 'req-7').editsSameBalance, isFalse);
-
-      form.setDates([DateTime(2026, 11, 25), DateTime(2026, 11, 26)]);
-      expect(stateOf(container, 'req-7').editsSameBalance, isTrue);
+      form.setLeaveType(existing.leaveType.id);
+      expect(stateOf(container, 'req-7').coveredDays(2026), 2);
     });
 
-    test('a new request has no original type or day count', () {
+    test('a new request has no original type and no days covered', () {
       final state = stateOf(containerWith());
 
       expect(state.originalLeaveTypeId, isNull);
-      expect(state.originalTotalDays, isNull);
+      expect(state.originalDaysByYear, isEmpty);
+      expect(state.coveredDays(2026), 0);
     });
 
-    test('the year the balance is checked in is the first leave day\'s, or '
-        'this year\'s before any is picked', () {
+    test('the years the balance is checked in are those of the leave days, '
+        'or this year before any is picked', () {
       final container = containerWith();
       final now = DateTime(2026, 12, 20);
 
-      expect(LeaveFormRules.balanceYear(stateOf(container), now), 2026);
+      expect(LeaveFormRules.balanceYears(stateOf(container), now), [2026]);
 
       formOf(
         container,
       ).setDates([DateTime(2027, 1, 6), DateTime(2027, 1, 5)]);
-      expect(LeaveFormRules.balanceYear(stateOf(container), now), 2027);
+      expect(LeaveFormRules.balanceYears(stateOf(container), now), [2027]);
 
-      // Across the new year: the first year only.
+      // Across the new year: both years, earliest first.
       formOf(
         container,
       ).setDates([DateTime(2027, 1, 2), DateTime(2026, 12, 31)]);
-      expect(LeaveFormRules.balanceYear(stateOf(container), now), 2026);
+      expect(LeaveFormRules.balanceYears(stateOf(container), now), [
+        2026,
+        2027,
+      ]);
+      expect(stateOf(container).daysByYear, {2026: 1, 2027: 1});
+    });
+
+    group('the year that is short', () {
+      final annual = sampleLeaveType();
+
+      int? shortYear(
+        ProviderContainer container,
+        Map<int, double?> remainingByYear, {
+        LeaveType? type,
+        String? id,
+      }) => LeaveFormRules.shortYear(
+        state: stateOf(container, id),
+        type: type ?? annual,
+        remainingByYear: remainingByYear,
+      );
+
+      test('is the earliest year that cannot pay for its own days', () {
+        final container = containerWith();
+        formOf(container).setDates([
+          DateTime(2026, 12, 30),
+          DateTime(2026, 12, 31),
+          DateTime(2027, 1, 4),
+        ]);
+
+        expect(shortYear(container, {2026: 2, 2027: 1}), isNull);
+        expect(shortYear(container, {2026: 6, 2027: 0}), 2027);
+        expect(shortYear(container, {2026: 1, 2027: 12}), 2026);
+        expect(shortYear(container, {2026: 1, 2027: 0}), 2026);
+      });
+
+      test('the card shows the short year, else the first year', () {
+        final container = containerWith();
+        formOf(
+          container,
+        ).setDates([DateTime(2026, 12, 31), DateTime(2027, 1, 4)]);
+
+        int cardYear(Map<int, double?> remainingByYear) =>
+            LeaveFormRules.cardYear(
+              state: stateOf(container),
+              type: annual,
+              years: const [2026, 2027],
+              remainingByYear: remainingByYear,
+            );
+
+        expect(cardYear({2026: 6, 2027: 6}), 2026);
+        expect(cardYear({2026: 6, 2027: 0}), 2027);
+        expect(cardYear({2026: 6, 2027: null}), 2026);
+      });
+
+      test('a year whose balance is not known is not checked', () {
+        final container = containerWith();
+        formOf(
+          container,
+        ).setDates([DateTime(2026, 12, 31), DateTime(2027, 1, 4)]);
+
+        expect(shortYear(container, {2026: 6, 2027: null}), isNull);
+        expect(shortYear(container, {2026: 6}), isNull);
+        expect(shortYear(container, {2026: 0, 2027: null}), 2026);
+      });
+
+      test('a type that may go negative is never short', () {
+        final container = containerWith();
+        formOf(container).setDates([DateTime(2027, 1, 4)]);
+
+        expect(
+          shortYear(
+            container,
+            {2027: 0},
+            type: sampleLeaveType(allowNegativeBalance: true),
+          ),
+          isNull,
+        );
+      });
+
+      test('a half day asks for half a day of its year', () {
+        final container = containerWith();
+        formOf(container)
+          ..setDates([DateTime(2027, 1, 4)])
+          ..setDurationType(LeaveDurationType.firstHalf);
+
+        expect(stateOf(container).daysByYear, {2027: 0.5});
+        expect(shortYear(container, {2027: 0.5}), isNull);
+        expect(shortYear(container, {2027: 0}), 2027);
+      });
+
+      test('an edit is checked in a year only when it asks for more days '
+          'there than the request had', () {
+        final container = containerWith();
+        final form = formOf(container, 'req-7')..seed(existing);
+
+        // The 2 days it had in 2026, with nothing left: allowed.
+        expect(shortYear(container, {2026: 0}, id: 'req-7'), isNull);
+
+        // One of them moved to 2027, where it had none.
+        form.setDates([DateTime(2026, 11, 18), DateTime(2027, 1, 4)]);
+        expect(shortYear(container, {2026: 0, 2027: 0}, id: 'req-7'), 2027);
+        expect(shortYear(container, {2026: 0, 2027: 1}, id: 'req-7'), isNull);
+
+        // A third day in 2026: more than it had there.
+        form.setDates([
+          DateTime(2026, 11, 18),
+          DateTime(2026, 11, 19),
+          DateTime(2026, 11, 20),
+        ]);
+        expect(shortYear(container, {2026: 2}, id: 'req-7'), 2026);
+        expect(shortYear(container, {2026: 3}, id: 'req-7'), isNull);
+      });
     });
 
     test('seed runs once: a second call does not undo the user\'s edits', () {
@@ -798,7 +942,7 @@ void main() {
     });
 
     test(
-      'the balance year of a range is the year of its first charged day',
+      'the balance years of a range are those of its charged days',
       () async {
         final container = await closedOnSundays();
 
@@ -806,10 +950,16 @@ void main() {
           container,
         ).setRange(DateTime(2026, 12, 30), DateTime(2027, 1, 4));
 
+        // Sunday 3 January is a day off: 30 and 31 December, then 1, 2 and
+        // 4 January.
         expect(
-          LeaveFormRules.balanceYear(stateOf(container), DateTime(2026, 12, 1)),
-          2026,
+          LeaveFormRules.balanceYears(
+            stateOf(container),
+            DateTime(2026, 12, 1),
+          ),
+          [2026, 2027],
         );
+        expect(stateOf(container).daysByYear, {2026: 2, 2027: 3});
       },
     );
 
@@ -1168,7 +1318,7 @@ void main() {
       LeaveFormBlock? block() => LeaveFormRules.block(
         state: stateOf(container),
         type: needsFile,
-        remaining: null,
+        remainingByYear: const {},
       );
 
       expect(block(), LeaveFormBlock.attachmentRequired);

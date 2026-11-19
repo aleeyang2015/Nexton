@@ -6,9 +6,9 @@ import '../../time_off_providers.dart';
 /// The per-type quota rollup (`GET /leave/balances/my?year=…`) for one year,
 /// shown on the request form's balance card.
 ///
-/// The family key is the year. A request is charged to the year of its first
-/// leave day, so a form asking for days next January reads next year's
-/// balances, not this year's. Invalidating the provider (after a submit, an
+/// The family key is the year. Each leave day is charged to its own year, so
+/// a form asking for days next January reads next year's balances, and one
+/// asking for days across the new year reads both. Invalidating the provider (after a submit, an
 /// edit or a cancel) refreshes every year that is on screen, so the reserved
 /// days stay accurate.
 class LeaveBalancesNotifier
