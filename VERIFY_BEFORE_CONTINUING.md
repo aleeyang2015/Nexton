@@ -26,7 +26,7 @@ file on branch `docs/next-actions`, with `WORK_LOG.md` (the day-by-day log). Non
      -q '.[] | select(.user.login != "aleeyang2015") | (.issue_url|split("/")|last)+" "+.user.login+" "+.created_at'
    ```
    The last one lists every comment that is not the owner's since the questions below were posted: the backend's
-   answers on #75, #16 and #73 will show there. Last run at the end of 2026-11-19: #55 unchanged (one comment, 13
+   answers on #75, #16, #73, #55, #62, #72 and #51 will show there. Last run at the end of 2026-11-19: #55 unchanged (one comment, 13
    Nov), no issue newer than #76, no comment from anyone else.
 6. Then put what is waiting in front of the owner (the lists under the table); each answer may become a small
    piece of work with its own branch.
@@ -90,6 +90,10 @@ Waiting for other people:
   limit).
 - **Backend team, asked on #73:** what `POST /uploads` returns as `url` (the App loads it as it is, so the photo
   shows only if the phone can reach it).
+- **Backend team, asked on 19 Nov after the audit of the back-end team's plan:** on #55, is Nexton-Backend#190
+  scheduled; on #62, the status of the 60 work orders and whether they need a PR per issue from here on (the work
+  went in as direct merges); on #72, whether `per_page` 100 is still the maximum and a year can exceed it; on #51,
+  whether the old `nexton.hr` client in `android/app/google-services.json` (line 31) can be dropped.
 - **Phone checks on `nexton-demo`**, by someone with a test login and a device. Three need something set up
   first: #35 an approved, clocked OT (the backend says no company has one yet); the #16 follow-up a new employee
   asking for Annual Leave (refused for the first 12 months); #70 a last-step approve for an employee with no days

@@ -195,3 +195,9 @@ fast-forward push. `main` = `origin/main` = `2c333e8`.
 **End of 2026-11-19.** `main` = `origin/main` = `2c333e8`, clean; gates green (2,460 tests). #70's dialog merged and
 a note added to #70. Last check of the day: #55 unchanged, no backend answer yet on #75, #16 or #73, no issue
 newer than #76. "Resume here" in `VERIFY_BEFORE_CONTINUING.md` rewritten for the next session.
+
+**Audit of the back-end team's plan** (read-only, on the owner's ask): Steps 1 and 2 done (`clock-in-out-location`
+in `main` since 16 Nov, `197ff6c`; nothing unpushed); Step 3 done but #55; decisions D1 to D9 match the code, with
+one leftover (a second Firebase client, `nexton.hr`, in `google-services.json`); #72 and #73 already fixed. No PRs
+exist for the work: direct merges. Four more questions posted for the backend on #55, #62, #72 and #51. A 30-minute
+watch for backend comments runs in the session (it ends with the session).
