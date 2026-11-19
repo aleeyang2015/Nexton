@@ -19,16 +19,22 @@ import '../../../profile/presentation/providers/profile_notifier.dart';
 /// not be loaded it says why in a short line ([profileErrorCopy], the same
 /// wording as the profile page), with a Retry only when one can help.
 class HomeHeader extends ConsumerWidget {
-  const HomeHeader({super.key});
+  const HomeHeader({super.key, this.coreHr = true});
+
+  /// Whether the company has Core HR (#61). Without it there is no profile
+  /// to show: the header says "not turned on" in place of the name, whatever
+  /// the profile call would answer (or with no signal), and does not make
+  /// the call.
+  final bool coreHr;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final profile = ref.watch(profileNotifierProvider);
-    final loading = profile.isLoading && !profile.hasValue;
-    final error = profile.hasError ? profile.error : null;
+    final profile = coreHr ? ref.watch(profileNotifierProvider) : null;
+    final loading = profile != null && profile.isLoading && !profile.hasValue;
+    final error = profile != null && profile.hasError ? profile.error : null;
     final failed = error != null;
-    final data = profile.valueOrNull;
+    final data = profile?.valueOrNull;
 
     return Row(
       children: [
@@ -42,7 +48,12 @@ class HomeHeader extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (loading)
+              if (!coreHr)
+                _HeaderLoadError(
+                  copy: (text: l10n.errorModuleNotActive, canRetry: false),
+                  onRetry: () {},
+                )
+              else if (loading)
                 const _HeaderLoading()
               else if (failed)
                 _HeaderLoadError(
