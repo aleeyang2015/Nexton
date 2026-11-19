@@ -16,7 +16,7 @@ file on branch `docs/next-actions`, with `WORK_LOG.md` (the day-by-day log). Non
    `../nexton_app_flutter/docs/handover/` belong to an older project and say nothing about this one.
 3. Check the real Git and project state before changing anything (steps 3 to 5 below).
 4. Confirm the last merge is there:
-   `git merge-base --is-ancestor origin/35-ot-hours-two-decimals origin/main && echo "in main"`.
+   `git merge-base --is-ancestor origin/35-ot-tile-label-lao origin/main && echo "in main"`.
 5. **Nothing buildable is queued.** Every work order is merged except **#55** (unread dots and a count on the
    bell), which waits on Nexton-Backend#190. Start by re-reading the comments on #55 for a "now live", and by
    checking for issues newer than #76 and for new backend comments on any issue
@@ -34,11 +34,11 @@ file on branch `docs/next-actions`, with `WORK_LOG.md` (the day-by-day log). Non
 | | |
 |---|---|
 | Branch checked out | `main` |
-| `main` = `origin/main` | `30dd634` "Merge branch '35-ot-hours-two-decimals' into main" |
+| `main` = `origin/main` | `12b3019` "Merge branch '35-ot-tile-label-lao' into main" |
 | Working tree | clean: nothing modified, staged or untracked; no stashes |
 | Unpushed commits | none, on any local branch (every branch equals its remote) |
-| Gates on `30dd634` | `flutter analyze lib test`: 1 warning, already on `main` (`_ShiftHoursLine` unused); `flutter test`: 2,454 passed, 0 failed; `flutter build apk --debug`: builds |
-| Done on 2026-11-19 | #62 checked (read-only); #35 (`5081e0a`); #73 (`139f1c5`); the #16 follow-up, leave rule refusals in Lao, no issue of its own (`2599166`); #75, docs (`2b2f5dc`); #35's OT hours to two decimals, the owner's call (`30dd634`). Each merged on the owner's say |
+| Gates on `12b3019` | `flutter analyze lib test`: 1 warning, already on `main` (`_ShiftHoursLine` unused); `flutter test`: 2,454 passed, 0 failed; `flutter build apk --debug`: builds |
+| Done on 2026-11-19 | #62 checked (read-only); #35 (`5081e0a`); #73 (`139f1c5`); the #16 follow-up, leave rule refusals in Lao, no issue of its own (`2599166`); #75, docs (`2b2f5dc`); #35's OT hours to two decimals (`30dd634`) and its Lao tile label `ໂອທີ` (`12b3019`), both the owner's calls. Each merged on the owner's say |
 | Still blocked | #55 (Nexton-Backend#190, unread count): the only work order not merged |
 | Next | no code queued: re-check #55 and new backend comments, then the owner's open items below |
 | Phone checks | none done for any issue; all pending on `nexton-demo` |
@@ -48,8 +48,7 @@ Waiting for the owner (asked on 2026-11-19, not answered):
   other 17 after their phone checks, or all now with a note; and who closes (the public API here only reads). The
   same question then applies to the trackers #63 to #66.
 - **#35 rounding: ANSWERED, two decimals** (owner, 2026-11-19): built and merged (`30dd634`). Nothing left.
-- **#35 Lao tile label: ANSWERED, `ໂອທີ`** (owner, 2026-11-19). Built on `35-ot-tile-label-lao` (`a48d855`), pushed,
-  gates green (2,454 tests); it waits for the owner's merge word. `main` does not have it yet.
+- **#35 Lao tile label: ANSWERED, `ໂອທີ`** (owner, 2026-11-19): built and merged (`12b3019`). Nothing left.
 - The older questions in `NEXT_ACTIONS.md` "Waiting for the owner".
 
 Waiting for other people:
@@ -117,20 +116,20 @@ git fetch origin --prune
 git log --oneline -1 origin/main
 ```
 
-`NEXT_ACTIONS.md` says `origin/main` was `30dd634` ("Merge branch '35-ot-hours-two-decimals' into main") at the
+`NEXT_ACTIONS.md` says `origin/main` was `12b3019` ("Merge branch '35-ot-tile-label-lao' into main") at the
 end of 2026-11-19.
 
-- If `origin/main` is still `30dd634`: nothing moved. Go on.
-- If it has moved: someone merged since. Read `git log --oneline 30dd634..origin/main` and work out what it
+- If `origin/main` is still `12b3019`: nothing moved. Go on.
+- If it has moved: someone merged since. Read `git log --oneline 12b3019..origin/main` and work out what it
   changes for the next issue before planning it. Update local `main` with `git switch main && git merge --ff-only
   origin/main`. If it cannot fast-forward, stop and report.
 
 ## 5. Check the last merge really is there
 
-For the last one marked MERGED (#35's two decimals):
+For the last one marked MERGED (#35's Lao tile label):
 
 ```sh
-git merge-base --is-ancestor origin/35-ot-hours-two-decimals origin/main && echo "in main"
+git merge-base --is-ancestor origin/35-ot-tile-label-lao origin/main && echo "in main"
 ```
 
 There are no pull requests for the work items: each was pushed to `main` as a merge commit on the owner's say, so
