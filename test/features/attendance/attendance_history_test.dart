@@ -546,10 +546,14 @@ void main() {
       expect(AttendanceHistoryCopy.hours(1.5), '1.5');
       expect(AttendanceHistoryCopy.hours(6.25), '6.3');
       expect(AttendanceHistoryCopy.hours(1.96), '2');
+      // Never below zero, and never "-0".
+      expect(AttendanceHistoryCopy.hours(-0.04), '0');
+      expect(AttendanceHistoryCopy.hours(-1.5), '0');
     });
 
     test('the OT line shows the server\'s OT hours, in each language', () {
-      const day = AttendanceDay(totalWorkHours: 9.5, overtimeHours: 1.5);
+      // 9 h worked: "hours worked minus 8" would say 1, not 1.5.
+      const day = AttendanceDay(totalWorkHours: 9, overtimeHours: 1.5);
 
       expect(AttendanceHistoryCopy.overtimeLine(en, day), 'OT 1.5 h');
       expect(AttendanceHistoryCopy.overtimeLine(lo, day), 'ໂອທີ 1.5 ຊົ່ວໂມງ');
@@ -818,7 +822,8 @@ void main() {
         ..monthRecords = Result.success([
           AttendanceDay(
             date: day22,
-            totalWorkHours: 9.5,
+            // 9 h worked: "hours worked minus 8" would say 1, not 1.5.
+            totalWorkHours: 9,
             overtimeHours: 1.5,
             sessions: [
               AttendanceSession(
@@ -854,7 +859,10 @@ void main() {
         ]);
     });
 
-    Future<void> pumpPage(WidgetTester tester) async {
+    Future<void> pumpPage(
+      WidgetTester tester, {
+      Locale locale = const Locale('en'),
+    }) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -863,7 +871,7 @@ void main() {
           child: DefaultAssetBundle(
             bundle: TestAssetBundle(),
             child: MaterialApp(
-              locale: const Locale('en'),
+              locale: locale,
               supportedLocales: AppLocalizations.supportedLocales,
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               home: const AttendanceHistoryPage(),
@@ -932,6 +940,31 @@ void main() {
 
       expect(find.text('OT Hours'), findsOneWidget);
       expect(find.text('0 h'), findsOneWidget);
+    });
+
+    testWidgets('the OT row and the OT line fit a small phone in Lao', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      repository.monthSummary = const Result.success(
+        AttendanceSummary(
+          totalWorkingDays: 23,
+          presentDays: 15,
+          totalWorkHours: 1121.5,
+          totalOvertimeHours: 110.5,
+        ),
+      );
+
+      await pumpPage(tester, locale: const Locale('lo'));
+
+      expect(find.text('ຊົ່ວໂມງໂອທີ'), findsOneWidget);
+      expect(find.text('110.5 ຊົ່ວໂມງ'), findsOneWidget);
+      await tester.ensureVisible(find.text('ໂອທີ 1.5 ຊົ່ວໂມງ'));
+      await tester.pump();
+      expect(find.text('ໂອທີ 1.5 ຊົ່ວໂມງ'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('only the day with approved OT shows an OT line', (
@@ -1127,11 +1160,20 @@ void main() {
         final en = lookupAppLocalizations(const Locale('en'));
         await pumpWithRouter(tester);
 
+        // Tomorrow's row sits under the summary's rows: bring it on screen,
+        // or the tap misses and the check below proves nothing.
+        await tester.ensureVisible(
+          find.text(AttendanceHistoryCopy.dayTitle(en, tomorrow)),
+        );
+        await tester.pump();
         await tester.tap(
           find.text(AttendanceHistoryCopy.dayTitle(en, tomorrow)),
         );
         await tester.pump();
 
+        // The row did open (its sessions or its empty state are reachable),
+        // and it offers no "forgot to scan".
+        expect(find.byIcon(Icons.keyboard_arrow_up), findsOneWidget);
         expect(find.text(en.forgotClockInMenu), findsNothing);
       });
     });

@@ -13,7 +13,8 @@ import '../../../attendance/presentation/widgets/attendance_history_copy.dart';
 
 /// Attendance stats under the home screen's clock card: this month's days as
 /// the server counted them — present, late, half day, incomplete, absent and
-/// leave — and the hours worked, out of the month's working days. All from
+/// leave — the hours worked and the approved OT hours, out of the month's
+/// working days. All from
 /// [attendanceMonthSummaryNotifierProvider]. "View all" opens
 /// [AttendanceHistoryPage], which covers the same data with a month picker.
 ///

@@ -86,8 +86,10 @@ class AttendanceHistoryCopy {
   }
 
   /// An hour count with at most one decimal: `1.5`, and `2` or `0` rather
-  /// than `2.0` or `0.0`.
+  /// than `2.0` or `0.0`. Hours are never below zero: a negative count, or
+  /// one that would round to "-0", reads `0`.
   static String hours(double value) {
+    if (value <= 0) return '0';
     final text = value.toStringAsFixed(1);
     return text.endsWith('.0') ? text.substring(0, text.length - 2) : text;
   }
