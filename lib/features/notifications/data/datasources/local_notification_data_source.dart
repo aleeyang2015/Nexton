@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../domain/entities/push_message.dart';
@@ -43,10 +44,26 @@ abstract final class BannerPayload {
 }
 
 class LocalNotificationDataSourceImpl implements LocalNotificationDataSource {
-  static const _channel = AndroidNotificationChannel(
+  /// The channel every push lands on. No dot or number on the App icon
+  /// (owner's decision: the bell inside the App is the only count); Android
+  /// takes this from the channel, not from each notification.
+  @visibleForTesting
+  static const channel = AndroidNotificationChannel(
     PushConstants.androidChannelId,
     PushConstants.androidChannelName,
     importance: Importance.high,
+    showBadge: false,
+  );
+
+  /// How a foreground pop-up is shown: on [channel], and the same way
+  /// should the plugin be the one to create it.
+  @visibleForTesting
+  static const androidDetails = AndroidNotificationDetails(
+    PushConstants.androidChannelId,
+    PushConstants.androidChannelName,
+    importance: Importance.high,
+    priority: Priority.high,
+    channelShowBadge: false,
   );
 
   final FlutterLocalNotificationsPlugin _plugin;
@@ -70,7 +87,7 @@ class LocalNotificationDataSourceImpl implements LocalNotificationDataSource {
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >()
-        ?.createNotificationChannel(_channel);
+        ?.createNotificationChannel(channel);
   }();
 
   @override
@@ -82,14 +99,7 @@ class LocalNotificationDataSourceImpl implements LocalNotificationDataSource {
       title: message.title,
       body: message.body,
       payload: BannerPayload.encode(message.data),
-      notificationDetails: NotificationDetails(
-        android: AndroidNotificationDetails(
-          _channel.id,
-          _channel.name,
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-      ),
+      notificationDetails: const NotificationDetails(android: androidDetails),
     );
   }
 
