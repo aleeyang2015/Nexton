@@ -32,6 +32,32 @@ void main() {
     expect(n.createdAt, DateTime.utc(2026, 11, 18, 2));
   });
 
+  group('read or unread (#55)', () {
+    test('is_read false: unread', () {
+      expect(NotificationModel.fromJson(row({'is_read': false}))!.isRead,
+          isFalse);
+    });
+
+    test('is_read true: read', () {
+      expect(
+        NotificationModel.fromJson(
+          row({'is_read': true, 'read_at': '2026-11-19T03:40:00Z'}),
+        )!.isRead,
+        isTrue,
+      );
+    });
+
+    test('no is_read at all (an old server), or not a yes/no: read, so no '
+        'row ever shows as new by mistake', () {
+      expect(NotificationModel.fromJson(row())!.isRead, isTrue);
+      expect(NotificationModel.fromJson(row({'is_read': null}))!.isRead, isTrue);
+      expect(
+        NotificationModel.fromJson(row({'is_read': 'false'}))!.isRead,
+        isTrue,
+      );
+    });
+  });
+
   test('null data: no data, the row still listed', () {
     final n = NotificationModel.fromJson(row({'data': null}))!;
     expect(n.data, isEmpty);

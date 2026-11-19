@@ -42,6 +42,10 @@ class AppNotification extends Equatable {
   final DateTime? sentAt;
   final DateTime createdAt;
 
+  /// Whether the user has read it (#55, `is_read`). True when the server
+  /// did not say: nothing shows as new by mistake.
+  final bool isRead;
+
   const AppNotification({
     required this.id,
     required this.type,
@@ -51,7 +55,22 @@ class AppNotification extends Equatable {
     required this.status,
     required this.createdAt,
     this.sentAt,
+    this.isRead = true,
   });
+
+  /// This row, read.
+  AppNotification asRead() => isRead
+      ? this
+      : AppNotification(
+          id: id,
+          type: type,
+          title: title,
+          body: body,
+          data: data,
+          status: status,
+          createdAt: createdAt,
+          sentAt: sentAt,
+        );
 
   /// What a tap reads to know where to go (#53's `pushTarget`): the data,
   /// with the row's own type (the data's, when the row's is missing).
@@ -77,5 +96,6 @@ class AppNotification extends Equatable {
     status,
     sentAt,
     createdAt,
+    isRead,
   ];
 }

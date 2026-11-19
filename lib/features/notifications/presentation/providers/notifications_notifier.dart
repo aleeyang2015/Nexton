@@ -7,6 +7,7 @@ import '../../../../core/utils/result.dart';
 import '../../domain/entities/app_notification.dart';
 import '../../domain/notification_dedupe.dart';
 import '../../notifications_providers.dart';
+import 'unread_count_notifier.dart';
 
 /// The bell list (#54): the rows loaded so far, and those shown (the
 /// two-phone copies collapsed, worked out once per change).
@@ -85,6 +86,69 @@ class NotificationsNotifier extends AutoDisposeNotifier<NotificationsState> {
     );
   }
 
+  /// The user opened the row [id] (#55): shown as read at once, the bell's
+  /// count one less, and the server told. Nothing for a row already read.
+  ///
+  /// When the call fails the row stays shown as read on this screen, and
+  /// nothing is said: the next load shows the server's truth. Either way the
+  /// bell's count is then read again from the server.
+  Future<void> markRead(String id) async {
+    final list = state.rows.valueOrNull;
+    if (list == null || !list.items.any((r) => r.id == id && !r.isRead)) {
+      return;
+    }
+    _set(
+      AsyncValue.data(
+        list.withItems([
+          for (final row in list.items) row.id == id ? row.asRead() : row,
+        ]),
+      ),
+    );
+    final count = ref.read(unreadCountProvider.notifier)..oneRead();
+
+    await ref.read(markNotificationReadUseCaseProvider)(id);
+    if (_disposed) return;
+    unawaited(count.refresh());
+  }
+
+  /// A "mark all as read" on its way: a second tap sends nothing more.
+  bool _markingAll = false;
+
+  /// "Mark all as read" (#55): every row shown as read at once, the bell's
+  /// count zero, and the server told. A failure is handled as in
+  /// [markRead].
+  Future<void> markAllRead() async {
+    if (_markingAll) return;
+    _markingAll = true;
+    try {
+      _showAllRead();
+      final count = ref.read(unreadCountProvider.notifier)..allRead();
+
+      await ref.read(markAllNotificationsReadUseCaseProvider)();
+      if (_disposed) return;
+      // Rows a "load more" brought in meanwhile were unread until now.
+      _showAllRead();
+      unawaited(count.refresh());
+    } finally {
+      _markingAll = false;
+    }
+  }
+
+  void _showAllRead() {
+    final rows = state.rows;
+    final list = rows.valueOrNull;
+    if (list == null || list.items.every((r) => r.isRead)) return;
+    final read = list.withItems([for (final row in list.items) row.asRead()]);
+    // A refresh on its way keeps showing as one.
+    _set(
+      rows.isLoading
+          ? const AsyncLoading<PagedList<AppNotification>>().copyWithPrevious(
+              AsyncValue.data(read),
+            )
+          : AsyncValue.data(read),
+    );
+  }
+
   /// The Retry under the rows, after a next page failed.
   Future<void> retryLoadMore() async {
     final list = state.rows.valueOrNull;
@@ -128,6 +192,10 @@ class NotificationsNotifier extends AutoDisposeNotifier<NotificationsState> {
         ),
       ),
     );
+    // New rows may have come with the list: the bell's count follows (#55).
+    if (result.isSuccess) {
+      unawaited(ref.read(unreadCountProvider.notifier).refresh());
+    }
     return result.isSuccess;
   }
 

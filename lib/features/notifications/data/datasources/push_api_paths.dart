@@ -11,6 +11,16 @@ class PushPaths {
   /// The caller's own notifications, newest first (#54).
   static const String notifications = '/mobile/notifications';
 
+  /// Marks one of the caller's notifications read (#55).
+  static String notificationRead(String id) =>
+      '$notifications/${Uri.encodeComponent(id)}/read';
+
+  /// Marks all of the caller's notifications read (#55).
+  static const String notificationsReadAll = '$notifications/read-all';
+
+  /// How many of the caller's notifications are unread (#55).
+  static const String notificationsUnreadCount = '$notifications/unread-count';
+
   /// One device row, by the App's own `device_id` (#52).
   static String device(String deviceId) =>
       '$devices/${Uri.encodeComponent(deviceId)}';

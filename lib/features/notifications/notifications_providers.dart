@@ -12,6 +12,9 @@ import 'data/repositories/push_notification_repository_impl.dart';
 import 'domain/repositories/notifications_repository.dart';
 import 'domain/repositories/push_notification_repository.dart';
 import 'domain/usecases/get_notifications_usecase.dart';
+import 'domain/usecases/get_unread_count_usecase.dart';
+import 'domain/usecases/mark_all_notifications_read_usecase.dart';
+import 'domain/usecases/mark_notification_read_usecase.dart';
 import 'domain/usecases/register_device_usecase.dart';
 
 // Composition root for the notifications feature: the one place the data
@@ -69,4 +72,30 @@ final notificationsRepositoryProvider = Provider<NotificationsRepository>(
 
 final getNotificationsUseCaseProvider = Provider<GetNotificationsUseCase>(
   (ref) => GetNotificationsUseCase(ref.watch(notificationsRepositoryProvider)),
+);
+
+final markNotificationReadUseCaseProvider =
+    Provider<MarkNotificationReadUseCase>(
+      (ref) => MarkNotificationReadUseCase(
+        ref.watch(notificationsRepositoryProvider),
+      ),
+    );
+
+final markAllNotificationsReadUseCaseProvider =
+    Provider<MarkAllNotificationsReadUseCase>(
+      (ref) => MarkAllNotificationsReadUseCase(
+        ref.watch(notificationsRepositoryProvider),
+      ),
+    );
+
+final getUnreadCountUseCaseProvider = Provider<GetUnreadCountUseCase>(
+  (ref) => GetUnreadCountUseCase(ref.watch(notificationsRepositoryProvider)),
+);
+
+/// A tick for each push that arrives while the App is open (#55: the bell's
+/// count is read again). Nothing when Firebase did not start (#51).
+final foregroundPushesProvider = Provider<Stream<void>>(
+  (ref) => ref.watch(pushAvailableProvider)
+      ? ref.watch(pushNotificationRepositoryProvider).onForegroundMessage
+      : const Stream<void>.empty(),
 );
