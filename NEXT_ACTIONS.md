@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-18.
 | | |
 |---|---|
 | Last finished work order | 60 of 60: #61, app: hide what the company has not bought |
-| Next | **#35 is MERGED** (`5081e0a`, 2026-11-19; gates green on the merge commit: analyze 1 old warning, 2,407 tests, debug APK). Next: the owner's answers on **#62** (close #13 now and the other 17 children after their phone checks, or all now with a note; who closes). Still blocked: **#55** (Nexton-Backend#190) |
+| Next | **#35 is MERGED** (`5081e0a`, 2026-11-19; gates green on the merge commit: analyze 1 old warning, 2,407 tests, debug APK). **#73** built and pushed on `73-correction-photo-url`, waiting for the owner's merge word. Then the owner's answers on **#62** (close #13 now and the other 17 children after their phone checks, or all now with a note; who closes). Still blocked: **#55** (Nexton-Backend#190) |
 | `origin/main` | `4d3161c` "Merge branch '61-hide-unbought-modules' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `61-…` (no `35-…` or `55-…`: both BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -1152,7 +1152,7 @@ Parent issues (#62 to #66) group the items above. The rest were reported later a
 | #70 | leave approve: show "not enough days left" on 422 INSUFFICIENT_BALANCE | likely covered by #16 (the approvals tab shows the code's own text); not checked against the issue line by line |
 | #71 | push: sign the phone off on logout (shared phones get the last user's messages) | COVERED by #52, merged (`f0c7a6c`) |
 | #72 | payslip: the salary list stops at 10 payslips a year | priority bug; fixed on screen by #21 (one page of 100); to confirm with a login that has more than 10 payslips in a year, then close |
-| #73 | forgot to scan: a request with a photo is always refused (attachment_url must be a string) | NOT STARTED, priority bug. Root cause known: the request sends the whole upload object as `attachment_url`, not the URL string. Not scheduled |
+| #73 | forgot to scan: a request with a photo is always refused (attachment_url must be a string) | IMPLEMENTED on `73-correction-photo-url` (`9fb5730`, review follow-up `e11571a`), pushed, waiting for the owner's merge word (built on the owner's "go", 2026-11-19). `attachment_url` is now the uploaded file's URL as text, `""` with no file. Gates: analyze 1 old warning, 2,411 tests, debug APK. Open: whether the photo then loads on the detail page depends on what `POST /uploads` returns as `url` (the App draws it with a bare `Image.network`: an internal host, an `http://` URL or a relative path would not load); to check on `nexton-demo`, and a backend question if it is not a public https URL |
 | #75 | Docs: /auth/me employee_id now uses the own-record lookup (backend live 17 Nov) | NOT STARTED; docs only (`lib/features/auth/auth.md` lines 24 and 186); no code change |
 | #76 | Backend notice: /mobile limit now counts per signed-in person | notice only (live 18 Nov, Nexton-Backend#292); nothing to build; the App keeps handling `429` with `Retry-After` |
 | #74 | Leave edit: handle 409 LEAVE_CHANGED; type change now checked (backend #221) | its one to-do (map `LEAVE_CHANGED` on the edit call: refresh and say so) was built in #16; backend live 13 Nov 15:56 UTC; to check, then close |

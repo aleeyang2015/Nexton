@@ -134,3 +134,8 @@ main directly": `5081e0a` (`--no-ff`, `Refs #35`), gates green on the merge comm
 
 **Lesson:** do not run `dart format` on a folder here: `main` is not formatted to the tool's style and it rewrote
 23 untouched files (restored before the commit). Leave formatting alone, or format only the lines changed.
+
+**#73:** planned and built on the owner's "go" on `73-correction-photo-url` (`9fb5730`): the request sends the
+photo's URL as text. One review; its test gap (the photo travelling from the form into the request) closed in
+`e11571a`. Gates: analyze 1 old warning, 2,411 tests, debug APK. Not merged: waits for the owner's word. Open: what
+`POST /uploads` returns as `url` on `nexton-demo`, since the detail page loads it as it is.
