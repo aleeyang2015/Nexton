@@ -129,7 +129,8 @@ shows the server's English message, a follow-up to map them is proposed, not fil
 #39, #59 guide fixes already match the merged code; #76 is a notice.
 
 **#35:** built on the owner's "go" on `35-attendance-ot-hours` (`4ddf976`), two reviews, fixes in `8e4cce2`,
-pushed. Gates: analyze 1 old warning, 2,407 tests passed, debug APK builds. Not merged: waits for the owner's word.
+pushed. Gates: analyze 1 old warning, 2,407 tests passed, debug APK builds. Merged on the owner's "push issue 35 to
+main directly": `5081e0a` (`--no-ff`, `Refs #35`), gates green on the merge commit, fast-forward push to `main`.
 
 **Lesson:** do not run `dart format` on a folder here: `main` is not formatted to the tool's style and it rewrote
 23 untouched files (restored before the commit). Leave formatting alone, or format only the lines changed.
