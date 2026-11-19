@@ -509,6 +509,24 @@ void main() {
       expect(repository.myApprovalsCalls, hasLength(before));
     });
 
+    test('not enough days left (422 INSUFFICIENT_BALANCE, #70): reports '
+        'failed with the refusal, does not reload, and the request stays '
+        'waiting', () async {
+      const refusal = Failure.validation(message: 'leaveInsufficientBalance');
+      repository.approveResult = const Result.failure(refusal);
+      await settle();
+      final before = repository.myApprovalsCalls.length;
+
+      final outcome = await notifier().approve(waiting);
+
+      // Nothing changed on the server, so nothing is asked for again.
+      expect(outcome.kind, LeaveDecisionKind.failed);
+      expect(outcome.failure, refusal);
+      expect(repository.myApprovalsCalls, hasLength(before));
+      expect(state().pending.valueOrNull!.items.map((r) => r.id), [waiting.id]);
+      expect(state().decidingIds, isEmpty);
+    });
+
     test('no signal or a server error reports failed with the failure, and '
         'does not reload', () async {
       for (final failure in const [

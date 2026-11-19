@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/l10n/failure_localizer.dart';
 import 'package:next_on/features/time_off/data/datasources/leave_error_code.dart';
+import 'package:next_on/features/time_off/presentation/providers/leave_approvals_state.dart';
+import 'package:next_on/features/time_off/presentation/widgets/leave_copy.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
 void main() {
@@ -114,5 +116,32 @@ void main() {
       const Failure.validation(message: 'Leave changed').localize(lo),
       'Leave changed',
     );
+  });
+
+  group('what an approver is told (#70)', () {
+    const refusal = Failure.validation(message: 'leaveInsufficientBalance');
+
+    test('not enough days left is about the employee, with what to do next',
+        () {
+      final outcome = LeaveDecisionOutcome.failed(refusal);
+
+      expect(
+        LeaveCopy.decisionRefusal(en, outcome),
+        'This employee does not have enough days left for this leave. '
+        'HR must add days, or the request has to be rejected.',
+      );
+      expect(
+        LeaveCopy.decisionRefusal(lo, outcome),
+        'ພະນັກງານຄົນນີ້ມີວັນລາຄົງເຫຼືອບໍ່ພຽງພໍສຳລັບການລານີ້. '
+        'ໃຫ້ HR ເພີ່ມວັນລາ ຫຼື ປະຕິເສດຄຳຮ້ອງນີ້.',
+      );
+    });
+
+    test('the employee who asks still gets their own wording', () {
+      expect(
+        refusal.localize(en),
+        "You don't have enough leave balance for those dates.",
+      );
+    });
   });
 }

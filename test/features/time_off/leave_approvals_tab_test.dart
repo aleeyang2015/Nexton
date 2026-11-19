@@ -152,6 +152,26 @@ void main() {
     expect(repository.myApprovalsCalls, hasLength(before));
   });
 
+  testWidgets('not enough days left: the approver is told it is the '
+      'employee\'s balance and what to do, and the card stays with its '
+      'buttons (#70)', (tester) async {
+    await pumpTab(tester);
+    final before = repository.myApprovalsCalls.length;
+
+    await approveRefusedWith(
+      tester,
+      const Failure.validation(message: 'leaveInsufficientBalance'),
+    );
+
+    expect(find.text(en.leaveApprovalInsufficientBalance), findsOneWidget);
+    // Not the employee's own "you don't have enough", nor the general toast.
+    expect(find.text(en.leaveInsufficientBalance), findsNothing);
+    expect(find.text(en.leaveApprovalDecideFailed), findsNothing);
+    expect(find.text('Approve'), findsOneWidget);
+    expect(find.text('Reject'), findsOneWidget);
+    expect(repository.myApprovalsCalls, hasLength(before));
+  });
+
   testWidgets('no signal shows the network text, and the card stays', (
     tester,
   ) async {

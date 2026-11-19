@@ -318,6 +318,29 @@ void main() {
     expect(find.text(en.leaveApprovalRejectAction), findsNothing);
   });
 
+  testWidgets('not enough days left (#70): the approver is told it is the '
+      'employee\'s balance, the page stays with its buttons, nothing '
+      'reloads', (tester) async {
+    await open(tester);
+    repository.approveResult = const Result.failure(
+      Failure.validation(message: 'leaveInsufficientBalance'),
+    );
+
+    await tester.tap(find.text(en.leaveApprovalApproveAction));
+    await tester.pumpAndSettle();
+    await tester.tap(inDialog(en.leaveApprovalApproveAction));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text(en.leaveApprovalInsufficientBalance), findsOneWidget);
+    expect(find.text(en.leaveInsufficientBalance), findsNothing);
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+    expect(find.byType(LeaveApprovalDetailPage), findsOneWidget);
+    expect(find.text(en.leaveApprovalApproveAction), findsOneWidget);
+    expect(find.text(en.leaveApprovalRejectAction), findsOneWidget);
+    expect(repository.requestDetailCalls, hasLength(1));
+  });
+
   testWidgets('no signal: says so, the buttons stay for a retry', (tester) async {
     await open(tester);
     repository.approveResult = const Result.failure(
