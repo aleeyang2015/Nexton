@@ -171,3 +171,7 @@ commit, fast-forward push. `main` = `origin/main` = `12b3019` at the end of the 
 **#62, the owner's call:** close #13 now, the other 17 children after their phone checks. #13 could not be closed
 from here at first (no way to write to GitHub). The owner then installed `gh` and signed in; #13 closed with a
 note naming its merge commit (`29127d8`), 2026-11-19 01:53 UTC.
+
+**Questions posted for the backend team** (on the owner's say, as the owner's account): #75 (logins linked only by
+`users.employee_id`), #16 (a code for "leave type not found"; `requested_days` in the run case), #73 (what the
+upload returns as `url`). #62's body: the #13 box ticked.

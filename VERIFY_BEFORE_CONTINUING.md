@@ -53,12 +53,15 @@ Waiting for the owner (asked on 2026-11-19, not answered):
 
 Waiting for other people:
 - **A native read of the Lao** in the twelve `leaveRule…` strings (`lib/l10n/app_lo.arb`), written on 2026-11-19.
-- **Backend team or HR:** is any login linked to its staff record only by the old `users.employee_id`? Since 17
-  Nov `/auth/me` answers `employee_id: null` for it, and the App then shows that login no Approvals entry and no
-  Approve or Reject buttons (`ApproverAccess.canSeeApprovals`; see `lib/features/auth/auth.md`).
-- **Backend team:** a real code for "leave type not found" (the App tells it by its English message); what
-  `requested_days` holds on `LEAVE_TOO_LONG` when days off join the run (the App does not show it); what
-  `POST /uploads` returns as `url` (the App loads it as it is, so #73's photo shows only if the phone can reach it).
+- **Backend team or HR, asked on #75** (comment of 2026-11-19): is any login linked to its staff record only by
+  the old `users.employee_id`? Since 17 Nov `/auth/me` answers `employee_id: null` for it, and the App then shows
+  that login no Approvals entry and no Approve or Reject buttons (`ApproverAccess.canSeeApprovals`).
+- **Backend team, asked on #16** (comment of 2026-11-19): a real code for "leave type not found" (the App tells it
+  by its English message); what `requested_days` holds on `LEAVE_TOO_LONG` when days off join the run (the App
+  does not show it).
+- **Backend team, asked on #73** (comment of 2026-11-19): what `POST /uploads` returns as `url` (the App loads it
+  as it is, so the photo shows only if the phone can reach it).
+- Read the answers with `gh issue view <n> --comments`; an answer may become a small piece of work.
 
 Known risks to keep in mind:
 - GitHub issues #2 to #76 are open although their work is merged, except #13 (closed 2026-11-19). Each closes on
