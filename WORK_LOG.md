@@ -160,4 +160,5 @@ the Approvals entry and the decision buttons. Merged on the owner's "push issue 
 issue newer than #76.
 
 **#35, two decimals:** the owner chose two decimals so OT hours read as on the payslip. On
-`35-ot-hours-two-decimals` (`7c2ead8`), pushed; gates green, 2,454 tests. Not merged: waits for the owner's word.
+`35-ot-hours-two-decimals` (`7c2ead8`), pushed; gates green, 2,454 tests. Merged on the owner's say: `30dd634` (`--no-ff`, `Refs #35`), gates green on the
+merge commit, fast-forward push. `main` = `origin/main` = `30dd634` at the end of the day.
