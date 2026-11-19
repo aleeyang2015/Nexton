@@ -71,8 +71,9 @@ Known risks to keep in mind:
 - Left open on purpose although the work is merged: #75 (docs done, but the backend question sits on it), #71
   (covered by #52, whose phone check is pending), #69 and #70 (they describe what the screen shows; "likely
   covered by #16" has not been checked line by line against tests), #20 (wants a real `nexton-demo` payslip).
-- In the trackers only #62's #13 box is ticked. The boxes for #22 (in #63), #27 and #28 (in #64) and #43 (in #65)
-  are not: the owner has not asked for that.
+- In the trackers the boxes of the closed children are ticked (owner's say, 2026-11-19): #13 in #62, #22 in #63,
+  #27 and #28 in #64, #43 in #65. Tick a box only when its issue is closed. (#68, #74 and #76 are in no tracker's
+  list.)
 - #35's phone check needs an approved, clocked OT on `nexton-demo` first: the backend says no company has one yet.
 - Follow-ups proposed and not filed: see `NEXT_ACTIONS.md` "Next", item 2.
 
