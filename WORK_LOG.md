@@ -189,4 +189,5 @@ fresh-eyes review was still running; its findings, if any, are a follow-up. `mai
 
 **#70 closed** on the owner's say after its review (no defect). **#70, dialog:** the owner chose a dialog with OK
 over the 3-second toast for "not enough days left". On `70-insufficient-balance-dialog` (`94a6403`), pushed; gates
-green, 2,460 tests. Not merged: waits for the owner's word.
+green, 2,460 tests. Merged on the owner's say: `2c333e8` (`--no-ff`, `Refs #70`), gates green on the merge commit,
+fast-forward push. `main` = `origin/main` = `2c333e8`.
