@@ -64,8 +64,15 @@ Waiting for other people:
 - Read the answers with `gh issue view <n> --comments`; an answer may become a small piece of work.
 
 Known risks to keep in mind:
-- GitHub issues #2 to #76 are open although their work is merged, except #13 (closed 2026-11-19). Each closes on
-  the owner's say, after its phone check.
+- GitHub issues #2 to #76 are open although their work is merged, except the eight closed on 2026-11-19 on the
+  owner's say because no box of theirs needs a phone: #13, #22, #27, #28, #43, #68, #74 (each with a note naming
+  its merge commit and tests) and #76 (a notice, closed as not planned). Every other issue closes on the owner's
+  say, after its phone check.
+- Left open on purpose although the work is merged: #75 (docs done, but the backend question sits on it), #71
+  (covered by #52, whose phone check is pending), #69 and #70 (they describe what the screen shows; "likely
+  covered by #16" has not been checked line by line against tests), #20 (wants a real `nexton-demo` payslip).
+- In the trackers only #62's #13 box is ticked. The boxes for #22 (in #63), #27 and #28 (in #64) and #43 (in #65)
+  are not: the owner has not asked for that.
 - #35's phone check needs an approved, clocked OT on `nexton-demo` first: the backend says no company has one yet.
 - Follow-ups proposed and not filed: see `NEXT_ACTIONS.md` "Next", item 2.
 

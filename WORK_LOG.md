@@ -175,3 +175,8 @@ note naming its merge commit (`29127d8`), 2026-11-19 01:53 UTC.
 **Questions posted for the backend team** (on the owner's say, as the owner's account): #75 (logins linked only by
 `users.employee_id`), #16 (a code for "leave type not found"; `requested_days` in the run case), #73 (what the
 upload returns as `url`). #62's body: the #13 box ticked.
+
+**Closed on the owner's say ("the other issues that don't need a phone check"):** #22, #27, #28, #43, #68, #74
+(completed, each with its merge commit and the tests that prove its boxes) and #76 (a notice; not planned). Checked
+first: every open issue's "Done when" boxes were read; these are the ones with no device, login or web step, and
+their tests exist on `main`. Not closed: #75, #71, #69, #70, #20 (reasons in `VERIFY_BEFORE_CONTINUING.md`).
