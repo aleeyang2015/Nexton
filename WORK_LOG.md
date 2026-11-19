@@ -180,3 +180,9 @@ upload returns as `url`). #62's body: the #13 box ticked.
 (completed, each with its merge commit and the tests that prove its boxes) and #76 (a notice; not planned). Checked
 first: every open issue's "Done when" boxes were read; these are the ones with no device, login or web step, and
 their tests exist on `main`. Not closed: #75, #71, #69, #70, #20 (reasons in `VERIFY_BEFORE_CONTINUING.md`).
+
+**#69 and #70 checked against the code** (owner's ask). #69: done by #16 and #17, proved by tests; closed on the
+owner's say. #70: not done: the approver was shown the employee's "You don't have enough leave balance" text. Built
+on `70-approve-insufficient-balance` (`c49f42a`) and merged on the owner's "push issue 70 to main directly":
+`3daed16`, gates green on the merge commit (2,459 tests), fast-forward push. The merge word came while the
+fresh-eyes review was still running; its findings, if any, are a follow-up. `main` = `origin/main` = `3daed16`.

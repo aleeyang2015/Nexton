@@ -16,7 +16,7 @@ file on branch `docs/next-actions`, with `WORK_LOG.md` (the day-by-day log). Non
    `../nexton_app_flutter/docs/handover/` belong to an older project and say nothing about this one.
 3. Check the real Git and project state before changing anything (steps 3 to 5 below).
 4. Confirm the last merge is there:
-   `git merge-base --is-ancestor origin/35-ot-tile-label-lao origin/main && echo "in main"`.
+   `git merge-base --is-ancestor origin/70-approve-insufficient-balance origin/main && echo "in main"`.
 5. **Nothing buildable is queued.** Every work order is merged except **#55** (unread dots and a count on the
    bell), which waits on Nexton-Backend#190. Start by re-reading the comments on #55 for a "now live", and by
    checking for issues newer than #76 and for new backend comments on any issue
@@ -34,11 +34,11 @@ file on branch `docs/next-actions`, with `WORK_LOG.md` (the day-by-day log). Non
 | | |
 |---|---|
 | Branch checked out | `main` |
-| `main` = `origin/main` | `12b3019` "Merge branch '35-ot-tile-label-lao' into main" |
+| `main` = `origin/main` | `3daed16` "Merge branch '70-approve-insufficient-balance' into main" |
 | Working tree | clean: nothing modified, staged or untracked; no stashes |
 | Unpushed commits | none, on any local branch (every branch equals its remote) |
-| Gates on `12b3019` | `flutter analyze lib test`: 1 warning, already on `main` (`_ShiftHoursLine` unused); `flutter test`: 2,454 passed, 0 failed; `flutter build apk --debug`: builds |
-| Done on 2026-11-19 | #62 checked (read-only); #35 (`5081e0a`); #73 (`139f1c5`); the #16 follow-up, leave rule refusals in Lao, no issue of its own (`2599166`); #75, docs (`2b2f5dc`); #35's OT hours to two decimals (`30dd634`) and its Lao tile label `ໂອທີ` (`12b3019`), both the owner's calls. Each merged on the owner's say |
+| Gates on `3daed16` | `flutter analyze lib test`: 1 warning, already on `main` (`_ShiftHoursLine` unused); `flutter test`: 2,459 passed, 0 failed; `flutter build apk --debug`: builds |
+| Done on 2026-11-19 | #62 checked (read-only); #35 (`5081e0a`); #73 (`139f1c5`); the #16 follow-up, leave rule refusals in Lao, no issue of its own (`2599166`); #75, docs (`2b2f5dc`); #35's OT hours to two decimals (`30dd634`) and its Lao tile label `ໂອທີ` (`12b3019`), both the owner's calls; #70, the approver's "not enough days left" text (`3daed16`). Each merged on the owner's say |
 | Still blocked | #55 (Nexton-Backend#190, unread count): the only work order not merged |
 | Next | no code queued: re-check #55 and new backend comments, then the owner's open items below |
 | Phone checks | none done for any issue; all pending on `nexton-demo` |
@@ -52,7 +52,8 @@ Waiting for the owner (asked on 2026-11-19, not answered):
 - The older questions in `NEXT_ACTIONS.md` "Waiting for the owner".
 
 Waiting for other people:
-- **A native read of the Lao** in the twelve `leaveRule…` strings (`lib/l10n/app_lo.arb`), written on 2026-11-19.
+- **A native read of the Lao** written on 2026-11-19 (`lib/l10n/app_lo.arb`): the twelve `leaveRule…` strings and
+  `leaveApprovalInsufficientBalance`.
 - **Backend team or HR, asked on #75** (comment of 2026-11-19): is any login linked to its staff record only by
   the old `users.employee_id`? Since 17 Nov `/auth/me` answers `employee_id: null` for it, and the App then shows
   that login no Approvals entry and no Approve or Reject buttons (`ApproverAccess.canSeeApprovals`).
@@ -65,12 +66,13 @@ Waiting for other people:
 
 Known risks to keep in mind:
 - GitHub issues #2 to #76 are open although their work is merged, except the eight closed on 2026-11-19 on the
-  owner's say because no box of theirs needs a phone: #13, #22, #27, #28, #43, #68, #74 (each with a note naming
+  owner's say because no box of theirs needs a phone: #13, #22, #27, #28, #43, #68, #69, #74 (each with a note naming
   its merge commit and tests) and #76 (a notice, closed as not planned). Every other issue closes on the owner's
   say, after its phone check.
 - Left open on purpose although the work is merged: #75 (docs done, but the backend question sits on it), #71
-  (covered by #52, whose phone check is pending), #69 and #70 (they describe what the screen shows; "likely
-  covered by #16" has not been checked line by line against tests), #20 (wants a real `nexton-demo` payslip).
+  (covered by #52, whose phone check is pending), #20 (wants a real `nexton-demo` payslip), and #70: it was NOT
+  covered by #16 (the approver got the employee's "You don't have enough…" text); fixed and merged on 2026-11-19
+  (`3daed16`), still open on GitHub. Its three boxes are proved by tests, so it can close on the owner's say.
 - In the trackers the boxes of the closed children are ticked (owner's say, 2026-11-19): #13 in #62, #22 in #63,
   #27 and #28 in #64, #43 in #65. Tick a box only when its issue is closed. (#68, #74 and #76 are in no tracker's
   list.)
@@ -128,20 +130,20 @@ git fetch origin --prune
 git log --oneline -1 origin/main
 ```
 
-`NEXT_ACTIONS.md` says `origin/main` was `12b3019` ("Merge branch '35-ot-tile-label-lao' into main") at the
-end of 2026-11-19.
+`NEXT_ACTIONS.md` says `origin/main` was `3daed16` ("Merge branch '70-approve-insufficient-balance' into main") at
+the end of 2026-11-19.
 
-- If `origin/main` is still `12b3019`: nothing moved. Go on.
-- If it has moved: someone merged since. Read `git log --oneline 12b3019..origin/main` and work out what it
+- If `origin/main` is still `3daed16`: nothing moved. Go on.
+- If it has moved: someone merged since. Read `git log --oneline 3daed16..origin/main` and work out what it
   changes for the next issue before planning it. Update local `main` with `git switch main && git merge --ff-only
   origin/main`. If it cannot fast-forward, stop and report.
 
 ## 5. Check the last merge really is there
 
-For the last one marked MERGED (#35's Lao tile label):
+For the last one marked MERGED (#70):
 
 ```sh
-git merge-base --is-ancestor origin/35-ot-tile-label-lao origin/main && echo "in main"
+git merge-base --is-ancestor origin/70-approve-insufficient-balance origin/main && echo "in main"
 ```
 
 There are no pull requests for the work items: each was pushed to `main` as a merge commit on the owner's say, so
