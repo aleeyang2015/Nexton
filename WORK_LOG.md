@@ -144,7 +144,8 @@ directly": `139f1c5` (`--no-ff`, `Refs #73`), gates green on the merge commit, f
 **#16 follow-up (leave rule refusals):** planned and built on the owner's "go" on `16-followup-leave-rule-refusals`
 (`6bd2413`); two reviews; fixes in `af794bc`: the form no longer picks a type for the user after a refusal, a
 failed type reload keeps the list, only the two type refusals reload, the texts reworded. Gates: analyze 1 old
-warning, 2,452 tests, debug APK. Not merged: waits for the owner's word.
+warning, 2,452 tests, debug APK. Merged on the owner's "push the #16 follow-up to main directly": `2599166`
+(`--no-ff`, `Refs #16`), gates green on the merge commit, fast-forward push.
 
 **Lesson:** `build_runner` here rewrites every generated file in an older layout and reports SEVERE on files with
 newer syntax (already so on `main`). Keep only the generated file of the class changed, run `dart format` on that
