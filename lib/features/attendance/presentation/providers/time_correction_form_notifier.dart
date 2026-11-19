@@ -6,6 +6,8 @@ import '../../../profile/domain/entities/shift_detail.dart';
 import '../../../profile/presentation/providers/profile_notifier.dart';
 import '../../attendance_providers.dart';
 import '../../domain/correction_rules.dart';
+import '../../domain/entities/attendance_day.dart';
+import '../../domain/entities/date_range.dart';
 import '../../domain/entities/time_correction_type.dart';
 import 'time_correction_attachment_notifier.dart';
 import 'time_correction_form_state.dart';
@@ -13,10 +15,14 @@ import 'time_correction_form_state.dart';
 /// Fields, rules and submission of the time-correction request form
 /// ("ລືມລົງເວລາ").
 ///
-/// The shift comes from the employee's profile (`/core_hr/employees/me`'s
-/// `shift.shift_details[]`) rather than a fetch of its own — the attendance
-/// card already reads it from there. The first segment is picked by default,
-/// and picking a segment pre-fills the times with its schedule.
+/// The parts offered are the picked day's own: those of its history sessions
+/// (the month's records, read once per month), so a day worked on an earlier
+/// shift is corrected against the part it was worked on. A day with no
+/// session in any part gets the parts of the employee's profile
+/// (`/core_hr/employees/me`'s `shift.shift_details[]`), which is also what
+/// the form shows until the history has answered, and when it cannot be
+/// read. The first part is picked by default, and picking a part pre-fills
+/// the times with its schedule.
 class TimeCorrectionFormNotifier
     extends AutoDisposeNotifier<TimeCorrectionFormState> {
   @override
@@ -40,24 +46,104 @@ class TimeCorrectionFormNotifier
       if (state.shiftDetail == null && detail != null) {
         selectShiftDetail(detail);
       }
+      // The profile landed after the day's parts: a part chosen from the
+      // day's record gives way to the profile's full copy of it, and the
+      // profile's first part to the day's own.
+      _choosePart();
     });
+    ref.onDispose(() => _disposed = true);
 
     final now = DateTime.now();
     final initial = TimeCorrectionFormState(
       date: DateTime(now.year, now.month, now.day),
     );
+    // After this build: the answer changes the state.
+    Future.microtask(() => _readDay(initial.date));
     final detail = _firstDetail(ref.read(profileNotifierProvider).valueOrNull);
     return detail == null ? initial : _withShiftDetail(initial, detail);
   }
 
-  /// The day to correct. With a part chosen, the times become that
-  /// weekday's (the window under them moves to that day too).
+  /// The day to correct. The parts offered become that day's own, and with
+  /// a part chosen the times become that weekday's (the window under them
+  /// moves to that day too).
   void setDate(DateTime date) {
-    final next = state.copyWith(
-      date: DateTime(date.year, date.month, date.day),
-    );
+    final day = DateTime(date.year, date.month, date.day);
+    final next = state.copyWith(date: day, dayParts: _partsOn(day));
     final part = next.shiftDetail;
     state = part == null ? next : _withShiftDetail(next, part);
+    _choosePart();
+    _readDay(day);
+  }
+
+  /// The months of history read so far, by their first day. A month is read
+  /// once for the form's life; one that failed is asked again on the next
+  /// date picked in it.
+  final Map<DateTime, List<AttendanceDay>> _months = {};
+  final Set<DateTime> _reading = {};
+  bool _disposed = false;
+
+  /// Reads [day]'s month of history, unless it is known or on its way, then
+  /// offers the parts of whichever day is picked by then.
+  Future<void> _readDay(DateTime day) async {
+    final month = DateTime(day.year, day.month);
+    if (_disposed || _months.containsKey(month) || !_reading.add(month)) {
+      return;
+    }
+    final result = await ref.read(getMonthlyRecordsUseCaseProvider)(
+      DateRange.month(day),
+    );
+    _reading.remove(month);
+    if (_disposed) return;
+
+    // A failure is not an error on this form: the profile's parts stay.
+    if (result.isFailure) return;
+    final days = result.dataOrNull ?? const <AttendanceDay>[];
+    _months[month] = days;
+    state = state.copyWith(dayParts: _partsOn(state.date));
+    _choosePart();
+  }
+
+  /// The parts of [day]'s sessions in the history read so far, each once, in
+  /// the day's order. Empty when the day has none or its month is not read.
+  List<ShiftDetail> _partsOn(DateTime day) {
+    final days = _months[DateTime(day.year, day.month)] ?? const [];
+    final parts = <ShiftDetail>[];
+    for (final record in days) {
+      final date = record.date;
+      if (date == null ||
+          date.year != day.year ||
+          date.month != day.month ||
+          date.day != day.day) {
+        continue;
+      }
+      for (final session in record.sessions) {
+        final part = session.part;
+        if (part != null && !parts.any((p) => p.id == part.id)) {
+          parts.add(part);
+        }
+      }
+    }
+    return parts;
+  }
+
+  /// Keeps the chosen part one of those on offer. A part still on offer is
+  /// kept (as the profile's full copy, when the profile has it); otherwise
+  /// the first one offered is chosen. A part a prefill still waits for is
+  /// left to the profile's listener.
+  void _choosePart() {
+    if (_wantedPartId != null) return;
+    final profile = ref.read(profileNotifierProvider).valueOrNull;
+    final offered = offeredParts(
+      profile?.shiftDetails ?? const <ShiftDetail>[],
+    );
+    if (offered.isEmpty) return;
+
+    final chosenId = state.shiftDetail?.id;
+    final part = offered.firstWhere(
+      (p) => p.id == chosenId,
+      orElse: () => offered.first,
+    );
+    if (state.shiftDetail != part) state = _withShiftDetail(state, part);
   }
 
   /// Fills the form for a day and part (#44): from a history row, or a link
@@ -80,9 +166,18 @@ class TimeCorrectionFormNotifier
     if (part != null) state = _withShiftDetail(state, part);
   }
 
-  /// The parts to offer: the history session's own part when the profile
-  /// does not have it, then the profile's [profileParts].
+  /// The parts to offer: the picked day's own, when its history has any
+  /// (each as the profile's full copy, when [profileParts] has it: the
+  /// weekday rows and the minutes). Else the profile's [profileParts], after
+  /// the history session's own part when the profile does not have it.
   List<ShiftDetail> offeredParts(List<ShiftDetail> profileParts) {
+    final ofDay = state.dayParts;
+    if (ofDay.isNotEmpty) {
+      return [
+        for (final part in ofDay)
+          profileParts.firstWhere((p) => p.id == part.id, orElse: () => part),
+      ];
+    }
     final own = _sessionPart;
     return [
       if (own != null && !profileParts.any((p) => p.id == own.id)) own,

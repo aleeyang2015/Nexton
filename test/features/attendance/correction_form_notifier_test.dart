@@ -6,7 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/upload/domain/local_file.dart';
 import 'package:next_on/core/upload/upload_providers.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
+import 'package:next_on/features/attendance/domain/entities/attendance_day.dart';
+import 'package:next_on/features/attendance/domain/entities/date_range.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_request.dart';
 import 'package:next_on/features/attendance/presentation/providers/time_correction_attachment_notifier.dart';
 import 'package:next_on/features/attendance/presentation/providers/time_correction_form_notifier.dart';
@@ -304,5 +307,167 @@ void main() {
         ]);
       },
     );
+  });
+
+  group('the parts offered are the picked day\'s own (#44)', () {
+    const old = AttendanceSession(
+      partId: 'p-old',
+      partName: 'Early',
+      partStartTime: '07:00',
+      partEndTime: '11:00',
+    );
+
+    /// What the history holds for [weekAgo]: its sessions' parts.
+    void historyHas(List<AttendanceSession> sessions) {
+      attendance.monthRecords = Result.success([
+        AttendanceDay(date: weekAgo, sessions: sessions),
+      ]);
+    }
+
+    List<String?> offeredIds() => [
+      for (final part in form().offeredParts([morning, afternoon])) part.id,
+    ];
+
+    test('opened from the menu, then a date picked: that day\'s part is '
+        'offered and chosen, not the profile\'s', () async {
+      container = make();
+      historyHas([old]);
+      await settle();
+
+      form().setDate(weekAgo);
+      await settle();
+
+      final state = container.read(timeCorrectionFormNotifierProvider);
+      expect(offeredIds(), ['p-old']);
+      expect(state.shiftDetail?.id, 'p-old');
+      expect(state.clockIn, const TimeOfDay(hour: 7, minute: 0));
+      expect(state.clockOut, const TimeOfDay(hour: 11, minute: 0));
+    });
+
+    test('a part the day and the profile share is the profile\'s full copy: '
+        'that weekday\'s times', () async {
+      container = make();
+      historyHas([
+        const AttendanceSession(partId: 'p-pm'),
+        const AttendanceSession(partId: 'p-am'),
+        // Two sessions on one part: offered once.
+        const AttendanceSession(partId: 'p-am'),
+      ]);
+      await settle();
+
+      form().setDate(weekAgo);
+      await settle();
+
+      final state = container.read(timeCorrectionFormNotifierProvider);
+      // In the day's order.
+      expect(form().offeredParts([morning, afternoon]), [afternoon, morning]);
+      // The part already chosen is one of them: kept.
+      expect(state.shiftDetail, morning);
+      expect(state.clockIn, const TimeOfDay(hour: 9, minute: 0));
+    });
+
+    test('a day with no sessions, or sessions outside any part: the '
+        'profile\'s parts', () async {
+      container = make();
+      historyHas([const AttendanceSession()]);
+      await settle();
+
+      form().setDate(weekAgo);
+      await settle();
+
+      expect(offeredIds(), ['p-am', 'p-pm']);
+      expect(
+        container.read(timeCorrectionFormNotifierProvider).shiftDetail?.id,
+        'p-am',
+      );
+    });
+
+    test('moving from a day with its own part to a day without: back to the '
+        'profile\'s first part', () async {
+      container = make();
+      historyHas([old]);
+      await settle();
+      form().setDate(weekAgo);
+      await settle();
+
+      final dayAfter = DateTime(weekAgo.year, weekAgo.month, weekAgo.day + 1);
+      form().setDate(dayAfter);
+      await settle();
+
+      expect(offeredIds(), ['p-am', 'p-pm']);
+      expect(
+        container.read(timeCorrectionFormNotifierProvider).shiftDetail?.id,
+        'p-am',
+      );
+    });
+
+    test('the history cannot be read: the profile\'s parts, and the form '
+        'still works', () async {
+      container = make();
+      attendance.monthRecords = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+      await settle();
+
+      form().setDate(weekAgo);
+      await settle();
+
+      expect(offeredIds(), ['p-am', 'p-pm']);
+      expect(
+        container.read(timeCorrectionFormNotifierProvider).shiftDetail?.id,
+        'p-am',
+      );
+    });
+
+    test('the user\'s own pick among the day\'s parts is kept', () async {
+      container = make();
+      historyHas([
+        const AttendanceSession(partId: 'p-am'),
+        const AttendanceSession(partId: 'p-pm'),
+      ]);
+      await settle();
+      form().setDate(weekAgo);
+      await settle();
+
+      form().selectShiftDetail(afternoon);
+      await settle();
+
+      expect(
+        container.read(timeCorrectionFormNotifierProvider).shiftDetail,
+        afternoon,
+      );
+    });
+
+    test('from a history row: the asked part stays, and the day\'s parts are '
+        'the ones offered', () async {
+      container = make();
+      historyHas([old, const AttendanceSession(partId: 'p-pm')]);
+      await settle();
+
+      form().prefill(date: weekAgo, partId: 'p-pm');
+      await settle();
+
+      expect(offeredIds(), ['p-old', 'p-pm']);
+      expect(
+        container.read(timeCorrectionFormNotifierProvider).shiftDetail,
+        afternoon,
+      );
+    });
+
+    test('a month is read once, however many of its days are picked',
+        () async {
+      container = make();
+      await settle();
+      final before = attendance.recordsRanges.length;
+
+      form().setDate(today);
+      await settle();
+      form().setDate(today);
+      await settle();
+
+      expect(before, 1);
+      expect(attendance.recordsRanges.length, 1);
+      expect(attendance.recordsRanges.single, DateRange.month(today));
+    });
   });
 }

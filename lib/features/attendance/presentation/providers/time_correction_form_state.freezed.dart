@@ -20,6 +20,11 @@ mixin _$TimeCorrectionFormState {
   DateTime get date => throw _privateConstructorUsedError;
   TimeCorrectionType get type => throw _privateConstructorUsedError;
   ShiftDetail? get shiftDetail => throw _privateConstructorUsedError;
+
+  /// The parts of [date]'s own history sessions, as its record knows them
+  /// (#44). Empty when the day has none, or while its history is not read
+  /// yet (or could not be): the profile's parts are offered then.
+  List<ShiftDetail> get dayParts => throw _privateConstructorUsedError;
   TimeOfDay get clockIn => throw _privateConstructorUsedError;
   TimeOfDay get clockOut => throw _privateConstructorUsedError;
   String get reason => throw _privateConstructorUsedError;
@@ -45,6 +50,7 @@ abstract class $TimeCorrectionFormStateCopyWith<$Res> {
     DateTime date,
     TimeCorrectionType type,
     ShiftDetail? shiftDetail,
+    List<ShiftDetail> dayParts,
     TimeOfDay clockIn,
     TimeOfDay clockOut,
     String reason,
@@ -72,6 +78,7 @@ class _$TimeCorrectionFormStateCopyWithImpl<
     Object? date = null,
     Object? type = null,
     Object? shiftDetail = freezed,
+    Object? dayParts = null,
     Object? clockIn = null,
     Object? clockOut = null,
     Object? reason = null,
@@ -92,6 +99,10 @@ class _$TimeCorrectionFormStateCopyWithImpl<
                 ? _value.shiftDetail
                 : shiftDetail // ignore: cast_nullable_to_non_nullable
                       as ShiftDetail?,
+            dayParts: null == dayParts
+                ? _value.dayParts
+                : dayParts // ignore: cast_nullable_to_non_nullable
+                      as List<ShiftDetail>,
             clockIn: null == clockIn
                 ? _value.clockIn
                 : clockIn // ignore: cast_nullable_to_non_nullable
@@ -131,6 +142,7 @@ abstract class _$$TimeCorrectionFormStateImplCopyWith<$Res>
     DateTime date,
     TimeCorrectionType type,
     ShiftDetail? shiftDetail,
+    List<ShiftDetail> dayParts,
     TimeOfDay clockIn,
     TimeOfDay clockOut,
     String reason,
@@ -158,6 +170,7 @@ class __$$TimeCorrectionFormStateImplCopyWithImpl<$Res>
     Object? date = null,
     Object? type = null,
     Object? shiftDetail = freezed,
+    Object? dayParts = null,
     Object? clockIn = null,
     Object? clockOut = null,
     Object? reason = null,
@@ -178,6 +191,10 @@ class __$$TimeCorrectionFormStateImplCopyWithImpl<$Res>
             ? _value.shiftDetail
             : shiftDetail // ignore: cast_nullable_to_non_nullable
                   as ShiftDetail?,
+        dayParts: null == dayParts
+            ? _value._dayParts
+            : dayParts // ignore: cast_nullable_to_non_nullable
+                  as List<ShiftDetail>,
         clockIn: null == clockIn
             ? _value.clockIn
             : clockIn // ignore: cast_nullable_to_non_nullable
@@ -210,12 +227,14 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
     required this.date,
     this.type = TimeCorrectionType.both,
     this.shiftDetail,
+    final List<ShiftDetail> dayParts = const <ShiftDetail>[],
     this.clockIn = const TimeOfDay(hour: 8, minute: 0),
     this.clockOut = const TimeOfDay(hour: 17, minute: 0),
     this.reason = '',
     this.showErrors = false,
     this.submission = const AsyncValue<String?>.data(null),
-  }) : super._();
+  }) : _dayParts = dayParts,
+       super._();
 
   @override
   final DateTime date;
@@ -224,6 +243,23 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
   final TimeCorrectionType type;
   @override
   final ShiftDetail? shiftDetail;
+
+  /// The parts of [date]'s own history sessions, as its record knows them
+  /// (#44). Empty when the day has none, or while its history is not read
+  /// yet (or could not be): the profile's parts are offered then.
+  final List<ShiftDetail> _dayParts;
+
+  /// The parts of [date]'s own history sessions, as its record knows them
+  /// (#44). Empty when the day has none, or while its history is not read
+  /// yet (or could not be): the profile's parts are offered then.
+  @override
+  @JsonKey()
+  List<ShiftDetail> get dayParts {
+    if (_dayParts is EqualUnmodifiableListView) return _dayParts;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_dayParts);
+  }
+
   @override
   @JsonKey()
   final TimeOfDay clockIn;
@@ -245,7 +281,7 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
 
   @override
   String toString() {
-    return 'TimeCorrectionFormState(date: $date, type: $type, shiftDetail: $shiftDetail, clockIn: $clockIn, clockOut: $clockOut, reason: $reason, showErrors: $showErrors, submission: $submission)';
+    return 'TimeCorrectionFormState(date: $date, type: $type, shiftDetail: $shiftDetail, dayParts: $dayParts, clockIn: $clockIn, clockOut: $clockOut, reason: $reason, showErrors: $showErrors, submission: $submission)';
   }
 
   @override
@@ -257,6 +293,7 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
             (identical(other.type, type) || other.type == type) &&
             (identical(other.shiftDetail, shiftDetail) ||
                 other.shiftDetail == shiftDetail) &&
+            const DeepCollectionEquality().equals(other._dayParts, _dayParts) &&
             (identical(other.clockIn, clockIn) || other.clockIn == clockIn) &&
             (identical(other.clockOut, clockOut) ||
                 other.clockOut == clockOut) &&
@@ -273,6 +310,7 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
     date,
     type,
     shiftDetail,
+    const DeepCollectionEquality().hash(_dayParts),
     clockIn,
     clockOut,
     reason,
@@ -295,6 +333,7 @@ abstract class _TimeCorrectionFormState extends TimeCorrectionFormState {
     required final DateTime date,
     final TimeCorrectionType type,
     final ShiftDetail? shiftDetail,
+    final List<ShiftDetail> dayParts,
     final TimeOfDay clockIn,
     final TimeOfDay clockOut,
     final String reason,
@@ -309,6 +348,11 @@ abstract class _TimeCorrectionFormState extends TimeCorrectionFormState {
   TimeCorrectionType get type;
   @override
   ShiftDetail? get shiftDetail;
+  @override
+  /// The parts of [date]'s own history sessions, as its record knows them
+  /// (#44). Empty when the day has none, or while its history is not read
+  /// yet (or could not be): the profile's parts are offered then.
+  List<ShiftDetail> get dayParts;
   @override
   TimeOfDay get clockIn;
   @override
