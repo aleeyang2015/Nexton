@@ -140,3 +140,12 @@ photo's URL as text. One review; its test gap (the photo travelling from the for
 `e11571a`. Gates: analyze 1 old warning, 2,411 tests, debug APK. Merged on the owner's "push issue 73 to main
 directly": `139f1c5` (`--no-ff`, `Refs #73`), gates green on the merge commit, fast-forward push. Open: what
 `POST /uploads` returns as `url` on `nexton-demo`, since the detail page loads it as it is.
+
+**#16 follow-up (leave rule refusals):** planned and built on the owner's "go" on `16-followup-leave-rule-refusals`
+(`6bd2413`); two reviews; fixes in `af794bc`: the form no longer picks a type for the user after a refusal, a
+failed type reload keeps the list, only the two type refusals reload, the texts reworded. Gates: analyze 1 old
+warning, 2,452 tests, debug APK. Not merged: waits for the owner's word.
+
+**Lesson:** `build_runner` here rewrites every generated file in an older layout and reports SEVERE on files with
+newer syntax (already so on `main`). Keep only the generated file of the class changed, run `dart format` on that
+one file (the committed ones are formatted), and restore the rest.
