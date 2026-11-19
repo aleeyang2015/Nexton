@@ -14,7 +14,8 @@ class PushConstants {
   /// The notification permission was asked once (#51).
   static const String permissionAskedKey = 'push_permission_asked';
 
-  /// The white-on-transparent tray icon (`res/drawable`), for the system's
-  /// pushes and the App's own pop-up.
+  /// The white-on-transparent tray icon (the Nexton mark, one PNG per
+  /// density in `res/drawable-*dpi`), for the system's pushes and the App's
+  /// own pop-up.
   static const String androidSmallIcon = '@drawable/ic_stat_nexton';
 }
