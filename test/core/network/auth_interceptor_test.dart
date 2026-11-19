@@ -60,6 +60,10 @@ class _FakeAdapter implements HttpClientAdapter {
   /// request that left the phone and is answered much later.
   final Map<String, Completer<void>> holdPath = {};
 
+  /// When set, the answer to a request sent again after a refresh waits for
+  /// it (#89).
+  Completer<void>? holdReplay;
+
   void queue(String path, List<_Reply> answers) => replies[path] = answers;
 
   @override
@@ -72,6 +76,7 @@ class _FakeAdapter implements HttpClientAdapter {
     if (slow) await Future<void>.delayed(const Duration(milliseconds: 10));
     if (options.path == ApiPaths.refresh) await holdRefresh?.future;
     await holdPath.remove(options.path)?.future;
+    if (options.extra['auth_retried'] == true) await holdReplay?.future;
 
     final queued = replies[options.path];
     final reply = queued == null || queued.isEmpty
@@ -456,6 +461,13 @@ void main() {
     group('a 401 for a request of another sign-in (#89)', () {
       const leave = '/core_hr/leave/requests';
 
+      /// The caller's own 401, not some other failure.
+      final is401 = isA<DioException>().having(
+        (e) => e.response?.statusCode,
+        'status',
+        401,
+      );
+
       /// Starts a POST that leaves with the tokens stored now and is
       /// answered only when the returned completer completes.
       Future<(Future<dynamic>, Completer<void>)> sendHeld(_Harness h) async {
@@ -483,7 +495,7 @@ void main() {
         hold.complete();
 
         // The caller gets its 401.
-        await expectLater(call, throwsA(isA<DioException>()));
+        await expectLater(call, throwsA(is401));
         // A's leave request was sent once, and never with B's token.
         expect(h.requestsTo(leave), hasLength(1));
         expect(h.requestsTo(ApiPaths.refresh), isEmpty);
@@ -504,9 +516,82 @@ void main() {
         await h.tokens.writeAccessToken('access-b');
         await h.tokens.writeRefreshToken('refresh-b');
         hold.complete();
-        await expectLater(call, throwsA(isA<DioException>()));
+        await expectLater(call, throwsA(is401));
 
+        expect(h.requestsTo(ApiPaths.refresh), isEmpty);
         expect(await h.tokens.readAccessToken(), 'access-b');
+        expect(await h.tokens.readRefreshToken(), 'refresh-b');
+        expect(h.sessionExpiredEvents, isEmpty);
+      });
+
+      test('the last user\'s /auth/me, already renewed and sent again, '
+          'refused a second time after someone else signed in: the next '
+          'user is not signed out', () async {
+        final h = await _Harness.create();
+        h.adapter.queue(ApiPaths.me, [_unauthorized, _unauthorized]);
+        h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+
+        final hold = h.adapter.holdReplay = Completer<void>();
+
+        final call = h.client.get<dynamic>(ApiPaths.me);
+        // The first 401, the renewal, and the replay going out with access-2.
+        while (h.requestsTo(ApiPaths.me).length < 2) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        expect(
+          h.requestsTo(ApiPaths.me).last.headers[AppConstants
+              .authorizationHeader],
+          'Bearer access-2',
+        );
+        // A signs out; B signs in.
+        await h.tokens.clear();
+        await h.tokens.writeAccessToken('access-b');
+        await h.tokens.writeRefreshToken('refresh-b');
+        hold.complete();
+
+        await expectLater(call, throwsA(is401));
+        expect(await h.tokens.readAccessToken(), 'access-b');
+        expect(await h.tokens.readRefreshToken(), 'refresh-b');
+        expect(h.sessionExpiredEvents, isEmpty);
+      });
+
+      test('the same user signed in again (a password change): their own '
+          'late request gets its 401 too, and the new sign-in stays', () async {
+        final h = await _Harness.create();
+        h.adapter.queue(leave, [_unauthorized, _okProfile]);
+        h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+
+        final (call, hold) = await sendHeld(h);
+        // The re-login writes a new pair; nothing tells the interceptor it
+        // is the same person.
+        await h.tokens.writeAccessToken('access-again');
+        await h.tokens.writeRefreshToken('refresh-again');
+        hold.complete();
+
+        await expectLater(call, throwsA(is401));
+        expect(h.requestsTo(ApiPaths.refresh), isEmpty);
+        expect(await h.tokens.readAccessToken(), 'access-again');
+        expect(h.sessionExpiredEvents, isEmpty);
+      });
+
+      test('several requests sent with no access token (only a refresh '
+          'token is stored) are all renewed, as before', () async {
+        final h = await _Harness.create(accessToken: null);
+        h.adapter.slow = true;
+        h.adapter.queue(ApiPaths.me, [
+          _unauthorized,
+          _unauthorized,
+          _okProfile,
+          _okProfile,
+        ]);
+        h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+
+        await Future.wait([
+          h.client.get<dynamic>(ApiPaths.me),
+          h.client.get<dynamic>(ApiPaths.me),
+        ]);
+
+        expect(h.requestsTo(ApiPaths.me), hasLength(4));
         expect(h.sessionExpiredEvents, isEmpty);
       });
 
@@ -522,7 +607,7 @@ void main() {
         await h.tokens.writeRefreshToken('refresh-b');
         hold.complete();
 
-        await expectLater(call, throwsA(isA<DioException>()));
+        await expectLater(call, throwsA(is401));
         expect(h.requestsTo(leave), hasLength(1));
         expect(h.requestsTo(ApiPaths.refresh), isEmpty);
         expect(await h.tokens.readAccessToken(), 'access-b');
@@ -598,7 +683,7 @@ void main() {
         await h.tokens.writeRefreshToken('refresh-b');
         hold.complete();
 
-        await expectLater(call, throwsA(isA<DioException>()));
+        await expectLater(call, throwsA(is401));
         expect(h.requestsTo(leave), hasLength(1));
         expect(h.requestsTo(ApiPaths.refresh), hasLength(1));
         expect(await h.tokens.readAccessToken(), 'access-b');

@@ -89,6 +89,12 @@ class AuthInterceptor extends Interceptor {
   /// The in-flight refresh, shared by every request that 401s while it runs.
   Future<_RefreshOutcome>? _refreshCall;
 
+  /// The access tokens the stored one took the place of, through this
+  /// interceptor's own refreshes: all of one sign-in (#89). Keyed by the
+  /// newest, so a later sign-in (whose token no refresh here produced) has
+  /// none. An empty string stands for "no access token stored".
+  final Map<String, Set<String>> _earlierTokens = {};
+
   AuthInterceptor({
     required TokenStorage tokenStorage,
     required Dio refreshClient,
@@ -255,8 +261,12 @@ class AuthInterceptor extends Interceptor {
       // outliving it. The refresh token is kept as it is when none comes
       // back (#56: the server no longer rotates it) and replaced when one
       // does.
-      await _remember(renewed: access);
-      await _tokenStorage.writeAccessToken(access);
+      // Stored and remembered in one step, with no gap in which a 401
+      // could find the new token stored and its line not yet known.
+      final previous = await _tokenStorage.readAccessToken() ?? '';
+      final stored = _tokenStorage.writeAccessToken(access);
+      _remember(previous: previous, renewed: access);
+      await stored;
       if (rotated is String && rotated.isNotEmpty) {
         await _tokenStorage.writeRefreshToken(rotated);
       }
@@ -280,18 +290,11 @@ class AuthInterceptor extends Interceptor {
     }
   }
 
-  /// The access tokens the stored one took the place of, through this
-  /// interceptor's own refreshes: all of one sign-in. Keyed by the newest,
-  /// so a later sign-in (whose token no refresh here produced) has none.
-  final Map<String, Set<String>> _earlierTokens = {};
-
-  /// Notes that [renewed] is about to take the stored access token's place
-  /// in the same sign-in.
-  Future<void> _remember({required String renewed}) async {
-    final previous = await _tokenStorage.readAccessToken();
-    if (previous == null || previous.isEmpty || previous == renewed) return;
+  /// Notes that [renewed] takes [previous]'s place as the stored access
+  /// token, in the same sign-in. Only the stored token's own line is kept.
+  void _remember({required String previous, required String renewed}) {
+    if (previous == renewed) return;
     final earlier = _earlierTokens.remove(previous) ?? const <String>{};
-    // Only the stored token's own line is kept.
     _earlierTokens
       ..clear()
       ..[renewed] = {previous, ...earlier};
@@ -309,8 +312,7 @@ class AuthInterceptor extends Interceptor {
         ? header.substring(prefix.length)
         : '';
     if (sent == stored) return true;
-    return sent.isNotEmpty &&
-        (_earlierTokens[stored]?.contains(sent) ?? false);
+    return _earlierTokens[stored]?.contains(sent) ?? false;
   }
 
   /// True when [sent] is still the saved refresh token: the sign-in a
@@ -394,6 +396,7 @@ class AuthInterceptor extends Interceptor {
   }
 
   Future<void> _expireSession(SessionEndReason reason) async {
+    _earlierTokens.clear();
     await _tokenStorage.clear();
     if (!_sessionExpired.isClosed) _sessionExpired.add(reason);
   }
