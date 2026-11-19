@@ -37,6 +37,11 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
             endedWhileRestoring ??= reason;
             return;
           }
+          // Held while the password is being changed: see [changePassword].
+          if (_changingPassword) {
+            _endedWhileChangingPassword ??= reason;
+            return;
+          }
           _forceLogout(reason);
         });
     ref.onDispose(subscription.cancel);
@@ -91,7 +96,40 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
   /// When that sign-in fails the password *has* changed, so the session ends
   /// with [SessionEndReason.passwordChanged] and the sign-in screen asks for
   /// the new one.
+  ///
+  /// From the moment the server takes the new password until that sign-in
+  /// has stored its pair, the refresh token on the phone is a dead one. A
+  /// request refused in that gap makes the network layer try it, be refused,
+  /// and report the session lost (#91). Such a report is held while this
+  /// runs, not acted on: a sign-in that then succeeds proves the session is
+  /// fine, and the user is never shown the sign-in screen for having changed
+  /// their password (#5).
   Future<Result<Unit>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    _changingPassword = true;
+    _endedWhileChangingPassword = null;
+    try {
+      return await _changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      );
+    } finally {
+      _changingPassword = false;
+      _endedWhileChangingPassword = null;
+    }
+  }
+
+  /// True while [changePassword] runs.
+  bool _changingPassword = false;
+
+  /// The session-end report held while [changePassword] runs, if one came.
+  SessionEndReason? _endedWhileChangingPassword;
+
+  Future<Result<Unit>> _changePassword({
     required String currentPassword,
     required String newPassword,
     required String confirmPassword,
@@ -104,7 +142,13 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
       ),
     );
 
-    if (result.isFailure) return result;
+    if (result.isFailure) {
+      // The password did not change, so a report held meanwhile was about
+      // the session itself: it did end.
+      final held = _endedWhileChangingPassword;
+      if (held != null) await _forceLogout(held);
+      return result;
+    }
 
     final email = state.valueOrNull?.user?.email;
     final session = email == null
@@ -114,11 +158,25 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
           )).dataOrNull;
 
     if (session == null || !session.hasSession) {
-      // The access token still works here: the phone is signed off in full.
-      await _forceLogout(SessionEndReason.passwordChanged, tokensLive: true);
+      final held = _endedWhileChangingPassword;
+      if (held == null) {
+        // The access token still works here: the phone is signed off in
+        // full.
+        await _forceLogout(SessionEndReason.passwordChanged, tokensLive: true);
+      } else {
+        // The network layer already cleared the tokens. Its reason is the
+        // one to show when it says more than "expired" (the account or the
+        // company was switched off); otherwise the password change is why.
+        await _forceLogout(
+          held == SessionEndReason.expired
+              ? SessionEndReason.passwordChanged
+              : held,
+        );
+      }
       return result;
     }
 
+    // Signed in again: a report held meanwhile was the dead refresh token's.
     state = AsyncValue.data(session);
     return result;
   }

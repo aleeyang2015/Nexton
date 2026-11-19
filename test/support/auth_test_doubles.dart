@@ -180,8 +180,12 @@ class FakeAuthRepository implements AuthRepository {
     required String newPassword,
   }) async {
     changePasswordCalls++;
+    await whileChangingPassword?.call();
     return changePasswordResult;
   }
+
+  /// Runs while a password change is on its way, before it answers (#91).
+  Future<void> Function()? whileChangingPassword;
 
   /// The `endSession` of each logout (#56).
   final List<bool> logoutEndSession = [];
