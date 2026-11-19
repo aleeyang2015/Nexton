@@ -99,6 +99,18 @@ class LeaveFormRules {
     return null;
   }
 
+  /// The year whose balance the form's card shows: the one [shortYear] names,
+  /// so the user sees which balance is short, else the first of [years]
+  /// (from [balanceYears]).
+  static int cardYear({
+    required LeaveRequestFormState state,
+    required LeaveType? type,
+    required List<int> years,
+    required Map<int, double?> remainingByYear,
+  }) =>
+      shortYear(state: state, type: type, remainingByYear: remainingByYear) ??
+      years.first;
+
   /// Why [state] cannot be sent, or null when it can.
   ///
   /// [remainingByYear] is as for [shortYear].

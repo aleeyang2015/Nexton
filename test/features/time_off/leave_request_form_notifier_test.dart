@@ -458,6 +458,25 @@ void main() {
         expect(shortYear(container, {2026: 1, 2027: 0}), 2026);
       });
 
+      test('the card shows the short year, else the first year', () {
+        final container = containerWith();
+        formOf(
+          container,
+        ).setDates([DateTime(2026, 12, 31), DateTime(2027, 1, 4)]);
+
+        int cardYear(Map<int, double?> remainingByYear) =>
+            LeaveFormRules.cardYear(
+              state: stateOf(container),
+              type: annual,
+              years: const [2026, 2027],
+              remainingByYear: remainingByYear,
+            );
+
+        expect(cardYear({2026: 6, 2027: 6}), 2026);
+        expect(cardYear({2026: 6, 2027: 0}), 2027);
+        expect(cardYear({2026: 6, 2027: null}), 2026);
+      });
+
       test('a year whose balance is not known is not checked', () {
         final container = containerWith();
         formOf(

@@ -221,15 +221,12 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
           state.leaveTypeId,
         ),
     };
-    // The card shows the year that cannot pay for its days, so the user sees
-    // which balance is short; otherwise the first year.
-    final cardYear =
-        LeaveFormRules.shortYear(
-          state: state,
-          type: selectedType,
-          remainingByYear: remainingByYear,
-        ) ??
-        balanceYears.first;
+    final cardYear = LeaveFormRules.cardYear(
+      state: state,
+      type: selectedType,
+      years: balanceYears,
+      remainingByYear: remainingByYear,
+    );
     final balance = leaveBalanceFor(
       balancesByYear[cardYear]?.valueOrNull,
       state.leaveTypeId,
@@ -466,8 +463,8 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
 
 // ---------------------------------------------------------------------------
 
-/// What is left of the selected leave type in [year], the year the request
-/// will be charged to.
+/// What is left of the selected leave type in [year]: a year the request is
+/// charged to (`LeaveFormRules.cardYear` picks which, when there are two).
 class _BalanceCard extends StatelessWidget {
   /// The type's row for [year], or null when it has none (or nothing has
   /// loaded yet).
