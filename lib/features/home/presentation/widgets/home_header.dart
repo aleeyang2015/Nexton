@@ -7,8 +7,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../profile/presentation/profile_error_copy.dart';
 import '../../../notifications/presentation/providers/unread_count_notifier.dart';
+import '../../../profile/presentation/profile_error_copy.dart';
 import '../../../profile/presentation/providers/profile_notifier.dart';
 
 /// Avatar, name/role and the notification bell across the top of the home

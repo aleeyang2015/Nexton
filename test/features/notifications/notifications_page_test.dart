@@ -251,6 +251,41 @@ void main() {
       expect(dot('a'), findsNothing);
     });
 
+    testWidgets('a second row tapped while the first one\'s page is opening '
+        'is neither opened nor marked read', (tester) async {
+      rows([row('a', isRead: false), row('b', isRead: false)]);
+      repository.unreadAnswers = [2];
+      final closing = Completer<void>();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            notificationsRepositoryProvider.overrideWithValue(repository),
+            pushOpenerProvider.overrideWithValue((t) {
+              opened.add(t);
+              return closing.future;
+            }),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: const NotificationsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Title a'));
+      await tester.tap(find.text('Title b'));
+      await tester.pump();
+
+      expect(opened, hasLength(1));
+      expect(repository.markedRead, ['a']);
+      expect(dot('b'), findsOneWidget);
+      closing.complete();
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('tapping a row already read marks nothing', (tester) async {
       rows([row('a')]);
       await pumpPage(tester);

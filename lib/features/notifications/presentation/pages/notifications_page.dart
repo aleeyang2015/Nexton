@@ -54,7 +54,9 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     final notifier = ref.read(notificationsNotifierProvider.notifier);
     final rows = state.rows;
     final list = rows.valueOrNull;
-    final hasUnread = (ref.watch(unreadCountProvider) ?? 0) > 0;
+    final hasUnread = ref.watch(
+      unreadCountProvider.select((count) => (count ?? 0) > 0),
+    );
 
     final List<Widget> body;
     if (rows.isLoading && list == null) {
@@ -147,6 +149,9 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     return NotificationRow(
       notification: row,
       onTap: () {
+        // Another row's page is opening: this tap opens nothing, so it
+        // marks nothing read either.
+        if (_opening) return;
         // Marked read first, and not waited for: the page opens at once.
         unawaited(
           ref.read(notificationsNotifierProvider.notifier).markRead(row.id),

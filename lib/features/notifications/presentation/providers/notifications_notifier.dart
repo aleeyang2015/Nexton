@@ -9,14 +9,14 @@ import '../../domain/notification_dedupe.dart';
 import '../../notifications_providers.dart';
 import 'unread_count_notifier.dart';
 
-/// The bell list (#54): the rows loaded so far, and those shown (the
-/// two-phone copies collapsed, worked out once per change).
+/// The bell list (#54): the rows loaded so far, and those shown (the copies
+/// old rows have collapsed, worked out once per change).
 class NotificationsState {
   final AsyncValue<PagedList<AppNotification>> rows;
 
   NotificationsState(this.rows);
 
-  /// The rows to show: [rows] without the copies a second phone adds.
+  /// The rows to show: [rows] without the copies old rows come with.
   late final List<AppNotification> visible = collapseRepeats(
     rows.valueOrNull?.items ?? const [],
   );
@@ -34,6 +34,9 @@ class NotificationsNotifier extends AutoDisposeNotifier<NotificationsState> {
   @override
   NotificationsState build() {
     _disposed = false;
+    _readHere.clear();
+    _allReadInLoad = null;
+    _markingAll = false;
     ref.onDispose(() => _disposed = true);
     Future.microtask(() {
       if (!_disposed) _loadFirst();
@@ -71,44 +74,75 @@ class NotificationsNotifier extends AutoDisposeNotifier<NotificationsState> {
     final result = await _fetch(page);
     if (_disposed || loadedAs != _loads) return;
 
+    // The rows as they are now: one may have been read while this page was
+    // on its way.
+    final current = state.rows.valueOrNull ?? list;
     _set(
       AsyncValue.data(
-        result.fold(
-          list.failLoadingMore,
-          (next) => list.appendNumbered(
-            items: next.items,
-            page: next.page,
-            totalPages: next.totalPages,
-            keyOf: _id,
+        _keepRead(
+          result.fold(
+            current.failLoadingMore,
+            (next) => current.appendNumbered(
+              items: next.items,
+              page: next.page,
+              totalPages: next.totalPages,
+              keyOf: _id,
+            ),
           ),
         ),
       ),
     );
   }
 
+  /// The ids of rows read on this screen (#55). A list answer that was
+  /// asked for before the server knew (a next page, a refresh) still calls
+  /// them unread: they stay read here.
+  final Set<String> _readHere = {};
+
+  /// The load ([_loads]) during which "mark all as read" was last tapped,
+  /// or null. Every row of that load was there to be marked, so its next
+  /// pages come in as read too; a later load is the server's own word.
+  int? _allReadInLoad;
+
+  /// [list] with the rows read on this screen shown as read.
+  PagedList<AppNotification> _keepRead(PagedList<AppNotification> list) {
+    final all = _allReadInLoad == _loads;
+    if (!all && _readHere.isEmpty) return list;
+    if (list.items.every((r) => r.isRead)) return list;
+    return list.withItems([
+      for (final row in list.items)
+        all || _readHere.contains(row.id) ? row.asRead() : row,
+    ]);
+  }
+
+  /// Shows [list] in place of the rows, a refresh on its way still showing
+  /// as one.
+  void _replaceRows(PagedList<AppNotification> list) => _set(
+    state.rows.isLoading
+        ? const AsyncLoading<PagedList<AppNotification>>().copyWithPrevious(
+            AsyncValue.data(list),
+          )
+        : AsyncValue.data(list),
+  );
+
   /// The user opened the row [id] (#55): shown as read at once, the bell's
   /// count one less, and the server told. Nothing for a row already read.
   ///
   /// When the call fails the row stays shown as read on this screen, and
   /// nothing is said: the next load shows the server's truth. Either way the
-  /// bell's count is then read again from the server.
+  /// bell's count is then read again from the server, also when this screen
+  /// has been left meanwhile.
   Future<void> markRead(String id) async {
     final list = state.rows.valueOrNull;
     if (list == null || !list.items.any((r) => r.id == id && !r.isRead)) {
       return;
     }
-    _set(
-      AsyncValue.data(
-        list.withItems([
-          for (final row in list.items) row.id == id ? row.asRead() : row,
-        ]),
-      ),
-    );
+    _readHere.add(id);
+    _replaceRows(_keepRead(list));
     final count = ref.read(unreadCountProvider.notifier)..oneRead();
 
     await ref.read(markNotificationReadUseCaseProvider)(id);
-    if (_disposed) return;
-    unawaited(count.refresh());
+    unawaited(count.markSettled());
   }
 
   /// A "mark all as read" on its way: a second tap sends nothing more.
@@ -120,33 +154,17 @@ class NotificationsNotifier extends AutoDisposeNotifier<NotificationsState> {
   Future<void> markAllRead() async {
     if (_markingAll) return;
     _markingAll = true;
-    try {
-      _showAllRead();
-      final count = ref.read(unreadCountProvider.notifier)..allRead();
+    _allReadInLoad = _loads;
+    _readHere.addAll([
+      for (final row in state.rows.valueOrNull?.items ?? const []) row.id,
+    ]);
+    final list = state.rows.valueOrNull;
+    if (list != null) _replaceRows(_keepRead(list));
+    final count = ref.read(unreadCountProvider.notifier)..allRead();
 
-      await ref.read(markAllNotificationsReadUseCaseProvider)();
-      if (_disposed) return;
-      // Rows a "load more" brought in meanwhile were unread until now.
-      _showAllRead();
-      unawaited(count.refresh());
-    } finally {
-      _markingAll = false;
-    }
-  }
-
-  void _showAllRead() {
-    final rows = state.rows;
-    final list = rows.valueOrNull;
-    if (list == null || list.items.every((r) => r.isRead)) return;
-    final read = list.withItems([for (final row in list.items) row.asRead()]);
-    // A refresh on its way keeps showing as one.
-    _set(
-      rows.isLoading
-          ? const AsyncLoading<PagedList<AppNotification>>().copyWithPrevious(
-              AsyncValue.data(read),
-            )
-          : AsyncValue.data(read),
-    );
+    await ref.read(markAllNotificationsReadUseCaseProvider)();
+    _markingAll = false;
+    unawaited(count.markSettled());
   }
 
   /// The Retry under the rows, after a next page failed.
@@ -175,7 +193,8 @@ class NotificationsNotifier extends AutoDisposeNotifier<NotificationsState> {
     // A refresh that failed keeps the rows that were on screen, ready to
     // load more again.
     if (keepRows && shown != null && result.isFailure) {
-      _set(AsyncValue.data(shown.retryable));
+      // As they are now: a row may have been read while it was on its way.
+      _set(AsyncValue.data((state.rows.valueOrNull ?? shown).retryable));
       return false;
     }
 
@@ -183,11 +202,13 @@ class NotificationsNotifier extends AutoDisposeNotifier<NotificationsState> {
       result.fold(
         (failure) => AsyncValue.error(failure, StackTrace.current),
         (page) => AsyncValue.data(
-          PagedList.firstNumbered(
-            items: page.items,
-            page: page.page,
-            totalPages: page.totalPages,
-            keyOf: _id,
+          _keepRead(
+            PagedList.firstNumbered(
+              items: page.items,
+              page: page.page,
+              totalPages: page.totalPages,
+              keyOf: _id,
+            ),
           ),
         ),
       ),

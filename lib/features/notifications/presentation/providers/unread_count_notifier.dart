@@ -30,10 +30,11 @@ class UnreadCountNotifier extends AutoDisposeNotifier<int?> {
     _disposed = false;
     _reading = null;
     _again = false;
+    _marking = 0;
 
     final pushes = ref
         .watch(foregroundPushesProvider)
-        .listen((_) => unawaited(refresh()));
+        .listen((_) => unawaited(refresh()), onError: (_) {});
     final lifecycle = _tryCreateLifecycleListener();
     ref.onDispose(() {
       _disposed = true;
@@ -82,21 +83,39 @@ class UnreadCountNotifier extends AutoDisposeNotifier<int?> {
         count = null;
       }
       if (_disposed) return;
+      // The user is marking rows read and the server may not know yet:
+      // this answer could be the number from before. [markSettled] reads
+      // again once the server has been told.
+      if (_marking > 0) continue;
       // A failure hides the number: an old one would pass for a fresh one.
       state = count;
     } while (_again);
   }
 
-  /// The user has just read one row: one less, at once. The server's own
-  /// count follows (the caller reads it again once the row is marked).
+  /// Marks the server is being told about and has not answered yet.
+  int _marking = 0;
+
+  /// The user has just read one row: one less, at once. Until
+  /// [markSettled], no answer from the server replaces it.
   void oneRead() {
+    _marking++;
     final count = state;
     if (count != null && count > 0) state = count - 1;
   }
 
-  /// The user has just marked everything read.
+  /// The user has just marked everything read: zero, at once. Until
+  /// [markSettled], no answer from the server replaces it.
   void allRead() {
+    _marking++;
     if (state != null) state = 0;
+  }
+
+  /// The server has answered a mark started with [oneRead] or [allRead]
+  /// (or the call failed): its own count is read again, so the number shown
+  /// is the server's, whether the mark went through or not.
+  Future<void> markSettled() {
+    if (_marking > 0) _marking--;
+    return refresh();
   }
 }
 
