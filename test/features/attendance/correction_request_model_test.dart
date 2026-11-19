@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/api_client.dart';
+import 'package:next_on/core/upload/domain/uploaded_attachment.dart';
 import 'package:next_on/features/attendance/data/datasources/attendance_remote_data_source.dart';
 import 'package:next_on/features/attendance/data/datasources/correction_error_code.dart';
 import 'package:next_on/features/attendance/data/models/attendance_record_model.dart';
@@ -219,6 +220,34 @@ void main() {
     });
   });
 
+  group('the attached photo', () {
+    test('attachment_url as text is the photo to show', () {
+      final detail = TimeCorrectionDetailModel.fromJson({
+        ...request(),
+        'attachment_url': 'https://files.example/uploads/abc_sheet.jpg',
+      });
+
+      expect(
+        detail.attachmentUrl,
+        'https://files.example/uploads/abc_sheet.jpg',
+      );
+    });
+
+    test('null, missing or empty: no photo', () {
+      for (final value in [null, '']) {
+        final detail = TimeCorrectionDetailModel.fromJson({
+          ...request(),
+          'attachment_url': value,
+        });
+        expect(detail.attachmentUrl, isNull, reason: '"$value"');
+      }
+      expect(
+        TimeCorrectionDetailModel.fromJson(request()).attachmentUrl,
+        isNull,
+      );
+    });
+  });
+
   group('the calls', () {
     late _StubAdapter adapter;
     late AttendanceRemoteDataSourceImpl source;
@@ -375,6 +404,42 @@ void main() {
 
       adapter.body = {'success': true};
       expect(await source.submitTimeCorrection(sent), isNull);
+    });
+
+    test('submit with a photo posts its URL as text, never the upload '
+        'object (#73)', () async {
+      adapter
+        ..status = 201
+        ..body = {
+          'success': true,
+          'data': {'id': 'tc-9', 'status': 'pending'},
+        };
+
+      await source.submitTimeCorrection(
+        TimeCorrectionRequest(
+          date: DateTime(2026, 11, 14),
+          type: TimeCorrectionType.forgotClockOut,
+          shiftDetailId: 'part-1',
+          clockIn: null,
+          clockOut: const Duration(hours: 17, minutes: 5),
+          reason: 'Forgot',
+          attachment: const UploadedAttachment(
+            url: 'https://files.example/tenants/t/uploads/abc_sheet.jpg',
+            fileName: 'tenants/t/uploads/abc_sheet.jpg',
+            originalName: 'sheet.jpg',
+            contentType: 'image/jpeg',
+            size: 204800,
+          ),
+        ),
+      );
+
+      final request = adapter.lastRequest!;
+      expect(request.method, 'POST');
+      expect(request.path, endsWith('attendance/correction-requests'));
+      expect(
+        (request.data as Map)['attachment_url'],
+        'https://files.example/tenants/t/uploads/abc_sheet.jpg',
+      );
     });
   });
 }

@@ -105,13 +105,9 @@ void main() {
         'requested_clock_in': '08:00',
         'requested_clock_out': '12:10',
         'shift_detail_id': 'detail-1',
-        'attachment_url': {
-          'url': 'http://minio/files/tenants/t/uploads/abc_scan.png',
-          'file_name': 'tenants/t/uploads/abc_scan.png',
-          'original_name': 'scan.png',
-          'content_type': 'image/png',
-          'size': 1007585,
-        },
+        // The file's URL only: the server reads this field as text and
+        // refuses the whole request when it is the upload object (#73).
+        'attachment_url': 'http://minio/files/tenants/t/uploads/abc_scan.png',
         'reason': 'late',
       });
     });

@@ -1,4 +1,3 @@
-import '../../../../core/upload/data/uploaded_attachment_model.dart';
 import '../../domain/entities/time_correction_request.dart';
 
 /// Serialises a [TimeCorrectionRequest] into the
@@ -12,8 +11,10 @@ class TimeCorrectionRequestModel {
   const TimeCorrectionRequestModel(this.request);
 
   /// A time the correction type doesn't carry is omitted. `attachment_url`
-  /// is always sent: the `POST /uploads` object when there is a file, `""`
-  /// when there isn't.
+  /// is always sent, and always as text: the uploaded file's URL when there
+  /// is a file, `""` when there isn't. The server reads the field as a
+  /// string, so the whole `POST /uploads` object there got every request
+  /// with a photo refused (#73).
   Map<String, dynamic> toJson() {
     final type = request.type;
     final clockIn = request.clockIn;
@@ -31,9 +32,7 @@ class TimeCorrectionRequestModel {
       // sent.
       if (request.shiftDetailId case final id? when id.isNotEmpty)
         'shift_detail_id': id,
-      'attachment_url': attachment == null
-          ? ''
-          : UploadedAttachmentModel.toJson(attachment),
+      'attachment_url': attachment?.url ?? '',
       'reason': request.reason.trim(),
     };
   }

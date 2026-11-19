@@ -1,8 +1,9 @@
 import '../domain/uploaded_attachment.dart';
 
 /// Writes an [UploadedAttachment] back in the shape `POST /uploads` answered
-/// with — the object request bodies embed unchanged (the leave request's
-/// `attachments`, the time correction's `attachment_url`).
+/// with — the object request bodies embed unchanged (the leave request's and
+/// the off-site scan's `attachments`). The time correction's `attachment_url`
+/// is not one of them: it takes the file's URL as text.
 class UploadedAttachmentModel {
   const UploadedAttachmentModel._();
 
