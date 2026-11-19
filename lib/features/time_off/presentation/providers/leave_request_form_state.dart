@@ -164,6 +164,16 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
   /// picked.
   DateTime? get lastLeaveDate => _dateOnly(_edge(first: false));
 
+  /// True when [year] is one the days asked for reach into: from the year
+  /// of the first day to the year of the last. False for null, or with no
+  /// day picked.
+  bool touchesYear(int? year) {
+    final first = firstLeaveDate?.year;
+    final last = lastLeaveDate?.year;
+    if (year == null || first == null || last == null) return false;
+    return year >= first && year <= last;
+  }
+
   DateTime? _edge({required bool first}) {
     final charged = chargedDays;
     if (charged != null && charged.isNotEmpty) {

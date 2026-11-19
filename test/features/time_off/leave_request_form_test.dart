@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -714,6 +716,23 @@ void main() {
         expect(find.text(en.leaveYearLabel(2027)), findsNothing);
       });
 
+      testWidgets('the named year\'s balance is slow to load: sending is not '
+          'held up by it, since the form checks nothing on that year', (
+        tester,
+      ) async {
+        final never = Completer<Result<List<LeaveBalance>>>();
+        addTearDown(() => never.complete(const Result.success([])));
+        repository.holdBalances[2027] = never;
+        await sentAndRefused(
+          tester,
+          const Failure.validation(message: 'leaveBalanceShortIn|2027|0|2'),
+        );
+
+        expect(find.text(en.leaveYearLabel(2027)), findsOneWidget);
+        expect(find.text('6 days'), findsNothing);
+        expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+      });
+
       testWidgets('a refusal that names no year leaves the card on the '
           'year it showed', (tester) async {
         await sentAndRefused(
@@ -724,6 +743,41 @@ void main() {
         expect(find.text(en.leaveYearLabel(2026)), findsOneWidget);
         expect(repository.balancesCalls, isNot(contains(2027)));
       });
+    });
+
+    testWidgets('refused for a year the form had a figure for, and the '
+        'reload fails: the card does not keep showing the old figure beside '
+        'the server\'s answer (#87)', (tester) async {
+      repository.balancesByYear[2027] = Result.success([
+        sampleLeaveBalance(year: 2027, remainingDays: 5, usedDays: 0),
+      ]);
+      await pumpForm(tester);
+      form()
+        ..setDates([DateTime(2026, 12, 30), DateTime(2027, 1, 4)])
+        ..setReason('New year');
+      await tester.pump();
+      await tester.pump();
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+
+      // The server counted differently, and the phone has no signal to read
+      // the balances again.
+      repository
+        ..submitResult = const Result.failure(
+          Failure.validation(message: 'leaveBalanceShortIn|2027|0|1'),
+        )
+        ..balancesByYear[2026] = const Result.failure(
+          Failure.network(message: 'offline'),
+        )
+        ..balancesByYear[2027] = const Result.failure(
+          Failure.network(message: 'offline'),
+        );
+      await tester.runAsync(() => form().submit());
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(en.leaveYearLabel(2027)), findsOneWidget);
+      expect(find.text('5 days'), findsNothing);
     });
 
     testWidgets('an edit that asks for more days the balance can cover is '

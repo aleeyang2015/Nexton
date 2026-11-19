@@ -3,13 +3,14 @@ import 'package:dio/dio.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/network/api_error_mapper.dart';
 import '../../../../core/network/api_response.dart';
+import 'leave_error_code.dart';
 
 /// The leave type's own rules, as `POST /leave/requests` and
 /// `PUT /leave/requests/:id` refuse with them (live 18 Nov 2026,
 /// Nexton-Backend#192), as tokens `failure_localizer.dart` says in plain
 /// words.
 ///
-/// Three refusals carry the date or the number the text names
+/// Four refusals carry the date or the numbers the text names
 /// (`error.details`). They travel inside the token, after [_separator], so
 /// the failure stays a plain `Failure.validation`: the same way
 /// attendance's `CorrectionErrorCode` does it.
@@ -32,8 +33,6 @@ class LeaveRuleCode {
   /// Nexton-Backend#193). Without all three it is not this token at all, and
   /// the refusal keeps `LeaveErrorCode.tokenInsufficientBalance`.
   static const String tokenBalanceShortIn = 'leaveBalanceShortIn';
-
-  static const String _insufficientBalance = 'INSUFFICIENT_BALANCE';
 
   static const String _separator = '|';
 
@@ -61,7 +60,8 @@ class LeaveRuleCode {
   ///
   /// A rule whose date or numbers are missing or unreadable gives its token
   /// alone, which reads as the rule's general sentence: never a sentence
-  /// with a blank in it.
+  /// with a blank in it. Not enough balance with no readable year gives
+  /// null: it keeps the plain token it always had.
   static Failure? fromResponse(DioException error) {
     final data = error.response?.data;
     final apiError = ApiError.tryParse(data);
@@ -94,7 +94,7 @@ class LeaveRuleCode {
         // counts the days off between leave days, so that number need not
         // be the days the form showed, nor even be over the limit.
         message = _encode(tokenTooLong, [_days(details['max_days'])]);
-      case _insufficientBalance:
+      case LeaveErrorCode.insufficientBalance:
         final named = _encode(tokenBalanceShortIn, [
           _year(details['year']),
           _count(details['remaining_days']),
@@ -184,7 +184,7 @@ class LeaveRuleCode {
   static String _year(dynamic value) {
     final number = switch (value) {
       int n => n,
-      double d when d == d.truncateToDouble() => d.toInt(),
+      double d when d.isFinite && d == d.truncateToDouble() => d.toInt(),
       String s => int.tryParse(s.trim()),
       _ => null,
     };
@@ -193,7 +193,9 @@ class LeaveRuleCode {
   }
 
   /// The days left as text: like [_days], but none left (`0`) is a real
-  /// answer here. Empty for a negative or absurd number.
+  /// answer here, and fewer than none (an allowance lowered below what is
+  /// already used) reads as `0` too. Empty for what is not a number, or an
+  /// absurd one.
   static String _count(dynamic value) {
     final number = switch (value) {
       num n => n.toDouble(),
@@ -201,7 +203,8 @@ class LeaveRuleCode {
       _ => null,
     };
     if (number == null || !number.isFinite) return '';
-    if (number < 0 || number > 3660) return '';
+    if (number > 3660) return '';
+    if (number <= 0) return '0';
     final text = number.toStringAsFixed(2);
     return text.replaceFirst(RegExp(r'\.?0+$'), '');
   }

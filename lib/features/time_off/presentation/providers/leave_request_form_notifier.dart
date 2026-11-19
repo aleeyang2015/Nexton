@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/leave_error_code.dart';
@@ -326,6 +327,16 @@ class LeaveRequestFormNotifier
   /// the server would refuse it. On success a new request resets the form;
   /// both paths invalidate the history and balance lists so the reserved days
   /// refresh.
+  /// True while the form still asks for what [sent] asked for: the same
+  /// type, the same days, the same part of the day.
+  bool _asksTheSame(LeaveRequestFormState sent) =>
+      state.leaveTypeId == sent.leaveTypeId &&
+      state.mode == sent.mode &&
+      state.rangeStart == sent.rangeStart &&
+      state.rangeEnd == sent.rangeEnd &&
+      state.durationType == sent.durationType &&
+      listEquals(state.dates, sent.dates);
+
   Future<bool> submit() async {
     final leaveTypeId = state.leaveTypeId;
     if (leaveTypeId == null ||
@@ -337,10 +348,7 @@ class LeaveRequestFormNotifier
       return false;
     }
 
-    state = state.copyWith(
-      submission: const AsyncValue.loading(),
-      balanceRefusedYear: null,
-    );
+    state = state.copyWith(submission: const AsyncValue.loading());
     final draft = LeaveRequestDraft(
       leaveTypeId: leaveTypeId,
       // A range goes as its two ends and the server leaves out the days off;
@@ -361,6 +369,7 @@ class LeaveRequestFormNotifier
 
     final editingId = state.editingRequestId;
     final builds = _builds;
+    final sent = state;
     final result = editingId == null
         ? await ref.read(submitLeaveRequestUseCaseProvider)(draft)
         : await ref.read(updateLeaveRequestUseCaseProvider)((
@@ -404,7 +413,16 @@ class LeaveRequestFormNotifier
         if (shortYear != null ||
             LeaveErrorCode.tokenOf(failure) ==
                 LeaveErrorCode.tokenInsufficientBalance) {
-          state = state.copyWith(balanceRefusedYear: shortYear);
+          // The year is kept only for the request as it was sent, and only
+          // a year that request has a day in: the answer may land after the
+          // user changed the days, and a year from nowhere is not shown.
+          if (_asksTheSame(sent)) {
+            state = state.copyWith(
+              balanceRefusedYear: state.touchesYear(shortYear)
+                  ? shortYear
+                  : null,
+            );
+          }
           ref.invalidate(leaveBalancesNotifierProvider);
         }
         if (editingId != null && LeaveErrorCode.isStaleForOwner(failure)) {
@@ -420,7 +438,10 @@ class LeaveRequestFormNotifier
           _form++;
           state = LeaveRequestFormState(daysOff: state.daysOff);
         } else {
-          state = state.copyWith(submission: AsyncValue.data(request));
+          state = state.copyWith(
+            submission: AsyncValue.data(request),
+            balanceRefusedYear: null,
+          );
         }
         ref.invalidate(leaveHistoryNotifierProvider);
         ref.invalidate(leaveBalancesNotifierProvider);

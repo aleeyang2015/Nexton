@@ -314,7 +314,8 @@ void main() {
         repository.updateResult = const Result.failure(refused);
         final container = containerWith();
         final form = formOf(container, 'req-7')
-          ..seed(sampleLeaveRequest(id: 'req-7'));
+          ..seed(sampleLeaveRequest(id: 'req-7'))
+          ..setDates([DateTime(2026, 12, 30), DateTime(2027, 1, 4)]);
 
         expect(await form.submit(), isFalse);
 
@@ -361,8 +362,8 @@ void main() {
         expect(stateOf(container).balanceRefusedYear, 2027);
       });
 
-      test('sending again starts with no year; one that is accepted leaves '
-          'none', () async {
+      test('sending the same again and failing for another reason keeps the '
+          'year: nothing about the request changed', () async {
         repository.submitResult = const Result.failure(refused);
         final container = containerWith();
         final form = formOf(container)
@@ -370,10 +371,86 @@ void main() {
           ..setDates([DateTime(2026, 12, 30), DateTime(2027, 1, 4)]);
         await form.submit();
 
+        final hold = Completer<void>();
+        repository
+          ..holdSubmit = hold
+          ..submitResult = const Result.failure(
+            Failure.network(message: 'offline'),
+          );
+        final resend = form.submit();
+        // On its way: the card must not flip back meanwhile.
+        expect(stateOf(container).balanceRefusedYear, 2027);
+        hold.complete();
+        expect(await resend, isFalse);
+
+        expect(stateOf(container).balanceRefusedYear, 2027);
+      });
+
+      test('a request that is then accepted leaves no year: new or '
+          'edited', () async {
+        repository.submitResult = const Result.failure(refused);
+        final container = containerWith();
+        final form = formOf(container)
+          ..setLeaveType('lt-annual')
+          ..setDates([DateTime(2026, 12, 30), DateTime(2027, 1, 4)]);
+        await form.submit();
         repository.submitResult = Result.success(sampleLeaveRequest());
         expect(await form.submit(), isTrue);
+        expect(stateOf(container).balanceRefusedYear, isNull);
+
+        repository.updateResult = const Result.failure(refused);
+        final edit = formOf(container, 'req-7')
+          ..seed(sampleLeaveRequest(id: 'req-7'))
+          ..setDates([DateTime(2026, 12, 30), DateTime(2027, 1, 4)]);
+        await edit.submit();
+        expect(stateOf(container, 'req-7').balanceRefusedYear, 2027);
+        repository.updateResult = Result.success(
+          sampleLeaveRequest(id: 'req-7'),
+        );
+        expect(await edit.submit(), isTrue);
+        expect(stateOf(container, 'req-7').balanceRefusedYear, isNull);
+      });
+
+      test('a refusal that lands after the days were changed is about the '
+          'old request: no year is kept, the balances are still read '
+          'again', () async {
+        final hold = Completer<void>();
+        repository
+          ..holdSubmit = hold
+          ..submitResult = const Result.failure(refused);
+        final container = containerWith();
+        container.listen(leaveBalancesNotifierProvider(2026), (_, _) {});
+        await container.read(leaveBalancesNotifierProvider(2026).future);
+        final form = formOf(container)
+          ..setLeaveType('lt-annual')
+          ..setDates([DateTime(2026, 12, 30), DateTime(2027, 1, 4)]);
+
+        final sending = form.submit();
+        form.setDates([DateTime(2026, 12, 30)]);
+        hold.complete();
+        expect(await sending, isFalse);
+        await container.read(leaveBalancesNotifierProvider(2026).future);
 
         expect(stateOf(container).balanceRefusedYear, isNull);
+        expect(stateOf(container).dates, [DateTime(2026, 12, 30)]);
+        expect(repository.balancesCalls, [2026, 2026]);
+      });
+
+      test('a year the request has no day in is not kept for the card', () async {
+        for (final year in [2001, 2025, 2028]) {
+          repository = FakeLeaveRepository()
+            ..submitResult = Result.failure(
+              Failure.validation(message: 'leaveBalanceShortIn|$year|0|2'),
+            );
+          final container = containerWith();
+          final form = formOf(container)
+            ..setLeaveType('lt-annual')
+            ..setRange(DateTime(2026, 12, 30), DateTime(2027, 1, 2));
+
+          expect(await form.submit(), isFalse);
+
+          expect(stateOf(container).balanceRefusedYear, isNull, reason: '$year');
+        }
       });
 
       test('a refusal with no year (the plain text) keeps none, and reads '

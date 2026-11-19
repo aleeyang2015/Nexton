@@ -266,6 +266,23 @@ void main() {
       );
     });
 
+    test('fewer than none left (the allowance was lowered below what is '
+        'used) reads as 0 left, and the year is still named', () {
+      for (final remaining in <Object>[-1, -0.5, '-3', -0.0]) {
+        expect(
+          messageOf(
+            refusal(
+              422,
+              'INSUFFICIENT_BALANCE',
+              details: details(remaining: remaining),
+            ),
+          ),
+          'leaveBalanceShortIn|2027|0|2',
+          reason: '$remaining',
+        );
+      }
+    });
+
     test('the failure keeps the server\'s code', () {
       final failure = LeaveRuleCode.fromResponse(
         refusal(422, 'INSUFFICIENT_BALANCE', details: details()),
@@ -291,7 +308,10 @@ void main() {
         details(year: 'next year'),
         details(year: 27),
         details(year: 2027.5),
-        details(remaining: -1),
+        details(year: double.infinity),
+        details(year: double.nan),
+        details(remaining: 'none'),
+        details(remaining: double.infinity),
         details(requested: 0),
         details(requested: 'many'),
       ];
