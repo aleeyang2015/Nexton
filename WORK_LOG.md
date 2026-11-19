@@ -113,3 +113,23 @@ Every issue branch is pushed and contained in `origin/main`. Merges were `--no-f
 priority bug; phone checks for every issue; GitHub issues #2 to #61 still open. Next: #62, the "fixes" parent
 tracker: a read-only check and the owner's call on closing its children (`NEXT_ACTIONS.md` "Next", item 1).
 
+## 2026-11-19
+
+**Checked at the start:** `main` = `origin/main` = `4d3161c`, clean, every issue branch in `main`; gates green on
+`main` (analyze 1 old warning, 2,398 tests, debug APK). #62's body and comments unchanged since 13 Nov.
+
+**#62 (read-only, no code):** all 18 children are in `main` and open on GitHub. #13 needs no phone and can close
+now; the other 17 each still need their phone, two-login or web-portal boxes. Asked the owner: when to close, and
+who closes. No answer yet.
+
+**New from the backend since the last handoff (all 18 Nov):** #35 "Live now" (16:31 UTC, outcome A); #16: eight
+leave rule codes live (`LEAVE_NOT_YET_AVAILABLE`, `LEAVE_NOTICE_TOO_SHORT`, `LEAVE_TOO_LONG` and the rest; the App
+shows the server's English message, a follow-up to map them is proposed, not filed) and "leave type not found"
+(`400 VALIDATION_ERROR`) asks for a reload of the type list (not found in the App; not traced in full); #53, #38,
+#39, #59 guide fixes already match the merged code; #76 is a notice.
+
+**#35:** built on the owner's "go" on `35-attendance-ot-hours` (`4ddf976`), two reviews, fixes in `8e4cce2`,
+pushed. Gates: analyze 1 old warning, 2,407 tests passed, debug APK builds. Not merged: waits for the owner's word.
+
+**Lesson:** do not run `dart format` on a folder here: `main` is not formatted to the tool's style and it rewrote
+23 untouched files (restored before the commit). Leave formatting alone, or format only the lines changed.

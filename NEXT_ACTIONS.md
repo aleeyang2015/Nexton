@@ -5,7 +5,7 @@ branch, one PR; work order decides what lands first. Update the row when its sta
 
 Statuses: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `PR OPEN`, `MERGED`.
 
-Last updated: end of 2026-11-18 (session handoff: #61 merged, `4d3161c`; every work order merged but #35 and #55, both blocked on the backend; next is #62, the "fixes" parent tracker). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
+Last updated: 2026-11-19 (#62 checked, read-only: every child #2 to #19 is in `main` and still open on GitHub, the owner's call on closing is pending; #35 unblocked by the backend on 18 Nov 16:31 UTC, built on `35-attendance-ot-hours` (`4ddf976`, review fixes `8e4cce2`), pushed, waiting for the owner's merge word; `main` is still `4d3161c`; only #55 is blocked). To resume, read `VERIFY_BEFORE_CONTINUING.md` first.
 
 ## Current status
 
@@ -14,7 +14,7 @@ State checked against GitHub and `origin` at the end of 2026-11-18.
 | | |
 |---|---|
 | Last finished work order | 60 of 60: #61, app: hide what the company has not bought |
-| Next | **#62**, the "fixes" parent tracker (children #2 to #19): a read-only check and the owner's call on closing its children; no code expected. See "Next", item 1. Work orders still open: **#35** (BLOCKED, Nexton-Backend#195) and **#55** (BLOCKED, Nexton-Backend#190) |
+| Next | **#35**: built and pushed on `35-attendance-ot-hours`, two reviews done and fixed, gates green (analyze 1 old warning, 2,407 tests, debug APK); waits for the owner's "push issue 35 to main directly". Then the owner's answers on **#62** (close #13 now and the other 17 children after their phone checks, or all now with a note; who closes). Still blocked: **#55** (Nexton-Backend#190) |
 | `origin/main` | `4d3161c` "Merge branch '61-hide-unbought-modules' into main" (2026-11-18) |
 | Local `main` | the same commit; nothing uncommitted, nothing staged, no untracked files, no stashes |
 | Feature branches | `2-…` to `61-…` (no `35-…` or `55-…`: both BLOCKED), `clock-in-out-location`, `fix/offsite-test-strings`, `meng`: each equal to its remote, none ahead. Every issue branch is contained in `origin/main` |
@@ -1064,7 +1064,7 @@ The owner's list of 2026-11-13: not to be built until the backend team confirms.
 | Issue | Waits for | Latest word on the issue | State |
 |---|---|---|---|
 | #21, #23 | the payslip month (phoudssp/Nexton-Backend#191) | "Now live", 13 Nov 12:03 UTC | built and merged on the owner's "go" |
-| #35 | OT hours on the summary and history | no "live" comment; the one comment (13 Nov) still says to wait; re-checked 2026-11-17 when the order reached it | **BLOCKED** (skipped; #36 next) |
+| #35 | OT hours on the summary and history (phoudssp/Nexton-Backend#195) | "Live now", 18 Nov 16:31 UTC (Nexton-Backend#290): `overtime_hours` and `total_overtime_hours` mean approved OT hours only (outcome A). No company has approved OT yet, so every screen shows 0 | built on the owner's "go", 2026-11-19; waiting for the merge word |
 | #55 | the unread count (phoudssp/Nexton-Backend#190) | no "live" comment; the one comment (13 Nov) says it still waits | **BLOCKED** |
 | #56 | sign-out ends the session (phoudssp/Nexton-Backend#189) | "Now live", 15 Nov 13:27 UTC: `POST /api/v1/auth/logout`, body `{"refresh_token"}`, always `204` | live on the backend; **still on the owner's list until the owner says go** |
 
@@ -1108,7 +1108,7 @@ changed, and move to the next one. The backend repo is private, so the issue's c
 | 31 | #32 | overtime: edit or cancel my OT while it waits | `32-ot-edit-cancel` | `16d741e`, `eced537` | merged to main directly (`c8880d6`) | analyze: 1 warning already on `main`; `flutter test`: 1,636 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 32 | #33 | overtime: see HR's OT posts for my department and join one | `33-ot-posts` | `ceaf702`, `6b7cadf` | merged to main directly (`77db2c0`) | analyze: 1 warning already on `main`; `flutter test`: 1,670 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 33 | #34 | overtime: the clock button knows about an open OT session | `34-clock-open-ot` | `1c44232`, `5f53ffa` | merged to main directly (`55c41e7`) | analyze: 1 warning already on `main`; `flutter test`: 1,696 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
-| 34 | #35 | attendance: show OT hours on the summary and history | | | | | BLOCKED: backend, OT hours (re-checked 2026-11-17, skipped) |
+| 34 | #35 | attendance: show OT hours on the summary and history | `35-attendance-ot-hours` | `4ddf976`, `8e4cce2` | none; not merged yet | analyze: 1 warning already on `main`; `flutter test`: 2,407 passed, 0 failed; debug APK builds | IMPLEMENTED, pushed, waiting for the owner's merge word. Outcome A. A day with approved OT shows "OT 1.5 h"; the home card and the history page show the month's OT hours as sent, 0 when none; nothing worked out on the phone. Reviews: a negative total read "-0 h" (fixed); a #44 test tapped off screen (fixed); a 320 dp Lao page test added. Open for the owner: one decimal shows 1.25 h as "1.3" while the payslip shows 1.25 (the issue asks for one decimal); at 320 dp the Lao "OT hours" and "work hours" tile labels are cut to the same first word (all tiles already truncate there). Phone check on `nexton-demo` pending, and needs an approved, clocked OT there first |
 | 35 | #36 | approvals: one Approvals place, only for department heads and HR (leave moves in) | `36-approvals-heads-hr` | `d62a2bf`, `04b85ee` | merged to main directly (`4ad1873`) | analyze: 1 warning already on `main`; `flutter test`: 1,738 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 36 | #37 | approvals: open a leave request to see days, files, steps and notes before deciding | `37-leave-approval-detail` | `5fa7fba`, `55b7eeb`, `c67dced` | merged to main directly (`abfde43`) | analyze: 1 warning already on `main`; `flutter test`: 1,773 passed, 0 failed; debug APK builds | MERGED, phone check on `nexton-demo` pending |
 | 37 | #38 | photos: take a photo with the camera and upload it (shared) | `38-shared-upload` | `e2612f9`, `a498e41`, `a0c7ecd` | merged to main directly (`f3cdef7`) | analyze: 1 warning already on `main`; `flutter test`: 1,804 passed, 0 failed; debug APK builds | MERGED, phone check pending |
@@ -1154,4 +1154,5 @@ Parent issues (#62 to #66) group the items above. The rest were reported later a
 | #72 | payslip: the salary list stops at 10 payslips a year | priority bug; fixed on screen by #21 (one page of 100); to confirm with a login that has more than 10 payslips in a year, then close |
 | #73 | forgot to scan: a request with a photo is always refused (attachment_url must be a string) | NOT STARTED, priority bug. Root cause known: the request sends the whole upload object as `attachment_url`, not the URL string. Not scheduled |
 | #75 | Docs: /auth/me employee_id now uses the own-record lookup (backend live 17 Nov) | NOT STARTED; docs only (`lib/features/auth/auth.md` lines 24 and 186); no code change |
+| #76 | Backend notice: /mobile limit now counts per signed-in person | notice only (live 18 Nov, Nexton-Backend#292); nothing to build; the App keeps handling `429` with `Retry-After` |
 | #74 | Leave edit: handle 409 LEAVE_CHANGED; type change now checked (backend #221) | its one to-do (map `LEAVE_CHANGED` on the edit call: refresh and say so) was built in #16; backend live 13 Nov 15:56 UTC; to check, then close |
