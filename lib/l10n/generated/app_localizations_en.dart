@@ -1676,6 +1676,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get attOvertimeTileLabel => 'OT Hours';
+
+  @override
   String attOvertimeHoursLine(String hours) {
     return 'OT $hours h';
   }

@@ -703,6 +703,7 @@
   "@attWorkingDaysBase": {
     "placeholders": {"days": {"type": "int"}}
   },
+  "attOvertimeTileLabel": "OT Hours",
   "attOvertimeHoursLine": "OT {hours} h",
   "@attOvertimeHoursLine": {
     "placeholders": {"hours": {"type": "String"}}

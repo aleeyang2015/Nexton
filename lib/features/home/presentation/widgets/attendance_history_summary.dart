@@ -112,10 +112,12 @@ class AttendanceHistorySummary extends ConsumerWidget {
                 unit: l10n.hoursUnit,
                 icon: Icons.work_outline,
               ),
-              // Approved OT only, as the server totals it.
+              // Approved OT only, as the server totals it. The label is the
+              // tile's own, short one: in Lao "ຊົ່ວໂມງໂອທີ" was cut on a narrow
+              // phone to the same first word as the work hours tile.
               _SummaryTile(
                 color: AppColors.primary,
-                label: l10n.salaryOvertimeLabel,
+                label: l10n.attOvertimeTileLabel,
                 value: AttendanceHistoryCopy.hours(data.totalOvertimeHours),
                 unit: l10n.hoursUnit,
                 icon: Icons.more_time,

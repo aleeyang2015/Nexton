@@ -130,7 +130,12 @@ void main() {
 
     expect(find.text('ຈາກ 23 ມື້ເຮັດວຽກ'), findsOneWidget);
     expect(find.text('ວັນລາພັກ'), findsOneWidget);
-    expect(find.text('ຊົ່ວໂມງໂອທີ'), findsOneWidget);
+    // The OT tile says "ໂອທີ" alone: on a phone this narrow the labels are
+    // cut short, and "ຊົ່ວໂມງໂອທີ" was cut to the same first word as the work
+    // hours tile beside it ("ຊົ່ວໂມງວຽກ").
+    expect(find.text('ໂອທີ'), findsOneWidget);
+    expect(find.text('ຊົ່ວໂມງໂອທີ'), findsNothing);
+    expect(find.text('ຊົ່ວໂມງວຽກ'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
