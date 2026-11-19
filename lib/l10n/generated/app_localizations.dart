@@ -3092,6 +3092,12 @@ abstract class AppLocalizations {
   /// **'Out of {days} working days'**
   String attWorkingDaysBase(int days);
 
+  /// No description provided for @attOvertimeHoursLine.
+  ///
+  /// In en, this message translates to:
+  /// **'OT {hours} h'**
+  String attOvertimeHoursLine(String hours);
+
   /// No description provided for @attSummaryLoadFailed.
   ///
   /// In en, this message translates to:

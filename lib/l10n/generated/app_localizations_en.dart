@@ -1676,6 +1676,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String attOvertimeHoursLine(String hours) {
+    return 'OT $hours h';
+  }
+
+  @override
   String get attSummaryLoadFailed => 'Could not load attendance.';
 
   @override

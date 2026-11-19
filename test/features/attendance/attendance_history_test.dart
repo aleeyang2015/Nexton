@@ -273,7 +273,25 @@ void main() {
       expect(days.where((d) => d.date == null), hasLength(1));
     });
 
-    test('summary() reads all eight numbers the server counts', () async {
+    test('the day\'s OT hours are the server\'s overtime_hours, and 0 when it '
+        'sends none', () async {
+      adapter
+        ..status = 200
+        ..body = {
+          'success': true,
+          'data': [
+            {'date': '2026-06-18', 'work_hours': 9.5, 'overtime_hours': 1.5},
+            {'date': '2026-06-17', 'work_hours': 10},
+            {'date': '2026-06-16', 'work_hours': 10, 'overtime_hours': null},
+          ],
+        };
+
+      final days = await source.records(range);
+
+      expect(days.map((d) => d.overtimeHours), [1.5, 0, 0]);
+    });
+
+    test('summary() reads all nine numbers the server counts', () async {
       adapter
         ..status = 200
         ..body = {
@@ -310,6 +328,7 @@ void main() {
           absentDays: 4,
           leaveDays: 5,
           totalWorkHours: 121.5,
+          totalOvertimeHours: 6.5,
         ),
       );
     });
@@ -327,6 +346,7 @@ void main() {
       expect(summary.presentDays, 15);
       expect(summary.leaveDays, 0);
       expect(summary.totalWorkingDays, 0);
+      expect(summary.totalOvertimeHours, 0);
     });
   });
 
@@ -518,6 +538,46 @@ void main() {
 
       expect(status.label, 'Present');
       expect(status.color, AppColors.attendancePresent);
+    });
+
+    test('hours show at most one decimal, and a whole number without one', () {
+      expect(AttendanceHistoryCopy.hours(0), '0');
+      expect(AttendanceHistoryCopy.hours(2), '2');
+      expect(AttendanceHistoryCopy.hours(1.5), '1.5');
+      expect(AttendanceHistoryCopy.hours(6.25), '6.3');
+      expect(AttendanceHistoryCopy.hours(1.96), '2');
+    });
+
+    test('the OT line shows the server\'s OT hours, in each language', () {
+      const day = AttendanceDay(totalWorkHours: 9.5, overtimeHours: 1.5);
+
+      expect(AttendanceHistoryCopy.overtimeLine(en, day), 'OT 1.5 h');
+      expect(AttendanceHistoryCopy.overtimeLine(lo, day), 'ໂອທີ 1.5 ຊົ່ວໂມງ');
+    });
+
+    test('no OT line without approved OT, however long the day was', () {
+      expect(
+        AttendanceHistoryCopy.overtimeLine(
+          en,
+          const AttendanceDay(status: 'present', totalWorkHours: 10),
+        ),
+        isNull,
+      );
+      // Too little to show as a number: no "OT 0 h" line either.
+      expect(
+        AttendanceHistoryCopy.overtimeLine(
+          en,
+          const AttendanceDay(totalWorkHours: 10, overtimeHours: 0.04),
+        ),
+        isNull,
+      );
+      expect(
+        AttendanceHistoryCopy.overtimeLine(
+          en,
+          const AttendanceDay(totalWorkHours: 10, overtimeHours: -1),
+        ),
+        isNull,
+      );
     });
 
     test('a plain day with no flags reads as present', () {
@@ -752,12 +812,14 @@ void main() {
             absentDays: 4,
             leaveDays: 5,
             totalWorkHours: 121.5,
+            totalOvertimeHours: 6.5,
           ),
         )
         ..monthRecords = Result.success([
           AttendanceDay(
             date: day22,
-            totalWorkHours: 8,
+            totalWorkHours: 9.5,
+            overtimeHours: 1.5,
             sessions: [
               AttendanceSession(
                 partName: 'Morning',
@@ -847,6 +909,39 @@ void main() {
         expect(find.text(value), findsOneWidget, reason: '$label = $value');
       }
       expect(find.text('Work Hours'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the summary shows the month\'s OT hours as the server sent '
+        'them', (tester) async {
+      await pumpPage(tester);
+
+      expect(find.text('OT Hours'), findsOneWidget);
+      expect(find.text('6.5 h'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a month with no OT shows 0, not an empty card', (
+      tester,
+    ) async {
+      repository.monthSummary = const Result.success(
+        AttendanceSummary(totalWorkingDays: 23, totalWorkHours: 121.5),
+      );
+
+      await pumpPage(tester);
+
+      expect(find.text('OT Hours'), findsOneWidget);
+      expect(find.text('0 h'), findsOneWidget);
+    });
+
+    testWidgets('only the day with approved OT shows an OT line', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+
+      // The 22nd has 1.5 h of approved OT; the 21st has none.
+      expect(find.text('OT 1.5 h'), findsOneWidget);
+      expect(find.textContaining('OT '), findsNWidgets(2)); // + "OT Hours"
       expect(tester.takeException(), isNull);
     });
 
@@ -1015,6 +1110,9 @@ void main() {
 
         await tester.tap(find.text(AttendanceHistoryCopy.dayTitle(en, today)));
         await tester.pump();
+        // The button sits under the summary's rows: bring it on screen.
+        await tester.ensureVisible(find.text(en.forgotClockInMenu));
+        await tester.pump();
         await tester.tap(find.text(en.forgotClockInMenu));
         await tester.pumpAndSettle();
 
@@ -1044,6 +1142,11 @@ void main() {
       final en = lookupAppLocalizations(const Locale('en'));
 
       await pumpPage(tester);
+      // The second day sits under the summary's rows: bring it on screen.
+      await tester.ensureVisible(
+        find.text(AttendanceHistoryCopy.dayTitle(en, day21)),
+      );
+      await tester.pump();
       await tester.tap(find.text(AttendanceHistoryCopy.dayTitle(en, day21)));
       await tester.pump();
 

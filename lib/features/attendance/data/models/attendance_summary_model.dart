@@ -1,8 +1,10 @@
 import '../../domain/entities/attendance_summary.dart';
 
 /// Reads `GET /attendance/records/summary/my`: every day count the server
-/// keeps, and the hours worked. `total_overtime_hours` and the average
-/// clock times are in the reply too and are not read here.
+/// keeps, the hours worked and the approved OT hours
+/// (`total_overtime_hours`: approved OT only, as the backend counts it since
+/// 18 Nov 2026). The average clock times are in the reply too and are not
+/// read here.
 class AttendanceSummaryModel {
   const AttendanceSummaryModel._();
 
@@ -16,6 +18,7 @@ class AttendanceSummaryModel {
       absentDays: _int(json['absent_days']) ?? 0,
       leaveDays: _int(json['leave_days']) ?? 0,
       totalWorkHours: _double(json['total_work_hours']) ?? 0,
+      totalOvertimeHours: _double(json['total_overtime_hours']) ?? 0,
     );
   }
 

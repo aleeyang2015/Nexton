@@ -58,7 +58,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('renders all seven numbers and the base line once it loads', (
+  testWidgets('renders all eight numbers and the base line once it loads', (
     tester,
   ) async {
     repository.monthSummary = const Result.success(
@@ -71,6 +71,7 @@ void main() {
         absentDays: 4,
         leaveDays: 5,
         totalWorkHours: 121.5,
+        totalOvertimeHours: 6.5,
       ),
     );
 
@@ -86,11 +87,24 @@ void main() {
       ('Days absent', '4'),
       ('Leave Days', '5'),
       ('Work Hours', '121.5'),
+      ('OT Hours', '6.5'),
     ]) {
       expect(find.text(label), findsOneWidget, reason: label);
       expect(find.text(value), findsOneWidget, reason: '$label = $value');
     }
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a month with no OT shows 0 on the OT card', (tester) async {
+    repository.monthSummary = const Result.success(
+      AttendanceSummary(totalWorkingDays: 23, presentDays: 15),
+    );
+
+    await pumpCard(tester);
+    await tester.pump();
+
+    expect(find.text('OT Hours'), findsOneWidget);
+    expect(find.text('0'), findsNWidgets(6)); // five day counts and the OT
   });
 
   testWidgets('fits a small phone in Lao without overflowing', (tester) async {
@@ -107,6 +121,7 @@ void main() {
         absentDays: 14,
         leaveDays: 15,
         totalWorkHours: 1121.5,
+        totalOvertimeHours: 110.5,
       ),
     );
 
@@ -115,6 +130,7 @@ void main() {
 
     expect(find.text('ຈາກ 23 ມື້ເຮັດວຽກ'), findsOneWidget);
     expect(find.text('ວັນລາພັກ'), findsOneWidget);
+    expect(find.text('ຊົ່ວໂມງໂອທີ'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

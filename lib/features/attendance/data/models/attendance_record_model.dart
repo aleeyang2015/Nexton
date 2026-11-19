@@ -23,6 +23,8 @@ class AttendanceRecordModel {
                 .toList(growable: false)
           : const [],
       totalWorkHours: _double(json['work_hours']),
+      // Approved OT hours only; a record without the key has none.
+      overtimeHours: _double(json['overtime_hours']) ?? 0,
     );
   }
 

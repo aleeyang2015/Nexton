@@ -703,6 +703,10 @@
   "@attWorkingDaysBase": {
     "placeholders": {"days": {"type": "int"}}
   },
+  "attOvertimeHoursLine": "OT {hours} h",
+  "@attOvertimeHoursLine": {
+    "placeholders": {"hours": {"type": "String"}}
+  },
   "attSummaryLoadFailed": "Could not load attendance.",
   "profileLoadFailed": "Could not load your profile.",
   "leaveModeRange": "Date range",
