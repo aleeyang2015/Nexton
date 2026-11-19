@@ -1711,6 +1711,10 @@ class AppLocalizationsLo extends AppLocalizations {
       'ຄຳຮ້ອງລານີ້ຫາກໍ່ມີການປ່ຽນແປງ. ໂຫຼດຂໍ້ມູນໃໝ່ແລ້ວ, ກະລຸນາກວດເບິ່ງແລ້ວລອງອີກຄັ້ງ.';
 
   @override
+  String get leaveApprovalInsufficientBalance =>
+      'ພະນັກງານຄົນນີ້ມີວັນລາຄົງເຫຼືອບໍ່ພຽງພໍສຳລັບການລານີ້. ໃຫ້ HR ເພີ່ມວັນລາ ຫຼື ປະຕິເສດຄຳຮ້ອງນີ້.';
+
+  @override
   String get leaveApprovalNoLongerWaiting =>
       'ຄຳຮ້ອງນີ້ບໍ່ໄດ້ລໍຖ້າການອະນຸມັດແລ້ວ (ມີຄົນຕັດສິນແລ້ວ ຫຼື ຖືກຍົກເລີກ).';
 

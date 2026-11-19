@@ -3176,6 +3176,12 @@ abstract class AppLocalizations {
   /// **'This leave just changed. It has been reloaded; please check and try again.'**
   String get leaveChanged;
 
+  /// No description provided for @leaveApprovalInsufficientBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'This employee does not have enough days left for this leave. HR must add days, or the request has to be rejected.'**
+  String get leaveApprovalInsufficientBalance;
+
   /// No description provided for @leaveApprovalNoLongerWaiting.
   ///
   /// In en, this message translates to:

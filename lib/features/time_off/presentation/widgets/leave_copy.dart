@@ -116,10 +116,12 @@ class LeaveCopy {
   /// when there is nothing to tell (it went through) or nobody to tell (the
   /// approvals screen was closed before the answer came).
   ///
-  /// The server's own reason, in the user's language. `INVALID_STATUS` reads
-  /// differently here than on an edit: to an approver it means the request
-  /// is no longer waiting. A refusal with a code the App does not know shows
-  /// the server's message.
+  /// The server's own reason, in the user's language. Two codes read
+  /// differently here than to the employee who asks. `INVALID_STATUS` means,
+  /// to an approver, that the request is no longer waiting. And
+  /// `INSUFFICIENT_BALANCE` on an approve is about the employee's days, not
+  /// the approver's: it says so, and what can be done (#70). A refusal with a
+  /// code the App does not know shows the server's message.
   static String? decisionRefusal(
     AppLocalizations l10n,
     LeaveDecisionOutcome outcome,
@@ -130,10 +132,12 @@ class LeaveCopy {
 
     final failure = outcome.failure;
     if (failure == null) return l10n.leaveApprovalDecideFailed;
-    if (LeaveErrorCode.tokenOf(failure) == LeaveErrorCode.tokenInvalidStatus) {
-      return l10n.leaveApprovalNoLongerWaiting;
-    }
-    return failure.localize(l10n);
+    return switch (LeaveErrorCode.tokenOf(failure)) {
+      LeaveErrorCode.tokenInvalidStatus => l10n.leaveApprovalNoLongerWaiting,
+      LeaveErrorCode.tokenInsufficientBalance =>
+        l10n.leaveApprovalInsufficientBalance,
+      _ => failure.localize(l10n),
+    };
   }
 
   /// "3 days" / "7.5 days" — or the half-day wording for exactly half a day.

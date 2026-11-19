@@ -1723,6 +1723,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This leave just changed. It has been reloaded; please check and try again.';
 
   @override
+  String get leaveApprovalInsufficientBalance =>
+      'This employee does not have enough days left for this leave. HR must add days, or the request has to be rejected.';
+
+  @override
   String get leaveApprovalNoLongerWaiting =>
       'This request is no longer waiting (someone decided it, or it was cancelled).';
 
