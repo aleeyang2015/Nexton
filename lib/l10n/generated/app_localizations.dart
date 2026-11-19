@@ -3092,6 +3092,12 @@ abstract class AppLocalizations {
   /// **'Out of {days} working days'**
   String attWorkingDaysBase(int days);
 
+  /// No description provided for @attOvertimeTileLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'OT Hours'**
+  String get attOvertimeTileLabel;
+
   /// No description provided for @attOvertimeHoursLine.
   ///
   /// In en, this message translates to:

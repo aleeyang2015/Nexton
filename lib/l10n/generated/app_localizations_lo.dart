@@ -1666,6 +1666,9 @@ class AppLocalizationsLo extends AppLocalizations {
   }
 
   @override
+  String get attOvertimeTileLabel => 'ໂອທີ';
+
+  @override
   String attOvertimeHoursLine(String hours) {
     return 'ໂອທີ $hours ຊົ່ວໂມງ';
   }
