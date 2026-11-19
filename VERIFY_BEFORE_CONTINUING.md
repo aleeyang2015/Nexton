@@ -3,45 +3,76 @@
 The checklist for the start of a work session on the Nexton App. Do it top to bottom before writing any code.
 It takes a few minutes and stops the two expensive mistakes: redoing finished work, and building on a stale tree.
 
-Written at the end of 2026-11-16; brought up to date at the end of 2026-11-17 (the checkpoint after #44) and at
-the end of 2026-11-18 (the checkpoint after #61). The record of what is done is `NEXT_ACTIONS.md`, next to this
+Written at the end of 2026-11-16; brought up to date at the end of 2026-11-17 (the checkpoint after #44), at
+the end of 2026-11-18 (the checkpoint after #61) and at the end of 2026-11-19 (after #35, #73, the #16 follow-up
+and #75). The record of what is done is `NEXT_ACTIONS.md`, next to this
 file on branch `docs/next-actions`, with `WORK_LOG.md` (the day-by-day log). None of the three is on `main`.
 
-## Resume here (next session, after 2026-11-18)
+## Resume here (next session, after 2026-11-19)
 
 1. Read the project rules: `CLAUDE.md` on `main`. There is no `PROJECT_RULES.md`; `CLAUDE.md` is the rules file.
-2. Read this file, then `NEXT_ACTIONS.md` (both on `origin/docs/next-actions`).
+2. Read this file, then `NEXT_ACTIONS.md` (both on `origin/docs/next-actions`; they are not in the working tree
+   of `main`: read them with `git show origin/docs/next-actions:<file>`). The files of the same names under
+   `../nexton_app_flutter/docs/handover/` belong to an older project and say nothing about this one.
 3. Check the real Git and project state before changing anything (steps 3 to 5 below).
-4. Confirm #61 is done: `git merge-base --is-ancestor origin/61-hide-unbought-modules origin/main && echo "in main"`.
-5. Continue with **#62**. It is not a feature issue: it is the "fixes" parent tracker (children #2 to #19, and the
-   60-item work order for all five trackers #62 to #66). Every child is merged on `main`, but every child is still
-   **open** on GitHub (merges said `Refs #N`, not `Fixes #N`). The first step is in `NEXT_ACTIONS.md` "Next",
-   item 1: a read-only check and a short plan for the owner. No code is expected for #62.
-6. Follow the existing architecture, conventions and workflow; do not restart planning, regenerate these documents,
+4. Confirm the last merge is there:
+   `git merge-base --is-ancestor origin/75-auth-me-employee-id-docs origin/main && echo "in main"`.
+5. **Nothing buildable is queued.** Every work order is merged except **#55** (unread dots and a count on the
+   bell), which waits on Nexton-Backend#190. Start by re-reading the comments on #55 for a "now live", and by
+   checking for issues newer than #76 and for new backend comments on any issue
+   (`curl -s "https://api.github.com/repos/aleeyang2015/Nexton/issues/comments?since=2026-11-19T00:00:00Z&per_page=100&sort=updated"`).
+   On 2026-11-19 exactly that check found #35 unblocked and new live rules on #16.
+6. Then put the owner's open items in front of them (the list under the table below); each answer may become a
+   small piece of work with its own branch.
+7. Follow the existing architecture, conventions and workflow; do not restart planning, regenerate these documents,
    or redo a MERGED issue.
-7. Do not create a branch, close an issue, or change anything on GitHub until the owner says so. #62 needs no
-   branch unless the owner asks for a code change.
+8. Do not create a branch, close an issue, or change anything on GitHub until the owner says so. For a new piece
+   of work: show the plan, wait for "go", build on a branch, and merge only on "push issue N to main directly".
 
-### State at the end of 2026-11-18
+### State at the end of 2026-11-19
 
 | | |
 |---|---|
 | Branch checked out | `main` |
-| `main` = `origin/main` | `4d3161c` "Merge branch '61-hide-unbought-modules' into main" |
+| `main` = `origin/main` | `2b2f5dc` "Merge branch '75-auth-me-employee-id-docs' into main" |
 | Working tree | clean: nothing modified, staged or untracked; no stashes |
 | Unpushed commits | none, on any local branch (every branch equals its remote) |
-| Last completed | #61 (merged on the owner's say; gates green on `4d3161c`: analyze 1 old warning, 2,398 tests passed, debug APK builds) |
-| Done today | work orders 44 to 60: #45 to #61, but #55 (BLOCKED on Nexton-Backend#190) |
-| Still blocked | #35 (Nexton-Backend#195, OT hours) and #55 (Nexton-Backend#190, unread count): the only two work orders not merged |
-| Next | #62 (parent tracker): a read-only check and the owner's call on closing; no branch, no code |
+| Gates on `2b2f5dc` | `flutter analyze lib test`: 1 warning, already on `main` (`_ShiftHoursLine` unused); `flutter test`: 2,452 passed, 0 failed; `flutter build apk --debug`: builds |
+| Done on 2026-11-19 | #62 checked (read-only); #35 (`5081e0a`); #73 (`139f1c5`); the #16 follow-up, leave rule refusals in Lao, no issue of its own (`2599166`); #75, docs (`2b2f5dc`). Each merged on the owner's say |
+| Still blocked | #55 (Nexton-Backend#190, unread count): the only work order not merged |
+| Next | no code queued: re-check #55 and new backend comments, then the owner's open items below |
 | Phone checks | none done for any issue; all pending on `nexton-demo` |
 
+Waiting for the owner (asked on 2026-11-19, not answered):
+- **#62's children (#2 to #19):** all in `main`, all open on GitHub. Close #13 now (it needs no phone) and the
+  other 17 after their phone checks, or all now with a note; and who closes (the public API here only reads). The
+  same question then applies to the trackers #63 to #66.
+- **#35 rounding:** the issue asks for one decimal, so 1 h 15 min shows "OT 1.3 h" while the payslip shows 1.25.
+  Keep one decimal, or show two.
+- **#35 Lao tile label at 320 dp:** "OT hours" and "work hours" both start with `ຊົ່ວໂມງ` and are cut to it on the
+  smallest phones. Keep `ຊົ່ວໂມງໂອທີ`, or shorten to `ໂອທີ`.
+- The older questions in `NEXT_ACTIONS.md` "Waiting for the owner".
+
+Waiting for other people:
+- **A native read of the Lao** in the twelve `leaveRule…` strings (`lib/l10n/app_lo.arb`), written on 2026-11-19.
+- **Backend team or HR:** is any login linked to its staff record only by the old `users.employee_id`? Since 17
+  Nov `/auth/me` answers `employee_id: null` for it, and the App then shows that login no Approvals entry and no
+  Approve or Reject buttons (`ApproverAccess.canSeeApprovals`; see `lib/features/auth/auth.md`).
+- **Backend team:** a real code for "leave type not found" (the App tells it by its English message); what
+  `requested_days` holds on `LEAVE_TOO_LONG` when days off join the run (the App does not show it); what
+  `POST /uploads` returns as `url` (the App loads it as it is, so #73's photo shows only if the phone can reach it).
+
 Known risks to keep in mind:
-- GitHub issues #2 to #61 are all open although merged; closing them is the owner's (it needs a login; the public
-  API here can only read). Their phone checks are still pending, which is why they were left open.
-- The owner's open questions in `NEXT_ACTIONS.md` "Waiting for the owner" are unanswered.
-- #73 (a "forgot to scan" request with a photo is always refused) is a priority bug outside the work order.
-- Follow-ups proposed today (none filed): see `NEXT_ACTIONS.md` "Next", item 2.
+- GitHub issues #2 to #76 are all open although their work is merged; closing them is the owner's.
+- #35's phone check needs an approved, clocked OT on `nexton-demo` first: the backend says no company has one yet.
+- Follow-ups proposed and not filed: see `NEXT_ACTIONS.md` "Next", item 2.
+
+Two things about the tools here, learned on 2026-11-19:
+- Do not run `dart format` on a folder: `main` is not formatted to the tool's style and it rewrites untouched
+  files. Leave formatting alone.
+- `dart run build_runner build` rewrites every generated file in an older layout and reports SEVERE on files with
+  newer syntax (already so on `main`). Keep only the generated file of the class changed, run `dart format` on
+  that one file, and restore the rest (`git checkout -- <paths>`).
 
 ## Do not
 
@@ -87,20 +118,20 @@ git fetch origin --prune
 git log --oneline -1 origin/main
 ```
 
-`NEXT_ACTIONS.md` says `origin/main` was `4d3161c` ("Merge branch '61-hide-unbought-modules' into main") at the
-end of 2026-11-18.
+`NEXT_ACTIONS.md` says `origin/main` was `2b2f5dc` ("Merge branch '75-auth-me-employee-id-docs' into main") at the
+end of 2026-11-19.
 
-- If `origin/main` is still `4d3161c`: nothing moved. Go on.
-- If it has moved: someone merged since. Read `git log --oneline 4d3161c..origin/main` and work out what it
+- If `origin/main` is still `2b2f5dc`: nothing moved. Go on.
+- If it has moved: someone merged since. Read `git log --oneline 2b2f5dc..origin/main` and work out what it
   changes for the next issue before planning it. Update local `main` with `git switch main && git merge --ff-only
   origin/main`. If it cannot fast-forward, stop and report.
 
 ## 5. Check the last merge really is there
 
-For the last issue marked MERGED (work order 60, #61):
+For the last one marked MERGED (#75):
 
 ```sh
-git merge-base --is-ancestor origin/61-hide-unbought-modules origin/main && echo "in main"
+git merge-base --is-ancestor origin/75-auth-me-employee-id-docs origin/main && echo "in main"
 ```
 
 There are no pull requests for the work items: each was pushed to `main` as a merge commit on the owner's say, so
@@ -117,12 +148,12 @@ close an issue. Those are the owner's to do, or need a login the owner provides.
 
 ## 6. Read the next issue, with its comments
 
-The next issue is the first item under "Next" in `NEXT_ACTIONS.md` (at the time of writing: **#62, the "fixes"
-parent tracker**; every work order is merged except #35 and #55, both blocked on the backend).
+The next issue is the first item under "Next" in `NEXT_ACTIONS.md` (at the time of writing there is
+none to build: every work order is merged except #55, blocked on the backend; the example below reads #55).
 
 ```sh
-curl -s https://api.github.com/repos/aleeyang2015/Nexton/issues/62
-curl -s https://api.github.com/repos/aleeyang2015/Nexton/issues/62/comments
+curl -s https://api.github.com/repos/aleeyang2015/Nexton/issues/55
+curl -s https://api.github.com/repos/aleeyang2015/Nexton/issues/55/comments
 ```
 
 Read the body to the end and every comment. A comment headed "Checked against branch `clock-in-out-location`"
@@ -138,7 +169,7 @@ the server sends: the backend repo is private.
   If there is one, the issue is still on the owner's list: ask the owner before building it.
 - Has the owner answered any of "Waiting for the owner"? An answer may change an issue already merged; that is a
   new, small piece of work with its own branch, not a reason to reopen the old one.
-- New issues since #75? Read them; one may say an earlier issue's behaviour has changed on the server.
+- New issues since #76? Read them; one may say an earlier issue's behaviour has changed on the server.
 
 ## 8. Continue from the first unfinished task
 

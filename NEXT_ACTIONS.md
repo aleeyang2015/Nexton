@@ -204,7 +204,12 @@ Decided by the owner on 2026-11-16, during the work:
 
 ## Next
 
-1. **Next session: #62, the "fixes" parent tracker.** Not a feature issue: its body lists children #2 to #19 and
+**State on 2026-11-19:** item 1's read-only check of #62 is DONE (every child #2 to #19 is in `main` and open on
+GitHub; #13 needs no phone, the other 17 do); what is left of it is the owner's call on closing. #35, #73, the #16
+follow-up and #75 were built and merged the same day. Nothing buildable is queued: #55 waits on Nexton-Backend#190.
+The owner's open items are listed in `VERIFY_BEFORE_CONTINUING.md` "Resume here".
+
+1. **#62, the "fixes" parent tracker** (checked 2026-11-19; the closing is the owner's). Not a feature issue: its body lists children #2 to #19 and
    the 60-item work order for all five trackers (#62 to #66); "keep it open until every child closes". Two comments
    (2026-11-13) record the app id `next.on.hr.com` and ask to redo the file-clash lines, which no longer matters
    now that every child is merged.
