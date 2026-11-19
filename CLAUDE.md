@@ -64,9 +64,13 @@ docs edit goes straight to the gates and the PR.
    (`AppConstants.baseUrl`), and so does `flutter run --profile` or `--release`: pass the defines above. The live server ignores the `X-Tenant-Slug` header, so the company comes only from the
    host, and the App leaves the header off unless `NEXTON_TENANT_SLUG` is set. Never test against
    `app.nexton.work`: it picks the company from the login, so a real company's login writes to that real company.
-   Only the `nexton-demo.nexton.work` address keeps you on the test company. On an emulator, debug builds clock in
-   from a fixed spot (`FixedPunchLocationSource`; move it with `NEXTON_DEBUG_PUNCH_LAT` and
-   `NEXTON_DEBUG_PUNCH_LNG`). Department-head screens need a `nexton-demo` login that heads a department; ask the
+   Only the `nexton-demo.nexton.work` address keeps you on the test company. Clocking in or out needs a real
+   phone at a real place: every build reads the phone's own position (`GeolocatorPunchLocationSource`), and
+   there is no fixed debug spot any more (`FixedPunchLocationSource` and `NEXTON_DEBUG_PUNCH_LAT` /
+   `NEXTON_DEBUG_PUNCH_LNG` were removed). Stand inside the company's work area for a normal punch, and outside
+   it for the off-site form. A mock-location app on Android is refused ("Fake GPS is on…",
+   `MOCK_LOCATION_DETECTED`), and a position set by hand on an emulator does not show that a punch works on a
+   phone. Department-head screens need a `nexton-demo` login that heads a department; ask the
    lead for one. Walk every *Done when* box; a change under `android/` or `ios/` is tried on that platform.
 8. **Review with fresh eyes before the PR.** Start a subagent and give it the issue text and
    `git diff origin/main...HEAD`, never your plan. Three angles: **issues** (bugs, edge cases, what the server really
