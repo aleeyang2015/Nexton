@@ -11,6 +11,8 @@ import 'package:next_on/features/auth/domain/entities/user.dart';
 import 'package:next_on/features/time_off/presentation/widgets/leave_approvals_tab.dart';
 import 'package:next_on/features/time_off/time_off_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
+import 'package:next_on/l10n/generated/app_localizations_en.dart';
+import 'package:next_on/l10n/generated/app_localizations_lo.dart';
 
 import '../../support/approver_access_test_doubles.dart';
 import '../../support/attendance_test_doubles.dart';
@@ -18,9 +20,23 @@ import '../../support/leave_test_doubles.dart';
 
 /// Each section of the Approvals place only for those who may decide it.
 void main() {
-  const leave = 'Approve Leave';
-  const corrections = 'Approve Corrections';
-  const offsite = 'Approve Off-site';
+  final en = AppLocalizationsEn();
+  final leave = en.approvalsLeaveTab;
+  final corrections = en.approvalsTimeCorrectionTab;
+  final offsite = en.approvalsOffsiteTab;
+
+  test('the menu and the tabs say what #36, #46 and #47 ask, in both '
+      'languages', () {
+    final lo = AppLocalizationsLo();
+    expect(lo.approvalsMenu, 'ການອະນຸມັດ');
+    expect(en.approvalsMenu, 'Approvals');
+    expect(lo.approvalsLeaveTab, 'ລາພັກ');
+    expect(en.approvalsLeaveTab, 'Leave');
+    expect(lo.approvalsTimeCorrectionTab, 'ລືມລົງເວລາ');
+    expect(en.approvalsTimeCorrectionTab, 'Forgot to scan');
+    expect(lo.approvalsOffsiteTab, 'ລົງເວລານອກພື້ນທີ່');
+    expect(en.approvalsOffsiteTab, 'Off-site scans');
+  });
 
   List<Override> fakes() => [
     offsiteRepositoryProvider.overrideWithValue(FakeOffsiteRepository()),
