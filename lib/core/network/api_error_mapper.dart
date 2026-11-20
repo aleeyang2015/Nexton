@@ -58,9 +58,10 @@ class ApiErrorCodes {
 /// password field.
 ///
 /// A throttled response's `Retry-After` is carried through on the failure
-/// (auth-login.md §2). It has to be read *here*: this is the last point that
-/// still holds the raw [Response], and [NetworkInterceptor] rejects the chain
-/// with nothing but the mapped [Failure].
+/// (the backend's `docs/api/auth-login.md`, `POST /auth/login`). It has to
+/// be read *here*: this is the last point that still holds the raw
+/// [Response], and [NetworkInterceptor] rejects the chain with nothing but
+/// the mapped [Failure].
 class ApiErrorMapper {
   ApiErrorMapper._();
 

@@ -3,7 +3,8 @@ import '../../domain/entities/punch_outcome.dart';
 import 'approval_decision_code.dart';
 
 /// The business refusals `POST /attendance/offsite-requests` can answer with
-/// (attendance-offsite-requests.md §3), as the rules the app already knows.
+/// (the backend's `docs/api/attendance-offsite-requests.md`), as the rules
+/// the app already knows.
 ///
 /// §3 is explicit that the off-site scan is gated by the *same* session rules
 /// as a normal clock-in/out, so eight of these codes are the punch endpoints'

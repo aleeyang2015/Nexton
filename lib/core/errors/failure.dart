@@ -69,7 +69,8 @@ extension FailureX on Failure {
   /// How long the server asked us to wait before retrying, when it said so.
   ///
   /// Carried by a throttled response's `Retry-After` header (429 — the login
-  /// throttle in auth-login.md §2, and the clock-in limiter). Null for every
-  /// other failure, and for a throttle that arrived without the header.
+  /// throttle in the backend's `docs/api/auth-login.md`, and the clock-in
+  /// limiter). Null for every other failure, and for a throttle that arrived
+  /// without the header.
   Duration? get retryAfter => mapOrNull(network: (f) => f.retryAfter);
 }
