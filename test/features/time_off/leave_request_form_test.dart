@@ -744,6 +744,27 @@ void main() {
     });
   });
 
+  group('a type with a limit of 0 (#104: no limit, as on the server)', () {
+    testWidgets('a 3-day request: no "at most 0 days" hint, Submit on', (
+      tester,
+    ) async {
+      repository.leaveTypesResult = Result.success([
+        sampleLeaveType(maxDaysPerRequest: 0),
+      ]);
+      await pumpForm(tester);
+
+      form().setDates([
+        DateTime(2026, 12, 22),
+        DateTime(2026, 12, 23),
+        DateTime(2026, 12, 24),
+      ]);
+      await tester.pump();
+
+      expect(find.text(en.leaveMaxDaysHint('0')), findsNothing);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+    });
+  });
+
   group('company days off', () {
     // 2026-11-20 is a Friday; the 22nd a Sunday; the 23rd a Monday.
     final friday = DateTime(2026, 11, 20);

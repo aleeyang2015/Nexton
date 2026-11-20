@@ -19,8 +19,12 @@ class LeaveType extends Equatable {
   /// old request can be named, but the form no longer offers it.
   final bool isActive;
 
-  /// Decimals on the wire: a type can allow 2.5 days.
+  /// Decimals on the wire: a type can allow 2.5 days. Null, 0 or below means
+  /// no limit, as on the server (#104); a stored 0 is sent as `0`.
   final double? maxDaysPerRequest;
+
+  /// Not used by the form yet. When it is, read null, 0 or below as no
+  /// limit, the same as [maxDaysPerRequest] (#104).
   final double? maxConsecutiveDays;
   final int? minNoticeDays;
   final bool allowHalfDay;
