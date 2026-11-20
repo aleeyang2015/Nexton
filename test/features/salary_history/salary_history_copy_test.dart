@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/features/salary_history/presentation/widgets/salary_history_copy.dart';
 
 /// The day and hour counts in a payslip card's stat boxes (#21): at most
-/// two decimals, as on the payslip's own page and the attendance OT hours.
+/// two decimals, as on the payslip's own page.
 void main() {
   test('a long fraction from the server: two decimals, not sixteen', () {
     expect(SalaryHistoryCopy.count(1.6666666666666667), '1.67');
