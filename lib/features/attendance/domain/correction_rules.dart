@@ -110,7 +110,8 @@ class CorrectionRules {
   /// skips the window check. So does [enforceWindow] false: the part is
   /// known only from a history row, without its early and late minutes, so
   /// its window is the server's to judge (#86). Its hours still place the
-  /// two times, so their order is checked.
+  /// two times, so their order is checked; with no hours known, the order
+  /// is the server's to judge too.
   static String? check({
     required TimeCorrectionType type,
     required Duration? clockIn,
@@ -145,7 +146,11 @@ class CorrectionRules {
       }
     }
 
-    if (inTime != null &&
+    // A part known only from a history row, with no hours either: 22:00 to
+    // 06:00 may be one night, and only the server can tell (#86).
+    final orderKnown = enforceWindow || window != null;
+    if (orderKnown &&
+        inTime != null &&
         outTime != null &&
         placed(outTime) <= placed(inTime)) {
       return ValidationCode.correctionInvalidTimes;

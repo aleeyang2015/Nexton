@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -41,7 +42,10 @@ class TimeCorrectionFormNotifier
       final profile = next.valueOrNull;
       // The parts whose window is known (#86): set first, so every choice
       // below is judged against the profile as it now is.
-      state = state.copyWith(profileParts: _partsOf(profile));
+      final parts = _partsOf(profile);
+      if (!listEquals(parts, state.profileParts)) {
+        state = state.copyWith(profileParts: parts);
+      }
       // The part asked for (a history row's) lands once the profile has it:
       // the profile's own, full (weekday rows, minutes), also in place of a
       // session's bare copy already chosen. Then it is forgotten, so a later
@@ -193,7 +197,8 @@ class TimeCorrectionFormNotifier
     );
     // Not in the profile yet because it is still loading: its listener
     // lands on it. A loaded profile without it has nothing to wait for.
-    final profileLoaded = ref.read(profileNotifierProvider).valueOrNull != null;
+    final profileLoaded =
+        ref.read(profileNotifierProvider).valueOrNull != null;
     _wantedPartId = fromProfile == null && !profileLoaded ? partId : null;
     final part = fromProfile ?? _sessionPart;
     if (part != null) {

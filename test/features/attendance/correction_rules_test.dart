@@ -315,6 +315,20 @@ void main() {
         isNull,
       );
     });
+    test('no hours known either: the order is the server\'s too, since '
+        '22:00 to 06:00 may be one night', () {
+      const noTimes = ShiftDetail(id: 'p-old');
+      expect(
+        check(
+          TimeCorrectionType.both,
+          clockIn: at(22),
+          clockOut: at(6),
+          part: noTimes,
+          enforceWindow: false,
+        ),
+        isNull,
+      );
+    });
   });
 
   group('the times each type needs', () {

@@ -566,7 +566,8 @@ void main() {
       expect(state.clockIn, const TimeOfDay(hour: 13, minute: 7));
     });
 
-    test('a month is read once, however many of its days are picked', () async {
+    test('a month is read once, however many of its days are picked',
+        () async {
       container = make();
       await settle();
       final before = attendance.recordsRanges.length;
