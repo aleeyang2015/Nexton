@@ -95,8 +95,8 @@ enum AttendanceRule {
   bool get isResolvableOffsite => this == outsideWorkArea;
 
   /// True when the refusal says today's sessions are not what the screen
-  /// showed (the session started, finished, or never began): the off-site
-  /// form closes and today is read again.
+  /// showed (the session started, finished, or never began; the OT changed,
+  /// #110): the off-site form closes and today is read again.
   bool get meansTodayChanged => switch (this) {
     sessionAlreadyStarted ||
     sessionAlreadyCompleted ||
