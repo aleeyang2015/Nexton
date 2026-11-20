@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failure.dart';
+import '../../../../core/utils/clock_provider.dart';
 import '../../../../core/utils/result.dart';
 import '../../attendance_providers.dart';
 import '../../domain/attendance_failure_x.dart';
@@ -12,6 +13,7 @@ import '../../domain/entities/clock_method.dart';
 import '../../domain/entities/offsite_detail.dart';
 import '../../domain/entities/punch_outcome.dart';
 import '../../domain/entities/punch_request.dart';
+import '../../domain/next_punch.dart';
 import 'attendance_state.dart';
 
 /// Owns every attendance behaviour the home screen can trigger. The card and
@@ -102,7 +104,7 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
   Future<void> loadToday() async {
     if (_disposed) return;
     final loadedAs = ++_loads;
-    final now = DateTime.now();
+    final now = ref.read(clockProvider)();
     _loadedDate = _dateOnly(now);
     state = state.copyWith(today: const AsyncValue.loading());
 
@@ -132,6 +134,14 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
       waitingOffsite: waiting.dataOrNull ?? const [],
       loadedOn: _dateOnly(now),
     );
+    final next = nextPunch(
+      clockedIn: state.isClockedIn,
+      otOpen: state.openOt != null,
+      waiting: state.waitingOffsite,
+      today: now,
+      now: now,
+    );
+    _offsiteUntil = next is OffsiteClockOut ? next.until : null;
   }
 
   /// The waiting off-site scans (#41). Whatever goes wrong here (a refusal,
@@ -161,9 +171,13 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
   /// Also once when an open OT's "clock out by" time has passed, so a card
   /// left open does not keep offering a clock-out the server will no longer
   /// take for that OT: the server says again what is open.
+  ///
+  /// And once when an off-site clock-out for yesterday's check-in with no
+  /// shift times reaches its 18 h (#41): the card goes back to a normal
+  /// clock-in and keeps the waiting line.
   void refreshIfNewDay() {
     if (_disposed || state.isLoadingToday) return;
-    final now = DateTime.now();
+    final now = ref.read(clockProvider)();
     final loaded = _loadedDate;
     if (loaded != null && loaded != _dateOnly(now)) {
       unawaited(loadToday());
@@ -173,8 +187,19 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
     if (until != null && now.isAfter(until) && until != _reloadedPastUntil) {
       _reloadedPastUntil = until;
       unawaited(loadToday());
+      return;
+    }
+    final offsiteUntil = _offsiteUntil;
+    if (offsiteUntil != null && now.isAfter(offsiteUntil)) {
+      _offsiteUntil = null;
+      unawaited(loadToday());
     }
   }
+
+  /// When the off-site clock-out the last load offered stops (a check-in
+  /// from yesterday with no shift times, 18 h on, #41); null when there is
+  /// none. Cleared on the one reload it triggers.
+  DateTime? _offsiteUntil;
 
   /// The "clock out by" time already reloaded for once it passed: the
   /// server may still send that session, and the card must not ask every

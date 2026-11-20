@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/api_client.dart';
+import 'package:next_on/core/utils/clock_provider.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/attendance/data/datasources/offsite_remote_data_source.dart';
@@ -200,6 +201,98 @@ void main() {
     );
   });
 
+  group('yesterday\'s check-in with no shift times (18 h)', () {
+    late FakeAttendanceRepository attendance;
+    late FakeOffsiteRepository offsite;
+    late ProviderContainer container;
+    late DateTime clock;
+
+    setUp(() {
+      attendance = FakeAttendanceRepository();
+      offsite = FakeOffsiteRepository();
+      container = ProviderContainer(
+        overrides: [
+          attendanceRepositoryProvider.overrideWithValue(attendance),
+          offsiteRepositoryProvider.overrideWithValue(offsite),
+          punchLocationSourceProvider.overrideWithValue(
+            FakePunchLocationSource(),
+          ),
+          clockProvider.overrideWithValue(() => clock),
+        ],
+      );
+    });
+    tearDown(() => container.dispose());
+
+    Future<AttendanceNotifier> ready() async {
+      container.listen(attendanceNotifierProvider, (_, _) {});
+      final notifier = container.read(attendanceNotifierProvider.notifier);
+      await Future<void>.delayed(Duration.zero);
+      return notifier;
+    }
+
+    test('past 18 h: the slide clocks in normally, the line stays', () async {
+      // Yesterday 00:00 is always more than 18 h back from the real time
+      // the state's slide decision reads.
+      final real = DateTime.now();
+      clock = real;
+      final old = waitingOffsite(
+        method: OffsiteMethod.checkIn,
+        at: DateTime(real.year, real.month, real.day - 1),
+      );
+      offsite.waitingResult = Result.success([old]);
+      await ready();
+
+      final state = container.read(attendanceNotifierProvider);
+      expect(state.next, isA<WaitingCheckIn>());
+      expect(state.nextAction, ClockAction.clockIn);
+      expect(
+        AttendanceCopy.offsiteWaiting(AppLocalizationsEn(), state.next),
+        'Check-in outside the area at 00:00: waiting for approval',
+      );
+    });
+
+    test('the card left open: one reload when the 18 h pass, not one a '
+        'second', () async {
+      clock = DateTime(2026, 11, 17, 13);
+      offsite.waitingResult = Result.success([
+        waitingOffsite(
+          method: OffsiteMethod.checkIn,
+          at: DateTime(2026, 11, 16, 20),
+        ),
+      ]);
+      final notifier = await ready();
+      expect(offsite.waitingMonths, hasLength(1));
+
+      clock = DateTime(2026, 11, 17, 14);
+      notifier.refreshIfNewDay();
+      await Future<void>.delayed(Duration.zero);
+      expect(offsite.waitingMonths, hasLength(1), reason: 'at 18 h: still on');
+
+      clock = DateTime(2026, 11, 17, 14, 0, 1);
+      for (var i = 0; i < 5; i++) {
+        notifier.refreshIfNewDay();
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(offsite.waitingMonths, hasLength(2));
+    });
+
+    test('a today\'s check-in sets no reload', () async {
+      clock = DateTime(2026, 11, 17, 9);
+      offsite.waitingResult = Result.success([
+        waitingOffsite(
+          method: OffsiteMethod.checkIn,
+          at: DateTime(2026, 11, 17, 8),
+        ),
+      ]);
+      final notifier = await ready();
+
+      clock = DateTime(2026, 11, 17, 23, 59);
+      notifier.refreshIfNewDay();
+      await Future<void>.delayed(Duration.zero);
+      expect(offsite.waitingMonths, hasLength(1));
+    });
+  });
+
   group('the card\'s line', () {
     final checkIn = waitingOffsite(
       method: OffsiteMethod.checkIn,
@@ -237,6 +330,16 @@ void main() {
           OffsiteClockOut(utc),
         ),
         'Check-in outside the area at 08:05: waiting for approval',
+      );
+    });
+
+    test('past its 18 h: the same line, with its time', () {
+      expect(
+        AttendanceCopy.offsiteWaiting(
+          AppLocalizationsLo(),
+          WaitingCheckIn(checkIn),
+        ),
+        'ລົງເວລາເຂົ້ານອກພື້ນທີ່ເວລາ 08:05: ລໍຖ້າອະນຸມັດ',
       );
     });
 
