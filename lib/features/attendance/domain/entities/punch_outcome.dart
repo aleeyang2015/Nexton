@@ -102,7 +102,10 @@ enum AttendanceRule {
     sessionAlreadyCompleted ||
     sessionAlreadyCheckedOut ||
     sessionNotStarted ||
-    checkinPendingApproval => true,
+    checkinPendingApproval ||
+    // The OT changed as an off-site check-out was sent (#110): what the
+    // card should offer has changed too.
+    otChanged => true,
     _ => false,
   };
 }

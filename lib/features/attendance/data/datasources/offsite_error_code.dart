@@ -107,5 +107,9 @@ class OffsiteErrorCode {
     'SESSION_NOT_STARTED': AttendanceRule.sessionNotStarted,
     'AFTER_CHECKOUT_WINDOW': AttendanceRule.afterCheckoutWindow,
     'CHECKIN_PENDING_APPROVAL': AttendanceRule.checkinPendingApproval,
+    // The OT was cancelled just as an off-site check-out was sent during an
+    // OT run-on (#110): nothing saved; the App's own words, and today is
+    // read again.
+    'OT_CHANGED': AttendanceRule.otChanged,
   };
 }
