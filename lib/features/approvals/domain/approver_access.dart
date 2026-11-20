@@ -100,10 +100,10 @@ class ApproverAccess extends Equatable {
   }
 
   /// Whether [user] gets Approve and Reject on [request]: it is pending
-  /// with a step waiting, it is not their own, and the waiting step is
-  /// theirs. An HR step is HR's (the leave permission, or an admin role; a
-  /// plain head is refused there with `NOT_APPROVER`); a dept-head step is
-  /// the approver named on it.
+  /// with a step waiting, it is not their own, they approved no earlier
+  /// step of it, and the waiting step is theirs. An HR step is HR's (the
+  /// leave permission, or an admin role; a plain head is refused there with
+  /// `NOT_APPROVER`); a dept-head step is the approver named on it.
   ///
   /// Only hides buttons that would fail: the server still decides, and its
   /// refusal is shown.
@@ -115,6 +115,17 @@ class ApproverAccess extends Equatable {
     final step = request.currentStep;
     if (!request.isPending || step == null) return false;
     if (request.employeeId == employeeId) return false;
+    // Already approved an earlier step: never another one too. One person
+    // decides at most one step of a request; the server answers a second
+    // one with `403 NOT_APPROVER` (#19, 16 Nov 2026), e.g. a head who also
+    // holds the HR right, on the HR step after approving the head step.
+    final approvedEarlier = request.steps.any(
+      (s) =>
+          s.stepNo < step.stepNo &&
+          s.status == LeaveStepStatus.approved &&
+          s.approverId == employeeId,
+    );
+    if (approvedEarlier) return false;
     final access = ApproverAccess.of(user);
     return switch (step.role) {
       LeaveStepRole.hr => access.isAdmin || access.canManageLeave,

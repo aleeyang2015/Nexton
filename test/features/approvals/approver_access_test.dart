@@ -200,6 +200,69 @@ void main() {
       expect(decide(atHr, user(roles: ['admin'], employeeId: null)), isFalse);
     });
 
+    group('one person decides at most one step (#19, 16 Nov: the server '
+        'answers 403 NOT_APPROVER)', () {
+      test('a head with HR rights who approved step 1: no on the HR step', () {
+        expect(
+          decide(
+            atHr,
+            user(head: true, permissions: [leaveHr], employeeId: 'emp-lee'),
+          ),
+          isFalse,
+        );
+      });
+
+      test('an admin who approved step 1: no on the HR step', () {
+        expect(
+          decide(atHr, user(roles: ['admin'], employeeId: 'emp-lee')),
+          isFalse,
+        );
+      });
+
+      test('HR, with step 1 approved by someone else: yes', () {
+        expect(
+          decide(atHr, user(permissions: [leaveHr], employeeId: 'emp-hr')),
+          isTrue,
+        );
+      });
+
+      test('approved step 1: no on a later step of any role', () {
+        final threeSteps = sampleLeaveRequest(
+          employeeId: 'emp-bee',
+          steps: [
+            step(1, LeaveStepRole.hr, LeaveStepStatus.approved,
+                approverId: 'emp-hr'),
+            step(2, LeaveStepRole.deptHead, LeaveStepStatus.approved,
+                approverId: 'emp-lee'),
+            step(3, LeaveStepRole.deptHead, LeaveStepStatus.pending,
+                approverId: 'emp-hr'),
+          ],
+        );
+        expect(
+          decide(
+            threeSteps,
+            user(head: true, permissions: [leaveHr], employeeId: 'emp-hr'),
+          ),
+          isFalse,
+        );
+      });
+
+      test('an approved step with no approver sent blocks nobody', () {
+        final unnamedApproved = sampleLeaveRequest(
+          employeeId: 'emp-bee',
+          steps: [
+            step(1, LeaveStepRole.deptHead, LeaveStepStatus.approved),
+            step(2, LeaveStepRole.hr, LeaveStepStatus.pending),
+          ],
+        );
+        expect(
+          decide(unnamedApproved,
+              user(permissions: [leaveHr], employeeId: 'emp-hr')),
+          isTrue,
+        );
+      });
+    });
+
     test('a dept-head step with no approver sent: no', () {
       final unnamed = sampleLeaveRequest(
         employeeId: 'emp-bee',

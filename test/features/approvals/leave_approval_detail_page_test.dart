@@ -249,6 +249,40 @@ void main() {
     expect(find.text(en.leaveApprovalRejectAction), findsNothing);
   });
 
+  testWidgets('a head with HR rights who approved step 1: no buttons on the '
+      'HR step (the server refuses a second step)', (tester) async {
+    final atHr = bees(atHr: true);
+    repository.requestDetailResult = Result.success(atHr);
+    await open(
+      tester,
+      user: approverTestUser(
+        employeeId: 'emp-lee',
+        permissions: const ['corehr:leaveRequest:manage'],
+      ),
+    );
+
+    // The HR step is the last: its button says the days come off now.
+    expect(find.text(LeaveCopy.approveActionLabel(en, atHr)), findsNothing);
+    expect(find.text(en.leaveApprovalRejectAction), findsNothing);
+  });
+
+  testWidgets('another HR login on the same HR step: Approve and Reject', (
+    tester,
+  ) async {
+    final atHr = bees(atHr: true);
+    repository.requestDetailResult = Result.success(atHr);
+    await open(
+      tester,
+      user: approverTestUser(
+        employeeId: 'emp-hr',
+        permissions: const ['corehr:leaveRequest:manage'],
+      ),
+    );
+
+    expect(find.text(LeaveCopy.approveActionLabel(en, atHr)), findsOneWidget);
+    expect(find.text(en.leaveApprovalRejectAction), findsOneWidget);
+  });
+
   testWidgets('Approve asks first; Cancel sends nothing', (tester) async {
     await open(tester);
 
