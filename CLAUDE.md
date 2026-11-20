@@ -36,9 +36,9 @@ docs edit goes straight to the gates and the PR.
    provider that holds a user's data is `.autoDispose`, so logout drops it), clock-in and clock-out
    (`features/attendance`: the punch, its location, the mock-location check, and the refresh when the App comes
    back from the background or the day changes), asking for leave or OT, joining an OT post, and approving
-   (`features/time_off` leave approvals for department heads, which has no tests yet: who sees which button, each
-   status change), payslip money (`features/salary_history`), and push notifications, once they are added, with
-   the screen each one opens. Write the test, see it go red for the right reason, then make it green. Everywhere
+   (`features/time_off` leave approvals for department heads: who sees which button, each status change), payslip
+   money (`features/salary_history`), and push notifications (`features/notifications`), with the screen each one
+   opens. Write the test, see it go red for the right reason, then make it green. Everywhere
    else, add or update the test beside the code you change: tests go in `test/features/<feature>/`, and shared fakes
    live in `test/support/`.
 5. **Build the smallest change** the issue asks for, following the project rules below. Every string a user sees
