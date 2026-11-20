@@ -322,11 +322,6 @@ class LeaveRequestFormNotifier
 
   void setReason(String reason) => state = state.copyWith(reason: reason);
 
-  /// Submits (or, in edit mode, updates) the form. Returns whether it
-  /// succeeded. A range in which every day is a company day off is not sent:
-  /// the server would refuse it. On success a new request resets the form;
-  /// both paths invalidate the history and balance lists so the reserved days
-  /// refresh.
   /// True while the form still asks for what [sent] asked for: the same
   /// type, the same days, the same part of the day.
   bool _asksTheSame(LeaveRequestFormState sent) =>
@@ -337,6 +332,11 @@ class LeaveRequestFormNotifier
       state.durationType == sent.durationType &&
       listEquals(state.dates, sent.dates);
 
+  /// Submits (or, in edit mode, updates) the form. Returns whether it
+  /// succeeded. A range in which every day is a company day off is not sent:
+  /// the server would refuse it. On success a new request resets the form;
+  /// both paths invalidate the history and balance lists so the reserved days
+  /// refresh.
   Future<bool> submit() async {
     final leaveTypeId = state.leaveTypeId;
     if (leaveTypeId == null ||
