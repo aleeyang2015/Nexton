@@ -34,12 +34,14 @@ void main() {
     Duration? clockIn,
     Duration? clockOut,
     ShiftDetail? part = office,
+    bool enforceWindow = true,
   }) => CorrectionRules.check(
     type: type,
     clockIn: clockIn,
     clockOut: clockOut,
     part: part,
     date: friday,
+    enforceWindow: enforceWindow,
   );
 
   group('look-back (decision 16: 30 days, no future)', () {
@@ -245,6 +247,76 @@ void main() {
     );
   });
 
+  // A part known only from a history row (its profile no longer has it):
+  // its early and late minutes are not known, so its window is not either
+  // (#86). The server decides; the order of the two times is still checked.
+  group('a part whose window is not known (#86)', () {
+    const bareMorning = ShiftDetail(
+      id: 'p-old',
+      startTime: '08:00',
+      endTime: '12:00',
+    );
+
+    test('a time before the start or after the end is not refused', () {
+      expect(
+        check(
+          TimeCorrectionType.both,
+          clockIn: at(7, 50),
+          clockOut: at(12, 20),
+          part: bareMorning,
+          enforceWindow: false,
+        ),
+        isNull,
+      );
+      // The same part with its window known: refused, as before.
+      expect(
+        check(
+          TimeCorrectionType.forgotClockIn,
+          clockIn: at(7, 50),
+          part: bareMorning,
+        ),
+        ValidationCode.correctionOutsideWindow,
+      );
+    });
+
+    test('the clock-out must still come after the clock-in', () {
+      expect(
+        check(
+          TimeCorrectionType.both,
+          clockIn: at(11),
+          clockOut: at(9),
+          part: bareMorning,
+          enforceWindow: false,
+        ),
+        ValidationCode.correctionInvalidTimes,
+      );
+    });
+
+    test('overnight 22:00–06:00: an early 21:50 clock-in is that evening and '
+        'a late 06:20 clock-out the next morning, so the order holds', () {
+      expect(
+        check(
+          TimeCorrectionType.both,
+          clockIn: at(21, 50),
+          clockOut: at(6, 20),
+          part: night,
+          enforceWindow: false,
+        ),
+        isNull,
+      );
+      expect(
+        check(
+          TimeCorrectionType.both,
+          clockIn: at(22),
+          clockOut: at(5, 50),
+          part: night,
+          enforceWindow: false,
+        ),
+        isNull,
+      );
+    });
+  });
+
   group('the times each type needs', () {
     test('forgot clock-in: the clock-in', () {
       expect(
@@ -294,6 +366,7 @@ void main() {
         date: today,
         type: TimeCorrectionType.forgotClockIn,
         shiftDetail: office,
+        profileParts: const [office],
         clockIn: const TimeOfDay(hour: 7, minute: 0),
         reason: 'Forgot',
       );
@@ -309,6 +382,7 @@ void main() {
         date: today,
         type: TimeCorrectionType.forgotClockIn,
         shiftDetail: office,
+        profileParts: const [office],
         clockIn: const TimeOfDay(hour: 7, minute: 0),
       );
       expect(untouched.errorFor(TimeCorrectionFields.times), isNull);
@@ -322,6 +396,7 @@ void main() {
       final reversed = TimeCorrectionFormState(
         date: today,
         shiftDetail: office,
+        profileParts: const [office],
         clockIn: const TimeOfDay(hour: 16, minute: 0),
         clockOut: const TimeOfDay(hour: 9, minute: 0),
       );

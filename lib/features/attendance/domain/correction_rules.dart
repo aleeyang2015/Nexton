@@ -22,11 +22,19 @@ class CorrectionWindow {
   /// same day, the next (a night part's 05:50), or the evening before (a
   /// 00:10 part's 23:50 early clock-in), whichever puts it in the window.
   /// Outside it on every day, it is left where an overnight part's times
-  /// go: after midnight when before the start, else the same day.
-  int place(Duration time, {required int startMinutes}) {
+  /// go: after midnight when before the start, else the same day. With
+  /// [nearest] (the window is only the part's plain hours, #86), it goes on
+  /// the day that puts it closest to them instead: a night part's 21:50
+  /// early clock-in is that evening, its 06:20 late clock-out next morning.
+  int place(Duration time, {required int startMinutes, bool nearest = false}) {
     final t = time.inMinutes;
-    for (final candidate in [t, t + 1440, t - 1440]) {
+    final candidates = [t, t + 1440, t - 1440];
+    for (final candidate in candidates) {
       if (candidate >= from && candidate <= to) return candidate;
+    }
+    if (nearest) {
+      int gap(int c) => c < from ? from - c : c - to;
+      return candidates.reduce((a, b) => gap(b) < gap(a) ? b : a);
     }
     return overnight && t < startMinutes ? t + 1440 : t;
   }
@@ -99,13 +107,17 @@ class CorrectionRules {
   /// part's window; the clock-out not after the clock-in.
   ///
   /// `wrong_time` needs at least one of the two. [part] null (not known)
-  /// skips the window check.
+  /// skips the window check. So does [enforceWindow] false: the part is
+  /// known only from a history row, without its early and late minutes, so
+  /// its window is the server's to judge (#86). Its hours still place the
+  /// two times, so their order is checked.
   static String? check({
     required TimeCorrectionType type,
     required Duration? clockIn,
     required Duration? clockOut,
     required ShiftDetail? part,
     required DateTime date,
+    bool enforceWindow = true,
   }) {
     final inTime = type.needsClockIn ? clockIn : null;
     final outTime = type.needsClockOut ? clockOut : null;
@@ -121,9 +133,9 @@ class CorrectionRules {
     final start = part == null ? null : _minutesOf(part.timesOn(date).start);
     int placed(Duration t) => window == null || start == null
         ? t.inMinutes
-        : window.place(t, startMinutes: start);
+        : window.place(t, startMinutes: start, nearest: !enforceWindow);
 
-    if (window != null) {
+    if (window != null && enforceWindow) {
       for (final t in [inTime, outTime]) {
         if (t == null) continue;
         final at = placed(t);

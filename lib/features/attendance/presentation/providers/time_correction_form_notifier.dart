@@ -39,6 +39,9 @@ class TimeCorrectionFormNotifier
     // segment once it lands, unless the user has picked one already.
     ref.listen(profileNotifierProvider, (_, next) {
       final profile = next.valueOrNull;
+      // The parts whose window is known (#86): set first, so every choice
+      // below is judged against the profile as it now is.
+      state = state.copyWith(profileParts: _partsOf(profile));
       // The part asked for (a history row's) lands once the profile has it:
       // the profile's own, full (weekday rows, minutes), also in place of a
       // session's bare copy already chosen. Then it is forgotten, so a later
@@ -66,12 +69,14 @@ class TimeCorrectionFormNotifier
     ref.onDispose(() => _disposed = true);
 
     final now = DateTime.now();
+    final profile = ref.read(profileNotifierProvider).valueOrNull;
     final initial = TimeCorrectionFormState(
       date: DateTime(now.year, now.month, now.day),
+      profileParts: _partsOf(profile),
     );
     // After this build: the answer changes the state.
     Future.microtask(() => _readDay(initial.date));
-    final detail = _firstDetail(ref.read(profileNotifierProvider).valueOrNull);
+    final detail = _firstDetail(profile);
     return detail == null ? initial : _withShiftDetail(initial, detail);
   }
 
@@ -188,8 +193,7 @@ class TimeCorrectionFormNotifier
     );
     // Not in the profile yet because it is still loading: its listener
     // lands on it. A loaded profile without it has nothing to wait for.
-    final profileLoaded =
-        ref.read(profileNotifierProvider).valueOrNull != null;
+    final profileLoaded = ref.read(profileNotifierProvider).valueOrNull != null;
     _wantedPartId = fromProfile == null && !profileLoaded ? partId : null;
     final part = fromProfile ?? _sessionPart;
     if (part != null) {
@@ -312,6 +316,9 @@ class TimeCorrectionFormNotifier
     }
     return null;
   }
+
+  static List<ShiftDetail> _partsOf(EmployeeProfile? profile) =>
+      profile?.shiftDetails ?? const <ShiftDetail>[];
 
   static ShiftDetail? _firstDetail(EmployeeProfile? profile) {
     final details = profile?.shiftDetails ?? const <ShiftDetail>[];

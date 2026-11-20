@@ -34,10 +34,16 @@ class TimeCorrectionFormState with _$TimeCorrectionFormState {
     /// (#44). Empty when the day has none, or while its history is not read
     /// yet (or could not be): the profile's parts are offered then.
     @Default(<ShiftDetail>[]) List<ShiftDetail> dayParts,
+
+    /// The profile's parts, as last read (empty while it loads, or when it
+    /// cannot be read). A chosen part that is one of them, as this full
+    /// copy, has a known window ([partWindowKnown], #86).
+    @Default(<ShiftDetail>[]) List<ShiftDetail> profileParts,
     @Default(TimeOfDay(hour: 8, minute: 0)) TimeOfDay clockIn,
     @Default(TimeOfDay(hour: 17, minute: 0)) TimeOfDay clockOut,
     @Default('') String reason,
     @Default(false) bool showErrors,
+
     /// How the last send went; once sent, the new request's id (null when
     /// the answer carried none, or before any send).
     @Default(AsyncValue<String?>.data(null)) AsyncValue<String?> submission,
@@ -52,13 +58,26 @@ class TimeCorrectionFormState with _$TimeCorrectionFormState {
     clockOut: Duration(hours: clockOut.hour, minutes: clockOut.minute),
     reason: reason,
     part: shiftDetail,
+    partWindowKnown: partWindowKnown,
   );
 
   /// The chosen part's window on [date] (#43), for the "outside the part
-  /// (from–to)" text; null when the part's times are not known.
+  /// (from–to)" text and the "accepted times" hint; null when the part's
+  /// times are not known, or its window is not ([partWindowKnown]).
   CorrectionWindow? get window {
     final part = shiftDetail;
-    return part == null ? null : CorrectionRules.window(part, date);
+    if (part == null || !partWindowKnown) return null;
+    return CorrectionRules.window(part, date);
+  }
+
+  /// True when the chosen part's window is known: it is the profile's own
+  /// copy, with its early and late minutes and its weekday rows. A part
+  /// known only from a history row (the profile no longer has it, or has
+  /// not loaded) has its hours but not those, so the server judges the
+  /// times (#86). True when no part is chosen: nothing to check then.
+  bool get partWindowKnown {
+    final part = shiftDetail;
+    return part == null || profileParts.contains(part);
   }
 
   /// The [ValidationCode] for [field] (a [TimeCorrectionFields] name), or

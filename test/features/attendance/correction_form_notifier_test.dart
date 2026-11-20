@@ -12,7 +12,10 @@ import 'package:next_on/features/attendance/domain/entities/attendance_day.dart'
 import 'package:next_on/features/attendance/domain/entities/date_range.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_request.dart';
 import 'package:next_on/features/attendance/presentation/providers/time_correction_attachment_notifier.dart';
+import 'package:next_on/features/attendance/domain/entities/time_correction_type.dart';
 import 'package:next_on/features/attendance/presentation/providers/time_correction_form_notifier.dart';
+import 'package:next_on/features/attendance/presentation/providers/time_correction_form_state.dart';
+import 'package:next_on/core/errors/validation_codes.dart';
 import 'package:next_on/features/profile/domain/entities/employee_profile.dart';
 import 'package:next_on/features/profile/domain/entities/shift_detail.dart';
 import 'package:next_on/features/profile/domain/entities/shift_detail_weekly.dart';
@@ -563,8 +566,7 @@ void main() {
       expect(state.clockIn, const TimeOfDay(hour: 13, minute: 7));
     });
 
-    test('a month is read once, however many of its days are picked',
-        () async {
+    test('a month is read once, however many of its days are picked', () async {
       container = make();
       await settle();
       final before = attendance.recordsRanges.length;
@@ -577,6 +579,138 @@ void main() {
       expect(before, 1);
       expect(attendance.recordsRanges.length, 1);
       expect(attendance.recordsRanges.single, DateRange.month(today));
+    });
+  });
+
+  // A day worked on a part the profile no longer has: the form knows that
+  // part only from the history row, without its early and late minutes, so
+  // it cannot tell the server's window (#86). The server decides.
+  group('a part the profile no longer has (#86)', () {
+    const oldSession = AttendanceSession(
+      partId: 'p-old',
+      partName: 'Early',
+      partStartTime: '07:00',
+      partEndTime: '11:00',
+    );
+    const oldPart = ShiftDetail(
+      id: 'p-old',
+      name: 'Early',
+      startTime: '07:00',
+      endTime: '11:00',
+    );
+
+    TimeCorrectionFormState read() =>
+        container.read(timeCorrectionFormNotifierProvider);
+
+    Future<void> openOnOldPart() async {
+      container = make();
+      attendance.monthRecords = Result.success([
+        AttendanceDay(date: weekAgo, sessions: const [oldSession]),
+      ]);
+      await settle();
+      form().prefill(date: weekAgo, partId: 'p-old', sessionPart: oldPart);
+      await settle();
+      expect(read().shiftDetail?.id, 'p-old');
+    }
+
+    test('a time before its start is sent, not refused on the phone', () async {
+      await openOnOldPart();
+      form()
+        ..setType(TimeCorrectionType.forgotClockIn)
+        ..setClockIn(const TimeOfDay(hour: 6, minute: 50))
+        ..setReason('Came in early');
+
+      expect(read().errorFor(TimeCorrectionFields.times), isNull);
+      expect(await form().submit(), isTrue);
+      final sent = attendance.timeCorrectionRequests.single;
+      expect(sent.shiftDetailId, 'p-old');
+      expect(sent.clockIn, const Duration(hours: 6, minutes: 50));
+    });
+
+    test('no "accepted times" hint: its window is not known', () async {
+      await openOnOldPart();
+      expect(read().partWindowKnown, isFalse);
+      expect(read().window, isNull);
+    });
+
+    test('the clock-out must still come after the clock-in', () async {
+      await openOnOldPart();
+      form()
+        ..setClockIn(const TimeOfDay(hour: 10, minute: 0))
+        ..setClockOut(const TimeOfDay(hour: 8, minute: 0))
+        ..setReason('Forgot');
+
+      expect(await form().submit(), isFalse);
+      expect(attendance.timeCorrectionRequests, isEmpty);
+      expect(
+        read().errorFor(TimeCorrectionFields.times),
+        ValidationCode.correctionInvalidTimes,
+      );
+    });
+
+    test('a part the profile has: a time outside its window is still '
+        'refused, with its hint', () async {
+      container = make();
+      await settle();
+      form()
+        ..prefill(date: weekAgo, partId: 'p-am')
+        ..setType(TimeCorrectionType.forgotClockIn)
+        // That weekday's morning starts at 09:00, with no early minutes.
+        ..setClockIn(const TimeOfDay(hour: 8, minute: 50))
+        ..setReason('Forgot');
+
+      expect(read().partWindowKnown, isTrue);
+      expect(read().window, isNotNull);
+      expect(await form().submit(), isFalse);
+      expect(attendance.timeCorrectionRequests, isEmpty);
+      expect(
+        read().errorFor(TimeCorrectionFields.times),
+        ValidationCode.correctionOutsideWindow,
+      );
+    });
+
+    test('a bare copy of a part the profile has, chosen before the profile '
+        'landed: the window is checked once it lands', () async {
+      container = make();
+      final hold = Completer<void>();
+      profiles.hold = hold;
+      container.invalidate(profileNotifierProvider);
+      const bare = ShiftDetail(
+        id: 'p-am',
+        startTime: '08:00',
+        endTime: '12:00',
+      );
+      form().prefill(date: weekAgo, partId: 'p-am', sessionPart: bare);
+      await settle();
+      expect(read().partWindowKnown, isFalse);
+
+      hold.complete();
+      await settle();
+
+      expect(read().shiftDetail, morning);
+      expect(read().partWindowKnown, isTrue);
+    });
+
+    test('the profile cannot be read: the day\'s own part is sent as the '
+        'server would take it', () async {
+      container = make();
+      profiles.profile = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+      container.invalidate(profileNotifierProvider);
+      attendance.monthRecords = Result.success([
+        AttendanceDay(date: weekAgo, sessions: const [oldSession]),
+      ]);
+      await settle();
+      form().setDate(weekAgo);
+      await settle();
+      form()
+        ..setType(TimeCorrectionType.forgotClockIn)
+        ..setClockIn(const TimeOfDay(hour: 6, minute: 50))
+        ..setReason('Came in early');
+
+      expect(read().shiftDetail?.id, 'p-old');
+      expect(await form().submit(), isTrue);
     });
   });
 }
