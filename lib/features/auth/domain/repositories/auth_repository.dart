@@ -8,9 +8,15 @@ import '../entities/user.dart';
 abstract class AuthRepository {
   /// Exchange credentials for a session: writes both tokens, then loads the
   /// profile. Treated as atomic — a profile failure rolls the tokens back.
+  ///
+  /// [abandonIf] is asked once the server has answered, before anything is
+  /// stored. True: the user has left meanwhile (#93), so the new sign-in is
+  /// ended on the server with its own refresh token, nothing is stored, and
+  /// a failure comes back.
   FutureResult<AuthSession> login({
     required String email,
     required String password,
+    bool Function()? abandonIf,
   });
 
   /// Cold start: resolve whatever is on disk into a session, revalidating

@@ -40,9 +40,19 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
   FutureResult<AuthSession> login({
     required String email,
     required String password,
+    bool Function()? abandonIf,
   }) {
     return guard(() async {
       final tokens = await _remote.login(email: email, password: password);
+
+      // The user left while this sign-in was on its way (#93: "Sign out"
+      // during a password change). This answer is the one place that holds
+      // the new refresh token for sure: a sign-out already on its way has
+      // read the old one. So it is ended here, and never stored.
+      if (abandonIf?.call() ?? false) {
+        await _endOnServer(tokens.refreshToken);
+        throw const Failure.unknown(message: abandonedMessage);
+      }
 
       await _local.writeTokens(
         accessToken: tokens.accessToken,
@@ -188,9 +198,21 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
   }
 
   Future<void> _endSessionOnServer() async {
+    final String? refreshToken;
     try {
-      final refreshToken = await _local.readRefreshToken();
-      if (refreshToken == null || refreshToken.isEmpty) return;
+      refreshToken = await _local.readRefreshToken();
+    } catch (error) {
+      if (kDebugMode) debugPrint('Server logout skipped: $error');
+      return;
+    }
+    if (refreshToken == null || refreshToken.isEmpty) return;
+    await _endOnServer(refreshToken);
+  }
+
+  /// `POST /auth/logout` for [refreshToken], at most [logoutTimeout]; any
+  /// failure is ignored (it lapses at its `JWT_REFRESH_TTL`).
+  Future<void> _endOnServer(String refreshToken) async {
+    try {
       await _remote
           .logout(refreshToken, timeout: logoutTimeout)
           .timeout(logoutTimeout);
@@ -198,6 +220,10 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       if (kDebugMode) debugPrint('Server logout skipped: $error');
     }
   }
+
+  /// The failure a sign-in the user left comes back with ([login]'s
+  /// `abandonIf`). Never shown: the caller knows the user left.
+  static const String abandonedMessage = 'sign-in left before it was stored';
 
   @override
   FutureResult<User?> currentUser() {

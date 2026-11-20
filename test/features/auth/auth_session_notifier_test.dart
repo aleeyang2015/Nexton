@@ -172,6 +172,8 @@ void main() {
       expect(current().mustChangePassword, isFalse);
       expect(current().user!.id, 'refreshed');
       expect(current().endReason, isNull);
+      // Nobody left: the sign-in is kept.
+      expect(repository.abandonedLogins, 0);
     });
 
     test('a failed re-login ends the session with passwordChanged', () async {
@@ -374,7 +376,8 @@ void main() {
       Future<Result<Unit>> change() => changeIn(container);
 
       test('"Sign out" finished while the App signs in again: the user stays '
-          'signed out, and the sign-in that came back is ended too', () async {
+          'signed out, and the sign-in that came back ends itself, never '
+          'stored', () async {
         await session();
         repository
           ..loginResult = Result.success(AuthSession.signedIn(testUser()))
@@ -389,15 +392,17 @@ void main() {
         expect(result.isSuccess, isTrue);
         expect(current().status, AuthStatus.unauthenticated);
         expect(current().endReason, isNull);
-        // The user's own sign-out, then the new sign-in's pair: both ended
-        // on the server, and nothing left stored.
-        expect(repository.logoutCalls, 2);
-        expect(repository.logoutEndSession, [true, true]);
+        // The user's own sign-out ends the old sign-in; the new one was
+        // ended by the sign-in itself, with its own refresh token, and
+        // never stored (#93).
+        expect(repository.logoutEndSession, [true]);
+        expect(repository.abandonedLogins, 1);
       });
 
       test('"Sign out" still on its way (signing the phone off for push) '
           'when the sign-in answers: the App is never shown as signed in, '
-          'and the sign-out ends the new sign-in itself', () async {
+          'and the new sign-in ends itself, whatever the sign-out read',
+          () async {
         final signOff = Completer<void>();
         final c = ProviderContainer(
           overrides: [
@@ -435,8 +440,12 @@ void main() {
           c.read(authSessionProvider).requireValue.status,
           AuthStatus.unauthenticated,
         );
-        // Once: by the sign-out, for the pair stored by then.
+        // The sign-out's own; the new sign-in was ended by itself (#93: the
+        // sign-out may have read the old refresh token), never stored, and
+        // no "password changed" reason was shown.
         expect(repository.logoutEndSession, [true]);
+        expect(repository.abandonedLogins, 1);
+        expect(c.read(authSessionProvider).requireValue.endReason, isNull);
       });
 
       test('"Sign out" while the session is read back after a held report: '

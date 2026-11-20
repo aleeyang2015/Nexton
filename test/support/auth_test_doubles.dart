@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/secure_store.dart';
 import 'package:next_on/core/network/session_end_reason.dart';
 import 'package:next_on/core/utils/result.dart';
@@ -138,13 +139,23 @@ class FakeAuthRepository implements AuthRepository {
   FutureResult<AuthSession> login({
     required String email,
     required String password,
+    bool Function()? abandonIf,
   }) async {
     loginCalls++;
     lastLoginEmail = email;
     lastLoginPassword = password;
     await whileLoggingIn?.call();
+    // As the real one: once the server has answered, the caller may have
+    // left (#93); then the new sign-in is ended, and nothing is stored.
+    if (abandonIf?.call() ?? false) {
+      abandonedLogins++;
+      return const Result.failure(Failure.unknown(message: 'left'));
+    }
     return loginResult;
   }
+
+  /// Sign-ins whose caller had left by the time the server answered (#93).
+  int abandonedLogins = 0;
 
   /// Runs while a login is on its way: what the App does meanwhile (#60: the
   /// login screen is left, and its form disposed, before the answer).

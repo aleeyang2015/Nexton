@@ -66,6 +66,55 @@ void main() {
 
   tearDown(() => sessionExpired.close());
 
+  group('a re-login the user has already left (#93)', () {
+    setUp(() {
+      remote
+        ..loginResponse = testTokens()
+        ..profile = testUserModel();
+    });
+
+    test('nothing is stored, and the new sign-in is ended on the server with '
+        'its own refresh token', () async {
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () => true,
+      );
+
+      expect(result.isFailure, isTrue);
+      expect(store.values, isEmpty);
+      expect(remote.logouts, ['refresh-1']);
+      expect(remote.lastLogoutTimeout, AuthRepositoryImpl.logoutTimeout);
+      expect(remote.profileCalls, 0);
+    });
+
+    test('ending it fails (no signal): still nothing stored, still left',
+        () async {
+      remote.logoutError = Exception('no signal');
+
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () => true,
+      );
+
+      expect(result.isFailure, isTrue);
+      expect(store.values, isEmpty);
+    });
+
+    test('not left: stored as any sign-in, nothing ended', () async {
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () => false,
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(store.values[AppConstants.refreshTokenKey], 'refresh-1');
+      expect(remote.logouts, isEmpty);
+    });
+  });
+
   group('login', () {
     test(
       'signs in and caches the session when no change is required',
