@@ -201,7 +201,7 @@ void main() {
     );
   });
 
-  group('yesterday\'s check-in with no shift times (18 h)', () {
+  group('a waiting check-in\'s 18 h', () {
     late FakeAttendanceRepository attendance;
     late FakeOffsiteRepository offsite;
     late ProviderContainer container;
@@ -276,7 +276,31 @@ void main() {
       expect(offsite.waitingMonths, hasLength(2));
     });
 
-    test('a today\'s check-in sets no reload', () async {
+    test('a today\'s 00:30 check-in (a night worker\'s): one reload at '
+        '18:30', () async {
+      clock = DateTime(2026, 11, 17, 9);
+      offsite.waitingResult = Result.success([
+        waitingOffsite(
+          method: OffsiteMethod.checkIn,
+          at: DateTime(2026, 11, 17, 0, 30),
+        ),
+      ]);
+      final notifier = await ready();
+
+      clock = DateTime(2026, 11, 17, 18, 30);
+      notifier.refreshIfNewDay();
+      await Future<void>.delayed(Duration.zero);
+      expect(offsite.waitingMonths, hasLength(1), reason: 'at 18 h: still on');
+
+      clock = DateTime(2026, 11, 17, 18, 30, 1);
+      for (var i = 0; i < 5; i++) {
+        notifier.refreshIfNewDay();
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(offsite.waitingMonths, hasLength(2));
+    });
+
+    test('a today\'s 08:00 check-in: no reload before midnight', () async {
       clock = DateTime(2026, 11, 17, 9);
       offsite.waitingResult = Result.success([
         waitingOffsite(
