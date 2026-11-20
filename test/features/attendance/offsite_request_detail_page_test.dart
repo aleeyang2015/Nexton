@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/network/paged_list.dart';
+import 'package:next_on/core/upload/presentation/file_link_image.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
@@ -24,6 +25,7 @@ import 'package:next_on/features/attendance/presentation/pages/my_requests_page.
 import 'package:next_on/l10n/generated/app_localizations_en.dart';
 
 import '../../support/attendance_test_doubles.dart';
+import '../../support/file_link_test_doubles.dart';
 
 /// One of the employee's off-site requests (#42), and the paging of the list.
 void main() {
@@ -45,6 +47,7 @@ void main() {
   Future<void> open(
     WidgetTester tester, {
     OffsiteRequestDetail? initial,
+    List<Override> extra = const [],
   }) async {
     tester.view.physicalSize = const Size(420, 2000);
     tester.view.devicePixelRatio = 1;
@@ -67,7 +70,10 @@ void main() {
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [offsiteRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          offsiteRepositoryProvider.overrideWithValue(repository),
+          ...extra,
+        ],
         child: MaterialApp.router(
           routerConfig: router,
           scaffoldMessengerKey: rootScaffoldMessengerKey,
@@ -87,6 +93,30 @@ void main() {
 
     expect(repository.detailCalls, ['off-1']);
     expect(find.text('Awaiting approval'), findsWidgets);
+  });
+
+  testWidgets('the photo\'s link has expired (#73): the thumbnail reads the '
+      'request again once, for a new link', (tester) async {
+    resetExpiredLinkReports();
+    OffsiteRequestDetail withPhoto(String url) => waitingOffsite(
+      method: OffsiteMethod.checkIn,
+      at: DateTime(2026, 10, 2, 8, 15),
+      attachmentUrl: url,
+    );
+    repository.detailResults = [
+      Result.success(withPhoto('https://f/old.jpg')),
+      Result.success(withPhoto('https://f/new.jpg')),
+    ];
+
+    await open(
+      tester,
+      extra: [
+        fileLinksFailWith(403, failing: (url) => url.endsWith('old.jpg')),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    expect(repository.detailCalls, ['off-1', 'off-1']);
   });
 
   testWidgets('a waiting request offers Cancel; a decided one does not', (

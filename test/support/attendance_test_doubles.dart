@@ -461,6 +461,7 @@ OffsiteRequestDetail waitingOffsite({
   TimeCorrectionShift? shift,
   DateTime? submittedAt,
   bool noScanTime = false,
+  String attachmentUrl = 'https://files.nexton.work/uploads/shop.jpg',
 }) => OffsiteRequestDetail(
   id: id,
   employee: const TimeCorrectionEmployee(name: 'Somchai'),
@@ -471,7 +472,7 @@ OffsiteRequestDetail waitingOffsite({
   scanDate: DateTime(at.year, at.month, at.day),
   sessionOrder: sessionOrder,
   shift: shift,
-  attachmentUrl: 'https://files.nexton.work/uploads/shop.jpg',
+  attachmentUrl: attachmentUrl,
   reason: 'Client visit',
   status: status,
   currentStepNo: 1,

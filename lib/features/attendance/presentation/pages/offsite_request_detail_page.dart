@@ -101,6 +101,7 @@ class OffsiteRequestDetailPage extends ConsumerWidget {
                     // Shown by the card only while the request waits.
                     onCancel: () => _cancel(context, ref),
                     cancelling: cancelling,
+                    onPhotoExpired: _renewLinks(context, ref, requestId),
                   ),
                   heightBx(h: 16),
                   TimeCorrectionApprovalWorkflow(
