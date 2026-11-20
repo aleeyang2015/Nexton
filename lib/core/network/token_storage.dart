@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/app_constants.dart';
@@ -43,11 +45,39 @@ abstract class TokenStorage {
   /// Drops both tokens and the access-token expiry. Callers that also cache a
   /// profile clear it separately.
   Future<void> clear();
+
+  /// Stores a sign-in's tokens and the access token's expiry together.
+  Future<void> saveSignIn({
+    required String accessToken,
+    required String refreshToken,
+    DateTime? expiresAt,
+  });
+
+  /// Stores a renewal's tokens, but only while [sentRefreshToken] is still
+  /// the saved refresh token. False, and nothing written, when it is not.
+  Future<bool> saveRenewed({
+    required String sentRefreshToken,
+    required String accessToken,
+    String? refreshToken,
+    DateTime? expiresAt,
+    void Function(String? previousAccessToken)? onAccepted,
+  });
+
+  /// [clear], but only while [sentRefreshToken] is still the saved refresh
+  /// token. False, and nothing cleared, when it is not.
+  Future<bool> clearIfRefreshIs(String sentRefreshToken);
 }
 
 /// Keychain/Keystore-backed token storage, as auth.md requires. Tokens never
 /// touch SharedPreferences — see [LegacySessionMigration] for the one-time
 /// move of anything an older build left there.
+///
+/// One keychain operation at a time (#71): every read that misses the
+/// in-memory copy, every write and the clear run in turn, so their steps
+/// never interleave. A sign-out's clear is never cut into by a renewal's
+/// "is this still the same sign-in?" check and its writes, a refused
+/// renewal's clear never wipes the next user's sign-in, and a first read
+/// never brings back a token the clear is deleting.
 class SecureTokenStorage implements TokenStorage {
   final SecureStore _store;
 
@@ -59,34 +89,69 @@ class SecureTokenStorage implements TokenStorage {
   /// written in.
   String? _expiresAt;
 
+  /// Done when the last keychain operation queued has finished; null while
+  /// none is queued, so an idle storage starts the next one at once and
+  /// never waits on a future from an earlier zone.
+  Future<void>? _tail;
+
   SecureTokenStorage(this._store);
 
+  /// Runs [step] once every operation queued before it has finished. A
+  /// step must not call another public method of this class (it would wait
+  /// on itself): it uses the `_…Now` helpers.
+  Future<T> _serial<T>(Future<T> Function() step) async {
+    final previous = _tail;
+    final done = Completer<void>();
+    _tail = done.future;
+    try {
+      if (previous != null) await previous;
+      return await step();
+    } finally {
+      if (identical(_tail, done.future)) _tail = null;
+      done.complete();
+    }
+  }
+
   @override
-  Future<String?> readAccessToken() async =>
+  Future<String?> readAccessToken() async {
+    final cached = _accessToken;
+    if (cached != null) return cached;
+    return _serial(_readAccessNow);
+  }
+
+  Future<String?> _readAccessNow() async =>
       _accessToken ??= await _store.read(AppConstants.accessTokenKey);
 
   @override
   Future<String?> readRefreshToken() =>
-      _store.read(AppConstants.refreshTokenKey);
+      _serial(() => _store.read(AppConstants.refreshTokenKey));
 
   @override
-  Future<void> writeAccessToken(String token) async {
+  Future<void> writeAccessToken(String token) => _serial(() async {
     _accessToken = token;
     await _store.write(AppConstants.accessTokenKey, token);
-  }
+  });
 
   @override
   Future<void> writeRefreshToken(String token) =>
-      _store.write(AppConstants.refreshTokenKey, token);
+      _serial(() => _store.write(AppConstants.refreshTokenKey, token));
 
   @override
   Future<DateTime?> readAccessTokenExpiry() async {
-    final raw = _expiresAt ??= await _store.read(AppConstants.expiresAtKey);
+    final raw =
+        _expiresAt ??
+        await _serial(
+          () async =>
+              _expiresAt ??= await _store.read(AppConstants.expiresAtKey),
+        );
     return tokenExpiryFromUnixSeconds(raw);
   }
 
   @override
-  Future<void> writeAccessTokenExpiry(DateTime? expiry) async {
+  Future<void> writeAccessTokenExpiry(DateTime? expiry) =>
+      _serial(() => _writeExpiryNow(expiry));
+
+  Future<void> _writeExpiryNow(DateTime? expiry) async {
     if (expiry == null) {
       _expiresAt = null;
       await _store.delete(AppConstants.expiresAtKey);
@@ -99,13 +164,64 @@ class SecureTokenStorage implements TokenStorage {
   }
 
   @override
-  Future<void> clear() async {
+  Future<void> clear() {
+    // Dropped from memory at once, so no header is attached from here on;
+    // and again when the clear's turn comes, after any step queued before.
+    _accessToken = null;
+    _expiresAt = null;
+    return _serial(_clearNow);
+  }
+
+  Future<void> _clearNow() async {
     _accessToken = null;
     _expiresAt = null;
     await _store.delete(AppConstants.accessTokenKey);
     await _store.delete(AppConstants.refreshTokenKey);
     await _store.delete(AppConstants.expiresAtKey);
   }
+
+  @override
+  Future<void> saveSignIn({
+    required String accessToken,
+    required String refreshToken,
+    DateTime? expiresAt,
+  }) => _serial(() async {
+    _accessToken = accessToken;
+    await _store.write(AppConstants.accessTokenKey, accessToken);
+    await _store.write(AppConstants.refreshTokenKey, refreshToken);
+    await _writeExpiryNow(expiresAt);
+  });
+
+  @override
+  Future<bool> saveRenewed({
+    required String sentRefreshToken,
+    required String accessToken,
+    String? refreshToken,
+    DateTime? expiresAt,
+    void Function(String? previousAccessToken)? onAccepted,
+  }) => _serial(() async {
+    final saved = await _store.read(AppConstants.refreshTokenKey);
+    if (saved != sentRefreshToken) return false;
+    final previous = await _readAccessNow();
+    // Told, and the copy in memory switched, in one go: no 401 can find
+    // the new token without its line known (#89).
+    onAccepted?.call(previous);
+    _accessToken = accessToken;
+    await _store.write(AppConstants.accessTokenKey, accessToken);
+    if (refreshToken != null) {
+      await _store.write(AppConstants.refreshTokenKey, refreshToken);
+    }
+    await _writeExpiryNow(expiresAt);
+    return true;
+  });
+
+  @override
+  Future<bool> clearIfRefreshIs(String sentRefreshToken) => _serial(() async {
+    final saved = await _store.read(AppConstants.refreshTokenKey);
+    if (saved != sentRefreshToken) return false;
+    await _clearNow();
+    return true;
+  });
 }
 
 /// One-time move of a session written by a build that kept it in

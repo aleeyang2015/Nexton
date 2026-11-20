@@ -50,10 +50,11 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
       // Sent at sign-out with whatever access token is stored: one that has
       // run out (15 minutes) is renewed on its 401 and the DELETE sent again
       // (#71), or the row would stay on and a shared phone keep getting this
-      // user's pushes. A renewal that answers after the sign-out cleared the
-      // tokens writes nothing back (the interceptor checks the refresh token
-      // is still the saved one), and a refused one ends no session twice:
-      // the sign-out drops that report.
+      // user's pushes. A renewal that answers while or after the sign-out
+      // clears the tokens writes nothing back (the token storage checks the
+      // refresh token and writes in one step, which a clear cannot cut
+      // into), and a refused one ends no session twice: the sign-out drops
+      // that report.
       await _client.delete<dynamic>(PushPaths.device(deviceId));
     } on DioException catch (error) {
       if (error.response?.statusCode == 404) return;

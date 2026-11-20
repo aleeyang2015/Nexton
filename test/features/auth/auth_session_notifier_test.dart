@@ -963,8 +963,9 @@ void main() {
       );
     });
 
-    test('a forced sign-out while the sign-off waits, then someone else signs '
-        'in: the waiting sign-out ends nothing of theirs', () async {
+    test('a session-end report while the sign-off waits ends nothing by '
+        'itself (#71); the sign-out then leaves whoever is signed in alone',
+        () async {
       repository.restoreResult = Result.success(
         AuthSession.signedIn(testUser()),
       );

@@ -13,8 +13,6 @@ import 'package:next_on/core/network/auth_interceptor.dart';
 import 'package:next_on/core/network/network_info.dart';
 import 'package:next_on/core/network/session_end_reason.dart';
 import 'package:next_on/core/network/token_storage.dart';
-import 'package:next_on/features/notifications/data/datasources/device_remote_data_source.dart';
-import 'package:next_on/features/notifications/data/datasources/push_api_paths.dart';
 
 import '../../support/auth_test_doubles.dart';
 
@@ -1221,9 +1219,14 @@ void main() {
     });
   });
 
-  group('the sign-off DELETE at sign-out (#52, #71)', () {
-    final path = PushPaths.device('dev-1');
+  group('a request at sign-out that may renew its token: the push sign-off '
+      'DELETE (#52, #71)', () {
+    // The device row's path; the request is the one the push sign-off sends
+    // (no no-refresh flag: test/features/notifications/
+    // device_remote_data_source_test.dart).
+    const path = '/mobile/devices/dev-1';
     const gone = _Reply(204);
+    Future<void> deleteDevice(_Harness h) => h.client.delete<dynamic>(path);
 
     test('an expired access token is renewed and the DELETE sent again: the '
         'row goes off, no session ended', () async {
@@ -1231,7 +1234,7 @@ void main() {
       h.adapter.queue(path, [_unauthorized, gone]);
       h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
 
-      await DeviceRemoteDataSourceImpl(h.client).unregister('dev-1');
+      await deleteDevice(h);
 
       final deletes = h.requestsTo(path).toList();
       expect(deletes, hasLength(2));
@@ -1249,7 +1252,7 @@ void main() {
       h.adapter.queue(ApiPaths.refresh, [_unauthorized]);
 
       await expectLater(
-        DeviceRemoteDataSourceImpl(h.client).unregister('dev-1'),
+        deleteDevice(h),
         throwsA(isA<DioException>()),
       );
 
@@ -1265,7 +1268,7 @@ void main() {
       ]);
 
       await expectLater(
-        DeviceRemoteDataSourceImpl(h.client).unregister('dev-1'),
+        deleteDevice(h),
         throwsA(isA<DioException>()),
       );
 
@@ -1273,6 +1276,33 @@ void main() {
       expect(await h.tokens.readAccessToken(), 'access-1');
       expect(await h.tokens.readRefreshToken(), 'refresh-1');
       expect(h.sessionExpiredEvents, isEmpty);
+    });
+
+    test('the renewal answers while the sign-out clears the tokens: nothing '
+        'is written back, and the DELETE is not sent again', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(path, [_unauthorized, gone]);
+      h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+      final refreshHeld = Completer<void>();
+      h.adapter.holdRefresh = refreshHeld;
+
+      final deleting = deleteDevice(h).then((_) {}, onError: (_) {});
+      await pumpEventQueue();
+      // The 5 s limit passed: the sign-out clears, and its last step waits
+      // on the keychain while the renewal answers.
+      final clearHeld = Completer<void>();
+      h.store.holdDelete[AppConstants.refreshTokenKey] = clearHeld;
+      final clearing = h.tokens.clear();
+      await pumpEventQueue();
+      refreshHeld.complete();
+      await pumpEventQueue();
+      clearHeld.complete();
+      await clearing;
+      await deleting;
+
+      expect(h.store.values, isEmpty);
+      expect(await h.tokens.readAccessToken(), isNull);
+      expect(h.requestsTo(path), hasLength(1));
     });
   });
 }
