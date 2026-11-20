@@ -27,8 +27,8 @@ class OffsiteClockOut extends NextPunch {
 
   final OffsiteRequestDetail checkIn;
 
-  /// When this stops being offered: [noShiftReach] after a check-in from
-  /// yesterday with no shift times. Null when it holds until the day ends.
+  /// When this stops being offered: [pairReach] after a check-in from
+  /// yesterday. Null for today's check-in: it holds until the day ends.
   final DateTime? until;
 }
 
@@ -41,9 +41,9 @@ class WaitingBoth extends NextPunch {
   final OffsiteRequestDetail checkIn;
 }
 
-/// A check-in from yesterday with no shift times, still waiting, but past
-/// [noShiftReach]: the server no longer pairs a check-out with it, so the
-/// slide is back on a normal clock-in. The card still says it waits.
+/// A check-in from yesterday, still waiting, but past [pairReach]: the
+/// server may no longer pair a check-out with it, so the slide is back on a
+/// normal clock-in. The card still says it waits.
 class WaitingCheckIn extends NextPunch {
   const WaitingCheckIn(this.checkIn);
 
@@ -56,14 +56,15 @@ class WaitingCheckIn extends NextPunch {
 /// 2. an open OT clock-in ([otOpen], #34) → normal clock-out;
 /// 3. a waiting off-site check-in scanned [today] — or the day before when
 ///    its shift crosses midnight (a night shift still running) — with no
-///    waiting check-out paired to it → off-site clock-out. A day shift's
-///    check-in from yesterday that was never closed does not hold today's
-///    slide on "clock out": today starts with a normal clock-in, and the
-///    server decides;
+///    waiting check-out paired to it → off-site clock-out; one from the day
+///    before only up to [pairReach] after the scan (owner, 21 Nov 2026),
+///    then [WaitingCheckIn]. A day shift's check-in from yesterday that was
+///    never closed does not hold today's slide on "clock out": today starts
+///    with a normal clock-in, and the server decides;
 /// 4. one from the day before with no shift times (a scan on a rest day, or
 ///    its part deleted; owner decision on #41, 19 Nov 2026) → off-site
-///    clock-out up to [noShiftReach] after the scan, the server's own reach
-///    for a scan with no shift part; after that [WaitingCheckIn];
+///    clock-out up to [pairReach] after the scan; after that
+///    [WaitingCheckIn];
 /// 5. one with its check-out also waiting → [WaitingBoth];
 /// 6. a check-in past its reach (4) → [WaitingCheckIn];
 /// 7. else a normal clock-in.
@@ -105,11 +106,10 @@ NextPunch nextPunch({
       paired ??= checkIn;
       continue;
     }
-    // Only yesterday's scan with no shift times has a reach: a night shift
-    // runs to its own end, and today's scan holds the whole day.
-    final until =
-        _date(checkIn.scanDate!) == yesterday && !_hasShiftTimes(checkIn)
-        ? _when(checkIn).add(noShiftReach)
+    // Yesterday's scan has a reach, a night shift's too (owner, 21 Nov
+    // 2026); today's scan holds the whole day.
+    final until = _date(checkIn.scanDate!) == yesterday
+        ? _when(checkIn).add(pairReach)
         : null;
     if (until == null) return OffsiteClockOut(checkIn);
     if (!now.isAfter(until)) return OffsiteClockOut(checkIn, until: until);
@@ -120,9 +120,13 @@ NextPunch nextPunch({
   return const NormalClockIn();
 }
 
-/// How long after a scan with no shift part the server still pairs an
-/// off-site check-out with it (`newestPendingOffsiteCheckin`, #41).
-const noShiftReach = Duration(hours: 18);
+/// How long after yesterday's scan the slide still offers an off-site
+/// check-out for it. The server pairs one for `openReach`: 18 h for a scan
+/// with no shift part, and never less for one with a part (`openReachSQL`'s
+/// floor; longer only for a part over 14 h, or with late-checkout minutes or
+/// early-checkin minutes over 4 h). The App is not sent those minutes, so it
+/// stops at the floor: it never offers a check-out the server refuses (#41).
+const pairReach = Duration(hours: 18);
 
 bool _waitingAs(OffsiteRequestDetail r, OffsiteMethod method) =>
     r.method == method && r.status == TimeCorrectionStatus.pending;

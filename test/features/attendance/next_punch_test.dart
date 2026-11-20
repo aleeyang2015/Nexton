@@ -248,16 +248,36 @@ void main() {
         );
       });
 
-      test('a night shift from yesterday has no 18 h limit, and no until', () {
-        // 01:00 on a 22:00–06:00 shift; 19 h later is 20:00 today.
+      group('a night shift from yesterday stops at 18 h too (owner, 21 Nov)',
+          () {
+        // Lee checks in off-site at 22:00 Monday on a 22:00–06:00 shift and
+        // never checks out. The server pairs a check-out with it for at least
+        // 18 h (openReach's floor), so the slide offers it that long, then
+        // goes back to a normal clock-in for Tuesday's shift.
         final night = waitingOffsite(
           method: OffsiteMethod.checkIn,
-          at: DateTime(2026, 11, 16, 1),
+          at: DateTime(2026, 11, 16, 22),
           shift: nightShift,
         );
-        final next = decide([night], now: DateTime(2026, 11, 17, 20));
-        expect(next, isA<OffsiteClockOut>());
-        expect((next as OffsiteClockOut).until, isNull);
+
+        test('17 h later: an off-site clock-out that says when it stops', () {
+          final next = decide([night], now: DateTime(2026, 11, 17, 15));
+          expect(next, isA<OffsiteClockOut>());
+          expect((next as OffsiteClockOut).until, DateTime(2026, 11, 17, 16));
+        });
+
+        test('exactly 18 h later: still an off-site clock-out', () {
+          expect(
+            decide([night], now: DateTime(2026, 11, 17, 16)),
+            isA<OffsiteClockOut>(),
+          );
+        });
+
+        test('18 h and a second later: a normal clock-in, still shown', () {
+          final next = decide([night], now: DateTime(2026, 11, 17, 16, 0, 1));
+          expect(next, isA<WaitingCheckIn>());
+          expect((next as WaitingCheckIn).checkIn.id, 'off-1');
+        });
       });
 
       test('within 18 h: the clock-out says when it stops', () {
