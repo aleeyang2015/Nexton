@@ -845,6 +845,7 @@
   "otSaveAction": "Save",
   "otCancelConfirm": "Cancel this OT request?",
   "otCancelledToast": "OT request cancelled",
+  "otApprovedCancelledToast": "OT cancelled",
   "otPostsTitle": "OT posts",
   "otPostPlacesLeft": "{n} places left",
   "@otPostPlacesLeft": {"placeholders": {"n": {"type": "int"}}},

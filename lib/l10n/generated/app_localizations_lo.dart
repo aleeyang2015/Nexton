@@ -2090,6 +2090,9 @@ class AppLocalizationsLo extends AppLocalizations {
   String get otCancelledToast => 'ຍົກເລີກຄຳຂໍໂອທີແລ້ວ';
 
   @override
+  String get otApprovedCancelledToast => 'ຍົກເລີກໂອທີແລ້ວ';
+
+  @override
   String get otPostsTitle => 'ປະກາດໂອທີ';
 
   @override

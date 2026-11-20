@@ -644,6 +644,7 @@
   "otSaveAction": "ບັນທຶກ",
   "otCancelConfirm": "ຍົກເລີກຄຳຂໍໂອທີນີ້ບໍ?",
   "otCancelledToast": "ຍົກເລີກຄຳຂໍໂອທີແລ້ວ",
+  "otApprovedCancelledToast": "ຍົກເລີກໂອທີແລ້ວ",
   "otPostsTitle": "ປະກາດໂອທີ",
   "otPostPlacesLeft": "ຍັງເຫຼືອ {n} ບ່ອນ",
   "otPostNoLimit": "ບໍ່ຈຳກັດຈຳນວນ",
