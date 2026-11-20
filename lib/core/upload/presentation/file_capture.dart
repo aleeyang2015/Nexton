@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -19,6 +21,25 @@ abstract class FileCapture {
   Future<CaptureResult> pickFile({required bool allowPdf});
 }
 
+/// Opens the phone's chooser: `file_picker`'s `FilePicker.pickFiles`, with
+/// only the options the App sets.
+typedef PickFiles =
+    Future<FilePickerResult?> Function({
+      required FileType type,
+      List<String>? allowedExtensions,
+      required int compressionQuality,
+    });
+
+Future<FilePickerResult?> _filePicker({
+  required FileType type,
+  List<String>? allowedExtensions,
+  required int compressionQuality,
+}) => FilePicker.pickFiles(
+  type: type,
+  allowedExtensions: allowedExtensions,
+  compressionQuality: compressionQuality,
+);
+
 /// The real one: the App's in-app camera screen (opened by [openCamera], as
 /// the App's router knows it) and `file_picker` for the gallery and files.
 ///
@@ -26,9 +47,20 @@ abstract class FileCapture {
 /// well under the limit, and a chosen photo or file is held to it by the
 /// upload's size check.
 class FilePickerCapture implements FileCapture {
-  const FilePickerCapture({required this.openCamera});
+  const FilePickerCapture({
+    required this.openCamera,
+    PickFiles? pickFiles,
+    bool? isIOS,
+  }) : _pickFiles = pickFiles,
+       _isIOS = isIOS;
 
   final Future<LocalFile?> Function(BuildContext context) openCamera;
+
+  /// `file_picker`'s chooser; a test passes its own.
+  final PickFiles? _pickFiles;
+
+  /// Whether this is an iPhone; a test says which.
+  final bool? _isIOS;
 
   static const List<String> imageExtensions = ['jpg', 'jpeg', 'png'];
 
@@ -38,8 +70,20 @@ class FilePickerCapture implements FileCapture {
     return file == null ? const CaptureCancelled() : Captured(file);
   }
 
+  /// An iPhone gallery photo is usually a HEIC, which the photo uploads
+  /// refuse and HR's browser may not show (#59). Any value above 0 makes
+  /// `file_picker` ask iOS's photo picker for the photo's compatible version
+  /// (`PHPickerConfigurationAssetRepresentationModeCompatible`): iOS hands
+  /// over a JPEG, turned the right way up; the number is not used there.
+  /// Android keeps 0, the original file: there the plugin would re-encode
+  /// the whole photo in memory and drop its rotation.
+  static const int iosCompatibleQuality = 100;
+
   @override
-  Future<CaptureResult> pickPhoto() => _pick(type: FileType.image);
+  Future<CaptureResult> pickPhoto() => _pick(
+    type: FileType.image,
+    compressionQuality: (_isIOS ?? Platform.isIOS) ? iosCompatibleQuality : 0,
+  );
 
   @override
   Future<CaptureResult> pickFile({required bool allowPdf}) => _pick(
@@ -50,11 +94,14 @@ class FilePickerCapture implements FileCapture {
   Future<CaptureResult> _pick({
     required FileType type,
     List<String>? extensions,
+    int compressionQuality = 0,
   }) async {
     try {
-      final result = await FilePicker.pickFiles(
+      final pick = _pickFiles ?? _filePicker;
+      final result = await pick(
         type: type,
         allowedExtensions: extensions,
+        compressionQuality: compressionQuality,
       );
       final file = result?.files.singleOrNull;
       final path = file?.path;
