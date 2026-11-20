@@ -70,12 +70,29 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
         final user = (await _remote.fetchProfile()).withDepartmentHead(
           tokens.isDepartmentHead,
         );
+        // Asked again: "Sign out" may have come after the first answer, and
+        // a sign-out that read the refresh token before this pair was
+        // written sent the old one (#93). The pair is ended here too (a
+        // second logout of it does no harm), removed from the phone while it
+        // is still the stored one (not someone's sign-in made since), and
+        // the profile is not kept.
+        if (abandonIf?.call() ?? false) {
+          await _endOnServer(tokens.refreshToken);
+          if (await _local.readRefreshToken() == tokens.refreshToken) {
+            await _local.clear();
+          }
+          throw const Failure.unknown(message: abandonedMessage);
+        }
         await _local.writeUser(user);
 
         return AuthSession.signedIn(
           user.toEntity(),
           mustChangePassword: tokens.mustChangePassword,
         );
+      } on Failure catch (failure) {
+        if (failure.message == abandonedMessage) rethrow;
+        await _local.clear();
+        rethrow;
       } catch (_) {
         await _local.clear();
         rethrow;

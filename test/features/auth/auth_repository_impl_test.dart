@@ -102,6 +102,41 @@ void main() {
       expect(store.values, isEmpty);
     });
 
+    test('left after the pair was stored (the tap landed after the first '
+        'check): ended with its own refresh token, the pair removed, the '
+        'profile not cached', () async {
+      var asked = 0;
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () => ++asked > 1,
+      );
+
+      expect(asked, 2);
+      expect(result.isFailure, isTrue);
+      expect(remote.logouts, ['refresh-1']);
+      expect(store.values, isEmpty);
+    });
+
+    test('left after the pair was stored, and another sign-in has replaced '
+        'it since: theirs is left alone', () async {
+      var asked = 0;
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () {
+          if (++asked == 1) return false;
+          // Someone else's pair, stored meanwhile.
+          store.values[AppConstants.refreshTokenKey] = 'refresh-b';
+          return true;
+        },
+      );
+
+      expect(result.isFailure, isTrue);
+      expect(remote.logouts, ['refresh-1']);
+      expect(store.values[AppConstants.refreshTokenKey], 'refresh-b');
+    });
+
     test('not left: stored as any sign-in, nothing ended', () async {
       final result = await repository.login(
         email: 'somphone.vilaysone@nexton.la',

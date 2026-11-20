@@ -38,7 +38,10 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
             return;
           }
           // Held while the password is being changed: see [changePassword].
-          if (_changingPassword) {
+          // Only while that user is still the one signed in: a report that
+          // comes once someone else has signed in (the left change still
+          // ending its own sign-in, #93) is theirs, and acted on.
+          if (_changingPassword && _stillSignedInAs(_changingPasswordAs)) {
             _endedWhileChangingPassword ??= reason;
             return;
           }
@@ -115,6 +118,7 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
     required String confirmPassword,
   }) async {
     _changingPassword = true;
+    _changingPasswordAs = state.valueOrNull?.user?.id;
     _endedWhileChangingPassword = null;
     try {
       return await _changePassword(
@@ -130,6 +134,9 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
 
   /// True while [changePassword] runs.
   bool _changingPassword = false;
+
+  /// Who was signed in when [changePassword] began.
+  String? _changingPasswordAs;
 
   /// The session-end report held while [changePassword] runs, if one came.
   SessionEndReason? _endedWhileChangingPassword;
