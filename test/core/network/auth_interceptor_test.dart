@@ -13,6 +13,8 @@ import 'package:next_on/core/network/auth_interceptor.dart';
 import 'package:next_on/core/network/network_info.dart';
 import 'package:next_on/core/network/session_end_reason.dart';
 import 'package:next_on/core/network/token_storage.dart';
+import 'package:next_on/features/notifications/data/datasources/device_remote_data_source.dart';
+import 'package:next_on/features/notifications/data/datasources/push_api_paths.dart';
 
 import '../../support/auth_test_doubles.dart';
 
@@ -1215,6 +1217,61 @@ void main() {
       expect(thrown, isA<ValidationFailure>());
       expect((thrown as ValidationFailure).code, 'MODULE_NOT_ACTIVE');
       expect(await h.tokens.readAccessToken(), 'access-1');
+      expect(h.sessionExpiredEvents, isEmpty);
+    });
+  });
+
+  group('the sign-off DELETE at sign-out (#52, #71)', () {
+    final path = PushPaths.device('dev-1');
+    const gone = _Reply(204);
+
+    test('an expired access token is renewed and the DELETE sent again: the '
+        'row goes off, no session ended', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(path, [_unauthorized, gone]);
+      h.adapter.queue(ApiPaths.refresh, [_rotatedTokens]);
+
+      await DeviceRemoteDataSourceImpl(h.client).unregister('dev-1');
+
+      final deletes = h.requestsTo(path).toList();
+      expect(deletes, hasLength(2));
+      expect(
+        deletes.last.headers[AppConstants.authorizationHeader],
+        'Bearer access-2',
+      );
+      expect(h.requestsTo(ApiPaths.refresh), hasLength(1));
+      expect(h.sessionExpiredEvents, isEmpty);
+    });
+
+    test('a refused refresh: the DELETE fails, no second DELETE', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(path, [_unauthorized]);
+      h.adapter.queue(ApiPaths.refresh, [_unauthorized]);
+
+      await expectLater(
+        DeviceRemoteDataSourceImpl(h.client).unregister('dev-1'),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(h.requestsTo(path), hasLength(1));
+    });
+
+    test('no signal on the refresh: the DELETE fails, the stored tokens '
+        'stay as they were', () async {
+      final h = await _Harness.create();
+      h.adapter.queue(path, [_unauthorized]);
+      h.adapter.queue(ApiPaths.refresh, [
+        const _Reply.noAnswer(DioExceptionType.connectionError),
+      ]);
+
+      await expectLater(
+        DeviceRemoteDataSourceImpl(h.client).unregister('dev-1'),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(h.requestsTo(path), hasLength(1));
+      expect(await h.tokens.readAccessToken(), 'access-1');
+      expect(await h.tokens.readRefreshToken(), 'refresh-1');
       expect(h.sessionExpiredEvents, isEmpty);
     });
   });
