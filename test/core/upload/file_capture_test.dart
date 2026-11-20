@@ -34,21 +34,31 @@ FilePickerCapture _capture(_Picker picker, {required bool isIOS}) =>
 /// The gallery and the file chooser (#59: an iPhone gallery photo is a
 /// HEIC, which the photo uploads refuse).
 void main() {
-  test('iPhone gallery: asks iOS for the compatible version (a JPEG, not '
-      'the HEIC original)', () async {
+  test('iPhone gallery, compatible asked (the profile photo): asks iOS for '
+      'the compatible version, a JPEG, not the HEIC original', () async {
     final picker = _Picker();
 
-    await _capture(picker, isIOS: true).pickPhoto();
+    await _capture(picker, isIOS: true).pickPhoto(compatible: true);
 
     expect(picker.type, FileType.image);
     expect(picker.quality, greaterThan(0));
   });
 
-  test('Android gallery: the original file, never re-encoded (that would '
-      'drop its rotation)', () async {
+  test('iPhone gallery, compatible not asked (leave, "forgot to scan"): the '
+      'original, as before', () async {
     final picker = _Picker();
 
-    await _capture(picker, isIOS: false).pickPhoto();
+    await _capture(picker, isIOS: true).pickPhoto();
+
+    expect(picker.type, FileType.image);
+    expect(picker.quality, 0);
+  });
+
+  test('Android gallery, even when compatible is asked: the original file, '
+      'never re-encoded (that would drop its rotation)', () async {
+    final picker = _Picker();
+
+    await _capture(picker, isIOS: false).pickPhoto(compatible: true);
 
     expect(picker.type, FileType.image);
     expect(picker.quality, 0);

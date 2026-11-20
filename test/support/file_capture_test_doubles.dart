@@ -9,7 +9,8 @@ class FakeFileCapture implements FileCapture {
     LocalFile(path: '/phone/IMG_0001.jpg', name: 'IMG_0001.jpg'),
   );
 
-  /// `camera`, `gallery` or `file(pdf)` / `file`, in the order asked.
+  /// `camera`, `gallery` / `gallery(compatible)` or `file(pdf)` / `file`,
+  /// in the order asked.
   final List<String> asked = [];
 
   @override
@@ -19,8 +20,8 @@ class FakeFileCapture implements FileCapture {
   }
 
   @override
-  Future<CaptureResult> pickPhoto() async {
-    asked.add('gallery');
+  Future<CaptureResult> pickPhoto({bool compatible = false}) async {
+    asked.add(compatible ? 'gallery(compatible)' : 'gallery');
     return answer;
   }
 

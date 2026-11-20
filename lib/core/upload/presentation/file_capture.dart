@@ -13,8 +13,9 @@ abstract class FileCapture {
   /// The App's own camera screen.
   Future<CaptureResult> takePhoto(BuildContext context);
 
-  /// A photo from the phone's gallery.
-  Future<CaptureResult> pickPhoto();
+  /// A photo from the phone's gallery. With [compatible], one every
+  /// browser shows (a JPEG for an iPhone's HEIC), where the phone can say.
+  Future<CaptureResult> pickPhoto({bool compatible = false});
 
   /// A file: an image (`jpg`, `jpeg`, `png`), or a PDF too when
   /// [allowPdf].
@@ -70,19 +71,23 @@ class FilePickerCapture implements FileCapture {
     return file == null ? const CaptureCancelled() : Captured(file);
   }
 
-  /// An iPhone gallery photo is usually a HEIC, which the photo uploads
-  /// refuse and HR's browser may not show (#59). Any value above 0 makes
-  /// `file_picker` ask iOS's photo picker for the photo's compatible version
+  /// An iPhone gallery photo is usually a HEIC, which the profile photo's
+  /// upload refuses (#59). Any value above 0 makes `file_picker` ask iOS's
+  /// photo picker for the photo's compatible version
   /// (`PHPickerConfigurationAssetRepresentationModeCompatible`): iOS hands
   /// over a JPEG, turned the right way up; the number is not used there.
-  /// Android keeps 0, the original file: there the plugin would re-encode
-  /// the whole photo in memory and drop its rotation.
+  /// Only when [pickPhoto] is asked for it: the JPEG is bigger than the
+  /// HEIC, and the other uploads take a HEIC as it is. Android always
+  /// keeps 0, the original file: there the plugin would re-encode the whole
+  /// photo in memory and drop its rotation.
   static const int iosCompatibleQuality = 100;
 
   @override
-  Future<CaptureResult> pickPhoto() => _pick(
+  Future<CaptureResult> pickPhoto({bool compatible = false}) => _pick(
     type: FileType.image,
-    compressionQuality: (_isIOS ?? Platform.isIOS) ? iosCompatibleQuality : 0,
+    compressionQuality: compatible && (_isIOS ?? Platform.isIOS)
+        ? iosCompatibleQuality
+        : 0,
   );
 
   @override
