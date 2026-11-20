@@ -278,6 +278,26 @@ void main() {
           expect(next, isA<WaitingCheckIn>());
           expect((next as WaitingCheckIn).checkIn.id, 'off-1');
         });
+        test('scanned after midnight (00:30, dated today): 18 h, then a '
+            'normal clock-in for tonight', () {
+          // The server dates a scan by its own calendar day, so 00:30 Tuesday
+          // is Tuesday's; it stops pairing at 18:30.
+          final late = waitingOffsite(
+            method: OffsiteMethod.checkIn,
+            at: DateTime(2026, 11, 17, 0, 30),
+            shift: nightShift,
+          );
+          final before = decide([late], now: DateTime(2026, 11, 17, 18, 30));
+          expect(before, isA<OffsiteClockOut>());
+          expect(
+            (before as OffsiteClockOut).until,
+            DateTime(2026, 11, 17, 18, 30),
+          );
+          expect(
+            decide([late], now: DateTime(2026, 11, 17, 18, 30, 1)),
+            isA<WaitingCheckIn>(),
+          );
+        });
       });
 
       test('within 18 h: the clock-out says when it stops', () {

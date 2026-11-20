@@ -172,9 +172,9 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
   /// left open does not keep offering a clock-out the server will no longer
   /// take for that OT: the server says again what is open.
   ///
-  /// And once when an off-site clock-out for yesterday's check-in with no
-  /// shift times reaches its 18 h (#41): the card goes back to a normal
-  /// clock-in and keeps the waiting line.
+  /// And once when an off-site clock-out reaches its 18 h after the scan
+  /// (#41): the card goes back to a normal clock-in and keeps the waiting
+  /// line.
   void refreshIfNewDay() {
     if (_disposed || state.isLoadingToday) return;
     final now = ref.read(clockProvider)();
@@ -196,9 +196,8 @@ class AttendanceNotifier extends AutoDisposeNotifier<AttendanceState> {
     }
   }
 
-  /// When the off-site clock-out the last load offered stops (a check-in
-  /// from yesterday with no shift times, 18 h on, #41); null when there is
-  /// none. Cleared on the one reload it triggers.
+  /// When the off-site clock-out the last load offered stops (18 h after
+  /// its scan, #41); null when there is none. Cleared on the one reload it triggers.
   DateTime? _offsiteUntil;
 
   /// The "clock out by" time already reloaded for once it passed: the
