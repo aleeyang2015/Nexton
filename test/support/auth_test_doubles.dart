@@ -32,8 +32,14 @@ class InMemorySecureStore implements SecureStore {
     return values[key];
   }
 
+  /// A write of a key in here throws, as a keychain that refuses it.
+  final Set<String> failWrite = {};
+
   @override
-  Future<void> write(String key, String value) async => values[key] = value;
+  Future<void> write(String key, String value) async {
+    if (failWrite.contains(key)) throw StateError('keychain refused $key');
+    values[key] = value;
+  }
 
   @override
   Future<void> delete(String key) async {

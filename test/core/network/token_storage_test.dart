@@ -200,6 +200,25 @@ void main() {
       expect(await storage.readRefreshToken(), 'refresh-1');
     });
 
+    test('a renewal whose keychain write is refused: memory keeps the old '
+        'token, and the line is not told', () async {
+      store.failWrite.add(AppConstants.accessTokenKey);
+      var told = false;
+
+      await expectLater(
+        storage.saveRenewed(
+          sentRefreshToken: 'refresh-1',
+          accessToken: 'access-2',
+          onAccepted: (_) => told = true,
+        ),
+        throwsStateError,
+      );
+
+      expect(told, isFalse);
+      expect(await storage.readAccessToken(), 'access-1');
+      expect(store.values[AppConstants.accessTokenKey], 'access-1');
+    });
+
     test('a refused renewal\'s clear while the next user signs in: their '
         'tokens stay', () async {
       final hold = Completer<void>();

@@ -165,8 +165,10 @@ class SecureTokenStorage implements TokenStorage {
 
   @override
   Future<void> clear() {
-    // Dropped from memory at once, so no header is attached from here on;
-    // and again when the clear's turn comes, after any step queued before.
+    // Dropped from memory at once, and again when the clear's turn comes.
+    // A renewal queued before it still runs first and may put its token
+    // back in memory meanwhile, for the same user's requests only; the
+    // clear then wins, in memory and on the keychain.
     _accessToken = null;
     _expiresAt = null;
     return _serial(_clearNow);
@@ -186,10 +188,11 @@ class SecureTokenStorage implements TokenStorage {
     required String refreshToken,
     DateTime? expiresAt,
   }) => _serial(() async {
-    _accessToken = accessToken;
+    // The keychain first: a write it refuses leaves memory as it was.
     await _store.write(AppConstants.accessTokenKey, accessToken);
     await _store.write(AppConstants.refreshTokenKey, refreshToken);
     await _writeExpiryNow(expiresAt);
+    _accessToken = accessToken;
   });
 
   @override
@@ -203,15 +206,19 @@ class SecureTokenStorage implements TokenStorage {
     final saved = await _store.read(AppConstants.refreshTokenKey);
     if (saved != sentRefreshToken) return false;
     final previous = await _readAccessNow();
-    // Told, and the copy in memory switched, in one go: no 401 can find
-    // the new token without its line known (#89).
-    onAccepted?.call(previous);
-    _accessToken = accessToken;
+    // The keychain first: a write it refuses (an iPhone keychain while the
+    // phone is locked) leaves memory on the old token, not on one the
+    // keychain does not have. Requests meanwhile carry the old token,
+    // still this sign-in's.
     await _store.write(AppConstants.accessTokenKey, accessToken);
     if (refreshToken != null) {
       await _store.write(AppConstants.refreshTokenKey, refreshToken);
     }
     await _writeExpiryNow(expiresAt);
+    // Told, and the copy in memory switched, in one go: no 401 can find
+    // the new token without its line known (#89).
+    onAccepted?.call(previous);
+    _accessToken = accessToken;
     return true;
   });
 
