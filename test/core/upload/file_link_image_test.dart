@@ -111,6 +111,33 @@ void main() {
       expect(told, 1);
     });
 
+    test('the same file, a fresh link refused too (403 for another '
+        'reason): not reloaded again for 30 seconds, then it may be', () {
+      var now = DateTime(2026, 11, 20, 9);
+      expiredLinkClock = () => now;
+      addTearDown(() => expiredLinkClock = DateTime.now);
+      var told = 0;
+      void report(String sig) => reportExpiredNow(
+        'https://api.nexton.work/files/t/uploads/a.jpg?exp=1&sig=$sig',
+        () => told++,
+      );
+
+      report('a');
+      report('b');
+      expect(told, 1, reason: 'no loop on a link that keeps being refused');
+
+      now = now.add(const Duration(seconds: 31));
+      report('c');
+      expect(told, 2, reason: 'a reload that failed is tried again later');
+    });
+
+    test('two different files: each may reload', () {
+      var told = 0;
+      reportExpiredNow('https://f/a.jpg?sig=1', () => told++);
+      reportExpiredNow('https://f/b.jpg?sig=1', () => told++);
+      expect(told, 2);
+    });
+
     testWidgets('another failure: the fallback, nobody told', (tester) async {
       var told = 0;
       await pump(
@@ -152,6 +179,16 @@ void main() {
       expect(find.text(en.fileLinkExpired), findsOneWidget);
       expect(find.text('COULD NOT OPEN'), findsNothing);
       expect(told, 1);
+    });
+
+    testWidgets('expired, and nothing can read it again (a list): says to '
+        'pull down to refresh', (tester) async {
+      await pump(tester, opener(), status: 403);
+      await tester.tap(find.text('OPEN'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.fileLinkExpiredRefresh), findsOneWidget);
+      expect(find.text(en.fileLinkExpired), findsNothing);
     });
 
     testWidgets('another failure: the caller\'s words', (tester) async {

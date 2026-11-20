@@ -1448,6 +1448,12 @@ abstract class AppLocalizations {
   /// **'This link has expired. Close it and open it again.'**
   String get fileLinkExpired;
 
+  /// No description provided for @fileLinkExpiredRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'This link has expired. Pull down on the list to refresh it.'**
+  String get fileLinkExpiredRefresh;
+
   /// No description provided for @timeOffApprovalsTab.
   ///
   /// In en, this message translates to:

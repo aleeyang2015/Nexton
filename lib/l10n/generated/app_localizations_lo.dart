@@ -737,6 +737,10 @@ class AppLocalizationsLo extends AppLocalizations {
       'ລິ້ງນີ້ໝົດອາຍຸແລ້ວ. ກະລຸນາປິດ ແລ້ວເປີດອີກຄັ້ງ.';
 
   @override
+  String get fileLinkExpiredRefresh =>
+      'ລິ້ງນີ້ໝົດອາຍຸແລ້ວ. ກະລຸນາດຶງລາຍການລົງເພື່ອໂຫຼດໃໝ່.';
+
+  @override
   String get timeOffApprovalsTab => 'ອະນຸມັດຂໍລາພັກ';
 
   @override

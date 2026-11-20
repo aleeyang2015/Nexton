@@ -50,9 +50,13 @@ class _ViewerImage extends ConsumerWidget {
     errorBuilder: (context, error, _) {
       final expired = isExpiredFileLink(error);
       if (expired) reportExpiredOnce(url, onExpired);
-      final text = expired
+      // Reopened from a page that reads its request again, the next tap
+      // gets a new link; from a list, only a pull to refresh does.
+      final text = !expired
+          ? errorText
+          : onExpired != null
           ? AppLocalizations.of(context)!.fileLinkExpired
-          : errorText;
+          : AppLocalizations.of(context)!.fileLinkExpiredRefresh;
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [

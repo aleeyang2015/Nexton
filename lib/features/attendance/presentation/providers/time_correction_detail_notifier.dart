@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/upload/presentation/file_link_image.dart';
-
 import '../../../../core/errors/failure.dart';
+import '../../../../core/upload/domain/expired_file_link.dart';
 import '../../../../core/utils/result.dart';
 import '../../attendance_providers.dart';
 import '../../data/datasources/correction_error_code.dart';
@@ -122,7 +121,7 @@ class TimeCorrectionDetailNotifier
     // The link is past its hour (#73): every read of the request gives a new
     // one, so read it again and try once more with that.
     var savedUrl = url;
-    if (isExpiredFileLink(result.failureOrNull)) {
+    if (isExpiredDownload(result.failureOrNull)) {
       await refresh();
       if (_disposed) return AttachmentSaveOutcome.dismissed;
       final fresh = state.detail.valueOrNull?.attachmentUrl;
