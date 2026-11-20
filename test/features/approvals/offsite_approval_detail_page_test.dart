@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/core/upload/presentation/file_link_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
@@ -21,6 +22,7 @@ import 'package:next_on/l10n/generated/app_localizations_en.dart';
 import '../../support/approver_access_test_doubles.dart';
 import '../../support/attendance_test_doubles.dart';
 import '../../support/offsite_approval_test_doubles.dart';
+import '../../support/file_link_test_doubles.dart';
 
 /// The approver's page of one off-site scan (#46): `/approvals/offsite/:id`.
 void main() {
@@ -35,7 +37,11 @@ void main() {
 
   setUp(() => repository = FakeOffsiteRepository());
 
-  Future<void> open(WidgetTester tester, {User? user}) async {
+  Future<void> open(
+    WidgetTester tester, {
+    User? user,
+    List<Override> extra = const [],
+  }) async {
     tester.view.physicalSize = const Size(420, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -61,6 +67,7 @@ void main() {
         overrides: [
           offsiteRepositoryProvider.overrideWithValue(repository),
           signedInAs(user ?? hr),
+          ...extra,
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -158,5 +165,24 @@ void main() {
 
     expect(approve(), findsNothing);
     expect(reject(), findsNothing);
+  });
+
+  testWidgets('the photo\'s link has expired (#73): the scan is read again '
+      'once, for a new link', (tester) async {
+    resetExpiredLinkReports();
+    repository.detailResults = [
+      Result.success(offsiteForApproval(attachmentUrl: 'https://f/old.jpg')),
+      Result.success(offsiteForApproval(attachmentUrl: 'https://f/new.jpg')),
+    ];
+
+    await open(
+      tester,
+      extra: [
+        fileLinksFailWith(403, failing: (url) => url.endsWith('old.jpg')),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    expect(repository.detailCalls, ['o-1', 'o-1']);
   });
 }

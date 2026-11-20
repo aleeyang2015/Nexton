@@ -1442,6 +1442,12 @@ abstract class AppLocalizations {
   /// **'This file can\'t be opened'**
   String get leaveFileOpenFailed;
 
+  /// No description provided for @fileLinkExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This link has expired. Close it and open it again.'**
+  String get fileLinkExpired;
+
   /// No description provided for @timeOffApprovalsTab.
   ///
   /// In en, this message translates to:

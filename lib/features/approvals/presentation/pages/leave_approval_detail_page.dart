@@ -145,7 +145,18 @@ class _Body extends ConsumerWidget {
       children: [
         _EmployeeCard(request: request),
         heightBx(h: 12),
-        LeaveRequestDetailBody(request: request, showEveryDay: true),
+        LeaveRequestDetailBody(
+          request: request,
+          showEveryDay: true,
+          // A file's link past its hour (#73): read the request again,
+          // quietly, for new links.
+          onFileExpired: () {
+            if (!context.mounted) return;
+            ref
+                .read(leaveRequestDetailNotifierProvider(request.id).notifier)
+                .refresh();
+          },
+        ),
         if (canDecide) ...[
           heightBx(h: 20),
           LeaveApprovalActions(request: request),

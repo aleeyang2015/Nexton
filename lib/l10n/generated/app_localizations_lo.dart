@@ -733,6 +733,10 @@ class AppLocalizationsLo extends AppLocalizations {
   String get leaveFileOpenFailed => 'ເປີດໄຟລ໌ນີ້ບໍ່ໄດ້';
 
   @override
+  String get fileLinkExpired =>
+      'ລິ້ງນີ້ໝົດອາຍຸແລ້ວ. ກະລຸນາປິດ ແລ້ວເປີດອີກຄັ້ງ.';
+
+  @override
   String get timeOffApprovalsTab => 'ອະນຸມັດຂໍລາພັກ';
 
   @override

@@ -14,6 +14,7 @@ OffsiteRequestDetail offsiteForApproval({
   String? approverId,
   LeaveStepStatus stepStatus = LeaveStepStatus.pending,
   OffsiteMethod method = OffsiteMethod.checkIn,
+  String? attachmentUrl,
 }) => OffsiteRequestDetail(
   id: id,
   employee: TimeCorrectionEmployee(
@@ -28,7 +29,7 @@ OffsiteRequestDetail offsiteForApproval({
   scanDate: DateTime(2026, 11, 18),
   sessionOrder: 1,
   shift: null,
-  attachmentUrl: null,
+  attachmentUrl: attachmentUrl,
   reason: 'At a client',
   status: status,
   currentStepNo: 1,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/core/upload/presentation/file_link_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
@@ -25,6 +26,7 @@ import 'package:next_on/features/time_off/domain/entities/leave_approval_step.da
 import 'package:next_on/l10n/generated/app_localizations.dart';
 import 'package:next_on/l10n/generated/app_localizations_en.dart';
 
+import '../../support/file_link_test_doubles.dart';
 import '../../support/attendance_test_doubles.dart';
 
 /// One of the employee's "forgot to scan" requests (#45): its page by id,
@@ -37,6 +39,7 @@ void main() {
     TimeCorrectionStatus status = TimeCorrectionStatus.pending,
     String? employeeId = 'e-1',
     TimeCorrectionResult? result,
+    String? attachmentUrl,
   }) => TimeCorrectionDetail(
     id: 'tc-1',
     employee: TimeCorrectionEmployee(id: employeeId, name: 'Noy'),
@@ -51,7 +54,7 @@ void main() {
       end: Duration(hours: 12),
     ),
     reason: 'Forgot to clock out',
-    attachmentUrl: null,
+    attachmentUrl: attachmentUrl,
     status: status,
     currentStepNo: status == TimeCorrectionStatus.pending ? 1 : 0,
     steps: [
@@ -91,6 +94,7 @@ void main() {
     WidgetTester tester, {
     String? ownEmployeeId = 'e-1',
     TimeCorrectionRecord? initial,
+    List<Override> extra = const [],
   }) async {
     tester.view.physicalSize = const Size(420, 2400);
     tester.view.devicePixelRatio = 1;
@@ -113,7 +117,7 @@ void main() {
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: overrides(ownEmployeeId: ownEmployeeId),
+        overrides: [...overrides(ownEmployeeId: ownEmployeeId), ...extra],
         child: MaterialApp.router(
           routerConfig: router,
           scaffoldMessengerKey: rootScaffoldMessengerKey,
@@ -128,6 +132,25 @@ void main() {
   }
 
   Finder cancelButton() => find.text(en.leaveCancelAction);
+
+  testWidgets('the photo\'s link has expired (#73): the request is read '
+      'again once, for a new link', (tester) async {
+    resetExpiredLinkReports();
+    repository.timeCorrectionDetailResults = [
+      Result.success(request(attachmentUrl: 'https://f/old.jpg')),
+      Result.success(request(attachmentUrl: 'https://f/new.jpg')),
+    ];
+
+    await open(
+      tester,
+      extra: [
+        fileLinksFailWith(403, failing: (url) => url.endsWith('old.jpg')),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    expect(repository.timeCorrectionDetailCalls, ['tc-1', 'tc-1']);
+  });
 
   testWidgets('loads the request by its id: part, type, time, reason, steps', (
     tester,

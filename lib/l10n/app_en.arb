@@ -289,6 +289,7 @@
   "leaveAttachUploadFailed": "Couldn't upload the file. Please try again.",
   "leaveFileRemove": "Remove file",
   "leaveFileOpenFailed": "This file can't be opened",
+  "fileLinkExpired": "This link has expired. Close it and open it again.",
   "timeOffApprovalsTab": "Team Approvals",
   "leaveApprovalsPendingHeader": "Needs your approval ({count})",
   "@leaveApprovalsPendingHeader": {

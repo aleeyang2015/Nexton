@@ -269,9 +269,18 @@ class FakeAttendanceRepository implements AttendanceRepository {
     Uint8List(0),
   );
 
+  /// Every file link downloaded, in order.
+  final List<String> timeCorrectionAttachmentUrls = [];
+
+  /// The answer for one link; [timeCorrectionAttachmentResult] when unset.
+  Result<Uint8List> Function(String url)? timeCorrectionAttachmentAnswer;
+
   @override
-  FutureResult<Uint8List> timeCorrectionAttachment(String url) async =>
-      timeCorrectionAttachmentResult;
+  FutureResult<Uint8List> timeCorrectionAttachment(String url) async {
+    timeCorrectionAttachmentUrls.add(url);
+    return timeCorrectionAttachmentAnswer?.call(url) ??
+        timeCorrectionAttachmentResult;
+  }
 }
 
 /// Programmable off-site scan repository: each call returns the queued result

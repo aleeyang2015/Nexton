@@ -11,7 +11,15 @@ import '../pages/leave_file_page.dart';
 /// zoom), a PDF in the App's viewer with Share, anything else (a Word file
 /// sent from the web) on a page with Share. A file with no url cannot be
 /// opened.
-void openLeaveFile(BuildContext context, LeaveAttachment file) {
+///
+/// [onExpired] is told once when the file's link is past its hour (#73):
+/// the request's page reads the request again, so the next tap opens the
+/// new link.
+void openLeaveFile(
+  BuildContext context,
+  LeaveAttachment file, {
+  VoidCallback? onExpired,
+}) {
   final url = file.url;
   if (url == null) return;
   if (file.isImage) {
@@ -19,20 +27,26 @@ void openLeaveFile(BuildContext context, LeaveAttachment file) {
       context,
       url,
       errorText: AppLocalizations.of(context)!.leaveFileOpenFailed,
+      onExpired: onExpired,
     );
     return;
   }
-  Navigator.of(
-    context,
-  ).push(MaterialPageRoute<void>(builder: (_) => LeaveFilePage(file: file)));
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => LeaveFilePage(file: file, onExpired: onExpired),
+    ),
+  );
 }
 
 /// One file of a request, on the employee's page and the approver's: tap
 /// to open it. A file with no url is plain text.
 class LeaveFileTile extends StatelessWidget {
-  const LeaveFileTile({super.key, required this.file});
+  const LeaveFileTile({super.key, required this.file, this.onExpired});
 
   final LeaveAttachment file;
+
+  /// See [openLeaveFile].
+  final VoidCallback? onExpired;
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +83,9 @@ class LeaveFileTile extends StatelessWidget {
       ),
     );
     if (!opens) return row;
-    return InkWell(onTap: () => openLeaveFile(context, file), child: row);
+    return InkWell(
+      onTap: () => openLeaveFile(context, file, onExpired: onExpired),
+      child: row,
+    );
   }
 }

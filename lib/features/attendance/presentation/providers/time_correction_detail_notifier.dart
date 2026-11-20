@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/upload/presentation/file_link_image.dart';
+
 import '../../../../core/errors/failure.dart';
 import '../../../../core/utils/result.dart';
 import '../../attendance_providers.dart';
@@ -113,10 +115,23 @@ class TimeCorrectionDetailNotifier
     if (url == null || state.downloading) return AttachmentSaveOutcome.failed;
     state = state.copyWith(downloading: true);
 
-    final result = await ref.read(
-      downloadTimeCorrectionAttachmentUseCaseProvider,
-    )(url);
+    final download = ref.read(downloadTimeCorrectionAttachmentUseCaseProvider);
+    var result = await download(url);
     if (_disposed) return AttachmentSaveOutcome.dismissed;
+
+    // The link is past its hour (#73): every read of the request gives a new
+    // one, so read it again and try once more with that.
+    var savedUrl = url;
+    if (isExpiredFileLink(result.failureOrNull)) {
+      await refresh();
+      if (_disposed) return AttachmentSaveOutcome.dismissed;
+      final fresh = state.detail.valueOrNull?.attachmentUrl;
+      if (fresh != null && fresh != url) {
+        savedUrl = fresh;
+        result = await download(fresh);
+        if (_disposed) return AttachmentSaveOutcome.dismissed;
+      }
+    }
 
     final bytes = result.dataOrNull;
     if (bytes == null || bytes.isEmpty) {
@@ -127,7 +142,7 @@ class TimeCorrectionDetailNotifier
     try {
       final path = await ref
           .read(attachmentFileSaverProvider)
-          .save(bytes, fileName: TimeCorrectionDetailCopy.fileName(url));
+          .save(bytes, fileName: TimeCorrectionDetailCopy.fileName(savedUrl));
       return path == null
           ? AttachmentSaveOutcome.dismissed
           : AttachmentSaveOutcome.saved;

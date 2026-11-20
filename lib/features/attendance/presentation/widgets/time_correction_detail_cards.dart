@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/upload/presentation/file_link_image.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/time_correction_detail.dart';
@@ -541,12 +542,17 @@ class TimeCorrectionAttachmentCard extends StatelessWidget {
   final VoidCallback onView;
   final VoidCallback onDownload;
 
+  /// Told once when the photo's link has expired (#73): the page reads the
+  /// request again for a new one.
+  final VoidCallback? onExpired;
+
   const TimeCorrectionAttachmentCard({
     super.key,
     required this.url,
     required this.downloading,
     required this.onView,
     required this.onDownload,
+    this.onExpired,
   });
 
   @override
@@ -576,7 +582,7 @@ class TimeCorrectionAttachmentCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _Thumbnail(url: url, image: image),
+                _Thumbnail(url: url, image: image, onExpired: onExpired),
                 widthBx(w: 12),
                 Expanded(
                   child: Column(
@@ -620,8 +626,9 @@ class TimeCorrectionAttachmentCard extends StatelessWidget {
 class _Thumbnail extends StatelessWidget {
   final String url;
   final bool image;
+  final VoidCallback? onExpired;
 
-  const _Thumbnail({required this.url, required this.image});
+  const _Thumbnail({required this.url, required this.image, this.onExpired});
 
   @override
   Widget build(BuildContext context) {
@@ -643,11 +650,7 @@ class _Thumbnail extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (image)
-              Image.network(
-                url,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => fallback,
-              )
+              FileLinkImage(url: url, fallback: fallback, onExpired: onExpired)
             else
               fallback,
             Positioned(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/upload/presentation/file_link_image.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/pdf_file_view.dart';
@@ -12,9 +13,12 @@ import '../providers/leave_file_notifier.dart';
 /// A leave file inside the App, with Share: a PDF in the shared viewer
 /// (owner's decision on #25), anything else as a Share sheet only.
 class LeaveFilePage extends ConsumerWidget {
-  const LeaveFilePage({super.key, required this.file});
+  const LeaveFilePage({super.key, required this.file, this.onExpired});
 
   final LeaveAttachment file;
+
+  /// Told once when the file's link is past its hour (#73).
+  final VoidCallback? onExpired;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -57,6 +61,8 @@ class LeaveFilePage extends ConsumerWidget {
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
             )
+          : loaded.hasError && isExpiredFileLink(loaded.error)
+          ? _Expired(file: file, onExpired: onExpired)
           : loaded.hasError
           ? Center(
               child: Column(
@@ -97,6 +103,33 @@ class LeaveFilePage extends ConsumerWidget {
                 ),
               ),
             ),
+    );
+  }
+}
+
+/// The file's link is past its hour (#73). No Retry: the same link fails
+/// again. The request's page is told, reads the request again, and the
+/// next tap opens the new link.
+class _Expired extends StatelessWidget {
+  const _Expired({required this.file, this.onExpired});
+
+  final LeaveAttachment file;
+  final VoidCallback? onExpired;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = file.url;
+    if (url != null) reportExpiredOnce(url, onExpired);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: customText(
+          AppLocalizations.of(context)!.fileLinkExpired,
+          color: AppColors.subTitle,
+          alight: TextAlign.center,
+          maxLine: 3,
+        ),
+      ),
     );
   }
 }

@@ -242,6 +242,7 @@
   "leaveAttachUploadFailed": "ອັບໂຫລດໄຟລ໌ບໍ່ສຳເລັດ. ກະລຸນາລອງໃໝ່.",
   "leaveFileRemove": "ລຶບໄຟລ໌",
   "leaveFileOpenFailed": "ເປີດໄຟລ໌ນີ້ບໍ່ໄດ້",
+  "fileLinkExpired": "ລິ້ງນີ້ໝົດອາຍຸແລ້ວ. ກະລຸນາປິດ ແລ້ວເປີດອີກຄັ້ງ.",
   "timeOffApprovalsTab": "ອະນຸມັດຂໍລາພັກ",
   "leaveApprovalsPendingHeader": "ລາຍການທີ່ຕ້ອງອະນຸມັດ ({count})",
   "leaveApprovalsHistoryHeader": "ປະຫວັດການອະນຸມັດ",
