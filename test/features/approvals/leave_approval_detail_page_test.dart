@@ -261,6 +261,8 @@ void main() {
       ),
     );
 
+    // The page has loaded the request: who asked is on screen.
+    expect(find.text('Bee Keomany'), findsOneWidget);
     // The HR step is the last: its button says the days come off now.
     expect(find.text(LeaveCopy.approveActionLabel(en, atHr)), findsNothing);
     expect(find.text(en.leaveApprovalRejectAction), findsNothing);

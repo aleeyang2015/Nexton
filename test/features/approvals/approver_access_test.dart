@@ -247,6 +247,24 @@ void main() {
         );
       });
 
+      test('no step numbers sent (all read as 0): still no', () {
+        final unnumbered = sampleLeaveRequest(
+          employeeId: 'emp-bee',
+          steps: [
+            step(0, LeaveStepRole.deptHead, LeaveStepStatus.approved,
+                approverId: 'emp-lee'),
+            step(0, LeaveStepRole.hr, LeaveStepStatus.pending),
+          ],
+        );
+        expect(
+          decide(
+            unnumbered,
+            user(head: true, permissions: [leaveHr], employeeId: 'emp-lee'),
+          ),
+          isFalse,
+        );
+      });
+
       test('an approved step with no approver sent blocks nobody', () {
         final unnamedApproved = sampleLeaveRequest(
           employeeId: 'emp-bee',
