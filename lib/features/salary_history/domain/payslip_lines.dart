@@ -332,22 +332,22 @@ PayslipCaption? caption(double quantity, String? unit) {
     case 'times':
       return PayslipCaption.count(
         unit: PayslipQuantityUnit.times,
-        number: _number(quantity),
+        number: payslipCount(quantity),
       );
     case 'days':
       return PayslipCaption.count(
         unit: PayslipQuantityUnit.days,
-        number: _number(quantity),
+        number: payslipCount(quantity),
       );
     case 'hours':
       return PayslipCaption.count(
         unit: PayslipQuantityUnit.hours,
-        number: _number(quantity),
+        number: payslipCount(quantity),
       );
     default:
       return PayslipCaption.count(
         unit: PayslipQuantityUnit.other,
-        number: _number(quantity),
+        number: payslipCount(quantity),
         text: word,
       );
   }
@@ -355,8 +355,9 @@ PayslipCaption? caption(double quantity, String? unit) {
 
 /// "2", "0.5", "1.25": a count to two decimal places at most, with no
 /// zeros left hanging on the end: 2.0 is "2", 1.10 is "1.1", and 1.999 is
-/// "2", not "2.0".
-String _number(double value) {
+/// "2", not "2.0". The payslip's own page and its card's stat boxes (#21)
+/// both show counts this way.
+String payslipCount(double value) {
   var text = value.toStringAsFixed(2);
   if (text.contains('.')) {
     text = text.replaceFirst(RegExp(r'0+$'), '');

@@ -6,6 +6,7 @@ import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/payslip_record.dart';
+import '../../domain/payslip_lines.dart';
 import 'salary_error_block.dart';
 
 /// Turns a payslip's raw fields into the words, colour and number strings
@@ -42,10 +43,10 @@ class SalaryHistoryCopy {
   static String currency(num amount) => '₭ ${_amountFormat.format(amount)}';
 
   /// "22" / "2.5" / "0.82" — a day or hour count, with the decimals only
-  /// when there are some. The stat boxes under an expanded payslip card.
-  static String count(num value) => value == value.roundToDouble()
-      ? value.toStringAsFixed(0)
-      : value.toString();
+  /// when there are some, two at most (#21: 100 minutes is "1.67", not
+  /// "1.6666666666666667"). The stat boxes under an expanded payslip card;
+  /// the same rule as the payslip's own page ([payslipCount]).
+  static String count(num value) => payslipCount(value.toDouble());
 
   /// "20/08/2026".
   static String date(DateTime date) =>
