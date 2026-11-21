@@ -1416,10 +1416,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Allow the App to use the camera or photos in the phone\'s settings';
 
   @override
-  String get approvalsLeaveTab => 'Approve Leave';
+  String get approvalsLeaveTab => 'Leave';
 
   @override
-  String get approvalsTimeCorrectionTab => 'Approve Corrections';
+  String get approvalsTimeCorrectionTab => 'Forgot to scan';
 
   @override
   String get offsiteTitle => 'Off-site Clock-in';
@@ -1505,7 +1505,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get approvalsOffsiteTab => 'Approve Off-site';
+  String get approvalsOffsiteTab => 'Off-site scans';
 
   @override
   String get offsiteHistoryEmpty => 'No off-site clock-in requests';

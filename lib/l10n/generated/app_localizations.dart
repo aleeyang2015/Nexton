@@ -2651,13 +2651,13 @@ abstract class AppLocalizations {
   /// No description provided for @approvalsLeaveTab.
   ///
   /// In en, this message translates to:
-  /// **'Approve Leave'**
+  /// **'Leave'**
   String get approvalsLeaveTab;
 
   /// No description provided for @approvalsTimeCorrectionTab.
   ///
   /// In en, this message translates to:
-  /// **'Approve Corrections'**
+  /// **'Forgot to scan'**
   String get approvalsTimeCorrectionTab;
 
   /// No description provided for @offsiteTitle.
@@ -2807,7 +2807,7 @@ abstract class AppLocalizations {
   /// No description provided for @approvalsOffsiteTab.
   ///
   /// In en, this message translates to:
-  /// **'Approve Off-site'**
+  /// **'Off-site scans'**
   String get approvalsOffsiteTab;
 
   /// No description provided for @offsiteHistoryEmpty.

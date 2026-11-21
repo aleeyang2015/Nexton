@@ -1301,7 +1301,7 @@ class AppLocalizationsLo extends AppLocalizations {
       'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນຄຳຮ້ອງແກ້ໄຂເວລາໄດ້.';
 
   @override
-  String get approvalsMenu => 'ອະນຸມັດ';
+  String get approvalsMenu => 'ການອະນຸມັດ';
 
   @override
   String get apprApproveConfirmTitle => 'ອະນຸມັດຄຳຮ້ອງນີ້ບໍ?';
@@ -1408,10 +1408,10 @@ class AppLocalizationsLo extends AppLocalizations {
       'ກະລຸນາອະນຸຍາດໃຫ້ແອັບໃຊ້ກ້ອງ ຫຼື ຮູບພາບ ໃນການຕັ້ງຄ່າໂທລະສັບ';
 
   @override
-  String get approvalsLeaveTab => 'ອະນຸມັດລາພັກ';
+  String get approvalsLeaveTab => 'ລາພັກ';
 
   @override
-  String get approvalsTimeCorrectionTab => 'ອະນຸມັດແກ້ໄຂເວລາ';
+  String get approvalsTimeCorrectionTab => 'ລືມລົງເວລາ';
 
   @override
   String get offsiteTitle => 'ລົງເວລານອກພື້ນທີ່';
@@ -1496,7 +1496,7 @@ class AppLocalizationsLo extends AppLocalizations {
   }
 
   @override
-  String get approvalsOffsiteTab => 'ອະນຸມັດນອກພື້ນທີ່';
+  String get approvalsOffsiteTab => 'ລົງເວລານອກພື້ນທີ່';
 
   @override
   String get offsiteHistoryEmpty => 'ບໍ່ມີຄຳຮ້ອງລົງເວລານອກພື້ນທີ່';

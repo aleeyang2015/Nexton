@@ -17,6 +17,7 @@ import 'package:next_on/features/attendance/presentation/widgets/offsite_approva
 import 'package:next_on/features/time_off/domain/entities/leave_approval_step.dart';
 import 'package:next_on/features/time_off/time_off_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
+import 'package:next_on/l10n/generated/app_localizations_en.dart';
 
 import '../../support/approver_access_test_doubles.dart';
 import '../../support/attendance_test_doubles.dart';
@@ -242,6 +243,8 @@ void main() {
   });
 
   group('ApprovalsPage', () {
+    final en = AppLocalizationsEn();
+
     /// The whole page, on a small phone and in Lao — the narrowest the three
     /// tabs ever have to share, and the longest their labels get.
     Future<void> pumpPage(WidgetTester tester, {Locale? locale}) async {
@@ -280,9 +283,9 @@ void main() {
       await pumpPage(tester);
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Approve Leave'), findsOneWidget);
-      expect(find.text('Approve Corrections'), findsOneWidget);
-      expect(find.text('Approve Off-site'), findsOneWidget);
+      expect(find.text(en.approvalsLeaveTab), findsOneWidget);
+      expect(find.text(en.approvalsTimeCorrectionTab), findsOneWidget);
+      expect(find.text(en.approvalsOffsiteTab), findsOneWidget);
     });
 
     testWidgets('three Lao labels fit a 360pt phone without overflowing', (
@@ -297,9 +300,9 @@ void main() {
       await pumpPage(tester);
 
       // Four sections scroll on a small phone (#48): bring it into view.
-      await tester.ensureVisible(find.text('Approve Off-site'));
+      await tester.ensureVisible(find.text(en.approvalsOffsiteTab));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Approve Off-site'));
+      await tester.tap(find.text(en.approvalsOffsiteTab));
       await tester.pumpAndSettle();
 
       expect(find.byType(OffsiteApprovalsTab), findsOneWidget);
