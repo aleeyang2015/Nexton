@@ -139,8 +139,11 @@ class LeaveFormRules {
     final total = state.totalDays;
     if (total == null) return null;
 
+    // A limit of 0 (or below, or none sent) is no limit, as on the server,
+    // which checks only a limit above 0 (#104). HR's web refuses 0 now, but
+    // types saved with it before still have it.
     final max = type.maxDaysPerRequest;
-    if (max != null && total > max) return LeaveFormBlock.maxDays;
+    if (max != null && max > 0 && total > max) return LeaveFormBlock.maxDays;
 
     final short = shortYear(
       state: state,

@@ -744,6 +744,60 @@ void main() {
     });
   });
 
+  group('a type with a limit of 0 (#104: no limit, as on the server)', () {
+    final threeDays = [
+      DateTime(2026, 12, 22),
+      DateTime(2026, 12, 23),
+      DateTime(2026, 12, 24),
+    ];
+
+    /// Any "at most N days" hint, whatever N it names (0, 0.0, 2…).
+    Finder anyMaxDaysHint() =>
+        find.textContaining(en.leaveMaxDaysHint('§').split('§').first);
+
+    testWidgets('a 3-day request: no most-days hint at all, Submit on', (
+      tester,
+    ) async {
+      repository.leaveTypesResult = Result.success([
+        sampleLeaveType(maxDaysPerRequest: 0),
+      ]);
+      await pumpForm(tester);
+
+      form().setDates(threeDays);
+      await tester.pump();
+
+      expect(anyMaxDaysHint(), findsNothing);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+    });
+
+    testWidgets('from a 2-day type to a 0 type on the same 3 days: the hint '
+        'goes, Submit turns on', (tester) async {
+      repository
+        ..leaveTypesResult = Result.success([
+          sampleLeaveType(id: 'lt-short', maxDaysPerRequest: 2),
+          sampleLeaveType(id: 'lt-open', code: 'open', maxDaysPerRequest: 0),
+        ])
+        // Both with days left, so only the limit can hold Submit back.
+        ..balancesByYear[2026] = Result.success([
+          sampleLeaveBalance(leaveTypeId: 'lt-short', remainingDays: 6),
+          sampleLeaveBalance(leaveTypeId: 'lt-open', remainingDays: 6),
+        ]);
+      await pumpForm(tester);
+
+      form()
+        ..setLeaveType('lt-short')
+        ..setDates(threeDays);
+      await tester.pump();
+      expect(find.text(en.leaveMaxDaysHint('2')), findsOneWidget);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
+
+      form().setLeaveType('lt-open');
+      await tester.pump();
+      expect(anyMaxDaysHint(), findsNothing);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+    });
+  });
+
   group('company days off', () {
     // 2026-11-20 is a Friday; the 22nd a Sunday; the 23rd a Monday.
     final friday = DateTime(2026, 11, 20);
