@@ -73,9 +73,10 @@ class AuthInterceptor extends Interceptor {
   static const String _retriedFlag = 'auth_retried';
 
   /// A request marked with this in `extra` gets its `401` as it is: no
-  /// refresh, and no session ended. The push sign-off at sign-out (#52)
-  /// uses it, and the logout (#56) is treated the same by its path: both
-  /// are sent as the tokens are about to be cleared.
+  /// refresh, and no session ended. The logout (#56) is treated the same by
+  /// its path, as it is sent with the tokens about to be cleared. (The push
+  /// sign-off at sign-out no longer uses it: it may renew an expired token,
+  /// #71.)
   static const String noRefreshFlag = 'auth_no_refresh';
 
   final TokenStorage _tokenStorage;
@@ -151,7 +152,7 @@ class AuthInterceptor extends Interceptor {
     }
 
     // The logout (#56): sent at sign-out, as the tokens are about to be
-    // cleared. A refresh still on its way afterwards would write them back.
+    // cleared, and it carries the refresh token itself: nothing to renew.
     if (request.extra[noRefreshFlag] == true || _isLogoutCall(request)) {
       return handler.next(err);
     }
@@ -222,7 +223,12 @@ class AuthInterceptor extends Interceptor {
   Future<_RefreshOutcome> _refreshTokens() {
     return _refreshCall ??= () async {
       final outcome = await _doRefresh();
-      if (outcome is _Dead) await _expireSession(outcome.reason);
+      // The refresh has cleared the tokens itself, and only if they were
+      // still the ones it sent: a second, plain clear here could wipe a
+      // sign-in made meanwhile (#71).
+      if (outcome is _Dead) {
+        await _expireSession(outcome.reason, clearTokens: false);
+      }
       return outcome;
     }().whenComplete(() {
       _refreshCall = null;
@@ -252,37 +258,37 @@ class AuthInterceptor extends Interceptor {
         // A 200 that is not the refresh response, e.g. a Wi-Fi login page.
         return const _Unreachable(null);
       }
-      // The sign-in it was for has ended while it ran (signed out, or
-      // someone else signed in): its tokens must not come back (#56).
-      if (!await _stillSaved(refreshToken)) return const _Unreachable(null);
 
+      // Saved only while the sign-in it was for is still this phone's: one
+      // that ended while it ran (signed out, or someone else signed in) does
+      // not get its tokens back (#56). The check and the writes are one
+      // step of the storage, so a sign-out's clear cannot land between them
+      // and leave this access token behind (#71).
       // The access token and its expiry change on every refresh — writing
       // the expiry unconditionally is what stops the previous token's from
       // outliving it. The refresh token is kept as it is when none comes
       // back (#56: the server no longer rotates it) and replaced when one
-      // does.
-      // Stored and remembered in one step, with no gap in which a 401
-      // could find the new token stored and its line not yet known.
-      final previous = await _tokenStorage.readAccessToken() ?? '';
-      final stored = _tokenStorage.writeAccessToken(access);
-      _remember(previous: previous, renewed: access);
-      await stored;
-      if (rotated is String && rotated.isNotEmpty) {
-        await _tokenStorage.writeRefreshToken(rotated);
-      }
-      await _tokenStorage.writeAccessTokenExpiry(
-        tokenExpiryFromUnixSeconds(data['expires_at']),
+      // does. The token's line is remembered in that same step, so no 401
+      // finds the new token stored and its line not yet known (#89).
+      final saved = await _tokenStorage.saveRenewed(
+        sentRefreshToken: refreshToken,
+        accessToken: access,
+        refreshToken: rotated is String && rotated.isNotEmpty ? rotated : null,
+        expiresAt: tokenExpiryFromUnixSeconds(data['expires_at']),
+        onAccepted: (previous) =>
+            _remember(previous: previous ?? '', renewed: access),
       );
+      if (!saved) return const _Unreachable(null);
       return _Refreshed(access);
     } on DioException catch (error) {
       final reason = _refusalOf(error);
       if (reason == null) return _Unreachable(error);
       // A refusal for a sign-in that has already ended: whoever is signed in
       // now keeps their session (#56: the server refuses the refresh of a
-      // sign-in it ended at logout).
-      if (!await _stillSaved(refreshToken)) return _Unreachable(error);
-
-      await _tokenStorage.clear();
+      // sign-in it ended at logout). Checked and cleared in one step (#71).
+      if (!await _tokenStorage.clearIfRefreshIs(refreshToken)) {
+        return _Unreachable(error);
+      }
       return _Dead(reason);
     } catch (_) {
       // The body could not be read as the refresh response.
@@ -314,11 +320,6 @@ class AuthInterceptor extends Interceptor {
     if (sent == stored) return true;
     return _earlierTokens[stored]?.contains(sent) ?? false;
   }
-
-  /// True when [sent] is still the saved refresh token: the sign-in a
-  /// refresh was for is still this phone's.
-  Future<bool> _stillSaved(String sent) async =>
-      await _tokenStorage.readRefreshToken() == sent;
 
   /// Why the server refused a refresh, or null when [error] is not a refusal
   /// of the token: no answer at all, a 5xx, a 429, or a 4xx with no API error
@@ -395,9 +396,12 @@ class AuthInterceptor extends Interceptor {
     return client.fetch<dynamic>(request);
   }
 
-  Future<void> _expireSession(SessionEndReason reason) async {
+  Future<void> _expireSession(
+    SessionEndReason reason, {
+    bool clearTokens = true,
+  }) async {
     _earlierTokens.clear();
-    await _tokenStorage.clear();
+    if (clearTokens) await _tokenStorage.clear();
     if (!_sessionExpired.isClosed) _sessionExpired.add(reason);
   }
 

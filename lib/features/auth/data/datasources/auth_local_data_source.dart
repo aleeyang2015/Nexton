@@ -78,11 +78,14 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     required String accessToken,
     required String refreshToken,
     DateTime? expiresAt,
-  }) async {
-    await _tokenStorage.writeAccessToken(accessToken);
-    await _tokenStorage.writeRefreshToken(refreshToken);
-    await _tokenStorage.writeAccessTokenExpiry(expiresAt);
-  }
+  }) =>
+      // One step of the storage: a renewal of the last sign-in that answers
+      // now cannot land in the middle of this one (#71).
+      _tokenStorage.saveSignIn(
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        expiresAt: expiresAt,
+      );
 
   @override
   Future<bool> hasTokens() async {

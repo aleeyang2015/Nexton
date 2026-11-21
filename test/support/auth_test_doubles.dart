@@ -19,14 +19,33 @@ class InMemorySecureStore implements SecureStore {
     if (initial != null) values.addAll(initial);
   }
 
-  @override
-  Future<String?> read(String key) async => values[key];
+  /// The next read of a key waits for the completer set here, then reads:
+  /// a keychain step that is slow, so another can start meanwhile.
+  final Map<String, Completer<void>> holdRead = {};
+
+  /// The next delete of a key waits for the completer set here.
+  final Map<String, Completer<void>> holdDelete = {};
 
   @override
-  Future<void> write(String key, String value) async => values[key] = value;
+  Future<String?> read(String key) async {
+    await holdRead.remove(key)?.future;
+    return values[key];
+  }
+
+  /// A write of a key in here throws, as a keychain that refuses it.
+  final Set<String> failWrite = {};
 
   @override
-  Future<void> delete(String key) async => values.remove(key);
+  Future<void> write(String key, String value) async {
+    if (failWrite.contains(key)) throw StateError('keychain refused $key');
+    values[key] = value;
+  }
+
+  @override
+  Future<void> delete(String key) async {
+    await holdDelete.remove(key)?.future;
+    values.remove(key);
+  }
 }
 
 /// Programmable remote source: each call either returns the queued value or
