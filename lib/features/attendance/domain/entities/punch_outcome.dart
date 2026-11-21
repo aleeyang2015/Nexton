@@ -96,14 +96,17 @@ enum AttendanceRule {
   bool get isResolvableOffsite => this == outsideWorkArea;
 
   /// True when the refusal says today's sessions are not what the screen
-  /// showed (the session started, finished, or never began): the off-site
-  /// form closes and today is read again.
+  /// showed (the session started, finished, or never began; the OT changed,
+  /// #110): the off-site form closes and today is read again.
   bool get meansTodayChanged => switch (this) {
     sessionAlreadyStarted ||
     sessionAlreadyCompleted ||
     sessionAlreadyCheckedOut ||
     sessionNotStarted ||
-    checkinPendingApproval => true,
+    checkinPendingApproval ||
+    // The OT changed as an off-site check-out was sent (#110): what the
+    // card should offer has changed too.
+    otChanged => true,
     _ => false,
   };
 }

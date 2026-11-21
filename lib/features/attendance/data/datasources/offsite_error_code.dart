@@ -7,7 +7,7 @@ import 'approval_decision_code.dart';
 /// the app already knows.
 ///
 /// §3 is explicit that the off-site scan is gated by the *same* session rules
-/// as a normal clock-in/out, so eight of these codes are the punch endpoints'
+/// as a normal clock-in/out, so most of these codes are the punch endpoints'
 /// own and map to the punch vocabulary — and therefore to the copy that
 /// already exists for them. Only `OFFSITE_REQUEST_EXISTS` is this endpoint's
 /// alone; `TOO_EARLY_CHECKIN` is raised by a punch too.
@@ -108,5 +108,9 @@ class OffsiteErrorCode {
     'SESSION_NOT_STARTED': AttendanceRule.sessionNotStarted,
     'AFTER_CHECKOUT_WINDOW': AttendanceRule.afterCheckoutWindow,
     'CHECKIN_PENDING_APPROVAL': AttendanceRule.checkinPendingApproval,
+    // The OT was cancelled just as an off-site check-out was sent during an
+    // OT run-on (#110): nothing saved; the form reads today again and
+    // closes (its text is the server's, as for every off-site refusal).
+    'OT_CHANGED': AttendanceRule.otChanged,
   };
 }
