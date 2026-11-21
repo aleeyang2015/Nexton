@@ -22,9 +22,14 @@ class LeaveRequestDetailBody extends ConsumerWidget {
     super.key,
     required this.request,
     this.showEveryDay = false,
+    this.onFileExpired,
   });
 
   final LeaveRequest request;
+
+  /// Told once when a file's link is past its hour (#73): the page reads
+  /// the request again for new links.
+  final VoidCallback? onFileExpired;
 
   /// List the days even when there is one: an approver checks which day.
   /// The employee's own page lists them only when there are two or more.
@@ -146,7 +151,8 @@ class LeaveRequestDetailBody extends ConsumerWidget {
                 ),
                 heightBx(h: 6),
                 // Each opens: a photo full screen, a PDF in the viewer.
-                for (final a in request.attachments) LeaveFileTile(file: a),
+                for (final a in request.attachments)
+                  LeaveFileTile(file: a, onExpired: onFileExpired),
               ],
             ),
           ),

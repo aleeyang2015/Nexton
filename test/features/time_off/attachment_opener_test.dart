@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:next_on/core/upload/presentation/file_link_image.dart';
 import 'package:next_on/core/files/temp_share_files.dart';
 import 'package:next_on/core/widgets/pdf_file_view.dart';
 import 'package:next_on/features/time_off/data/datasources/leave_file_downloader.dart';
@@ -13,10 +14,14 @@ import 'package:next_on/features/time_off/presentation/pages/leave_file_page.dar
 import 'package:next_on/features/time_off/presentation/providers/leave_file_notifier.dart';
 import 'package:next_on/features/time_off/presentation/widgets/attachment_opener.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
+import 'package:next_on/l10n/generated/app_localizations_en.dart';
 
 class _StubAdapter implements HttpClientAdapter {
   RequestOptions? last;
   int calls = 0;
+
+  /// The link is past its hour (#73): 403 LINK_EXPIRED, as the server says.
+  bool expired = false;
 
   @override
   Future<ResponseBody> fetch(
@@ -26,6 +31,18 @@ class _StubAdapter implements HttpClientAdapter {
   ) async {
     calls++;
     last = options;
+    if (expired) {
+      return ResponseBody.fromBytes(
+        utf8.encode(
+          '{"success":false,"error":{"code":"LINK_EXPIRED",'
+          '"message":"link expired"}}',
+        ),
+        403,
+        headers: {
+          Headers.contentTypeHeader: ['application/json'],
+        },
+      );
+    }
     return ResponseBody.fromBytes(
       utf8.encode('%PDF-1.4 hello'),
       200,
@@ -93,7 +110,11 @@ void main() {
     files = _Files();
   });
 
-  Future<void> pumpTile(WidgetTester tester, LeaveAttachment file) async {
+  Future<void> pumpTile(
+    WidgetTester tester,
+    LeaveAttachment file, {
+    VoidCallback? onExpired,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -107,7 +128,9 @@ void main() {
           locale: const Locale('en'),
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
-          home: Scaffold(body: LeaveFileTile(file: file)),
+          home: Scaffold(
+            body: LeaveFileTile(file: file, onExpired: onExpired),
+          ),
         ),
       ),
     );
@@ -124,6 +147,25 @@ void main() {
     expect(adapter.last!.uri.toString(), pdf.url);
     expect(adapter.last!.headers.containsKey('Authorization'), isFalse);
     expect(adapter.last!.headers.containsKey('authorization'), isFalse);
+  });
+
+  testWidgets('a PDF whose link has expired (#73): says so, no Retry (the '
+      'same link would fail again), and the request page is told once', (
+    tester,
+  ) async {
+    resetExpiredLinkReports();
+    adapter.expired = true;
+    var told = 0;
+    await pumpTile(tester, pdf, onExpired: () => told++);
+
+    await tester.tap(find.text('medical.pdf'));
+    await tester.pumpAndSettle();
+    await tester.pump();
+
+    final en = AppLocalizationsEn();
+    expect(find.text(en.fileLinkExpired), findsOneWidget);
+    expect(find.text(en.retry), findsNothing);
+    expect(told, 1);
   });
 
   testWidgets('a photo opens full screen, pinch to zoom; nothing downloaded', (

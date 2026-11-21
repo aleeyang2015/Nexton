@@ -739,6 +739,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveFileOpenFailed => 'This file can\'t be opened';
 
   @override
+  String get fileLinkExpired =>
+      'This link has expired. Close it and open it again.';
+
+  @override
+  String get fileLinkExpiredRefresh =>
+      'This link has expired. Pull down on the list to refresh it.';
+
+  @override
   String get timeOffApprovalsTab => 'Team Approvals';
 
   @override

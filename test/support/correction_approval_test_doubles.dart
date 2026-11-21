@@ -13,6 +13,7 @@ TimeCorrectionDetail correctionForApproval({
   String? approverId,
   LeaveStepStatus stepStatus = LeaveStepStatus.pending,
   TimeCorrectionResult? result,
+  String? attachmentUrl,
 }) => TimeCorrectionDetail(
   id: id,
   employee: TimeCorrectionEmployee(
@@ -31,7 +32,7 @@ TimeCorrectionDetail correctionForApproval({
     end: Duration(hours: 17),
   ),
   reason: 'Forgot to clock out',
-  attachmentUrl: null,
+  attachmentUrl: attachmentUrl,
   status: status,
   currentStepNo: 1,
   steps: [

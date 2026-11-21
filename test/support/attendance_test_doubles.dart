@@ -269,9 +269,18 @@ class FakeAttendanceRepository implements AttendanceRepository {
     Uint8List(0),
   );
 
+  /// Every file link downloaded, in order.
+  final List<String> timeCorrectionAttachmentUrls = [];
+
+  /// The answer for one link; [timeCorrectionAttachmentResult] when unset.
+  Result<Uint8List> Function(String url)? timeCorrectionAttachmentAnswer;
+
   @override
-  FutureResult<Uint8List> timeCorrectionAttachment(String url) async =>
-      timeCorrectionAttachmentResult;
+  FutureResult<Uint8List> timeCorrectionAttachment(String url) async {
+    timeCorrectionAttachmentUrls.add(url);
+    return timeCorrectionAttachmentAnswer?.call(url) ??
+        timeCorrectionAttachmentResult;
+  }
 }
 
 /// Programmable off-site scan repository: each call returns the queued result
@@ -452,6 +461,7 @@ OffsiteRequestDetail waitingOffsite({
   TimeCorrectionShift? shift,
   DateTime? submittedAt,
   bool noScanTime = false,
+  String attachmentUrl = 'https://files.nexton.work/uploads/shop.jpg',
 }) => OffsiteRequestDetail(
   id: id,
   employee: const TimeCorrectionEmployee(name: 'Somchai'),
@@ -462,7 +472,7 @@ OffsiteRequestDetail waitingOffsite({
   scanDate: DateTime(at.year, at.month, at.day),
   sessionOrder: sessionOrder,
   shift: shift,
-  attachmentUrl: 'https://files.nexton.work/uploads/shop.jpg',
+  attachmentUrl: attachmentUrl,
   reason: 'Client visit',
   status: status,
   currentStepNo: 1,

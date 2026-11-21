@@ -207,8 +207,10 @@ class _Body extends ConsumerWidget {
               context,
               attachment,
               errorText: l10n.leaveFileOpenFailed,
+              onExpired: _renewLinks(context, ref),
             ),
             onDownload: () => _download(context, ref),
+            onExpired: _renewLinks(context, ref),
           ),
         ],
         if (detail.steps.isNotEmpty) ...[
@@ -279,6 +281,13 @@ class _Body extends ConsumerWidget {
         break;
     }
   }
+
+  /// The request read again, quietly, when its photo link has expired
+  /// (#73): every read gives a new link, which lasts an hour.
+  VoidCallback _renewLinks(BuildContext context, WidgetRef ref) => () {
+    if (!context.mounted) return;
+    ref.read(timeCorrectionDetailNotifierProvider(id).notifier).refresh();
+  };
 }
 
 /// Approve and Reject for the approver (#47), when the waiting step is
