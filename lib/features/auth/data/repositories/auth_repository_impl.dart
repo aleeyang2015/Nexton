@@ -103,7 +103,16 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
     bool Function()? abandonIf,
   ) {
     if (abandonIf?.call() ?? false) return _abandonStored(tokens);
-    return _local.clear();
+    return _endAndClear(tokens);
+  }
+
+  /// The user is still here, so nothing of anyone else's is stored: the
+  /// pair is ended on the server by its own refresh token (#122: nothing on
+  /// the phone holds it once cleared, so no sign-out could end it later),
+  /// then everything is cleared.
+  Future<void> _endAndClear(LoginResponseModel tokens) async {
+    await _endOnServer(tokens.refreshToken);
+    await _local.clear();
   }
 
   /// Ends a stored sign-in the user has left: on the server by its own
