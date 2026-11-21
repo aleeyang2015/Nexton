@@ -43,6 +43,11 @@ abstract class AuthLocalDataSource {
   /// Drops the tokens, the access-token expiry, the cached profile and the
   /// pending-change flag.
   Future<void> clear();
+
+  /// [clear], but only while [refreshToken] is still the saved refresh
+  /// token: one sign-in's leftovers are removed, never a sign-in made since.
+  /// False, and nothing cleared, when it is not.
+  Future<bool> clearIfRefreshIs(String refreshToken);
 }
 
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
@@ -108,6 +113,19 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<void> clear() async {
     await _tokenStorage.clear();
+    await _clearProfile();
+  }
+
+  @override
+  Future<bool> clearIfRefreshIs(String refreshToken) async {
+    // The check and the token clear are one step of the storage (#71), so
+    // a sign-in saved meanwhile cannot land between them and be wiped.
+    if (!await _tokenStorage.clearIfRefreshIs(refreshToken)) return false;
+    await _clearProfile();
+    return true;
+  }
+
+  Future<void> _clearProfile() async {
     await _store.delete(AppConstants.cachedUserKey);
     await _store.delete(AppConstants.mustChangePasswordKey);
   }

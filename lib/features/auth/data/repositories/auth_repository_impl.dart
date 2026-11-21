@@ -78,9 +78,7 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
         // the profile is not kept.
         if (abandonIf?.call() ?? false) {
           await _endOnServer(tokens.refreshToken);
-          if (await _local.readRefreshToken() == tokens.refreshToken) {
-            await _local.clear();
-          }
+          await _local.clearIfRefreshIs(tokens.refreshToken);
           throw const Failure.unknown(message: abandonedMessage);
         }
         await _local.writeUser(user);
