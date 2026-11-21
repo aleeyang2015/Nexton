@@ -175,6 +175,106 @@ void main() {
       expect(store.values[AppConstants.accessTokenKey], 'access-b');
     });
 
+    group('the profile fails after the pair was stored (#120)', () {
+      /// Runs the re-login with `/auth/me` held, calls [meanwhile] while it
+      /// waits, then lets it fail with [error].
+      Future<Failure> failWhileHeld(
+        Object error, {
+        required bool Function() left,
+        Future<void> Function()? meanwhile,
+      }) async {
+        final gate = Completer<void>();
+        remote
+          ..holdProfile = gate
+          ..profileError = error;
+        final login = repository.login(
+          email: 'somphone.vilaysone@nexton.la',
+          password: 'new-password1',
+          abandonIf: left,
+        );
+        for (var i = 0; i < 100 && remote.profileCalls == 0; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        expect(remote.profileCalls, 1);
+        await meanwhile?.call();
+        gate.complete();
+        return (await login).failureOrNull!;
+      }
+
+      final errors = <String, Object Function()>{
+        'a failure': () =>
+            const Failure.network(message: 'no signal', statusCode: 0),
+        'a raw error': () => _mappedError(500, 'INTERNAL_ERROR', 'boom'),
+      };
+
+      errors.forEach((kind, error) {
+        test('$kind, the user left and another sign-in was saved meanwhile: '
+            'theirs is left alone, the left pair is ended', () async {
+          var left = false;
+          final failure = await failWhileHeld(
+            error(),
+            left: () => left,
+            meanwhile: () async {
+              left = true;
+              await local.writeTokens(
+                accessToken: 'access-b',
+                refreshToken: 'refresh-b',
+              );
+            },
+          );
+
+          expect(failure.message, AuthRepositoryImpl.abandonedMessage);
+          expect(remote.logouts, ['refresh-1']);
+          expect(store.values[AppConstants.refreshTokenKey], 'refresh-b');
+          expect(store.values[AppConstants.accessTokenKey], 'access-b');
+        });
+
+        test('$kind, the user left and nothing was saved since: the left '
+            'pair is removed and ended', () async {
+          var left = false;
+          final failure = await failWhileHeld(
+            error(),
+            left: () => left,
+            meanwhile: () async => left = true,
+          );
+
+          expect(failure.message, AuthRepositoryImpl.abandonedMessage);
+          expect(remote.logouts, ['refresh-1']);
+          expect(store.values, isEmpty);
+        });
+
+        test('$kind, the user has not left: everything is cleared, as any '
+            'failed sign-in, and nothing is ended', () async {
+          final failure = await failWhileHeld(error(), left: () => false);
+
+          expect(failure.message, isNot(AuthRepositoryImpl.abandonedMessage));
+          expect(remote.logouts, isEmpty);
+          expect(store.values, isEmpty);
+        });
+      });
+
+      test('a renewal replaced the pair, then the user left: the sign-in is '
+          'ended on the server by its first refresh token', () async {
+        var left = false;
+        await failWhileHeld(
+          _mappedError(500, 'INTERNAL_ERROR', 'boom'),
+          left: () => left,
+          meanwhile: () async {
+            // A 401 on `/auth/me` renewed the pair (same sign-in, new
+            // refresh token), then "Sign out" was tapped.
+            store.values[AppConstants.refreshTokenKey] = 'refresh-1b';
+            left = true;
+          },
+        );
+
+        // The server ends a sign-in by its family, so `refresh-1b` is dead
+        // too. The phone's copy is not this check's to remove (it cannot
+        // tell it from someone else's): the sign-out on its way clears it.
+        expect(remote.logouts, ['refresh-1']);
+        expect(store.values[AppConstants.refreshTokenKey], 'refresh-1b');
+      });
+    });
+
     test('not left: stored as any sign-in, nothing ended', () async {
       final result = await repository.login(
         email: 'somphone.vilaysone@nexton.la',
