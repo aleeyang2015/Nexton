@@ -8,9 +8,13 @@ enum CapturePolicy {
   /// The camera alone: off-site proof must be taken there and then.
   cameraOnly,
 
-  /// Camera, gallery or an image file: the "forgot to scan" photo, the
-  /// profile photo.
+  /// Camera, gallery or an image file: the "forgot to scan" photo.
   photo,
+
+  /// The same sources, for the profile photo, whose upload takes JPEG and
+  /// PNG only: a gallery photo is asked for as a compatible image (#59: an
+  /// iPhone gallery photo is a HEIC).
+  profilePhoto,
 
   /// Camera, gallery, or an image or PDF file: a leave document.
   document;
@@ -18,11 +22,15 @@ enum CapturePolicy {
   /// The sources offered, in the order the sheet lists them.
   List<CaptureSource> get sources => switch (this) {
     cameraOnly => const [CaptureSource.camera],
-    photo || document => CaptureSource.values,
+    photo || profilePhoto || document => CaptureSource.values,
   };
 
   /// A PDF may be chosen as the file.
   bool get allowsPdf => this == document;
+
+  /// A gallery photo must come as an image every browser shows (JPEG or
+  /// PNG), not the phone's own format.
+  bool get wantsCompatibleImage => this == profilePhoto;
 }
 
 /// How a pick ended.

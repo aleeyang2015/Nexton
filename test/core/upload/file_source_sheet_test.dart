@@ -68,6 +68,29 @@ void main() {
     expect(capture.asked, ['file']);
   });
 
+  testWidgets('profile photo: the same three; its gallery photo is asked '
+      'for as a compatible image (#59: an iPhone HEIC is refused there)',
+      (tester) async {
+    await open(tester, CapturePolicy.profilePhoto);
+
+    expect(find.text(lo.uploadTakePhoto), findsOneWidget);
+    expect(find.text(lo.uploadPickFile), findsOneWidget);
+    await tester.tap(find.text(lo.uploadPickPhoto));
+    await tester.pumpAndSettle();
+    expect(capture.asked, ['gallery(compatible)']);
+  });
+
+  testWidgets('photo ("forgot to scan") and document (leave): the gallery '
+      'photo as it is', (tester) async {
+    for (final policy in [CapturePolicy.photo, CapturePolicy.document]) {
+      capture.asked.clear();
+      await open(tester, policy);
+      await tester.tap(find.text(lo.uploadPickPhoto));
+      await tester.pumpAndSettle();
+      expect(capture.asked, ['gallery'], reason: '$policy');
+    }
+  });
+
   testWidgets('document (leave): the file may be a PDF', (tester) async {
     await open(tester, CapturePolicy.document);
 

@@ -55,7 +55,9 @@ class FileSourceSheet {
 
     return switch (source) {
       CaptureSource.camera => capture.takePhoto(context),
-      CaptureSource.gallery => capture.pickPhoto(),
+      CaptureSource.gallery => capture.pickPhoto(
+        compatible: policy.wantsCompatibleImage,
+      ),
       CaptureSource.file => capture.pickFile(allowPdf: policy.allowsPdf),
     };
   }
