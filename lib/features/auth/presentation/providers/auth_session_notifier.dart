@@ -38,7 +38,10 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
             return;
           }
           // Held while the password is being changed: see [changePassword].
-          if (_changingPassword) {
+          // Only while that user is still the one signed in: a report that
+          // comes once someone else has signed in (the left change still
+          // ending its own sign-in, #93) is theirs, and acted on.
+          if (_changingPassword && _stillSignedInAs(_changingPasswordAs)) {
             _endedWhileChangingPassword ??= reason;
             return;
           }
@@ -120,6 +123,7 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
     required String confirmPassword,
   }) async {
     _changingPassword = true;
+    _changingPasswordAs = state.valueOrNull?.user?.id;
     _endedWhileChangingPassword = null;
     try {
       return await _changePassword(
@@ -135,6 +139,9 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
 
   /// True while [changePassword] runs.
   bool _changingPassword = false;
+
+  /// Who was signed in when [changePassword] began.
+  String? _changingPasswordAs;
 
   /// The session-end report held while [changePassword] runs, if one came.
   SessionEndReason? _endedWhileChangingPassword;
@@ -162,11 +169,31 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
     }
 
     final email = state.valueOrNull?.user?.email;
+    // Asked by the sign-in once the server has answered, before it stores
+    // anything: has the user left meanwhile (#93)? Then that sign-in ends
+    // its own new pair on the server and stores nothing. It is the one
+    // place sure to hold that pair: a sign-out already on its way may have
+    // read the old refresh token.
+    var abandoned = false;
+    bool userLeft() =>
+        abandoned = _loggingOut != null || !_stillSignedInAs(signedInAs);
     final session = email == null
         ? null
         : (await ref.read(loginUseCaseProvider)(
-            LoginParams(email: email, password: newPassword),
+            LoginParams(
+              email: email,
+              password: newPassword,
+              abandonIf: userLeft,
+            ),
           )).dataOrNull;
+
+    // Ended by itself, stored nowhere: nothing more to end, and the user,
+    // who signed out, is not told the password change signed them out.
+    if (abandoned) return result;
+
+    // The user left after the sign-in stored its pair (#93), or while a
+    // failed one was on its way.
+    if (await _leftDuringChange(signedInAs)) return result;
 
     if (session == null || !session.hasSession) {
       final held = _endedWhileChangingPassword;
@@ -186,9 +213,6 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
       }
       return result;
     }
-
-    // The user left while the sign-in was on its way (#93).
-    if (await _leftDuringChange(signedInAs)) return result;
 
     if (_endedWhileChangingPassword == null) {
       state = AsyncValue.data(session);
@@ -216,12 +240,12 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
   /// is sent. The new session is then not published, so a sign-out is never
   /// undone by the change finishing.
   ///
-  /// A sign-out still on its way ends the sign-in itself: the session is
-  /// still this user's when it gets there, and what is stored by then is the
-  /// pair the change's own sign-in wrote. One that has finished cannot, so
-  /// that pair is ended on the server and cleared here, and no working
-  /// sign-in is left on a phone its user has walked away from. The state
-  /// stays as the sign-out left it.
+  /// A sign-in that answers after the user left ends its own pair and
+  /// stores nothing ([changePassword]'s `abandonIf`). One that stored its
+  /// pair before they left: a sign-out still on its way reads that pair and
+  /// ends it; one that has finished cannot, so the pair is ended on the
+  /// server and cleared here, and no working sign-in is left on a phone its
+  /// user has walked away from. The state stays as the sign-out left it.
   ///
   /// The phone was not registered for push under the new sign-in (that
   /// happens when a session is published), so there is no row to remove.

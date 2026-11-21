@@ -66,6 +66,128 @@ void main() {
 
   tearDown(() => sessionExpired.close());
 
+  group('a re-login the user has already left (#93)', () {
+    setUp(() {
+      remote
+        ..loginResponse = testTokens()
+        ..profile = testUserModel();
+    });
+
+    test('nothing is stored, and the new sign-in is ended on the server with '
+        'its own refresh token', () async {
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () => true,
+      );
+
+      expect(result.isFailure, isTrue);
+      expect(store.values, isEmpty);
+      expect(remote.logouts, ['refresh-1']);
+      expect(remote.lastLogoutTimeout, AuthRepositoryImpl.logoutTimeout);
+      expect(remote.profileCalls, 0);
+    });
+
+    test('ending it fails (no signal): still nothing stored, still left',
+        () async {
+      remote.logoutError = Exception('no signal');
+
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () => true,
+      );
+
+      expect(result.isFailure, isTrue);
+      expect(store.values, isEmpty);
+    });
+
+    test('left after the pair was stored (the tap landed after the first '
+        'check): ended with its own refresh token, the pair removed, the '
+        'profile not cached', () async {
+      var asked = 0;
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () => ++asked > 1,
+      );
+
+      expect(asked, 2);
+      expect(result.isFailure, isTrue);
+      expect(remote.logouts, ['refresh-1']);
+      expect(store.values, isEmpty);
+    });
+
+    test('left after the pair was stored, and another sign-in has replaced '
+        'it since: theirs is left alone', () async {
+      var asked = 0;
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () {
+          if (++asked == 1) return false;
+          // Someone else's pair, stored meanwhile.
+          store.values[AppConstants.refreshTokenKey] = 'refresh-b';
+          return true;
+        },
+      );
+
+      expect(result.isFailure, isTrue);
+      expect(remote.logouts, ['refresh-1']);
+      expect(store.values[AppConstants.refreshTokenKey], 'refresh-b');
+    });
+
+    test('left after the pair was stored, and another sign-in is saved while '
+        'the removal checks the stored token: theirs is left alone', () async {
+      final gate = Completer<void>();
+      var asked = 0;
+      final login = repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () {
+          if (++asked == 1) return false;
+          // The removal's read of the stored refresh token waits here.
+          store.holdRead[AppConstants.refreshTokenKey] = gate;
+          return true;
+        },
+      );
+      // The removal has started reading the stored refresh token.
+      for (var i = 0; i < 100; i++) {
+        if (asked == 2 &&
+            !store.holdRead.containsKey(AppConstants.refreshTokenKey)) {
+          break;
+        }
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      // Someone signs in while that read is on its way.
+      final other = local.writeTokens(
+        accessToken: 'access-b',
+        refreshToken: 'refresh-b',
+      );
+      gate.complete();
+      await other;
+      final result = await login;
+
+      expect(result.isFailure, isTrue);
+      expect(remote.logouts, ['refresh-1']);
+      expect(store.values[AppConstants.refreshTokenKey], 'refresh-b');
+      expect(store.values[AppConstants.accessTokenKey], 'access-b');
+    });
+
+    test('not left: stored as any sign-in, nothing ended', () async {
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () => false,
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(store.values[AppConstants.refreshTokenKey], 'refresh-1');
+      expect(remote.logouts, isEmpty);
+    });
+  });
+
   group('login', () {
     test(
       'signs in and caches the session when no change is required',
