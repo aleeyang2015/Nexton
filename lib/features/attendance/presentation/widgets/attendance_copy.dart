@@ -25,11 +25,12 @@ class AttendanceCopy {
   AttendanceCopy._();
 
   /// The card's line for an off-site scan still waiting for approval
-  /// (#41): the check-in's time when it is the one to clock out of, or that
-  /// both wait. Null for a normal punch.
+  /// (#41): the check-in's time when it is the one to clock out of, or
+  /// still waits past its reach; or that both wait. Null for a normal punch.
   static String? offsiteWaiting(AppLocalizations l10n, NextPunch next) =>
       switch (next) {
-        OffsiteClockOut(:final checkIn) => l10n.attOffsiteCheckinWaiting(
+        OffsiteClockOut(:final checkIn) ||
+        WaitingCheckIn(:final checkIn) => l10n.attOffsiteCheckinWaiting(
           _hhmm(checkIn.scanTimestamp ?? checkIn.submittedAt),
         ),
         WaitingBoth() => l10n.attOffsiteBothWaiting,
