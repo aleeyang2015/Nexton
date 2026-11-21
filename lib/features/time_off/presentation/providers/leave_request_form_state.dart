@@ -62,6 +62,12 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
     /// not pick one for them.
     @Default(false) bool typeRefused,
 
+    /// The year the server said is short of days when it refused what this
+    /// form last sent (#87): the card shows that year's balance. Forgotten
+    /// as soon as the days or the type change, since the refusal was about
+    /// the request as it was sent.
+    int? balanceRefusedYear,
+
     /// Edit mode only: the leave type the request had when it was opened. The
     /// form keeps offering it even after HR switched it off.
     String? originalLeaveTypeId,
@@ -157,6 +163,16 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
   /// The last leave day (normalized to midnight), or null when none is
   /// picked.
   DateTime? get lastLeaveDate => _dateOnly(_edge(first: false));
+
+  /// True when [year] is one the days asked for reach into: from the year
+  /// of the first day to the year of the last. False for null, or with no
+  /// day picked.
+  bool touchesYear(int? year) {
+    final first = firstLeaveDate?.year;
+    final last = lastLeaveDate?.year;
+    if (year == null || first == null || last == null) return false;
+    return year >= first && year <= last;
+  }
 
   DateTime? _edge({required bool first}) {
     final charged = chargedDays;

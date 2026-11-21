@@ -135,8 +135,14 @@ class FakeLeaveRepository implements LeaveRepository {
   @override
   FutureResult<List<LeaveBalance>> balances(int year) async {
     balancesCalls.add(year);
+    final hold = holdBalances[year];
+    if (hold != null) return hold.future;
     return balancesByYear[year] ?? balancesResult;
   }
+
+  /// A year whose balances answer only when its completer does (a slow
+  /// line).
+  final Map<int, Completer<Result<List<LeaveBalance>>>> holdBalances = {};
 
   @override
   FutureResult<LeaveRequest?> pendingRequest() async {

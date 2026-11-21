@@ -2296,4 +2296,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pushItemUnavailable =>
       'This item is no longer there, or it is not yours to see.';
+
+  @override
+  String leaveBalanceShortIn(String year, String remaining, String requested) {
+    return 'Not enough leave days left in $year: $remaining left, $requested asked for.';
+  }
 }

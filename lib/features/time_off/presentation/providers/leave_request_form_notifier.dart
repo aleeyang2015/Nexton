@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/leave_error_code.dart';
@@ -208,6 +209,7 @@ class LeaveRequestFormNotifier
     state = state.copyWith(
       leaveTypeId: leaveTypeId,
       typeRefused: false,
+      balanceRefusedYear: null,
       durationType: wholeDaysOnly
           ? LeaveDurationType.fullDay
           : state.durationType,
@@ -232,6 +234,7 @@ class LeaveRequestFormNotifier
         dates: state.chargedDays ?? const [],
         rangeStart: null,
         rangeEnd: null,
+        balanceRefusedYear: null,
       );
       return;
     }
@@ -242,6 +245,7 @@ class LeaveRequestFormNotifier
       rangeStart: picked.isEmpty ? null : picked.first,
       rangeEnd: picked.isEmpty ? null : picked.last,
       dates: const [],
+      balanceRefusedYear: null,
     );
   }
 
@@ -257,6 +261,7 @@ class LeaveRequestFormNotifier
       rangeStart: ordered.$1,
       rangeEnd: ordered.$2,
       dates: const [],
+      balanceRefusedYear: null,
     );
   }
 
@@ -275,18 +280,22 @@ class LeaveRequestFormNotifier
       dates: updated,
       rangeStart: null,
       rangeEnd: null,
+      balanceRefusedYear: null,
     );
   }
 
   void removeDate(DateTime date) {
-    state = state.copyWith(dates: state.dates.where((d) => d != date).toList());
+    state = state.copyWith(
+      dates: state.dates.where((d) => d != date).toList(),
+      balanceRefusedYear: null,
+    );
   }
 
   /// A half day is exactly one date, so choosing one moves the form to
   /// separate days and keeps the earliest day picked so far.
   void setDurationType(LeaveDurationType type) {
     if (!type.isHalfDay) {
-      state = state.copyWith(durationType: type);
+      state = state.copyWith(durationType: type, balanceRefusedYear: null);
       return;
     }
 
@@ -304,6 +313,7 @@ class LeaveRequestFormNotifier
       dates: first == null ? const [] : [first],
       rangeStart: null,
       rangeEnd: null,
+      balanceRefusedYear: null,
     );
   }
 
@@ -311,6 +321,16 @@ class LeaveRequestFormNotifier
       state = state.copyWith(returnToWorkOverride: date);
 
   void setReason(String reason) => state = state.copyWith(reason: reason);
+
+  /// True while the form still asks for what [sent] asked for: the same
+  /// type, the same days, the same part of the day.
+  bool _asksTheSame(LeaveRequestFormState sent) =>
+      state.leaveTypeId == sent.leaveTypeId &&
+      state.mode == sent.mode &&
+      state.rangeStart == sent.rangeStart &&
+      state.rangeEnd == sent.rangeEnd &&
+      state.durationType == sent.durationType &&
+      listEquals(state.dates, sent.dates);
 
   /// Submits (or, in edit mode, updates) the form. Returns whether it
   /// succeeded. A range in which every day is a company day off is not sent:
@@ -349,6 +369,7 @@ class LeaveRequestFormNotifier
 
     final editingId = state.editingRequestId;
     final builds = _builds;
+    final sent = state;
     final result = editingId == null
         ? await ref.read(submitLeaveRequestUseCaseProvider)(draft)
         : await ref.read(updateLeaveRequestUseCaseProvider)((
@@ -385,6 +406,25 @@ class LeaveRequestFormNotifier
                 .reloadKeepingList(),
           );
         }
+        // Not enough days left: what the card showed was not what the
+        // server counted with, so the balances are read again. When the
+        // server names the short year, the card shows that one (#87).
+        final shortYear = LeaveRuleCode.balanceYearOf(failure);
+        if (shortYear != null ||
+            LeaveErrorCode.tokenOf(failure) ==
+                LeaveErrorCode.tokenInsufficientBalance) {
+          // The year is kept only for the request as it was sent, and only
+          // a year that request has a day in: the answer may land after the
+          // user changed the days, and a year from nowhere is not shown.
+          if (_asksTheSame(sent)) {
+            state = state.copyWith(
+              balanceRefusedYear: state.touchesYear(shortYear)
+                  ? shortYear
+                  : null,
+            );
+          }
+          ref.invalidate(leaveBalancesNotifierProvider);
+        }
         if (editingId != null && LeaveErrorCode.isStaleForOwner(failure)) {
           _stale = true;
           ref.invalidate(leaveHistoryNotifierProvider);
@@ -398,7 +438,10 @@ class LeaveRequestFormNotifier
           _form++;
           state = LeaveRequestFormState(daysOff: state.daysOff);
         } else {
-          state = state.copyWith(submission: AsyncValue.data(request));
+          state = state.copyWith(
+            submission: AsyncValue.data(request),
+            balanceRefusedYear: null,
+          );
         }
         ref.invalidate(leaveHistoryNotifierProvider);
         ref.invalidate(leaveBalancesNotifierProvider);

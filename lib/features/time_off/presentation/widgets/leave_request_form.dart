@@ -190,8 +190,9 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     });
     // Each leave day is charged to its own year, so the form reads the
     // balance of every year the request touches: two for a leave across the
-    // new year, one otherwise.
-    final balanceYears = LeaveFormRules.balanceYears(
+    // new year, one otherwise. And the year the server named as short when
+    // it refused what was sent, if the form could not tell it (#87).
+    final balanceYears = LeaveFormRules.yearsToRead(
       state,
       ref.watch(clockProvider)(),
     );
@@ -201,10 +202,16 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     };
     // Each year is loaded the first time a day in it is picked. Until it
     // answers, what is left is not known, and the form waits rather than send
-    // a request the server is about to refuse.
-    final balanceLoading = balancesByYear.values.any(
-      (balances) => balances.isLoading && !balances.hasValue,
+    // a request the server is about to refuse. Only the request's own years
+    // hold a send up: a year read for the card alone (#87) is not checked.
+    final ownYears = LeaveFormRules.balanceYears(
+      state,
+      ref.watch(clockProvider)(),
     );
+    final balanceLoading = ownYears.any((year) {
+      final balances = balancesByYear[year];
+      return balances != null && balances.isLoading && !balances.hasValue;
+    });
 
     final allTypes = typesAsync.valueOrNull ?? const <LeaveType>[];
     // Only the types HR has switched on, plus, when editing, the request's
@@ -227,11 +234,17 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       years: balanceYears,
       remainingByYear: remainingByYear,
     );
-    final balance = leaveBalanceFor(
-      balancesByYear[cardYear]?.valueOrNull,
-      state.leaveTypeId,
+    final cardBalances = balancesByYear[cardYear];
+    final figureOutOfDate = LeaveFormRules.figureOutOfDate(
+      state: state,
+      cardYear: cardYear,
+      reloading: cardBalances?.isLoading ?? false,
+      reloadFailed: cardBalances?.hasError ?? false,
     );
-    final remaining = remainingByYear[cardYear];
+    final balance = figureOutOfDate
+        ? null
+        : leaveBalanceFor(cardBalances?.valueOrNull, state.leaveTypeId);
+    final remaining = figureOutOfDate ? null : remainingByYear[cardYear];
 
     // Seed the reason field once, and default the leave type to the first one.
     if (!_reasonSeeded && state.reason.isNotEmpty) {

@@ -329,6 +329,11 @@ String? _byLeaveRule(AppLocalizations l10n, String message) {
       values.length == 1
           ? l10n.leaveRuleTooLongBy(values[0])
           : l10n.leaveRuleTooLong,
+    // Not enough days left in the year the server named (#87).
+    'leaveBalanceShortIn' =>
+      values.length == 3
+          ? l10n.leaveBalanceShortIn(values[0], values[1], values[2])
+          : l10n.leaveInsufficientBalance,
     _ => null,
   };
 }
