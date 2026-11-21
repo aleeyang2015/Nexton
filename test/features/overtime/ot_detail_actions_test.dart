@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:next_on/app/router/app_router.dart';
 import 'package:next_on/core/errors/failure.dart';
+import 'package:next_on/core/utils/clock_provider.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/features/overtime/data/datasources/ot_error_code.dart';
@@ -21,6 +22,7 @@ import 'package:next_on/l10n/generated/app_localizations.dart';
 import 'package:next_on/l10n/generated/app_localizations_en.dart';
 import 'package:next_on/l10n/generated/app_localizations_lo.dart';
 
+import '../../support/approver_access_test_doubles.dart';
 import '../../support/overtime_test_doubles.dart';
 import '../../support/profile_test_doubles.dart';
 
@@ -61,6 +63,7 @@ void main() {
     WidgetTester tester, {
     String locale = 'en',
     String? me = 'emp-noy',
+    List<Override> extra = const [],
   }) async {
     tester.view.physicalSize = const Size(900, 2400);
     tester.view.devicePixelRatio = 1;
@@ -78,6 +81,7 @@ void main() {
           otRepositoryProvider.overrideWithValue(repository),
           profileRepositoryProvider.overrideWithValue(FakeProfileRepository()),
           otOwnEmployeeIdProvider.overrideWithValue(me),
+          ...extra,
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -400,6 +404,54 @@ void main() {
 
       expect(find.byType(OtAskPage), findsOneWidget);
       expect(find.text('Stock count'), findsOneWidget);
+    });
+  });
+
+  group('a head cancels an OT they approved (#49)', () {
+    testWidgets('the toast says the OT is cancelled, not "the OT request" '
+        '(that is the employee\'s own cancel, #32)', (tester) async {
+      final startsAt = DateTime(2026, 11, 20, 18);
+      serve(
+        OtRequest(
+          id: 'ot-7',
+          employeeId: 'emp-noy',
+          startTime: '18:00',
+          endTime: '20:00',
+          startsAt: startsAt,
+          status: OtStatus.approved,
+          steps: const [
+            OtStep(
+              id: 's1',
+              stepNo: 1,
+              role: OtStepRole.deptHead,
+              approverId: 'emp-bounmy',
+              status: OtStepStatus.approved,
+            ),
+          ],
+        ),
+      );
+
+      await openRequest(
+        tester,
+        locale: 'lo',
+        me: 'emp-bounmy',
+        extra: [
+          signedInAs(approverTestUser(employeeId: 'emp-bounmy')),
+          clockProvider.overrideWithValue(
+            () => startsAt.subtract(const Duration(hours: 2)),
+          ),
+        ],
+      );
+      await tester.tap(button(lo.otCancelApprovedAction));
+      await tester.pumpAndSettle();
+      expect(find.text(lo.otCancelApprovedConfirm), findsOneWidget);
+      await tester.tap(find.text(lo.otCancelApprovedAction).last);
+      await tester.pumpAndSettle();
+
+      expect(repository.cancels, ['ot-7']);
+      expect(find.text('ຍົກເລີກໂອທີແລ້ວ'), findsOneWidget);
+      expect(find.text('ຍົກເລີກຄຳຂໍໂອທີແລ້ວ'), findsNothing);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
     });
   });
 }

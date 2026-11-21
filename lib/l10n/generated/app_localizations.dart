@@ -3824,6 +3824,12 @@ abstract class AppLocalizations {
   /// **'OT request cancelled'**
   String get otCancelledToast;
 
+  /// No description provided for @otApprovedCancelledToast.
+  ///
+  /// In en, this message translates to:
+  /// **'OT cancelled'**
+  String get otApprovedCancelledToast;
+
   /// No description provided for @otPostsTitle.
   ///
   /// In en, this message translates to:

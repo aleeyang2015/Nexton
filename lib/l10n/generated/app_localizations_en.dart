@@ -2103,6 +2103,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get otCancelledToast => 'OT request cancelled';
 
   @override
+  String get otApprovedCancelledToast => 'OT cancelled';
+
+  @override
   String get otPostsTitle => 'OT posts';
 
   @override

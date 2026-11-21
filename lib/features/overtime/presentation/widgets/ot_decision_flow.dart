@@ -70,7 +70,9 @@ class OtDecisionFlow {
     return _told(
       await notifier.cancelApproved(request),
       l10n,
-      l10n.otCancelledToast,
+      // The head's words for an approved OT (#49), not the employee's for
+      // withdrawing a request (#32, otCancelledToast).
+      l10n.otApprovedCancelledToast,
     );
   }
 
