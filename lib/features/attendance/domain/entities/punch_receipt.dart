@@ -110,7 +110,8 @@ class PunchReceipt extends Equatable {
 
   /// The punch was logged but didn't count *because the employee was outside
   /// every work area* — the one rejection an off-site scan request can put
-  /// right (attendance-offsite-requests.md's opening context).
+  /// right (the opening of the backend's
+  /// `docs/api/attendance-offsite-requests.md`).
   ///
   /// Deliberately narrower than [needsWarning]. A `pending` check is a backend
   /// hiccup, not a place; `missing_coordinates` means there was no fix to file

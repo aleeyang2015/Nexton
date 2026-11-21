@@ -60,8 +60,9 @@ enum AttendanceRule {
 
   /// 409 — an off-site scan request for this session and direction is already
   /// pending or approved. Only the off-site endpoint raises it
-  /// (`OFFSITE_REQUEST_EXISTS`, attendance-offsite-requests.md §3); a punch
-  /// never does, which is why it is absent from the punch endpoints' table.
+  /// (`OFFSITE_REQUEST_EXISTS`, the backend's
+  /// `docs/api/attendance-offsite-requests.md`); a punch never does, which is
+  /// why it is absent from the punch endpoints' table.
   offsiteRequestExists,
 
   /// 409 — the clock-in window hasn't opened yet. `details.clock_in_opens`

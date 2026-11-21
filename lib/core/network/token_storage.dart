@@ -6,7 +6,8 @@ import '../constants/app_constants.dart';
 import 'secure_store.dart';
 
 /// Reads an `expires_at` off the wire — Unix **seconds**, as both
-/// `/auth/login` and `/auth/refresh` report it (auth-login.md §2, §3).
+/// `/auth/login` and `/auth/refresh` report it (the backend's
+/// `docs/api/auth-login.md`).
 ///
 /// Returns null for a missing, malformed or non-positive value: that is an
 /// *unknown* expiry, which is not the same as an expiry of "now". Shared by
@@ -33,8 +34,8 @@ abstract class TokenStorage {
   /// When the stored access token expires, or null when the server never said.
   ///
   /// Nothing refreshes off this clock — the app still refreshes reactively on
-  /// a 401 (auth-login.md §5) — so a null here is never a reason to treat a
-  /// stored token as dead.
+  /// a 401 (the backend's `docs/api/auth-login.md`, token lifecycle) — so a
+  /// null here is never a reason to treat a stored token as dead.
   Future<DateTime?> readAccessTokenExpiry();
 
   /// Records the expiry that came with the current access token. A null

@@ -38,8 +38,8 @@ class AttendancePaths {
       '$correctionRequests/$id/reject';
 
   /// Off-site scan requests — the "ລົງເວລານອກພື້ນທີ່" menu
-  /// (attendance-offsite-requests.md §2). The detail route comes with the menu
-  /// that calls it.
+  /// (the backend's `docs/api/attendance-offsite-requests.md`, its endpoint
+  /// list). The detail route comes with the menu that calls it.
   static const String offsiteRequests = '$_prefix/offsite-requests';
 
   /// The caller's own off-site requests, for the history page (§4).
