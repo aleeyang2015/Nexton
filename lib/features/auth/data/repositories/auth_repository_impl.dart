@@ -10,6 +10,7 @@ import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_data_source.dart';
 import '../datasources/auth_remote_data_source.dart';
+import '../models/login_response_model.dart';
 
 /// Coordinates the remote and local sources, and converts thrown
 /// exceptions into [Result] via [BaseRepository.guard].
@@ -76,11 +77,7 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
         // second logout of it does no harm), removed from the phone while it
         // is still the stored one (not someone's sign-in made since), and
         // the profile is not kept.
-        if (abandonIf?.call() ?? false) {
-          await _endOnServer(tokens.refreshToken);
-          await _local.clearIfRefreshIs(tokens.refreshToken);
-          throw const Failure.unknown(message: abandonedMessage);
-        }
+        if (abandonIf?.call() ?? false) await _abandonStored(tokens);
         await _local.writeUser(user);
 
         return AuthSession.signedIn(
@@ -89,13 +86,34 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
         );
       } on Failure catch (failure) {
         if (failure.message == abandonedMessage) rethrow;
-        await _local.clear();
+        await _rollBack(tokens, abandonIf);
         rethrow;
       } catch (_) {
-        await _local.clear();
+        await _rollBack(tokens, abandonIf);
         rethrow;
       }
     });
+  }
+
+  /// A stored sign-in whose profile could not be loaded is undone. If the
+  /// user left meanwhile (#120), someone may have signed in since: the pair
+  /// is undone as an abandoned one, never by a plain clear of theirs.
+  Future<void> _rollBack(
+    LoginResponseModel tokens,
+    bool Function()? abandonIf,
+  ) {
+    if (abandonIf?.call() ?? false) return _abandonStored(tokens);
+    return _local.clear();
+  }
+
+  /// Ends a stored sign-in the user has left: on the server by its own
+  /// refresh token (a second logout of it does no harm; the server ends the
+  /// whole sign-in, a renewal of it included), and on the phone only while
+  /// it is still the stored one. Throws the abandoned failure.
+  Future<Never> _abandonStored(LoginResponseModel tokens) async {
+    await _endOnServer(tokens.refreshToken);
+    await _local.clearIfRefreshIs(tokens.refreshToken);
+    throw const Failure.unknown(message: abandonedMessage);
   }
 
   /// Cold start. Paints from cache when there is one and revalidates; only a
