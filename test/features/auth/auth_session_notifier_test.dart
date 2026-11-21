@@ -746,6 +746,36 @@ void main() {
       },
     );
 
+    test('a refused refresh while the user signs out (the push sign-off '
+        'renewed its token, #71): signed out with no reason, no "session '
+        'expired", and the sign-out finishes once', () async {
+      repository.restoreResult = Result.success(
+        AuthSession.signedIn(testUser()),
+      );
+      final c = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          beforeSignOutProvider.overrideWithValue(({
+            required bool tokensLive,
+          }) async {
+            // The DELETE's 401 started a refresh, and the server refused it:
+            // the interceptor cleared the tokens and reported the loss.
+            repository.sessionExpired.add(SessionEndReason.expired);
+            await pumpEventQueue();
+          }),
+        ],
+      );
+      addTearDown(c.dispose);
+      await c.read(authSessionProvider.future);
+
+      await c.read(authSessionProvider.notifier).logout();
+
+      final after = c.read(authSessionProvider).requireValue;
+      expect(after.status, AuthStatus.unauthenticated);
+      expect(after.endReason, isNull);
+      expect(repository.logoutCalls, 1);
+    });
+
     test('a forced sign-out carries its reason until it has been said', () async {
       repository.restoreResult = Result.success(
         AuthSession.signedIn(testUser()),
@@ -1002,8 +1032,9 @@ void main() {
       );
     });
 
-    test('a forced sign-out while the sign-off waits, then someone else signs '
-        'in: the waiting sign-out ends nothing of theirs', () async {
+    test('a session-end report while the sign-off waits ends nothing by '
+        'itself (#71); the sign-out then leaves whoever is signed in alone',
+        () async {
       repository.restoreResult = Result.success(
         AuthSession.signedIn(testUser()),
       );
@@ -1029,9 +1060,11 @@ void main() {
       hold.complete();
       await signingOut;
 
-      // Only the forced sign-out's local clear: no server logout, and B
-      // stays signed in.
-      expect(repository.logoutEndSession, [false]);
+      // The report came while A was signing out, so it ends nothing by
+      // itself (#71); the sign-out then finds B signed in and leaves them
+      // alone: no server logout, no local clear, and B stays signed in.
+      expect(repository.logoutEndSession, isNot(contains(true)));
+      expect(repository.logoutCalls, 0);
       expect(c.read(authSessionProvider).requireValue.user?.id, 'user-b');
     });
 

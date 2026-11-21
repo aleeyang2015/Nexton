@@ -45,6 +45,11 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
             _endedWhileChangingPassword ??= reason;
             return;
           }
+          // The user is signing out already: the loss changes nothing they
+          // need told. The push sign-off's `DELETE` renews an expired token
+          // (#71), and a refused renewal reports here; the sign-out goes on
+          // and ends signed out, with no "session expired" after the tap.
+          if (_loggingOut != null) return;
           _forceLogout(reason);
         });
     ref.onDispose(subscription.cancel);
