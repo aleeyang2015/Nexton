@@ -254,6 +254,57 @@ void main() {
         });
       });
 
+      group('the user leaves while the rollback ends the pair on the server '
+          '(#122)', () {
+        /// The profile fails with the user still here; the rollback's server
+        /// logout is held, and [meanwhile] runs while it waits.
+        Future<Failure> leaveDuringLogout(
+          Future<void> Function() meanwhile,
+        ) async {
+          var left = false;
+          final gate = Completer<void>();
+          remote
+            ..profileError = _mappedError(500, 'INTERNAL_ERROR', 'boom')
+            ..holdLogout = gate;
+          final login = repository.login(
+            email: 'somphone.vilaysone@nexton.la',
+            password: 'new-password1',
+            abandonIf: () => left,
+          );
+          for (var i = 0; i < 100 && remote.logouts.isEmpty; i++) {
+            await Future<void>.delayed(Duration.zero);
+          }
+          expect(remote.logouts, ['refresh-1']);
+          left = true;
+          await meanwhile();
+          gate.complete();
+          return (await login).failureOrNull!;
+        }
+
+        test('another sign-in saved meanwhile is left alone', () async {
+          final failure = await leaveDuringLogout(
+            () => local.writeTokens(
+              accessToken: 'access-b',
+              refreshToken: 'refresh-b',
+            ),
+          );
+
+          expect(failure.message, AuthRepositoryImpl.abandonedMessage);
+          expect(remote.logouts, ['refresh-1']);
+          expect(store.values[AppConstants.refreshTokenKey], 'refresh-b');
+          expect(store.values[AppConstants.accessTokenKey], 'access-b');
+        });
+
+        test('nothing saved since: the left pair is removed, and ended only '
+            'once', () async {
+          final failure = await leaveDuringLogout(() async {});
+
+          expect(failure.message, AuthRepositoryImpl.abandonedMessage);
+          expect(remote.logouts, ['refresh-1']);
+          expect(store.values, isEmpty);
+        });
+      });
+
       test('a renewal replaced the pair, then the user left: the sign-in is '
           'ended on the server by its first refresh token', () async {
         var left = false;
