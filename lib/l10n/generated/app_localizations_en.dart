@@ -1717,6 +1717,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveAllDaysOff => 'Every day you picked is a company day off.';
 
   @override
+  String leaveDayOffPicked(String date) {
+    return '$date is a company day off. Remove it to send.';
+  }
+
+  @override
   String get leaveDaysOffLoadFailed =>
       'Could not load the company\'s days off.';
 

@@ -20,6 +20,10 @@ enum LeaveFormBlock {
 
   /// A date range in which every day is a company day off.
   allDaysOff,
+
+  /// A separate day picked that is a company day off (#128): see
+  /// [LeaveFormRules.pickedDayOff].
+  dayOffPicked,
 }
 
 /// The form's own checks, as pure functions: the widget asks, and shows the
@@ -53,6 +57,29 @@ class LeaveFormRules {
     if (!state.durationType.isHalfDay) return const [];
     return [LeaveDurationType.fullDay, state.durationType];
   }
+
+  /// The first separate day picked that is a company day off, or null
+  /// (#128). The server charges every day it is sent as a separate day, a
+  /// day off too; only a range has its days off left out there. Such a day
+  /// gets in when it was picked while the days off were not known (the
+  /// calendar refuses it once they are). Null while they are still not
+  /// known: nothing is checked that cannot be. On an edit, a day the
+  /// request already had is not counted (HR changed the calendar since), so
+  /// a reason-only edit still saves.
+  static DateTime? pickedDayOff(LeaveRequestFormState state) {
+    final daysOff = state.daysOff;
+    if (state.isRange || daysOff == null) return null;
+
+    bool had(DateTime day) =>
+        state.isEditing && state.originalDates.any((old) => _sameDay(old, day));
+    for (final day in [...state.dates]..sort()) {
+      if (daysOff.isDayOff(day) && !had(day)) return day;
+    }
+    return null;
+  }
+
+  static bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   /// The years whose balance a request is charged to, earliest first: each
   /// leave day is charged to its own year, so a leave across the new year
@@ -165,6 +192,8 @@ class LeaveFormRules {
     // Nothing to ask for, whatever the type: the server refuses a request
     // that comes to zero days.
     if (state.isAllDaysOff) return LeaveFormBlock.allDaysOff;
+    // A day off picked as a separate day: the server would charge it.
+    if (pickedDayOff(state) != null) return LeaveFormBlock.dayOffPicked;
 
     if (type == null) return null;
     // The type needs a file, and none is attached yet.

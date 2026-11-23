@@ -718,6 +718,10 @@
   "leaveRangeCountByServer": "The server counts the days when you send.",
   "leaveDayOffLegend": "Company day off",
   "leaveAllDaysOff": "Every day you picked is a company day off.",
+  "leaveDayOffPicked": "{date} is a company day off. Remove it to send.",
+  "@leaveDayOffPicked": {
+    "placeholders": {"date": {"type": "String"}}
+  },
   "leaveDaysOffLoadFailed": "Could not load the company's days off.",
   "leavePickRangeStart": "Pick the first day",
   "leavePickRangeEnd": "Pick the last day",

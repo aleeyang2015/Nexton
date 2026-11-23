@@ -3164,6 +3164,12 @@ abstract class AppLocalizations {
   /// **'Every day you picked is a company day off.'**
   String get leaveAllDaysOff;
 
+  /// No description provided for @leaveDayOffPicked.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} is a company day off. Remove it to send.'**
+  String leaveDayOffPicked(String date);
+
   /// No description provided for @leaveDaysOffLoadFailed.
   ///
   /// In en, this message translates to:

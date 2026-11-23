@@ -78,6 +78,11 @@ class LeaveRequestFormState with _$LeaveRequestFormState {
     /// that year than this, as the server does.
     @Default(<int, double>{}) Map<int, double> originalDaysByYear,
 
+    /// Edit mode only: the days the request had when it was opened. A day
+    /// among them that is a company day off now (HR changed the calendar
+    /// since) does not stop the edit; only a day off added does (#128).
+    @Default(<DateTime>[]) List<DateTime> originalDates,
+
     /// The request's files: on an edit, those it had (as the server sent
     /// them), then any uploaded here.
     @Default(<LeaveAttachment>[]) List<LeaveAttachment> files,

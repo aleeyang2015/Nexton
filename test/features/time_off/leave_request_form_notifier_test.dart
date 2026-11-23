@@ -981,6 +981,15 @@ void main() {
       expect(stateOf(container).returnToWorkOverride, isNull);
     });
 
+    test('an edit remembers the days it opened with (#128)', () {
+      final container = containerWith();
+      formOf(container, 'req-7').seed(
+        sampleLeaveRequest(id: 'req-7', requestDays: [friday, sunday]),
+      );
+
+      expect(stateOf(container, 'req-7').originalDates, [friday, sunday]);
+    });
+
     test('a range is put in order, whichever end was given first', () async {
       final container = await closedOnSundays();
 

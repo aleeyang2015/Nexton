@@ -534,6 +534,7 @@
   "leaveRangeCountByServer": "ລະບົບຈະນັບວັນໃຫ້ຫຼັງຈາກສົ່ງ.",
   "leaveDayOffLegend": "ວັນພັກຂອງບໍລິສັດ",
   "leaveAllDaysOff": "ວັນທີ່ເລືອກແມ່ນວັນພັກຂອງບໍລິສັດທັງໝົດ.",
+  "leaveDayOffPicked": "ວັນທີ {date} ແມ່ນວັນພັກຂອງບໍລິສັດ. ກະລຸນາເອົາວັນນີ້ອອກກ່ອນສົ່ງ.",
   "leaveDaysOffLoadFailed": "ໂຫຼດວັນພັກຂອງບໍລິສັດບໍ່ໄດ້.",
   "leavePickRangeStart": "ເລືອກວັນທຳອິດ",
   "leavePickRangeEnd": "ເລືອກວັນສຸດທ້າຍ",

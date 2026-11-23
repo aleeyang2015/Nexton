@@ -143,6 +143,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     AppLocalizations l10n,
     LeaveFormBlock? block,
     LeaveType? type,
+    LeaveRequestFormState state,
   ) => switch (block) {
     null => null,
     LeaveFormBlock.returnDate => l10n.leaveReturnDateHint,
@@ -152,6 +153,9 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
     ),
     LeaveFormBlock.insufficientBalance => l10n.leaveInsufficientBalanceHint,
     LeaveFormBlock.allDaysOff => l10n.leaveAllDaysOff,
+    LeaveFormBlock.dayOffPicked => l10n.leaveDayOffPicked(
+      LeaveCopy.shortDate(l10n, LeaveFormRules.pickedDayOff(state)!),
+    ),
   };
 
   /// "ແນບໄຟລ໌": the camera, the gallery, or an image or PDF file
@@ -283,6 +287,7 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
         remainingByYear: remainingByYear,
       ),
       selectedType,
+      state,
     );
     // Never enable submit before the chosen type's rules are known.
     final typeResolved =

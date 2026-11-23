@@ -110,6 +110,7 @@ class LeaveRequestFormNotifier
       reason: request.reason,
       originalLeaveTypeId: request.leaveType.id,
       originalDaysByYear: _daysByYear(request, days),
+      originalDates: days,
       files: request.attachments,
     );
   }

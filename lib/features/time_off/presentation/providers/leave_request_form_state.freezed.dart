@@ -58,6 +58,11 @@ mixin _$LeaveRequestFormState {
   /// that year than this, as the server does.
   Map<int, double> get originalDaysByYear => throw _privateConstructorUsedError;
 
+  /// Edit mode only: the days the request had when it was opened. A day
+  /// among them that is a company day off now (HR changed the calendar
+  /// since) does not stop the edit; only a day off added does (#128).
+  List<DateTime> get originalDates => throw _privateConstructorUsedError;
+
   /// The request's files: on an edit, those it had (as the server sent
   /// them), then any uploaded here.
   List<LeaveAttachment> get files => throw _privateConstructorUsedError;
@@ -101,6 +106,7 @@ abstract class $LeaveRequestFormStateCopyWith<$Res> {
     int? balanceRefusedYear,
     String? originalLeaveTypeId,
     Map<int, double> originalDaysByYear,
+    List<DateTime> originalDates,
     List<LeaveAttachment> files,
     bool filesChanged,
     int uploadingFiles,
@@ -141,6 +147,7 @@ class _$LeaveRequestFormStateCopyWithImpl<
     Object? balanceRefusedYear = freezed,
     Object? originalLeaveTypeId = freezed,
     Object? originalDaysByYear = null,
+    Object? originalDates = null,
     Object? files = null,
     Object? filesChanged = null,
     Object? uploadingFiles = null,
@@ -205,6 +212,10 @@ class _$LeaveRequestFormStateCopyWithImpl<
                 ? _value.originalDaysByYear
                 : originalDaysByYear // ignore: cast_nullable_to_non_nullable
                       as Map<int, double>,
+            originalDates: null == originalDates
+                ? _value.originalDates
+                : originalDates // ignore: cast_nullable_to_non_nullable
+                      as List<DateTime>,
             files: null == files
                 ? _value.files
                 : files // ignore: cast_nullable_to_non_nullable
@@ -267,6 +278,7 @@ abstract class _$$LeaveRequestFormStateImplCopyWith<$Res>
     int? balanceRefusedYear,
     String? originalLeaveTypeId,
     Map<int, double> originalDaysByYear,
+    List<DateTime> originalDates,
     List<LeaveAttachment> files,
     bool filesChanged,
     int uploadingFiles,
@@ -305,6 +317,7 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
     Object? balanceRefusedYear = freezed,
     Object? originalLeaveTypeId = freezed,
     Object? originalDaysByYear = null,
+    Object? originalDates = null,
     Object? files = null,
     Object? filesChanged = null,
     Object? uploadingFiles = null,
@@ -369,6 +382,10 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
             ? _value._originalDaysByYear
             : originalDaysByYear // ignore: cast_nullable_to_non_nullable
                   as Map<int, double>,
+        originalDates: null == originalDates
+            ? _value._originalDates
+            : originalDates // ignore: cast_nullable_to_non_nullable
+                  as List<DateTime>,
         files: null == files
             ? _value._files
             : files // ignore: cast_nullable_to_non_nullable
@@ -412,6 +429,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     this.balanceRefusedYear,
     this.originalLeaveTypeId,
     final Map<int, double> originalDaysByYear = const <int, double>{},
+    final List<DateTime> originalDates = const <DateTime>[],
     final List<LeaveAttachment> files = const <LeaveAttachment>[],
     this.filesChanged = false,
     this.uploadingFiles = 0,
@@ -419,6 +437,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     this.submission = const AsyncValue<LeaveRequest?>.data(null),
   }) : _dates = dates,
        _originalDaysByYear = originalDaysByYear,
+       _originalDates = originalDates,
        _files = files,
        super._();
 
@@ -501,6 +520,22 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     return EqualUnmodifiableMapView(_originalDaysByYear);
   }
 
+  /// Edit mode only: the days the request had when it was opened. A day
+  /// among them that is a company day off now (HR changed the calendar
+  /// since) does not stop the edit; only a day off added does (#128).
+  final List<DateTime> _originalDates;
+
+  /// Edit mode only: the days the request had when it was opened. A day
+  /// among them that is a company day off now (HR changed the calendar
+  /// since) does not stop the edit; only a day off added does (#128).
+  @override
+  @JsonKey()
+  List<DateTime> get originalDates {
+    if (_originalDates is EqualUnmodifiableListView) return _originalDates;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_originalDates);
+  }
+
   /// The request's files: on an edit, those it had (as the server sent
   /// them), then any uploaded here.
   final List<LeaveAttachment> _files;
@@ -535,7 +570,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
 
   @override
   String toString() {
-    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, typeRefused: $typeRefused, balanceRefusedYear: $balanceRefusedYear, originalLeaveTypeId: $originalLeaveTypeId, originalDaysByYear: $originalDaysByYear, files: $files, filesChanged: $filesChanged, uploadingFiles: $uploadingFiles, fileFailure: $fileFailure, submission: $submission)';
+    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, typeRefused: $typeRefused, balanceRefusedYear: $balanceRefusedYear, originalLeaveTypeId: $originalLeaveTypeId, originalDaysByYear: $originalDaysByYear, originalDates: $originalDates, files: $files, filesChanged: $filesChanged, uploadingFiles: $uploadingFiles, fileFailure: $fileFailure, submission: $submission)';
   }
 
   @override
@@ -569,6 +604,10 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
               other._originalDaysByYear,
               _originalDaysByYear,
             ) &&
+            const DeepCollectionEquality().equals(
+              other._originalDates,
+              _originalDates,
+            ) &&
             const DeepCollectionEquality().equals(other._files, _files) &&
             (identical(other.filesChanged, filesChanged) ||
                 other.filesChanged == filesChanged) &&
@@ -597,6 +636,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     balanceRefusedYear,
     originalLeaveTypeId,
     const DeepCollectionEquality().hash(_originalDaysByYear),
+    const DeepCollectionEquality().hash(_originalDates),
     const DeepCollectionEquality().hash(_files),
     filesChanged,
     uploadingFiles,
@@ -631,6 +671,7 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
     final int? balanceRefusedYear,
     final String? originalLeaveTypeId,
     final Map<int, double> originalDaysByYear,
+    final List<DateTime> originalDates,
     final List<LeaveAttachment> files,
     final bool filesChanged,
     final int uploadingFiles,
@@ -686,6 +727,11 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   /// checked against a year's balance only when it asks for more days in
   /// that year than this, as the server does.
   Map<int, double> get originalDaysByYear;
+  @override
+  /// Edit mode only: the days the request had when it was opened. A day
+  /// among them that is a company day off now (HR changed the calendar
+  /// since) does not stop the edit; only a day off added does (#128).
+  List<DateTime> get originalDates;
   @override
   /// The request's files: on an edit, those it had (as the server sent
   /// them), then any uploaded here.
