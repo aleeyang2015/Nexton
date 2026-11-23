@@ -198,8 +198,12 @@ class AuthSessionNotifier extends AsyncNotifier<AuthSession> {
     if (session == null || !session.hasSession) {
       final held = _endedWhileChangingPassword;
       if (held == null) {
-        // The access token still works here: the phone is signed off in
-        // full.
+        // When the sign-in itself failed, the old pair is still stored and
+        // its access token still works: the phone is signed off in full.
+        // When its profile failed, the repository has already ended the new
+        // pair on the server and cleared it (#122): the `DELETE` then goes
+        // out with no token and is let through as a straggler, and the FCM
+        // token is still deleted, so the phone gets no more pushes.
         await _forceLogout(SessionEndReason.passwordChanged, tokensLive: true);
       } else {
         // The network layer already cleared the tokens. Its reason is the
