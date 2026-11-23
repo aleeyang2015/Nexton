@@ -957,6 +957,30 @@ void main() {
       expect(state.lastLeaveDate, monday);
     });
 
+    test('a half day on a one-day range keeps the return date picked by '
+        'hand: no day was cut (#14)', () async {
+      final container = await closedOnSundays();
+      formOf(container)
+        ..setRange(monday, monday)
+        ..setReturnToWorkDate(DateTime(2026, 11, 25))
+        ..setDurationType(LeaveDurationType.firstHalf);
+
+      expect(stateOf(container).dates, [monday]);
+      expect(stateOf(container).returnToWorkOverride, DateTime(2026, 11, 25));
+    });
+
+    test('a half day on a range Friday to Monday, Sunday off, forgets the '
+        'return date picked by hand: the days were cut (#14)', () async {
+      final container = await closedOnSundays();
+      formOf(container)
+        ..setRange(friday, monday)
+        ..setReturnToWorkDate(DateTime(2026, 11, 25))
+        ..setDurationType(LeaveDurationType.firstHalf);
+
+      expect(stateOf(container).dates, [friday]);
+      expect(stateOf(container).returnToWorkOverride, isNull);
+    });
+
     test('a range is put in order, whichever end was given first', () async {
       final container = await closedOnSundays();
 

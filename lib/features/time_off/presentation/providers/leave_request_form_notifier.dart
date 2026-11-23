@@ -309,10 +309,10 @@ class LeaveRequestFormNotifier
         : (charged.isEmpty ? null : charged.first);
     final dates = first == null ? const <DateTime>[] : [first];
     // A return date picked by hand was for the days now cut: it goes, and
-    // the form's own one (the day after) takes its place.
-    final sameDays =
-        state.mode == LeaveDaysMode.separateDays &&
-        listEquals(state.dates, dates);
+    // the form's own one (the day after) takes its place. Days that are not
+    // known (a range, days off unknown) count as cut.
+    final before = state.chargedDays;
+    final sameDays = before != null && listEquals(before, dates);
     state = state.copyWith(
       durationType: type,
       mode: LeaveDaysMode.separateDays,
