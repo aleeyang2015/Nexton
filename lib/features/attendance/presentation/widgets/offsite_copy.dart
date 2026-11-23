@@ -6,6 +6,7 @@ import '../../domain/datasources/punch_location_source.dart';
 import '../../domain/entities/offsite_detail.dart';
 import '../../domain/entities/offsite_method.dart';
 import '../../domain/entities/offsite_outcome.dart';
+import '../../domain/entities/punch_outcome.dart';
 import 'attendance_copy.dart';
 
 /// Turns the off-site scan request's domain values into the words its form
@@ -99,7 +100,15 @@ class OffsiteCopy {
   /// app's copy as the fallback. The punch card is refused by the same rules
   /// but always shows the app's copy (`AttendanceCopy.rule`); this form still
   /// puts the server's sentence first.
+  ///
+  /// Except for no shift today (#115): the server's sentence is a plain
+  /// "ask HR", in English only, so the App's own words are shown, as on the
+  /// phone clock-in.
   static String blocked(AppLocalizations l10n, OffsiteBlocked blocked) {
+    if (blocked.rule == AttendanceRule.noShiftAssigned) {
+      return AttendanceCopy.ruleFallback(l10n, blocked.rule, blocked.details);
+    }
+
     final serverMessage = blocked.message.trim();
     if (serverMessage.isNotEmpty) return serverMessage;
 
