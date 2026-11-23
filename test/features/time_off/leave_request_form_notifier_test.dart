@@ -1519,6 +1519,40 @@ void main() {
       expect(block(), LeaveFormBlock.attachmentRequired);
     });
   });
+
+  group('the most days a request may ask for (#104)', () {
+    // Tuesday to Thursday: three working days.
+    final threeDays = [
+      DateTime(2026, 11, 17),
+      DateTime(2026, 11, 18),
+      DateTime(2026, 11, 19),
+    ];
+
+    LeaveFormBlock? blockFor(double? max) {
+      final container = containerWith();
+      formOf(container).setDates(threeDays);
+      expect(stateOf(container).totalDays, 3);
+      return LeaveFormRules.block(
+        state: stateOf(container),
+        type: sampleLeaveType(maxDaysPerRequest: max),
+        remainingByYear: const {},
+      );
+    }
+
+    test('0 is no limit, as on the server: a 3-day request is not blocked',
+        () {
+      expect(blockFor(0), isNull);
+    });
+
+    test('a real limit still blocks: 2 days, 3 asked', () {
+      expect(blockFor(2), LeaveFormBlock.maxDays);
+    });
+
+    test('no limit sent, or one below 0: not blocked', () {
+      expect(blockFor(null), isNull);
+      expect(blockFor(-1), isNull);
+    });
+  });
 }
 
 const _photo = LocalFile(path: '/phone/cert.jpg', name: 'cert.jpg');

@@ -148,4 +148,68 @@ void main() {
 
     expect(attendance.todayCalls, todayBefore);
   });
+
+  testWidgets('yesterday\'s check-in with no shift times, past 18 h: the '
+      'slide clocks in through the phone door, the form is not opened', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final attendance = FakeAttendanceRepository();
+    final offsite = FakeOffsiteRepository()
+      ..waitingResult = Result.success([
+        // Yesterday 00:00: always more than 18 h back.
+        waitingOffsite(
+          method: OffsiteMethod.checkIn,
+          at: DateTime(now.year, now.month, now.day - 1),
+        ),
+      ]);
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) {
+                ref.watch(attendanceNotifierProvider);
+                return TextButton(
+                  onPressed: () => PunchFlow.start(context, ref),
+                  child: const Text('PUNCH'),
+                );
+              },
+            ),
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.offsiteRequest,
+          builder: (_, state) => Scaffold(body: Text('FORM:${state.extra}')),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          attendanceRepositoryProvider.overrideWithValue(attendance),
+          offsiteRepositoryProvider.overrideWithValue(offsite),
+          punchLocationSourceProvider.overrideWithValue(
+            FakePunchLocationSource(),
+          ),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('PUNCH'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('FORM:'), findsNothing);
+    expect(attendance.clockInRequests, hasLength(1));
+    expect(attendance.clockOutRequests, isEmpty);
+  });
 }

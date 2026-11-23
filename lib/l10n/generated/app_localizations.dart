@@ -1442,6 +1442,18 @@ abstract class AppLocalizations {
   /// **'This file can\'t be opened'**
   String get leaveFileOpenFailed;
 
+  /// No description provided for @fileLinkExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This link has expired. Close it and open it again.'**
+  String get fileLinkExpired;
+
+  /// No description provided for @fileLinkExpiredRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'This link has expired. Pull down on the list to refresh it.'**
+  String get fileLinkExpiredRefresh;
+
   /// No description provided for @timeOffApprovalsTab.
   ///
   /// In en, this message translates to:
@@ -2651,13 +2663,13 @@ abstract class AppLocalizations {
   /// No description provided for @approvalsLeaveTab.
   ///
   /// In en, this message translates to:
-  /// **'Approve Leave'**
+  /// **'Leave'**
   String get approvalsLeaveTab;
 
   /// No description provided for @approvalsTimeCorrectionTab.
   ///
   /// In en, this message translates to:
-  /// **'Approve Corrections'**
+  /// **'Forgot to scan'**
   String get approvalsTimeCorrectionTab;
 
   /// No description provided for @offsiteTitle.
@@ -2807,7 +2819,7 @@ abstract class AppLocalizations {
   /// No description provided for @approvalsOffsiteTab.
   ///
   /// In en, this message translates to:
-  /// **'Approve Off-site'**
+  /// **'Off-site scans'**
   String get approvalsOffsiteTab;
 
   /// No description provided for @offsiteHistoryEmpty.
@@ -3823,6 +3835,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'OT request cancelled'**
   String get otCancelledToast;
+
+  /// No description provided for @otApprovedCancelledToast.
+  ///
+  /// In en, this message translates to:
+  /// **'OT cancelled'**
+  String get otApprovedCancelledToast;
 
   /// No description provided for @otPostsTitle.
   ///

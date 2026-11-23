@@ -3,14 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
+import '../../../../core/errors/failure.dart';
 import '../../../../core/l10n/failure_localizer.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/upload/presentation/file_link_image.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/image_viewer.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../../core/errors/failure.dart';
 import '../../domain/attendance_failure_x.dart';
 import '../../domain/entities/offsite_detail.dart';
 import '../../domain/entities/time_correction_status.dart';
@@ -95,10 +96,12 @@ class OffsiteRequestDetailPage extends ConsumerWidget {
                       context,
                       url,
                       errorText: l10n.leaveFileOpenFailed,
+                      onExpired: _renewLinks(context, ref, requestId),
                     ),
                     // Shown by the card only while the request waits.
                     onCancel: () => _cancel(context, ref),
                     cancelling: cancelling,
+                    onPhotoExpired: _renewLinks(context, ref, requestId),
                   ),
                   heightBx(h: 16),
                   TimeCorrectionApprovalWorkflow(
@@ -208,6 +211,7 @@ class _ApproverBody extends ConsumerWidget {
             context,
             url,
             errorText: l10n.leaveFileOpenFailed,
+            onExpired: _renewLinks(context, ref, request.id),
           ),
         ),
         if (photo != null) ...[
@@ -217,13 +221,14 @@ class _ApproverBody extends ConsumerWidget {
               context,
               photo,
               errorText: l10n.leaveFileOpenFailed,
+              onExpired: _renewLinks(context, ref, request.id),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                photo,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              child: FileLinkImage(
+                url: photo,
+                fallback: const SizedBox.shrink(),
+                onExpired: _renewLinks(context, ref, request.id),
               ),
             ),
           ),
@@ -287,3 +292,12 @@ class _Unavailable extends StatelessWidget {
     );
   }
 }
+
+/// The scan read again, quietly, when one of its photo links has expired
+/// (#73): every read gives new links, which last an hour. The page shows
+/// what it has meanwhile; a failure here changes nothing on it.
+VoidCallback _renewLinks(BuildContext context, WidgetRef ref, String id) =>
+    () {
+      if (!context.mounted) return;
+      ref.read(offsiteDetailNotifierProvider(id).notifier).refresh();
+    };

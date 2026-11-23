@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
+import 'package:next_on/core/upload/presentation/file_link_image.dart';
 import 'package:next_on/core/utils/clock_provider.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/core/widgets/app_toast.dart';
+import 'package:next_on/features/time_off/domain/entities/leave_attachment.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_status.dart';
 import 'package:next_on/features/time_off/presentation/pages/leave_request_detail_page.dart';
@@ -12,6 +14,7 @@ import 'package:next_on/features/time_off/time_off_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 import 'package:next_on/l10n/generated/app_localizations_en.dart';
 
+import '../../support/file_link_test_doubles.dart';
 import '../../support/leave_test_doubles.dart';
 
 /// Answers the by-id load after [delay], so a frame is drawn while it runs.
@@ -48,6 +51,7 @@ void main() {
     WidgetTester tester, {
     LeaveRequest? initial,
     DateTime? now,
+    List<Override> extra = const [],
   }) async {
     tester.view.physicalSize = const Size(390, 1600);
     tester.view.devicePixelRatio = 1;
@@ -58,6 +62,7 @@ void main() {
         overrides: [
           leaveRepositoryProvider.overrideWithValue(repository),
           clockProvider.overrideWithValue(() => now ?? dayBefore),
+          ...extra,
         ],
         child: MaterialApp(
           scaffoldMessengerKey: rootScaffoldMessengerKey,
@@ -338,5 +343,34 @@ void main() {
         findsOneWidget,
       );
     });
+  });
+
+  testWidgets('a file whose link has expired (#73): the request is read '
+      'again, so the next tap opens the new link', (tester) async {
+    resetExpiredLinkReports();
+    repository.requestDetailResult = Result.success(
+      sampleLeaveRequest(
+        id: 'req-7',
+        reason: 'Family trip',
+        attachments: const [
+          LeaveAttachment(
+            fileName: 'uploads/cert.jpg',
+            originalName: 'cert.jpg',
+            url: 'https://f/cert.jpg?exp=1',
+            contentType: 'image/jpeg',
+          ),
+        ],
+      ),
+    );
+    await pumpPage(tester, extra: [fileLinksFailWith(403)]);
+    await tester.pumpAndSettle();
+    expect(repository.requestDetailCalls, ['req-7']);
+
+    await tester.tap(find.text('cert.jpg'));
+    await tester.pumpAndSettle();
+    await tester.pump();
+
+    expect(find.text(en.fileLinkExpired), findsOneWidget);
+    expect(repository.requestDetailCalls, ['req-7', 'req-7']);
   });
 }

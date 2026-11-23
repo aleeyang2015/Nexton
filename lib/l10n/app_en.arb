@@ -289,6 +289,8 @@
   "leaveAttachUploadFailed": "Couldn't upload the file. Please try again.",
   "leaveFileRemove": "Remove file",
   "leaveFileOpenFailed": "This file can't be opened",
+  "fileLinkExpired": "This link has expired. Close it and open it again.",
+  "fileLinkExpiredRefresh": "This link has expired. Pull down on the list to refresh it.",
   "timeOffApprovalsTab": "Team Approvals",
   "leaveApprovalsPendingHeader": "Needs your approval ({count})",
   "@leaveApprovalsPendingHeader": {
@@ -593,8 +595,8 @@
   "uploadInvalidFile": "Could not read the file; choose it again",
   "uploadStorageUnavailable": "File upload is not available; contact HR",
   "uploadPermissionDenied": "Allow the App to use the camera or photos in the phone's settings",
-  "approvalsLeaveTab": "Approve Leave",
-  "approvalsTimeCorrectionTab": "Approve Corrections",
+  "approvalsLeaveTab": "Leave",
+  "approvalsTimeCorrectionTab": "Forgot to scan",
   "offsiteTitle": "Off-site Clock-in",
   "offsiteNoticeTitle": "Clocking in outside the work area",
   "offsiteNoticeBody": "Your position is outside every work area. Attach a photo and a reason: if you are cleared for off-site work your punch is recorded at once, otherwise HR reviews the request first.",
@@ -634,7 +636,7 @@
       "time": {"type": "String"}
     }
   },
-  "approvalsOffsiteTab": "Approve Off-site",
+  "approvalsOffsiteTab": "Off-site scans",
   "offsiteHistoryEmpty": "No off-site clock-in requests",
   "attMyRequestsMenu": "My requests",
   "attMyRequestsTitle": "My requests",
@@ -845,6 +847,7 @@
   "otSaveAction": "Save",
   "otCancelConfirm": "Cancel this OT request?",
   "otCancelledToast": "OT request cancelled",
+  "otApprovedCancelledToast": "OT cancelled",
   "otPostsTitle": "OT posts",
   "otPostPlacesLeft": "{n} places left",
   "@otPostPlacesLeft": {"placeholders": {"n": {"type": "int"}}},

@@ -25,6 +25,11 @@ mixin _$TimeCorrectionFormState {
   /// (#44). Empty when the day has none, or while its history is not read
   /// yet (or could not be): the profile's parts are offered then.
   List<ShiftDetail> get dayParts => throw _privateConstructorUsedError;
+
+  /// The profile's parts, as last read (empty while it loads, or when it
+  /// cannot be read). A chosen part that is one of them, as this full
+  /// copy, has a known window ([partWindowKnown], #86).
+  List<ShiftDetail> get profileParts => throw _privateConstructorUsedError;
   TimeOfDay get clockIn => throw _privateConstructorUsedError;
   TimeOfDay get clockOut => throw _privateConstructorUsedError;
   String get reason => throw _privateConstructorUsedError;
@@ -51,6 +56,7 @@ abstract class $TimeCorrectionFormStateCopyWith<$Res> {
     TimeCorrectionType type,
     ShiftDetail? shiftDetail,
     List<ShiftDetail> dayParts,
+    List<ShiftDetail> profileParts,
     TimeOfDay clockIn,
     TimeOfDay clockOut,
     String reason,
@@ -79,6 +85,7 @@ class _$TimeCorrectionFormStateCopyWithImpl<
     Object? type = null,
     Object? shiftDetail = freezed,
     Object? dayParts = null,
+    Object? profileParts = null,
     Object? clockIn = null,
     Object? clockOut = null,
     Object? reason = null,
@@ -102,6 +109,10 @@ class _$TimeCorrectionFormStateCopyWithImpl<
             dayParts: null == dayParts
                 ? _value.dayParts
                 : dayParts // ignore: cast_nullable_to_non_nullable
+                      as List<ShiftDetail>,
+            profileParts: null == profileParts
+                ? _value.profileParts
+                : profileParts // ignore: cast_nullable_to_non_nullable
                       as List<ShiftDetail>,
             clockIn: null == clockIn
                 ? _value.clockIn
@@ -143,6 +154,7 @@ abstract class _$$TimeCorrectionFormStateImplCopyWith<$Res>
     TimeCorrectionType type,
     ShiftDetail? shiftDetail,
     List<ShiftDetail> dayParts,
+    List<ShiftDetail> profileParts,
     TimeOfDay clockIn,
     TimeOfDay clockOut,
     String reason,
@@ -171,6 +183,7 @@ class __$$TimeCorrectionFormStateImplCopyWithImpl<$Res>
     Object? type = null,
     Object? shiftDetail = freezed,
     Object? dayParts = null,
+    Object? profileParts = null,
     Object? clockIn = null,
     Object? clockOut = null,
     Object? reason = null,
@@ -194,6 +207,10 @@ class __$$TimeCorrectionFormStateImplCopyWithImpl<$Res>
         dayParts: null == dayParts
             ? _value._dayParts
             : dayParts // ignore: cast_nullable_to_non_nullable
+                  as List<ShiftDetail>,
+        profileParts: null == profileParts
+            ? _value._profileParts
+            : profileParts // ignore: cast_nullable_to_non_nullable
                   as List<ShiftDetail>,
         clockIn: null == clockIn
             ? _value.clockIn
@@ -228,12 +245,14 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
     this.type = TimeCorrectionType.both,
     this.shiftDetail,
     final List<ShiftDetail> dayParts = const <ShiftDetail>[],
+    final List<ShiftDetail> profileParts = const <ShiftDetail>[],
     this.clockIn = const TimeOfDay(hour: 8, minute: 0),
     this.clockOut = const TimeOfDay(hour: 17, minute: 0),
     this.reason = '',
     this.showErrors = false,
     this.submission = const AsyncValue<String?>.data(null),
   }) : _dayParts = dayParts,
+       _profileParts = profileParts,
        super._();
 
   @override
@@ -260,6 +279,22 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
     return EqualUnmodifiableListView(_dayParts);
   }
 
+  /// The profile's parts, as last read (empty while it loads, or when it
+  /// cannot be read). A chosen part that is one of them, as this full
+  /// copy, has a known window ([partWindowKnown], #86).
+  final List<ShiftDetail> _profileParts;
+
+  /// The profile's parts, as last read (empty while it loads, or when it
+  /// cannot be read). A chosen part that is one of them, as this full
+  /// copy, has a known window ([partWindowKnown], #86).
+  @override
+  @JsonKey()
+  List<ShiftDetail> get profileParts {
+    if (_profileParts is EqualUnmodifiableListView) return _profileParts;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_profileParts);
+  }
+
   @override
   @JsonKey()
   final TimeOfDay clockIn;
@@ -281,7 +316,7 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
 
   @override
   String toString() {
-    return 'TimeCorrectionFormState(date: $date, type: $type, shiftDetail: $shiftDetail, dayParts: $dayParts, clockIn: $clockIn, clockOut: $clockOut, reason: $reason, showErrors: $showErrors, submission: $submission)';
+    return 'TimeCorrectionFormState(date: $date, type: $type, shiftDetail: $shiftDetail, dayParts: $dayParts, profileParts: $profileParts, clockIn: $clockIn, clockOut: $clockOut, reason: $reason, showErrors: $showErrors, submission: $submission)';
   }
 
   @override
@@ -294,6 +329,10 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
             (identical(other.shiftDetail, shiftDetail) ||
                 other.shiftDetail == shiftDetail) &&
             const DeepCollectionEquality().equals(other._dayParts, _dayParts) &&
+            const DeepCollectionEquality().equals(
+              other._profileParts,
+              _profileParts,
+            ) &&
             (identical(other.clockIn, clockIn) || other.clockIn == clockIn) &&
             (identical(other.clockOut, clockOut) ||
                 other.clockOut == clockOut) &&
@@ -311,6 +350,7 @@ class _$TimeCorrectionFormStateImpl extends _TimeCorrectionFormState {
     type,
     shiftDetail,
     const DeepCollectionEquality().hash(_dayParts),
+    const DeepCollectionEquality().hash(_profileParts),
     clockIn,
     clockOut,
     reason,
@@ -334,6 +374,7 @@ abstract class _TimeCorrectionFormState extends TimeCorrectionFormState {
     final TimeCorrectionType type,
     final ShiftDetail? shiftDetail,
     final List<ShiftDetail> dayParts,
+    final List<ShiftDetail> profileParts,
     final TimeOfDay clockIn,
     final TimeOfDay clockOut,
     final String reason,
@@ -353,6 +394,11 @@ abstract class _TimeCorrectionFormState extends TimeCorrectionFormState {
   /// (#44). Empty when the day has none, or while its history is not read
   /// yet (or could not be): the profile's parts are offered then.
   List<ShiftDetail> get dayParts;
+  @override
+  /// The profile's parts, as last read (empty while it loads, or when it
+  /// cannot be read). A chosen part that is one of them, as this full
+  /// copy, has a known window ([partWindowKnown], #86).
+  List<ShiftDetail> get profileParts;
   @override
   TimeOfDay get clockIn;
   @override

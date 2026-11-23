@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/l10n/failure_localizer.dart';
@@ -30,15 +31,19 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => TextButton(
-            onPressed: () => showImageViewer(
-              context,
-              'https://files.nexton.work/broken.heic',
-              errorText: "This file can't be opened",
+      // The App's own root scope: the viewer reads how a file link's image
+      // is made from it (#73).
+      ProviderScope(
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showImageViewer(
+                context,
+                'https://files.nexton.work/broken.heic',
+                errorText: "This file can't be opened",
+              ),
+              child: const Text('OPEN'),
             ),
-            child: const Text('OPEN'),
           ),
         ),
       ),

@@ -44,6 +44,12 @@ class TimeCorrectionRequest extends Equatable {
   /// id goes on the wire. Null when not known (the server then decides).
   final ShiftDetail? part;
 
+  /// False when [part] is known only from a history row (its profile no
+  /// longer has it): without its early and late minutes its window is not
+  /// known, so a time outside its hours is left to the server (#86). Not
+  /// sent.
+  final bool partWindowKnown;
+
   const TimeCorrectionRequest({
     required this.date,
     required this.type,
@@ -53,6 +59,7 @@ class TimeCorrectionRequest extends Equatable {
     required this.reason,
     this.attachment,
     this.part,
+    this.partWindowKnown = true,
   });
 
   TimeCorrectionRequest withAttachment(UploadedAttachment? file) =>
@@ -65,6 +72,7 @@ class TimeCorrectionRequest extends Equatable {
         reason: reason,
         attachment: file,
         part: part,
+        partWindowKnown: partWindowKnown,
       );
 
   /// Every rule the request breaks, keyed by [TimeCorrectionFields] and
@@ -93,6 +101,7 @@ class TimeCorrectionRequest extends Equatable {
       clockOut: clockOut,
       part: part,
       date: day,
+      enforceWindow: partWindowKnown,
     );
     if (timesError != null) errors[TimeCorrectionFields.times] = timesError;
 
@@ -132,5 +141,6 @@ class TimeCorrectionRequest extends Equatable {
     reason,
     attachment,
     part,
+    partWindowKnown,
   ];
 }

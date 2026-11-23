@@ -9,7 +9,8 @@ import '../../../../core/network/token_storage.dart';
 ///
 /// `expires_at` (Unix seconds) is modelled and persisted with the tokens, but
 /// it does **not** drive refreshing: the access token is still refreshed
-/// reactively on a 401, never pre-emptively by clock (auth-login.md §5).
+/// reactively on a 401, never pre-emptively by clock (the backend's
+/// `docs/api/auth-login.md`, token lifecycle).
 class LoginResponseModel {
   final String accessToken;
   final String refreshToken;

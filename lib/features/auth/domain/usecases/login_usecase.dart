@@ -20,7 +20,11 @@ class LoginParams extends BaseParams {
   final String email;
   final String password;
 
-  LoginParams({required this.email, required this.password});
+  /// See [AuthRepository.login]: only the password change's sign-in again
+  /// passes it (#93).
+  final bool Function()? abandonIf;
+
+  LoginParams({required this.email, required this.password, this.abandonIf});
 
   @override
   Result<Unit> validate() {
@@ -86,6 +90,7 @@ class LoginUseCase implements BaseUseCase<AuthSession, LoginParams> {
     return _repository.login(
       email: params.email.trim(),
       password: params.password,
+      abandonIf: params.abandonIf,
     );
   }
 }

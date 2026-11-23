@@ -60,8 +60,9 @@ enum AttendanceRule {
 
   /// 409 — an off-site scan request for this session and direction is already
   /// pending or approved. Only the off-site endpoint raises it
-  /// (`OFFSITE_REQUEST_EXISTS`, attendance-offsite-requests.md §3); a punch
-  /// never does, which is why it is absent from the punch endpoints' table.
+  /// (`OFFSITE_REQUEST_EXISTS`, the backend's
+  /// `docs/api/attendance-offsite-requests.md`); a punch never does, which is
+  /// why it is absent from the punch endpoints' table.
   offsiteRequestExists,
 
   /// 409 — the clock-in window hasn't opened yet. `details.clock_in_opens`
@@ -95,14 +96,17 @@ enum AttendanceRule {
   bool get isResolvableOffsite => this == outsideWorkArea;
 
   /// True when the refusal says today's sessions are not what the screen
-  /// showed (the session started, finished, or never began): the off-site
-  /// form closes and today is read again.
+  /// showed (the session started, finished, or never began; the OT changed,
+  /// #110): the off-site form closes and today is read again.
   bool get meansTodayChanged => switch (this) {
     sessionAlreadyStarted ||
     sessionAlreadyCompleted ||
     sessionAlreadyCheckedOut ||
     sessionNotStarted ||
-    checkinPendingApproval => true,
+    checkinPendingApproval ||
+    // The OT changed as an off-site check-out was sent (#110): what the
+    // card should offer has changed too.
+    otChanged => true,
     _ => false,
   };
 }

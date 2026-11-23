@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 
 import '../../../../core/network/api_client.dart';
-import '../../../../core/network/auth_interceptor.dart';
 import '../models/device_registration_model.dart';
 import 'push_api_paths.dart';
 
@@ -48,13 +47,15 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
   @override
   Future<void> unregister(String deviceId) async {
     try {
-      // Sent at sign-out: a 401 here must not start a refresh that could
-      // land after the tokens are cleared (and write them back), nor end
-      // the session a second time.
-      await _client.delete<dynamic>(
-        PushPaths.device(deviceId),
-        options: Options(extra: {AuthInterceptor.noRefreshFlag: true}),
-      );
+      // Sent at sign-out with whatever access token is stored: one that has
+      // run out (15 minutes) is renewed on its 401 and the DELETE sent again
+      // (#71), or the row would stay on and a shared phone keep getting this
+      // user's pushes. A renewal that answers while or after the sign-out
+      // clears the tokens writes nothing back (the token storage checks the
+      // refresh token and writes in one step, which a clear cannot cut
+      // into), and a refused one ends no session twice: the sign-out drops
+      // that report.
+      await _client.delete<dynamic>(PushPaths.device(deviceId));
     } on DioException catch (error) {
       if (error.response?.statusCode == 404) return;
       rethrow;

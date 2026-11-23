@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/upload/presentation/file_link_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -234,10 +235,15 @@ class ApprovalAttachmentRow extends StatelessWidget {
   final String url;
   final VoidCallback onView;
 
+  /// Told once when the thumbnail's link has expired (#73), on a page that
+  /// can read its request again; a list passes none.
+  final VoidCallback? onExpired;
+
   const ApprovalAttachmentRow({
     super.key,
     required this.url,
     required this.onView,
+    this.onExpired,
   });
 
   @override
@@ -259,10 +265,10 @@ class ApprovalAttachmentRow extends StatelessWidget {
               width: 48,
               height: 48,
               child: image
-                  ? Image.network(
-                      url,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const _FileIcon(image: true),
+                  ? FileLinkImage(
+                      url: url,
+                      fallback: const _FileIcon(image: true),
+                      onExpired: onExpired,
                     )
                   : const _FileIcon(image: false),
             ),

@@ -273,14 +273,31 @@ void main() {
       );
     });
 
-    test('which refusals mean today changed: the four SESSION_* and the '
-        'pending check-in close the form; the rest keep it', () {
+    test('409 OT_CHANGED (#110: the OT cancelled as the check-out went) is '
+        'the OT-changed rule', () async {
+      adapter
+        ..status = 409
+        ..body = {
+          'success': false,
+          'error': {'code': 'OT_CHANGED', 'message': 'Please try again.'},
+        };
+
+      expect(
+        ((await source.submit(request())) as OffsiteBlocked).rule,
+        AttendanceRule.otChanged,
+      );
+    });
+
+    test('which refusals mean today changed: the four SESSION_*, the '
+        'pending check-in and a changed OT close the form; the rest keep it',
+        () {
       const closes = {
         AttendanceRule.sessionAlreadyStarted,
         AttendanceRule.sessionAlreadyCompleted,
         AttendanceRule.sessionAlreadyCheckedOut,
         AttendanceRule.sessionNotStarted,
         AttendanceRule.checkinPendingApproval,
+        AttendanceRule.otChanged,
       };
       for (final rule in AttendanceRule.values) {
         expect(rule.meansTodayChanged, closes.contains(rule), reason: '$rule');

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/features/attendance/domain/entities/offsite_method.dart';
+import 'package:next_on/features/attendance/domain/entities/time_correction_detail.dart';
 import 'package:next_on/features/attendance/domain/entities/time_correction_status.dart';
 import 'package:next_on/features/attendance/domain/next_punch.dart';
 
@@ -20,6 +21,7 @@ void main() {
     otOpen: otOpen,
     waiting: [...waiting],
     today: now ?? today,
+    now: now ?? today,
   );
 
   final checkInToday = waitingOffsite(
@@ -143,17 +145,174 @@ void main() {
     );
   });
 
-  test('yesterday\'s check-in with no shift known: a normal clock-in (the '
-      'server decides)', () {
-    final unknown = waitingOffsite(
-      method: OffsiteMethod.checkIn,
-      at: DateTime(2026, 11, 16, 22),
-    );
-    expect(
-      decide([unknown], now: DateTime(2026, 11, 17, 6)),
-      isA<NormalClockIn>(),
-    );
-  });
+  group(
+    'yesterday\'s check-in with no shift times (owner decision, 19 Nov)',
+    () {
+      // Noy checks in off-site at 20:00 on a day with no shift.
+      final noShift = waitingOffsite(
+        method: OffsiteMethod.checkIn,
+        at: DateTime(2026, 11, 16, 20),
+      );
+
+      test('17 h later: an off-site clock-out', () {
+        final next = decide([noShift], now: DateTime(2026, 11, 17, 13));
+        expect(next, isA<OffsiteClockOut>());
+        expect((next as OffsiteClockOut).checkIn.id, 'off-1');
+      });
+
+      test('exactly 18 h later: still an off-site clock-out', () {
+        expect(
+          decide([noShift], now: DateTime(2026, 11, 17, 14)),
+          isA<OffsiteClockOut>(),
+        );
+      });
+
+      test('19 h later: a normal clock-in, and the check-in still shown', () {
+        final next = decide([noShift], now: DateTime(2026, 11, 17, 15));
+        expect(next, isA<WaitingCheckIn>());
+        expect((next as WaitingCheckIn).checkIn.id, 'off-1');
+      });
+
+      test('a shift sent without its times counts as no shift times', () {
+        final noTimes = waitingOffsite(
+          method: OffsiteMethod.checkIn,
+          at: DateTime(2026, 11, 16, 20),
+          shift: const TimeCorrectionShift(name: 'Rest day'),
+        );
+        expect(
+          decide([noTimes], now: DateTime(2026, 11, 17, 13)),
+          isA<OffsiteClockOut>(),
+        );
+        expect(
+          decide([noTimes], now: DateTime(2026, 11, 17, 15)),
+          isA<WaitingCheckIn>(),
+        );
+      });
+
+      test(
+        'no scan time: the 18 h run from when it was sent (UTC, as local)',
+        () {
+          final sent = waitingOffsite(
+            method: OffsiteMethod.checkIn,
+            at: DateTime(2026, 11, 16, 20),
+            noScanTime: true,
+            submittedAt: DateTime(2026, 11, 16, 20).toUtc(),
+          );
+          expect(
+            decide([sent], now: DateTime(2026, 11, 17, 13)),
+            isA<OffsiteClockOut>(),
+          );
+          expect(
+            decide([sent], now: DateTime(2026, 11, 17, 15)),
+            isA<WaitingCheckIn>(),
+          );
+        },
+      );
+
+      test('its check-out also waiting: waitingBoth', () {
+        final out = waitingOffsite(
+          id: 'off-2',
+          method: OffsiteMethod.checkOut,
+          at: DateTime(2026, 11, 17, 7),
+        );
+        expect(
+          decide([noShift, out], now: DateTime(2026, 11, 17, 15)),
+          isA<WaitingBoth>(),
+        );
+      });
+
+      test('today\'s pair waiting beside it: waitingBoth for today\'s', () {
+        final inToday = waitingOffsite(
+          id: 'off-2',
+          method: OffsiteMethod.checkIn,
+          at: DateTime(2026, 11, 17, 8),
+        );
+        final outToday = waitingOffsite(
+          id: 'off-3',
+          method: OffsiteMethod.checkOut,
+          at: DateTime(2026, 11, 17, 12),
+        );
+        final next = decide([
+          noShift,
+          inToday,
+          outToday,
+        ], now: DateTime(2026, 11, 17, 15));
+        expect(next, isA<WaitingBoth>());
+        expect((next as WaitingBoth).checkIn.id, 'off-2');
+      });
+
+      test('an open session in the record still wins', () {
+        expect(
+          decide([noShift], clockedIn: true, now: DateTime(2026, 11, 17, 15)),
+          isA<NormalClockOut>(),
+        );
+      });
+
+      group('a night shift from yesterday stops at 18 h too (owner, 21 Nov)',
+          () {
+        // Lee checks in off-site at 22:00 Monday on a 22:00–06:00 shift and
+        // never checks out. The server pairs a check-out with it for at least
+        // 18 h (openReach's floor), so the slide offers it that long, then
+        // goes back to a normal clock-in for Tuesday's shift.
+        final night = waitingOffsite(
+          method: OffsiteMethod.checkIn,
+          at: DateTime(2026, 11, 16, 22),
+          shift: nightShift,
+        );
+
+        test('17 h later: an off-site clock-out that says when it stops', () {
+          final next = decide([night], now: DateTime(2026, 11, 17, 15));
+          expect(next, isA<OffsiteClockOut>());
+          expect((next as OffsiteClockOut).until, DateTime(2026, 11, 17, 16));
+        });
+
+        test('exactly 18 h later: still an off-site clock-out', () {
+          expect(
+            decide([night], now: DateTime(2026, 11, 17, 16)),
+            isA<OffsiteClockOut>(),
+          );
+        });
+
+        test('18 h and a second later: a normal clock-in, still shown', () {
+          final next = decide([night], now: DateTime(2026, 11, 17, 16, 0, 1));
+          expect(next, isA<WaitingCheckIn>());
+          expect((next as WaitingCheckIn).checkIn.id, 'off-1');
+        });
+        test('scanned after midnight (00:30, dated today): 18 h, then a '
+            'normal clock-in for tonight', () {
+          // The server dates a scan by its own calendar day, so 00:30 Tuesday
+          // is Tuesday's; it stops pairing at 18:30.
+          final late = waitingOffsite(
+            method: OffsiteMethod.checkIn,
+            at: DateTime(2026, 11, 17, 0, 30),
+            shift: nightShift,
+          );
+          final before = decide([late], now: DateTime(2026, 11, 17, 18, 30));
+          expect(before, isA<OffsiteClockOut>());
+          expect(
+            (before as OffsiteClockOut).until,
+            DateTime(2026, 11, 17, 18, 30),
+          );
+          expect(
+            decide([late], now: DateTime(2026, 11, 17, 18, 30, 1)),
+            isA<WaitingCheckIn>(),
+          );
+        });
+      });
+
+      test('within 18 h: the clock-out says when it stops', () {
+        final next = decide([noShift], now: DateTime(2026, 11, 17, 13));
+        expect((next as OffsiteClockOut).until, DateTime(2026, 11, 17, 14));
+      });
+
+      test('from two days ago: not shown', () {
+        expect(
+          decide([noShift], now: DateTime(2026, 11, 18, 9)),
+          isA<NormalClockIn>(),
+        );
+      });
+    },
+  );
 
   test('a time sent as UTC (created_at, no scan time) is compared as local',
       () {

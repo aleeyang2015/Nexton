@@ -122,8 +122,9 @@ class OffsiteRequestPage extends ConsumerWidget {
   /// - Filed ("Recorded", or "Sent for approval"): today is read again, so
   ///   the card shows it, and the form closes.
   /// - Refused because today is not what the card showed (a session started,
-  ///   finished, or never began; the clock-in still waits for approval): the
-  ///   same — today is read again and the form closes, with the reason.
+  ///   finished, or never began; the clock-in still waits for approval; the
+  ///   OT changed, #110): the same — today is read again and the form
+  ///   closes, with the reason.
   /// - Any other refusal (too early, outside shift hours, already sent): the
   ///   reason, and the form stays.
   /// - No verdict at all: the error, and the form stays for a retry.

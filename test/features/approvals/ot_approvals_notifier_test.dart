@@ -783,7 +783,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repository.cancels, ['ot-1']);
-      expect(find.text(en.otCancelledToast), findsOneWidget);
+      // The head's words for an approved OT (#49), not the employee's (#32).
+      expect(find.text(en.otApprovedCancelledToast), findsOneWidget);
+      expect(find.text(en.otCancelledToast), findsNothing);
     });
 
     testWidgets('after it started: no Cancel', (tester) async {

@@ -30,12 +30,17 @@ class OffsiteRecordCard extends StatelessWidget {
   /// Whether this request's withdrawal is in flight; disables the button.
   final bool cancelling;
 
+  /// Told once when the photo's link has expired (#73); the detail page
+  /// reads the request again, a list passes none.
+  final VoidCallback? onPhotoExpired;
+
   const OffsiteRecordCard({
     super.key,
     required this.request,
     required this.onViewImage,
     required this.onCancel,
     required this.cancelling,
+    this.onPhotoExpired,
   });
 
   @override
@@ -57,7 +62,11 @@ class OffsiteRecordCard extends StatelessWidget {
         if (photo == null)
           const ApprovalNoAttachment()
         else
-          ApprovalAttachmentRow(url: photo, onView: () => onViewImage(photo)),
+          ApprovalAttachmentRow(
+            url: photo,
+            onView: () => onViewImage(photo),
+            onExpired: onPhotoExpired,
+          ),
         // Only a request nobody has decided on yet can be withdrawn (§9); the
         // endpoint has the last word, and refuses a card that has gone stale.
         if (request.canCancel) ...[

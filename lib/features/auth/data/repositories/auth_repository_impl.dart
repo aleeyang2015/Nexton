@@ -10,6 +10,7 @@ import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_data_source.dart';
 import '../datasources/auth_remote_data_source.dart';
+import '../models/login_response_model.dart';
 
 /// Coordinates the remote and local sources, and converts thrown
 /// exceptions into [Result] via [BaseRepository.guard].
@@ -40,9 +41,19 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
   FutureResult<AuthSession> login({
     required String email,
     required String password,
+    bool Function()? abandonIf,
   }) {
     return guard(() async {
       final tokens = await _remote.login(email: email, password: password);
+
+      // The user left while this sign-in was on its way (#93: "Sign out"
+      // during a password change). This answer is the one place that holds
+      // the new refresh token for sure: a sign-out already on its way has
+      // read the old one. So it is ended here, and never stored.
+      if (abandonIf?.call() ?? false) {
+        await _endOnServer(tokens.refreshToken);
+        throw const Failure.unknown(message: abandonedMessage);
+      }
 
       await _local.writeTokens(
         accessToken: tokens.accessToken,
@@ -60,17 +71,67 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
         final user = (await _remote.fetchProfile()).withDepartmentHead(
           tokens.isDepartmentHead,
         );
+        // Asked again: "Sign out" may have come after the first answer, and
+        // a sign-out that read the refresh token before this pair was
+        // written sent the old one (#93). The pair is ended here too (a
+        // second logout of it does no harm), removed from the phone while it
+        // is still the stored one (not someone's sign-in made since), and
+        // the profile is not kept.
+        if (abandonIf?.call() ?? false) await _abandonStored(tokens);
         await _local.writeUser(user);
 
         return AuthSession.signedIn(
           user.toEntity(),
           mustChangePassword: tokens.mustChangePassword,
         );
+      } on Failure catch (failure) {
+        if (failure.message == abandonedMessage) rethrow;
+        await _rollBack(tokens, abandonIf);
+        rethrow;
       } catch (_) {
-        await _local.clear();
+        await _rollBack(tokens, abandonIf);
         rethrow;
       }
     });
+  }
+
+  /// A stored sign-in whose profile could not be loaded is undone. If the
+  /// user left meanwhile (#120), someone may have signed in since: the pair
+  /// is undone as an abandoned one, never by a plain clear of theirs.
+  Future<void> _rollBack(
+    LoginResponseModel tokens,
+    bool Function()? abandonIf,
+  ) {
+    if (abandonIf?.call() ?? false) return _abandonStored(tokens);
+    return _endAndClear(tokens, abandonIf);
+  }
+
+  /// The user is still here: the pair is ended on the server by its own
+  /// refresh token (#122: nothing on the phone holds it once cleared, so no
+  /// sign-out could end it later), then everything is cleared. The logout
+  /// can take seconds, so whether the user has left is asked again before
+  /// the clear: if so, someone may have signed in meanwhile, and only this
+  /// pair is removed, as an abandoned one.
+  Future<void> _endAndClear(
+    LoginResponseModel tokens,
+    bool Function()? abandonIf,
+  ) async {
+    await _endOnServer(tokens.refreshToken);
+    if (abandonIf?.call() ?? false) {
+      await _local.clearIfRefreshIs(tokens.refreshToken);
+      throw const Failure.unknown(message: abandonedMessage);
+    }
+    await _local.clear();
+  }
+
+  /// Ends a stored sign-in the user has left: on the server by its own
+  /// refresh token (a second logout of it does no harm; the server ends the
+  /// whole sign-in, a renewal of it included), and on the phone only while
+  /// it is still the stored one. Throws the abandoned failure.
+  Future<Never> _abandonStored(LoginResponseModel tokens) async {
+    await _endOnServer(tokens.refreshToken);
+    await _local.clearIfRefreshIs(tokens.refreshToken);
+    throw const Failure.unknown(message: abandonedMessage);
   }
 
   /// Cold start. Paints from cache when there is one and revalidates; only a
@@ -188,9 +249,21 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
   }
 
   Future<void> _endSessionOnServer() async {
+    final String? refreshToken;
     try {
-      final refreshToken = await _local.readRefreshToken();
-      if (refreshToken == null || refreshToken.isEmpty) return;
+      refreshToken = await _local.readRefreshToken();
+    } catch (error) {
+      if (kDebugMode) debugPrint('Server logout skipped: $error');
+      return;
+    }
+    if (refreshToken == null || refreshToken.isEmpty) return;
+    await _endOnServer(refreshToken);
+  }
+
+  /// `POST /auth/logout` for [refreshToken], at most [logoutTimeout]; any
+  /// failure is ignored (it lapses at its `JWT_REFRESH_TTL`).
+  Future<void> _endOnServer(String refreshToken) async {
+    try {
       await _remote
           .logout(refreshToken, timeout: logoutTimeout)
           .timeout(logoutTimeout);
@@ -198,6 +271,10 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       if (kDebugMode) debugPrint('Server logout skipped: $error');
     }
   }
+
+  /// The failure a sign-in the user left comes back with ([login]'s
+  /// `abandonIf`). Never shown: the caller knows the user left.
+  static const String abandonedMessage = 'sign-in left before it was stored';
 
   @override
   FutureResult<User?> currentUser() {

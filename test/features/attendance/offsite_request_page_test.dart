@@ -219,6 +219,23 @@ void main() {
     expect(find.text('HOME'), findsOneWidget);
   });
 
+  testWidgets('the OT changed as the check-out went (OT_CHANGED, #110): '
+      'today is read again and the form closes; with no server words, the '
+      'App\'s own', (tester) async {
+    offsite.submitResult = const Result.success(
+      OffsiteBlocked(rule: AttendanceRule.otChanged, message: ''),
+    );
+    await open(tester);
+    final todayBefore = attendance.todayCalls;
+    await fillIn(tester);
+
+    await send(tester);
+
+    expect(find.text(en.ruleOtChanged), findsOneWidget);
+    expect(attendance.todayCalls, greaterThan(todayBefore));
+    expect(find.text('HOME'), findsOneWidget);
+  });
+
   testWidgets('the clock-in still waits for approval: its own words (when the '
       'server sends none), and the form closes', (tester) async {
     offsite.submitResult = const Result.success(

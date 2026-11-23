@@ -67,12 +67,14 @@ class AttendanceState with _$AttendanceState {
   /// a clock-out when the record has an open session ([isClockedIn], #7's
   /// rule) or an OT clock-in is open ([openOt]); an off-site clock-out when
   /// an off-site check-in waits for approval ([waitingOffsite], #41); else a
-  /// clock-in.
+  /// clock-in. Read at the moment of the slide, so a check-in past its
+  /// 18 h reach is never sent as an off-site clock-out.
   NextPunch get next => nextPunch(
     clockedIn: isClockedIn,
     otOpen: openOt != null,
     waiting: waitingOffsite,
     today: loadedOn ?? DateTime.now(),
+    now: DateTime.now(),
   );
 
   /// Which way the slide points: out for a normal or an off-site clock-out,
@@ -81,7 +83,7 @@ class AttendanceState with _$AttendanceState {
   /// stays open past midnight through [openOt].
   ClockAction get nextAction => switch (next) {
     NormalClockOut() || OffsiteClockOut() => ClockAction.clockOut,
-    NormalClockIn() || WaitingBoth() => ClockAction.clockIn,
+    NormalClockIn() || WaitingBoth() || WaitingCheckIn() => ClockAction.clockIn,
   };
 
   bool get isCoolingDown {

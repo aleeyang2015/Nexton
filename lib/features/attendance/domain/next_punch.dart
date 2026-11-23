@@ -23,9 +23,13 @@ class NormalClockOut extends NextPunch {
 /// server has no open session to close; it pairs the off-site check-out
 /// with this check-in.
 class OffsiteClockOut extends NextPunch {
-  const OffsiteClockOut(this.checkIn);
+  const OffsiteClockOut(this.checkIn, {this.until});
 
   final OffsiteRequestDetail checkIn;
+
+  /// When this stops being offered: [pairReach] after the scan. Null only
+  /// where a caller builds one without a reach.
+  final DateTime? until;
 }
 
 /// The check-in and its check-out both wait for approval. Nothing to clock
@@ -37,18 +41,34 @@ class WaitingBoth extends NextPunch {
   final OffsiteRequestDetail checkIn;
 }
 
+/// A check-in still waiting, but past [pairReach]: the server may no longer
+/// pair a check-out with it, so the slide is back on a normal clock-in. The
+/// card still says it waits.
+class WaitingCheckIn extends NextPunch {
+  const WaitingCheckIn(this.checkIn);
+
+  final OffsiteRequestDetail checkIn;
+}
+
 /// The one decision, in this order:
 /// 1. an open session in today's record ([clockedIn], #7's rule) → normal
 ///    clock-out;
 /// 2. an open OT clock-in ([otOpen], #34) → normal clock-out;
 /// 3. a waiting off-site check-in scanned [today] — or the day before when
-///    its shift crosses midnight (a night shift still running) — with no
-///    waiting check-out paired to it → off-site clock-out. A day shift's
-///    check-in from yesterday that was never closed does not hold today's
-///    slide on "clock out": today starts with a normal clock-in, and the
-///    server decides (an unknown shift is treated the same);
-/// 4. one with its check-out also waiting → [WaitingBoth];
-/// 5. else a normal clock-in.
+///    its shift crosses midnight (a night shift) — with no waiting check-out
+///    paired to it → off-site clock-out up to [pairReach] after the scan
+///    (owner, 21 Nov 2026), then [WaitingCheckIn]. A day shift's check-in from yesterday that was
+///    never closed does not hold today's slide on "clock out": today starts
+///    with a normal clock-in, and the server decides;
+/// 4. one from the day before with no shift times (a scan on a rest day, or
+///    its part deleted; owner decision on #41, 19 Nov 2026) → off-site
+///    clock-out up to [pairReach] after the scan; after that
+///    [WaitingCheckIn];
+/// 5. one with its check-out also waiting → [WaitingBoth];
+/// 6. a check-in past its reach (3, 4) → [WaitingCheckIn];
+/// 7. else a normal clock-in.
+///
+/// [today] is the day the waiting scans were read for; [now] the time.
 ///
 /// A check-out pairs with a check-in of the same session when it was
 /// scanned the check-in's day or the next (a 22:00 Monday check-in and its
@@ -58,6 +78,7 @@ NextPunch nextPunch({
   required bool otOpen,
   required List<OffsiteRequestDetail> waiting,
   required DateTime today,
+  required DateTime now,
 }) {
   if (clockedIn || otOpen) return const NormalClockOut();
 
@@ -68,7 +89,8 @@ NextPunch nextPunch({
       if (_waitingAs(r, OffsiteMethod.checkIn) &&
           r.scanDate != null &&
           (_date(r.scanDate!) == day ||
-              (_date(r.scanDate!) == yesterday && _crossesMidnight(r))))
+              (_date(r.scanDate!) == yesterday &&
+                  (_crossesMidnight(r) || !_hasShiftTimes(r)))))
         r,
   ]..sort((a, b) => _when(b).compareTo(_when(a)));
   final checkOuts = [
@@ -77,14 +99,33 @@ NextPunch nextPunch({
   ];
 
   OffsiteRequestDetail? paired;
+  OffsiteRequestDetail? pastReach;
   for (final checkIn in checkIns) {
-    final hasCheckOut = checkOuts.any((out) => _pairs(checkIn, out));
-    if (!hasCheckOut) return OffsiteClockOut(checkIn);
-    paired ??= checkIn;
+    if (checkOuts.any((out) => _pairs(checkIn, out))) {
+      paired ??= checkIn;
+      continue;
+    }
+    // Every scan has the server's reach (owner, 21 Nov 2026): a night
+    // worker's 00:30 scan is dated today, and is past it by 18:30.
+    final until = _when(checkIn).add(pairReach);
+    if (!now.isAfter(until)) return OffsiteClockOut(checkIn, until: until);
+    pastReach ??= checkIn;
   }
   if (paired != null) return WaitingBoth(paired);
+  if (pastReach != null) return WaitingCheckIn(pastReach);
   return const NormalClockIn();
 }
+
+/// How long after a scan the slide still offers an off-site check-out for
+/// it. The server pairs one for `openReach`: 18 h for a scan
+/// with no shift part, and never less for one with a part (`openReachSQL`'s
+/// floor; longer only for a part over 14 h, or with late-checkout minutes or
+/// early-checkin minutes over 4 h). The App is not sent those minutes, so it
+/// stops at the floor and never offers one after the server stops pairing
+/// (#41). Inside the reach the server can still refuse one past the shift's
+/// checkout window (`AFTER_CHECKOUT_WINDOW`), or one sent after the reach
+/// from a phone clock that runs slow; both answer and reload today.
+const pairReach = Duration(hours: 18);
 
 bool _waitingAs(OffsiteRequestDetail r, OffsiteMethod method) =>
     r.method == method && r.status == TimeCorrectionStatus.pending;
@@ -105,6 +146,10 @@ bool _pairs(OffsiteRequestDetail checkIn, OffsiteRequestDetail out) {
 /// (a time sent as an instant in UTC is turned into the phone's).
 DateTime _when(OffsiteRequestDetail r) =>
     (r.scanTimestamp ?? r.submittedAt).toLocal();
+
+/// The scan carries both its shift's start and end.
+bool _hasShiftTimes(OffsiteRequestDetail r) =>
+    r.shift?.start != null && r.shift?.end != null;
 
 /// The scan's shift ends at or before it starts: it runs past midnight.
 bool _crossesMidnight(OffsiteRequestDetail r) {

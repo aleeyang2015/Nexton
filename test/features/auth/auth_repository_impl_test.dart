@@ -66,6 +66,280 @@ void main() {
 
   tearDown(() => sessionExpired.close());
 
+  group('a re-login the user has already left (#93)', () {
+    setUp(() {
+      remote
+        ..loginResponse = testTokens()
+        ..profile = testUserModel();
+    });
+
+    test('nothing is stored, and the new sign-in is ended on the server with '
+        'its own refresh token', () async {
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () => true,
+      );
+
+      expect(result.isFailure, isTrue);
+      expect(store.values, isEmpty);
+      expect(remote.logouts, ['refresh-1']);
+      expect(remote.lastLogoutTimeout, AuthRepositoryImpl.logoutTimeout);
+      expect(remote.profileCalls, 0);
+    });
+
+    test('ending it fails (no signal): still nothing stored, still left',
+        () async {
+      remote.logoutError = Exception('no signal');
+
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () => true,
+      );
+
+      expect(result.isFailure, isTrue);
+      expect(store.values, isEmpty);
+    });
+
+    test('left after the pair was stored (the tap landed after the first '
+        'check): ended with its own refresh token, the pair removed, the '
+        'profile not cached', () async {
+      var asked = 0;
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () => ++asked > 1,
+      );
+
+      expect(asked, 2);
+      expect(result.isFailure, isTrue);
+      expect(remote.logouts, ['refresh-1']);
+      expect(store.values, isEmpty);
+    });
+
+    test('left after the pair was stored, and another sign-in has replaced '
+        'it since: theirs is left alone', () async {
+      var asked = 0;
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () {
+          if (++asked == 1) return false;
+          // Someone else's pair, stored meanwhile.
+          store.values[AppConstants.refreshTokenKey] = 'refresh-b';
+          return true;
+        },
+      );
+
+      expect(result.isFailure, isTrue);
+      expect(remote.logouts, ['refresh-1']);
+      expect(store.values[AppConstants.refreshTokenKey], 'refresh-b');
+    });
+
+    test('left after the pair was stored, and another sign-in is saved while '
+        'the removal checks the stored token: theirs is left alone', () async {
+      final gate = Completer<void>();
+      var asked = 0;
+      final login = repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () {
+          if (++asked == 1) return false;
+          // The removal's read of the stored refresh token waits here.
+          store.holdRead[AppConstants.refreshTokenKey] = gate;
+          return true;
+        },
+      );
+      // The removal has started reading the stored refresh token.
+      for (var i = 0; i < 100; i++) {
+        if (asked == 2 &&
+            !store.holdRead.containsKey(AppConstants.refreshTokenKey)) {
+          break;
+        }
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      // Someone signs in while that read is on its way.
+      final other = local.writeTokens(
+        accessToken: 'access-b',
+        refreshToken: 'refresh-b',
+      );
+      gate.complete();
+      await other;
+      final result = await login;
+
+      expect(result.isFailure, isTrue);
+      expect(remote.logouts, ['refresh-1']);
+      expect(store.values[AppConstants.refreshTokenKey], 'refresh-b');
+      expect(store.values[AppConstants.accessTokenKey], 'access-b');
+    });
+
+    group('the profile fails after the pair was stored (#120)', () {
+      /// Runs the re-login with `/auth/me` held, calls [meanwhile] while it
+      /// waits, then lets it fail with [error].
+      Future<Failure> failWhileHeld(
+        Object error, {
+        required bool Function() left,
+        Future<void> Function()? meanwhile,
+      }) async {
+        final gate = Completer<void>();
+        remote
+          ..holdProfile = gate
+          ..profileError = error;
+        final login = repository.login(
+          email: 'somphone.vilaysone@nexton.la',
+          password: 'new-password1',
+          abandonIf: left,
+        );
+        for (var i = 0; i < 100 && remote.profileCalls == 0; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        expect(remote.profileCalls, 1);
+        await meanwhile?.call();
+        gate.complete();
+        return (await login).failureOrNull!;
+      }
+
+      final errors = <String, Object Function()>{
+        'a failure': () =>
+            const Failure.network(message: 'no signal', statusCode: 0),
+        'a raw error': () => _mappedError(500, 'INTERNAL_ERROR', 'boom'),
+      };
+
+      errors.forEach((kind, error) {
+        test('$kind, the user left and another sign-in was saved meanwhile: '
+            'theirs is left alone, the left pair is ended', () async {
+          var left = false;
+          final failure = await failWhileHeld(
+            error(),
+            left: () => left,
+            meanwhile: () async {
+              left = true;
+              await local.writeTokens(
+                accessToken: 'access-b',
+                refreshToken: 'refresh-b',
+              );
+            },
+          );
+
+          expect(failure.message, AuthRepositoryImpl.abandonedMessage);
+          expect(remote.logouts, ['refresh-1']);
+          expect(store.values[AppConstants.refreshTokenKey], 'refresh-b');
+          expect(store.values[AppConstants.accessTokenKey], 'access-b');
+        });
+
+        test('$kind, the user left and nothing was saved since: the left '
+            'pair is removed and ended', () async {
+          var left = false;
+          final failure = await failWhileHeld(
+            error(),
+            left: () => left,
+            meanwhile: () async => left = true,
+          );
+
+          expect(failure.message, AuthRepositoryImpl.abandonedMessage);
+          expect(remote.logouts, ['refresh-1']);
+          expect(store.values, isEmpty);
+        });
+
+        test('$kind, the user has not left: everything is cleared, and the '
+            'new sign-in is ended on the server (#122)', () async {
+          final failure = await failWhileHeld(error(), left: () => false);
+
+          expect(failure.message, isNot(AuthRepositoryImpl.abandonedMessage));
+          expect(remote.logouts, ['refresh-1']);
+          expect(remote.lastLogoutTimeout, AuthRepositoryImpl.logoutTimeout);
+          expect(store.values, isEmpty);
+        });
+      });
+
+      group('the user leaves while the rollback ends the pair on the server '
+          '(#122)', () {
+        /// The profile fails with the user still here; the rollback's server
+        /// logout is held, and [meanwhile] runs while it waits.
+        Future<Failure> leaveDuringLogout(
+          Future<void> Function() meanwhile,
+        ) async {
+          var left = false;
+          final gate = Completer<void>();
+          remote
+            ..profileError = _mappedError(500, 'INTERNAL_ERROR', 'boom')
+            ..holdLogout = gate;
+          final login = repository.login(
+            email: 'somphone.vilaysone@nexton.la',
+            password: 'new-password1',
+            abandonIf: () => left,
+          );
+          for (var i = 0; i < 100 && remote.logouts.isEmpty; i++) {
+            await Future<void>.delayed(Duration.zero);
+          }
+          expect(remote.logouts, ['refresh-1']);
+          left = true;
+          await meanwhile();
+          gate.complete();
+          return (await login).failureOrNull!;
+        }
+
+        test('another sign-in saved meanwhile is left alone', () async {
+          final failure = await leaveDuringLogout(
+            () => local.writeTokens(
+              accessToken: 'access-b',
+              refreshToken: 'refresh-b',
+            ),
+          );
+
+          expect(failure.message, AuthRepositoryImpl.abandonedMessage);
+          expect(remote.logouts, ['refresh-1']);
+          expect(store.values[AppConstants.refreshTokenKey], 'refresh-b');
+          expect(store.values[AppConstants.accessTokenKey], 'access-b');
+        });
+
+        test('nothing saved since: the left pair is removed, and ended only '
+            'once', () async {
+          final failure = await leaveDuringLogout(() async {});
+
+          expect(failure.message, AuthRepositoryImpl.abandonedMessage);
+          expect(remote.logouts, ['refresh-1']);
+          expect(store.values, isEmpty);
+        });
+      });
+
+      test('a renewal replaced the pair, then the user left: the sign-in is '
+          'ended on the server by its first refresh token', () async {
+        var left = false;
+        await failWhileHeld(
+          _mappedError(500, 'INTERNAL_ERROR', 'boom'),
+          left: () => left,
+          meanwhile: () async {
+            // A 401 on `/auth/me` renewed the pair (same sign-in, new
+            // refresh token), then "Sign out" was tapped.
+            store.values[AppConstants.refreshTokenKey] = 'refresh-1b';
+            left = true;
+          },
+        );
+
+        // The server ends a sign-in by its family, so `refresh-1b` is dead
+        // too. The phone's copy is not this check's to remove (it cannot
+        // tell it from someone else's): the sign-out on its way clears it.
+        expect(remote.logouts, ['refresh-1']);
+        expect(store.values[AppConstants.refreshTokenKey], 'refresh-1b');
+      });
+    });
+
+    test('not left: stored as any sign-in, nothing ended', () async {
+      final result = await repository.login(
+        email: 'somphone.vilaysone@nexton.la',
+        password: 'new-password1',
+        abandonIf: () => false,
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(store.values[AppConstants.refreshTokenKey], 'refresh-1');
+      expect(remote.logouts, isEmpty);
+    });
+  });
+
   group('login', () {
     test(
       'signs in and caches the session when no change is required',
@@ -133,6 +407,38 @@ void main() {
 
       expect(result.isFailure, isTrue);
       // The whole session write is rolled back, expiry included.
+      expect(store.values, isEmpty);
+    });
+
+    test('a rolled-back login is ended on the server by its own refresh '
+        'token, and keeps its own failure (#122)', () async {
+      remote
+        ..loginResponse = testTokens()
+        ..profileError = _mappedError(500, 'INTERNAL_ERROR', 'boom');
+
+      final result = await repository.login(
+        email: 'a@b.la',
+        password: 'password1',
+      );
+
+      expect(result.failureOrNull!.message, 'boom');
+      expect(remote.logouts, ['refresh-1']);
+      expect(store.values, isEmpty);
+    });
+
+    test('a rolled-back login whose server logout fails is still rolled '
+        'back, with its own failure (#122)', () async {
+      remote
+        ..loginResponse = testTokens()
+        ..profileError = _mappedError(500, 'INTERNAL_ERROR', 'boom')
+        ..logoutError = Exception('no signal');
+
+      final result = await repository.login(
+        email: 'a@b.la',
+        password: 'password1',
+      );
+
+      expect(result.failureOrNull!.message, 'boom');
       expect(store.values, isEmpty);
     });
 

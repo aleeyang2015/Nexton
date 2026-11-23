@@ -739,6 +739,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveFileOpenFailed => 'This file can\'t be opened';
 
   @override
+  String get fileLinkExpired =>
+      'This link has expired. Close it and open it again.';
+
+  @override
+  String get fileLinkExpiredRefresh =>
+      'This link has expired. Pull down on the list to refresh it.';
+
+  @override
   String get timeOffApprovalsTab => 'Team Approvals';
 
   @override
@@ -1416,10 +1424,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Allow the App to use the camera or photos in the phone\'s settings';
 
   @override
-  String get approvalsLeaveTab => 'Approve Leave';
+  String get approvalsLeaveTab => 'Leave';
 
   @override
-  String get approvalsTimeCorrectionTab => 'Approve Corrections';
+  String get approvalsTimeCorrectionTab => 'Forgot to scan';
 
   @override
   String get offsiteTitle => 'Off-site Clock-in';
@@ -1505,7 +1513,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get approvalsOffsiteTab => 'Approve Off-site';
+  String get approvalsOffsiteTab => 'Off-site scans';
 
   @override
   String get offsiteHistoryEmpty => 'No off-site clock-in requests';
@@ -2101,6 +2109,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get otCancelledToast => 'OT request cancelled';
+
+  @override
+  String get otApprovedCancelledToast => 'OT cancelled';
 
   @override
   String get otPostsTitle => 'OT posts';

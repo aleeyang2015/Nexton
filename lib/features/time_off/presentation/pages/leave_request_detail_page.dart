@@ -174,7 +174,17 @@ class _RequestBodyState extends ConsumerState<_RequestBody> {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(15, 15, 15, 40),
       children: [
-        LeaveRequestDetailBody(request: request),
+        LeaveRequestDetailBody(
+          request: request,
+          // A file's link past its hour (#73): read the request again,
+          // quietly, for new links.
+          onFileExpired: () {
+            if (!context.mounted) return;
+            ref
+                .read(leaveRequestDetailNotifierProvider(request.id).notifier)
+                .refresh();
+          },
+        ),
         if (started) ...[
           heightBx(h: 12),
           _StartedNotice(message: l10n.leaveStartedContactHr),
