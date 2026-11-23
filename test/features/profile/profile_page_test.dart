@@ -353,6 +353,10 @@ void main() {
       await settle(tester);
 
       expect(profiles.calls, 2);
+      expect(
+        find.byKey(const ValueKey('$photo?exp=1&sig=new')),
+        findsOneWidget,
+      );
       expect(find.byIcon(Icons.person), findsOneWidget);
     });
 
