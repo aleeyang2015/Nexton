@@ -10,6 +10,7 @@ import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/clock_provider.dart';
 import 'package:next_on/core/utils/result.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_balance.dart';
+import 'package:next_on/features/time_off/domain/entities/leave_duration_type.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_request.dart';
 import 'package:next_on/features/time_off/domain/entities/leave_type.dart';
 import 'package:next_on/features/time_off/presentation/providers/company_days_off_notifier.dart';
@@ -1213,6 +1214,112 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(en.uploadFileTooLarge), findsOneWidget);
+    });
+  });
+
+  group('the day part (#14: half days are back)', () {
+    /// Personal leave takes half days; annual leave takes whole days only.
+    final personal = sampleLeaveType(
+      id: 'lt-personal',
+      code: 'personal',
+      name: 'Personal Leave',
+      nameLo: 'ລາກິດ',
+      allowHalfDay: true,
+    );
+
+    LeaveRequestFormState formState([String? id]) =>
+        container.read(leaveRequestFormNotifierProvider(id));
+
+    Finder dayPart(String label) => find.descendant(
+      of: find.ancestor(
+        of: find.text(en.leaveDurationLabel),
+        matching: find.byType(Column),
+      ),
+      matching: find.text(label),
+    );
+
+    Future<void> tapChip(WidgetTester tester, String label) async {
+      final chip = find.widgetWithText(LeaveFilterChip, label);
+      await tester.ensureVisible(chip);
+      await tester.tap(chip);
+      await tester.pump();
+    }
+
+    testWidgets('a type that takes half days offers full day, morning and '
+        'afternoon, on full day', (tester) async {
+      repository.leaveTypesResult = Result.success([personal, annual]);
+      await pumpForm(tester);
+
+      expect(find.text(en.leaveDurationLabel), findsOneWidget);
+      expect(dayPart(en.leaveDurationFullDay), findsOneWidget);
+      expect(dayPart(en.leaveDurationFirstHalf), findsOneWidget);
+      expect(dayPart(en.leaveDurationSecondHalf), findsOneWidget);
+      expect(formState().durationType, LeaveDurationType.fullDay);
+    });
+
+    testWidgets('a type that takes whole days only shows no day part', (
+      tester,
+    ) async {
+      repository.leaveTypesResult = Result.success([annual, personal]);
+      await pumpForm(tester);
+
+      expect(find.text(en.leaveDurationLabel), findsNothing);
+      expect(find.text(en.leaveDurationFirstHalf), findsNothing);
+    });
+
+    testWidgets('tapping Morning asks for the first half of one day, with no '
+        'range to offer', (tester) async {
+      repository.leaveTypesResult = Result.success([personal, annual]);
+      await pumpForm(tester);
+
+      await tester.ensureVisible(dayPart(en.leaveDurationFirstHalf));
+      await tester.tap(dayPart(en.leaveDurationFirstHalf));
+      await tester.pump();
+
+      expect(formState().durationType, LeaveDurationType.firstHalf);
+      expect(formState().mode, LeaveDaysMode.separateDays);
+      expect(find.text(en.leaveModeRange), findsNothing);
+    });
+
+    testWidgets('Morning, then a whole-days-only type: the day part goes and '
+        'the request is a full day again', (tester) async {
+      repository.leaveTypesResult = Result.success([personal, annual]);
+      await pumpForm(tester);
+
+      await tester.ensureVisible(dayPart(en.leaveDurationFirstHalf));
+      await tester.tap(dayPart(en.leaveDurationFirstHalf));
+      await tester.pump();
+      await tapChip(tester, 'Annual Leave');
+
+      expect(find.text(en.leaveDurationLabel), findsNothing);
+      expect(formState().durationType, LeaveDurationType.fullDay);
+    });
+
+    testWidgets('an edit of a morning off on a type that no longer takes half '
+        'days still shows the day part, so it can be made a full day', (
+      tester,
+    ) async {
+      repository.leaveTypesResult = Result.success([annual]);
+      form('req-9').seed(
+        sampleLeaveRequest(
+          id: 'req-9',
+          leaveType: annual,
+          requestDays: [DateTime(2026, 11, 18)],
+          durationType: LeaveDurationType.firstHalf,
+          reason: 'Doctor',
+        ),
+      );
+      await pumpForm(tester, requestId: 'req-9');
+
+      expect(formState('req-9').durationType, LeaveDurationType.firstHalf);
+      expect(find.text(en.leaveDurationLabel), findsOneWidget);
+
+      await tester.ensureVisible(dayPart(en.leaveDurationFullDay));
+      await tester.tap(dayPart(en.leaveDurationFullDay));
+      await tester.pump();
+
+      expect(formState('req-9').durationType, LeaveDurationType.fullDay);
+      expect(find.text(en.leaveDurationLabel), findsNothing);
     });
   });
 }
