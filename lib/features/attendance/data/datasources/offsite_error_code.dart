@@ -101,7 +101,8 @@ class OffsiteErrorCode {
     tooEarlyCheckin: AttendanceRule.tooEarlyCheckin,
     employeeNotFound: AttendanceRule.employeeNotFound,
     // No shift covers today (#115, live 20 Nov 2026): a check-in or
-    // check-out gets the phone's own answer. The form stays.
+    // check-out gets the phone's own answer. The form stays and shows the
+    // App's own text, as the phone clock-in does.
     'NO_SHIFT_ASSIGNED': AttendanceRule.noShiftAssigned,
     'OUTSIDE_SHIFT_HOURS': AttendanceRule.outsideShiftHours,
     'OVERNIGHT_SESSION_DONE': AttendanceRule.overnightSessionDone,
@@ -113,7 +114,8 @@ class OffsiteErrorCode {
     'CHECKIN_PENDING_APPROVAL': AttendanceRule.checkinPendingApproval,
     // The OT was cancelled just as an off-site check-out was sent during an
     // OT run-on (#110): nothing saved; the form reads today again and
-    // closes (its text is the server's, as for every off-site refusal).
+    // closes (its text is the server's, as for every off-site refusal but
+    // no shift).
     'OT_CHANGED': AttendanceRule.otChanged,
   };
 }
