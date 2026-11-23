@@ -65,13 +65,17 @@ class LeaveFormRules {
   /// calendar refuses it once they are). Null while they are still not
   /// known: nothing is checked that cannot be. On an edit, a day the
   /// request already had is not counted (HR changed the calendar since), so
-  /// a reason-only edit still saves.
+  /// a reason-only edit still saves; but only while the edit keeps its
+  /// type: moved to another type, the new type's balance would be charged
+  /// for the day off.
   static DateTime? pickedDayOff(LeaveRequestFormState state) {
     final daysOff = state.daysOff;
     if (state.isRange || daysOff == null) return null;
 
+    final sameType =
+        state.isEditing && state.leaveTypeId == state.originalLeaveTypeId;
     bool had(DateTime day) =>
-        state.isEditing && state.originalDates.any((old) => _sameDay(old, day));
+        sameType && state.originalDates.any((old) => _sameDay(old, day));
     for (final day in [...state.dates]..sort()) {
       if (daysOff.isDayOff(day) && !had(day)) return day;
     }

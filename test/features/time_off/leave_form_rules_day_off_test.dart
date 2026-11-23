@@ -26,6 +26,7 @@ void main() {
     dates: dates,
     durationType: duration,
     daysOff: daysOffKnown ? sundaysOff : null,
+    originalLeaveTypeId: editingId == null ? null : 'lt-annual',
     originalDates: originalDates,
   );
 
@@ -91,6 +92,18 @@ void main() {
 
     expect(LeaveFormRules.pickedDayOff(state), isNull);
     expect(block(state), isNull);
+  });
+
+  test('an edit moved to another type is checked on every day: the new '
+      'type would be charged for the old day off', () {
+    final state = separate(
+      [friday, sunday],
+      editingId: 'req-7',
+      originalDates: [friday, sunday],
+    ).copyWith(originalLeaveTypeId: 'lt-sick');
+
+    expect(LeaveFormRules.pickedDayOff(state), sunday);
+    expect(block(state), LeaveFormBlock.dayOffPicked);
   });
 
   test('an edit that adds a day off is blocked on the one added', () {

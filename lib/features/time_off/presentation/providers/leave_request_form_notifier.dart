@@ -17,6 +17,7 @@ import '../../domain/entities/leave_request_draft.dart';
 import '../../domain/entities/leave_type.dart';
 import '../../time_off_providers.dart';
 import 'leave_balances_notifier.dart';
+import 'leave_form_rules.dart';
 import 'leave_history_notifier.dart';
 import 'leave_pending_request_notifier.dart';
 import 'leave_request_form_state.dart';
@@ -303,11 +304,17 @@ class LeaveRequestFormNotifier
     // The first day that would be charged. A range of days off only has
     // none, and its first day is not offered in its place: sent as a
     // separate day it would be charged. With the days off unknown the
-    // range's own first day is the best there is.
+    // range's own first day is the best there is. Of separate days, the
+    // first that is not a day off (#128); if all are, the first is kept
+    // rather than the user's days taken away.
     final charged = state.chargedDays;
+    final daysOff = state.daysOff;
     final first = charged == null
         ? state.firstLeaveDate
-        : (charged.isEmpty ? null : charged.first);
+        : charged
+                  .where((day) => daysOff == null || !daysOff.isDayOff(day))
+                  .firstOrNull ??
+              charged.firstOrNull;
     final dates = first == null ? const <DateTime>[] : [first];
     // A return date picked by hand was for the days now cut: it goes, and
     // the form's own one (the day after) takes its place. Days that are not
@@ -352,6 +359,8 @@ class LeaveRequestFormNotifier
         state.submission.isLoading ||
         !state.hasDays ||
         state.isAllDaysOff ||
+        // A day off picked as a separate day would be charged (#128).
+        LeaveFormRules.pickedDayOff(state) != null ||
         !state.hasValidReturnToWorkDate) {
       return false;
     }
