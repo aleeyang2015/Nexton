@@ -236,6 +236,23 @@ void main() {
     expect(find.text('HOME'), findsOneWidget);
   });
 
+  testWidgets('no shift today (NO_SHIFT_ASSIGNED, #115): with no server words, '
+      'the App\'s own; the form stays and today is not read again',
+      (tester) async {
+    offsite.submitResult = const Result.success(
+      OffsiteBlocked(rule: AttendanceRule.noShiftAssigned, message: ''),
+    );
+    await open(tester);
+    await fillIn(tester);
+    final todayBefore = attendance.todayCalls;
+
+    await send(tester);
+
+    expect(find.text(en.ruleNoShiftAssigned), findsOneWidget);
+    expect(attendance.todayCalls, todayBefore);
+    expect(find.text('HOME'), findsNothing);
+  });
+
   testWidgets('the clock-in still waits for approval: its own words (when the '
       'server sends none), and the form closes', (tester) async {
     offsite.submitResult = const Result.success(

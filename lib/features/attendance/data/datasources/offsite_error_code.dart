@@ -100,6 +100,9 @@ class OffsiteErrorCode {
     requestExists: AttendanceRule.offsiteRequestExists,
     tooEarlyCheckin: AttendanceRule.tooEarlyCheckin,
     employeeNotFound: AttendanceRule.employeeNotFound,
+    // No shift covers today (#115, live 20 Nov 2026): a check-in or
+    // check-out gets the phone's own answer. The form stays.
+    'NO_SHIFT_ASSIGNED': AttendanceRule.noShiftAssigned,
     'OUTSIDE_SHIFT_HOURS': AttendanceRule.outsideShiftHours,
     'OVERNIGHT_SESSION_DONE': AttendanceRule.overnightSessionDone,
     'SESSION_ALREADY_STARTED': AttendanceRule.sessionAlreadyStarted,
