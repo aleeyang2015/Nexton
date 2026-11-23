@@ -981,6 +981,15 @@ void main() {
       expect(stateOf(container).returnToWorkOverride, isNull);
     });
 
+    test('an edit remembers the days it opened with (#128)', () {
+      final container = containerWith();
+      formOf(container, 'req-7').seed(
+        sampleLeaveRequest(id: 'req-7', requestDays: [friday, sunday]),
+      );
+
+      expect(stateOf(container, 'req-7').originalDates, [friday, sunday]);
+    });
+
     test('a range is put in order, whichever end was given first', () async {
       final container = await closedOnSundays();
 
@@ -1026,6 +1035,77 @@ void main() {
 
       expect(await form.submit(), isFalse);
       expect(repository.submitCalls, isEmpty);
+    });
+
+    test('a day off picked as a separate day is not sent, whatever the '
+        'button shows (#128)', () async {
+      final container = await closedOnSundays();
+      final form = formOf(container)
+        ..setLeaveType('lt-annual')
+        ..setMode(LeaveDaysMode.separateDays)
+        ..setDates([friday, sunday]);
+
+      expect(await form.submit(), isFalse);
+      expect(repository.submitCalls, isEmpty);
+    });
+
+    test('a range Sunday to Tuesday made a morning while the days off were '
+        'not known: once they load, the Sunday is caught (#128)', () async {
+      final container = containerWith();
+      final form = formOf(container)
+        ..setLeaveType('lt-annual')
+        ..setRange(sunday, DateTime(2026, 11, 24))
+        ..setDurationType(LeaveDurationType.firstHalf);
+      expect(stateOf(container).dates, [sunday]);
+
+      form.setDaysOff(sundaysOff);
+
+      expect(LeaveFormRules.pickedDayOff(stateOf(container)), sunday);
+      expect(await form.submit(), isFalse);
+      expect(repository.submitCalls, isEmpty);
+    });
+
+    test('an edit that already had a day off, now only its reason changed, '
+        'still saves (#128)', () async {
+      final container = await closedOnSundays();
+      final form = formOf(container, 'req-7')
+        ..seed(sampleLeaveRequest(id: 'req-7', requestDays: [friday, sunday]))
+        ..setReason('A new reason');
+
+      expect(await form.submit(), isTrue);
+      expect(repository.updateCalls.single.draft.dates, [friday, sunday]);
+    });
+
+    test('an edit moved to another type checks its old days off too: the new '
+        'type would be charged for them (#128)', () async {
+      final container = await closedOnSundays();
+      final form = formOf(container, 'req-7')
+        ..seed(sampleLeaveRequest(id: 'req-7', requestDays: [friday, sunday]))
+        ..setLeaveType('lt-sick');
+
+      expect(LeaveFormRules.pickedDayOff(stateOf(container, 'req-7')), sunday);
+      expect(await form.submit(), isFalse);
+      expect(repository.updateCalls, isEmpty);
+    });
+
+    test('a half day keeps the first working day picked, not a day off '
+        '(#128)', () async {
+      final container = await closedOnSundays();
+      formOf(container, 'req-7')
+        ..seed(sampleLeaveRequest(id: 'req-7', requestDays: [sunday, monday]))
+        ..setDurationType(LeaveDurationType.firstHalf);
+
+      expect(stateOf(container, 'req-7').dates, [monday]);
+    });
+
+    test('a half day on picked days that are all days off keeps the first: '
+        'the form does not take the user\'s days away (#128)', () async {
+      final container = await closedOnSundays();
+      formOf(container, 'req-7')
+        ..seed(sampleLeaveRequest(id: 'req-7', requestDays: [sunday]))
+        ..setDurationType(LeaveDurationType.firstHalf);
+
+      expect(stateOf(container, 'req-7').dates, [sunday]);
     });
 
     test('the default return date skips days off: after a Saturday-only '

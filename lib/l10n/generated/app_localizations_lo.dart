@@ -1706,6 +1706,11 @@ class AppLocalizationsLo extends AppLocalizations {
   String get leaveAllDaysOff => 'ວັນທີ່ເລືອກແມ່ນວັນພັກຂອງບໍລິສັດທັງໝົດ.';
 
   @override
+  String leaveDayOffPicked(String date) {
+    return 'ວັນທີ $date ແມ່ນວັນພັກຂອງບໍລິສັດ. ກະລຸນາເອົາວັນນີ້ອອກກ່ອນສົ່ງ.';
+  }
+
+  @override
   String get leaveDaysOffLoadFailed => 'ໂຫຼດວັນພັກຂອງບໍລິສັດບໍ່ໄດ້.';
 
   @override

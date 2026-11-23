@@ -974,6 +974,35 @@ void main() {
       expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
     });
 
+    testWidgets('a Sunday picked as a separate day while the days off could '
+        'not be loaded: once they load, the form will not send it and says '
+        'why; taking it off sends (#128)', (tester) async {
+      repository.companyDaysOffResult = const Result.failure(
+        Failure.network(message: 'offline'),
+      );
+      await pumpForm(tester);
+      final sunday = DateTime(2026, 11, 22);
+      form()
+        ..setMode(LeaveDaysMode.separateDays)
+        ..setDates([friday, sunday]);
+      await tester.pump();
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+
+      repository.companyDaysOffResult = const Result.success(sundaysOff);
+      await tester.tap(find.text(en.retry));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(en.leaveDayOffPicked('22 Nov 2026')), findsOneWidget);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isFalse);
+
+      form().removeDate(sunday);
+      await tester.pump();
+
+      expect(find.text(en.leaveDayOffPicked('22 Nov 2026')), findsNothing);
+      expect(submitEnabled(tester, en.leaveRequestSubmit), isTrue);
+    });
+
     testWidgets('when the days off cannot be loaded: a warning with Retry, '
         'the count is left to the server, and a range can still be sent', (
       tester,
