@@ -99,8 +99,31 @@ class LeaveFormRules {
     return null;
   }
 
+  /// The years whose balance the form reads: those the request touches
+  /// ([balanceYears]), and the year the server last named as short
+  /// (`balanceRefusedYear`, #87) when the form could not tell that year by
+  /// itself. Earliest first.
+  static List<int> yearsToRead(LeaveRequestFormState state, DateTime now) {
+    final years = balanceYears(state, now);
+    final refused = state.balanceRefusedYear;
+    if (refused == null || years.contains(refused)) return years;
+    return [...years, refused]..sort();
+  }
+
+  /// True when the card must not show the figure it holds for [cardYear]:
+  /// the server has just refused for that year, and its balance has not
+  /// been read again yet ([reloading]) or could not be ([reloadFailed]).
+  /// The old figure is the one the server did not agree with.
+  static bool figureOutOfDate({
+    required LeaveRequestFormState state,
+    required int cardYear,
+    required bool reloading,
+    required bool reloadFailed,
+  }) => cardYear == state.balanceRefusedYear && (reloading || reloadFailed);
+
   /// The year whose balance the form's card shows: the one [shortYear] names,
-  /// so the user sees which balance is short, else the first of [years]
+  /// so the user sees which balance is short; else the year the server
+  /// named when it refused what was sent (#87); else the first of [years]
   /// (from [balanceYears]).
   static int cardYear({
     required LeaveRequestFormState state,
@@ -109,6 +132,7 @@ class LeaveFormRules {
     required Map<int, double?> remainingByYear,
   }) =>
       shortYear(state: state, type: type, remainingByYear: remainingByYear) ??
+      state.balanceRefusedYear ??
       years.first;
 
   /// Why [state] cannot be sent, or null when it can.

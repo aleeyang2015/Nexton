@@ -702,5 +702,6 @@
   "forgotPasswordAskHr": "ກະລຸນາຕິດຕໍ່ HR ເພື່ອຕັ້ງລະຫັດຜ່ານໃໝ່ໃຫ້ທ່ານ.",
   "notificationsMarkAllRead": "ອ່ານທັງໝົດ",
   "notificationsUnreadCount": "{count} ລາຍການໃໝ່",
-  "pushItemUnavailable": "ລາຍການນີ້ບໍ່ມີແລ້ວ ຫຼື ທ່ານບໍ່ມີສິດເບິ່ງ."
+  "pushItemUnavailable": "ລາຍການນີ້ບໍ່ມີແລ້ວ ຫຼື ທ່ານບໍ່ມີສິດເບິ່ງ.",
+  "leaveBalanceShortIn": "ວັນລາຂອງປີ {year} ບໍ່ພຽງພໍ: ເຫຼືອ {remaining} ວັນ, ຂໍ {requested} ວັນ."
 }

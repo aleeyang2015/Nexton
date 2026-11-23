@@ -42,6 +42,12 @@ mixin _$LeaveRequestFormState {
   /// not pick one for them.
   bool get typeRefused => throw _privateConstructorUsedError;
 
+  /// The year the server said is short of days when it refused what this
+  /// form last sent (#87): the card shows that year's balance. Forgotten
+  /// as soon as the days or the type change, since the refusal was about
+  /// the request as it was sent.
+  int? get balanceRefusedYear => throw _privateConstructorUsedError;
+
   /// Edit mode only: the leave type the request had when it was opened. The
   /// form keeps offering it even after HR switched it off.
   String? get originalLeaveTypeId => throw _privateConstructorUsedError;
@@ -92,6 +98,7 @@ abstract class $LeaveRequestFormStateCopyWith<$Res> {
     String reason,
     CompanyDaysOff? daysOff,
     bool typeRefused,
+    int? balanceRefusedYear,
     String? originalLeaveTypeId,
     Map<int, double> originalDaysByYear,
     List<LeaveAttachment> files,
@@ -131,6 +138,7 @@ class _$LeaveRequestFormStateCopyWithImpl<
     Object? reason = null,
     Object? daysOff = freezed,
     Object? typeRefused = null,
+    Object? balanceRefusedYear = freezed,
     Object? originalLeaveTypeId = freezed,
     Object? originalDaysByYear = null,
     Object? files = null,
@@ -185,6 +193,10 @@ class _$LeaveRequestFormStateCopyWithImpl<
                 ? _value.typeRefused
                 : typeRefused // ignore: cast_nullable_to_non_nullable
                       as bool,
+            balanceRefusedYear: freezed == balanceRefusedYear
+                ? _value.balanceRefusedYear
+                : balanceRefusedYear // ignore: cast_nullable_to_non_nullable
+                      as int?,
             originalLeaveTypeId: freezed == originalLeaveTypeId
                 ? _value.originalLeaveTypeId
                 : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
@@ -252,6 +264,7 @@ abstract class _$$LeaveRequestFormStateImplCopyWith<$Res>
     String reason,
     CompanyDaysOff? daysOff,
     bool typeRefused,
+    int? balanceRefusedYear,
     String? originalLeaveTypeId,
     Map<int, double> originalDaysByYear,
     List<LeaveAttachment> files,
@@ -289,6 +302,7 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
     Object? reason = null,
     Object? daysOff = freezed,
     Object? typeRefused = null,
+    Object? balanceRefusedYear = freezed,
     Object? originalLeaveTypeId = freezed,
     Object? originalDaysByYear = null,
     Object? files = null,
@@ -343,6 +357,10 @@ class __$$LeaveRequestFormStateImplCopyWithImpl<$Res>
             ? _value.typeRefused
             : typeRefused // ignore: cast_nullable_to_non_nullable
                   as bool,
+        balanceRefusedYear: freezed == balanceRefusedYear
+            ? _value.balanceRefusedYear
+            : balanceRefusedYear // ignore: cast_nullable_to_non_nullable
+                  as int?,
         originalLeaveTypeId: freezed == originalLeaveTypeId
             ? _value.originalLeaveTypeId
             : originalLeaveTypeId // ignore: cast_nullable_to_non_nullable
@@ -391,6 +409,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     this.reason = '',
     this.daysOff,
     this.typeRefused = false,
+    this.balanceRefusedYear,
     this.originalLeaveTypeId,
     final Map<int, double> originalDaysByYear = const <int, double>{},
     final List<LeaveAttachment> files = const <LeaveAttachment>[],
@@ -451,6 +470,13 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   @JsonKey()
   final bool typeRefused;
 
+  /// The year the server said is short of days when it refused what this
+  /// form last sent (#87): the card shows that year's balance. Forgotten
+  /// as soon as the days or the type change, since the refusal was about
+  /// the request as it was sent.
+  @override
+  final int? balanceRefusedYear;
+
   /// Edit mode only: the leave type the request had when it was opened. The
   /// form keeps offering it even after HR switched it off.
   @override
@@ -509,7 +535,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
 
   @override
   String toString() {
-    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, typeRefused: $typeRefused, originalLeaveTypeId: $originalLeaveTypeId, originalDaysByYear: $originalDaysByYear, files: $files, filesChanged: $filesChanged, uploadingFiles: $uploadingFiles, fileFailure: $fileFailure, submission: $submission)';
+    return 'LeaveRequestFormState(editingRequestId: $editingRequestId, leaveTypeId: $leaveTypeId, mode: $mode, dates: $dates, rangeStart: $rangeStart, rangeEnd: $rangeEnd, durationType: $durationType, returnToWorkOverride: $returnToWorkOverride, reason: $reason, daysOff: $daysOff, typeRefused: $typeRefused, balanceRefusedYear: $balanceRefusedYear, originalLeaveTypeId: $originalLeaveTypeId, originalDaysByYear: $originalDaysByYear, files: $files, filesChanged: $filesChanged, uploadingFiles: $uploadingFiles, fileFailure: $fileFailure, submission: $submission)';
   }
 
   @override
@@ -535,6 +561,8 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
             (identical(other.daysOff, daysOff) || other.daysOff == daysOff) &&
             (identical(other.typeRefused, typeRefused) ||
                 other.typeRefused == typeRefused) &&
+            (identical(other.balanceRefusedYear, balanceRefusedYear) ||
+                other.balanceRefusedYear == balanceRefusedYear) &&
             (identical(other.originalLeaveTypeId, originalLeaveTypeId) ||
                 other.originalLeaveTypeId == originalLeaveTypeId) &&
             const DeepCollectionEquality().equals(
@@ -553,7 +581,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     editingRequestId,
     leaveTypeId,
@@ -566,6 +594,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     reason,
     daysOff,
     typeRefused,
+    balanceRefusedYear,
     originalLeaveTypeId,
     const DeepCollectionEquality().hash(_originalDaysByYear),
     const DeepCollectionEquality().hash(_files),
@@ -573,7 +602,7 @@ class _$LeaveRequestFormStateImpl extends _LeaveRequestFormState {
     uploadingFiles,
     fileFailure,
     submission,
-  );
+  ]);
 
   @JsonKey(ignore: true)
   @override
@@ -599,6 +628,7 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
     final String reason,
     final CompanyDaysOff? daysOff,
     final bool typeRefused,
+    final int? balanceRefusedYear,
     final String? originalLeaveTypeId,
     final Map<int, double> originalDaysByYear,
     final List<LeaveAttachment> files,
@@ -640,6 +670,12 @@ abstract class _LeaveRequestFormState extends LeaveRequestFormState {
   /// Until the user picks a type again nothing is sent, and the form does
   /// not pick one for them.
   bool get typeRefused;
+  @override
+  /// The year the server said is short of days when it refused what this
+  /// form last sent (#87): the card shows that year's balance. Forgotten
+  /// as soon as the days or the type change, since the refusal was about
+  /// the request as it was sent.
+  int? get balanceRefusedYear;
   @override
   /// Edit mode only: the leave type the request had when it was opened. The
   /// form keeps offering it even after HR switched it off.

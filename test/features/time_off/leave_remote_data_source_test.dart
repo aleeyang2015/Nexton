@@ -514,6 +514,63 @@ void main() {
       );
     });
 
+    group('not enough balance (#87)', () {
+      void refuseForBalance({Map<String, dynamic>? details}) => adapter
+        ..status = 422
+        ..body = {
+          'success': false,
+          'error': {
+            'code': 'INSUFFICIENT_BALANCE',
+            'message': 'server english',
+            'details': ?details,
+          },
+        };
+      Matcher throwsMessage(String message) => throwsA(
+        isA<ValidationFailure>().having((f) => f.message, 'message', message),
+      );
+      const year2027 = {
+        'year': 2027,
+        'remaining_days': 0,
+        'requested_days': 2,
+      };
+
+      test('a new request and an edit name the year the server names', () async {
+        refuseForBalance(details: year2027);
+
+        await expectLater(
+          source.submit(draft),
+          throwsMessage('leaveBalanceShortIn|2027|0|2'),
+        );
+        await expectLater(
+          source.update('req-1', draft),
+          throwsMessage('leaveBalanceShortIn|2027|0|2'),
+        );
+      });
+
+      test('with no details it is the plain text, as before', () async {
+        refuseForBalance();
+
+        await expectLater(
+          source.submit(draft),
+          throwsMessage('leaveInsufficientBalance'),
+        );
+        await expectLater(
+          source.update('req-1', draft),
+          throwsMessage('leaveInsufficientBalance'),
+        );
+      });
+
+      test('an approve stays the plain token even if details came: the '
+          'approver has their own text for it', () async {
+        refuseForBalance(details: year2027);
+
+        await expectLater(
+          source.approve(id: 'req-1'),
+          throwsMessage('leaveInsufficientBalance'),
+        );
+      });
+    });
+
     test('an older code keeps its own token when both could apply', () async {
       // The older table is looked at first.
       refuse(422, 'INSUFFICIENT_BALANCE');

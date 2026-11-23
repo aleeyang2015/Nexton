@@ -2288,4 +2288,9 @@ class AppLocalizationsLo extends AppLocalizations {
 
   @override
   String get pushItemUnavailable => 'ລາຍການນີ້ບໍ່ມີແລ້ວ ຫຼື ທ່ານບໍ່ມີສິດເບິ່ງ.';
+
+  @override
+  String leaveBalanceShortIn(String year, String remaining, String requested) {
+    return 'ວັນລາຂອງປີ $year ບໍ່ພຽງພໍ: ເຫຼືອ $remaining ວັນ, ຂໍ $requested ວັນ.';
+  }
 }
