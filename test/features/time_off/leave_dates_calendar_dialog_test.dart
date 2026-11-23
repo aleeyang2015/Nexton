@@ -158,6 +158,17 @@ void main() {
 
       expect(result!.dates, [monday]);
     });
+
+    testWidgets('a half day\'s footer counts half a day, not 1 (#14)', (
+      tester,
+    ) async {
+      await open(tester, mode: LeaveDaysMode.separateDays, halfDay: true);
+
+      await tapDay(tester, monday);
+
+      expect(find.text(en.leaveHalfDayLabel), findsOneWidget);
+      expect(find.text('1 days'), findsNothing);
+    });
   });
 
   group('a date range', () {

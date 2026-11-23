@@ -198,7 +198,8 @@ class _LeaveDatesCalendarDialogState extends State<LeaveDatesCalendarDialog> {
     final count = _chargedCount;
     final total = count == null
         ? null
-        : LeaveCopy.daysLabel(l10n, count.toDouble());
+        // A half day is one day picked, charged half (#14).
+        : LeaveCopy.daysLabel(l10n, count * (widget.halfDay ? 0.5 : 1.0));
     // In range mode the title says which tap is next.
     final title = !_isRange
         ? l10n.leaveSelectDatesLabel

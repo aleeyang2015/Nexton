@@ -1,4 +1,5 @@
 import '../../domain/entities/leave_balance.dart';
+import '../../domain/entities/leave_duration_type.dart';
 import '../../domain/entities/leave_type.dart';
 import 'leave_request_form_state.dart';
 
@@ -38,6 +39,20 @@ class LeaveFormRules {
     for (final type in types)
       if (type.isActive || type.id == keepId) type,
   ];
+
+  /// The parts of the day the form offers (#14), or none, and then no card:
+  /// all three on a type HR lets be taken by the half day. On any other type
+  /// a half day already on the form (HR changed the type since, or an edit
+  /// opened on it) is offered with a full day, so it can be made one; the
+  /// other half is not, as the server would refuse it.
+  static List<LeaveDurationType> dayParts(
+    LeaveRequestFormState state,
+    LeaveType? type,
+  ) {
+    if (type?.allowHalfDay ?? false) return LeaveDurationType.values;
+    if (!state.durationType.isHalfDay) return const [];
+    return [LeaveDurationType.fullDay, state.durationType];
+  }
 
   /// The years whose balance a request is charged to, earliest first: each
   /// leave day is charged to its own year, so a leave across the new year

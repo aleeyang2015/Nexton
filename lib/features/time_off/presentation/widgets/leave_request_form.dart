@@ -13,6 +13,7 @@ import '../../../../core/widgets/global_widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../data/datasources/leave_error_code.dart';
 import '../../domain/entities/leave_balance.dart';
+import '../../domain/entities/leave_duration_type.dart';
 import '../../domain/entities/leave_type.dart';
 import '../providers/company_days_off_notifier.dart';
 import '../providers/leave_balances_notifier.dart';
@@ -272,6 +273,8 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       });
     }
 
+    final dayParts = LeaveFormRules.dayParts(state, selectedType);
+
     final blockMessage = _blockMessage(
       l10n,
       LeaveFormRules.block(
@@ -316,23 +319,18 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
               onSelect: _notifier.setLeaveType,
             ),
           ),
-          // The day-part card ("ຊ່ວງເວລາ": full day / first half / second half)
-          // is hidden for now — every request goes in as a full day.
-          // `LeaveRequestFormState.durationType` already defaults to
-          // `LeaveDurationType.fullDay` and nothing here changes it, so the
-          // half-day branches downstream stay dormant. To bring the picker
-          // back, un-comment this block and `_DurationSelector` /
-          // `_DurationRadioTile` below.
-          // if (selectedType?.allowHalfDay ?? false) ...[
-          //   heightBx(h: 16),
-          //   _SectionCard(
-          //     title: l10n.leaveDurationLabel,
-          //     child: _DurationSelector(
-          //       selected: state.durationType,
-          //       onSelect: _notifier.setDurationType,
-          //     ),
-          //   ),
-          // ],
+          // The day-part card ("ຊ່ວງເວລາ": full day / first half / second half).
+          if (dayParts.isNotEmpty) ...[
+            heightBx(h: 16),
+            _SectionCard(
+              title: l10n.leaveDurationLabel,
+              child: _DurationSelector(
+                options: dayParts,
+                selected: state.durationType,
+                onSelect: _notifier.setDurationType,
+              ),
+            ),
+          ],
           heightBx(h: 16),
           _SectionCard(
             title: l10n.leaveSelectDatesLabel,
@@ -739,15 +737,18 @@ class _LeaveTypePicker extends StatelessWidget {
   }
 }
 
-// Day-part picker — temporarily unused (see the commented block in `build`).
-// Requests are full-day only for now; restore both classes and that block
-// together.
-/*
+/// The day-part radio group: the [options] of full day, morning and
+/// afternoon the form offers.
 class _DurationSelector extends StatelessWidget {
+  final List<LeaveDurationType> options;
   final LeaveDurationType selected;
   final ValueChanged<LeaveDurationType> onSelect;
 
-  const _DurationSelector({required this.selected, required this.onSelect});
+  const _DurationSelector({
+    required this.options,
+    required this.selected,
+    required this.onSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -759,7 +760,7 @@ class _DurationSelector extends StatelessWidget {
         spacing: 16,
         runSpacing: 4,
         children: [
-          for (final type in LeaveDurationType.values)
+          for (final type in options)
             _DurationRadioTile(
               label: LeaveCopy.durationLabel(l10n, type),
               selected: type == selected,
@@ -815,7 +816,6 @@ class _DurationRadioTile extends StatelessWidget {
     );
   }
 }
-*/
 
 /// Opens the multi-select date calendar for the "Select leave dates" card.
 class _PickDatesButton extends StatelessWidget {
