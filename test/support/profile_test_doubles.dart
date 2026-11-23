@@ -19,6 +19,11 @@ class FakeProfileRepository implements ProfileRepository {
 
   int calls = 0;
 
+  /// When set, each read gets the next of these in turn, and the last one
+  /// from then on, in place of [profile] (#118: the first read, then the
+  /// read again after a photo's link has expired).
+  List<Result<EmployeeProfile>>? answers;
+
   /// When set, the profile waits for it: still loading.
   Completer<void>? hold;
 
@@ -26,6 +31,10 @@ class FakeProfileRepository implements ProfileRepository {
   FutureResult<EmployeeProfile> myProfile() async {
     calls++;
     await hold?.future;
+    final answers = this.answers;
+    if (answers != null) {
+      return answers[(calls - 1).clamp(0, answers.length - 1)];
+    }
     return profile;
   }
 

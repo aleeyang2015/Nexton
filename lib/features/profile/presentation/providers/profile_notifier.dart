@@ -10,6 +10,9 @@ import '../../profile_providers.dart';
 /// Fetched independently of the auth session on purpose: a slow or failing
 /// Core HR lookup must never hold up sign-in or block the home shell.
 class ProfileNotifier extends AutoDisposeAsyncNotifier<EmployeeProfile> {
+  /// A quiet read is on its way ([reloadQuietly]).
+  bool _quietReading = false;
+
   @override
   Future<EmployeeProfile> build() => _load();
 
@@ -35,6 +38,28 @@ class ProfileNotifier extends AutoDisposeAsyncNotifier<EmployeeProfile> {
   Future<void> refresh() async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(_load);
+  }
+
+  /// Reads the profile again without showing it: the photo's link has
+  /// expired (#118; every file link lives one hour). What is on screen stays
+  /// while it is read; only a new profile replaces it, and a failure (no
+  /// signal) changes nothing — a photo gets no error card.
+  ///
+  /// Nothing when a load is already on its way, and the answer is dropped
+  /// when the profile changed meanwhile (a new photo, a pull to refresh). A
+  /// sign-out disposes this notifier, and the next sign-in gets a new one,
+  /// so a late answer cannot reach it.
+  Future<void> reloadQuietly() async {
+    if (_quietReading || state.isLoading) return;
+    final before = state;
+    _quietReading = true;
+    try {
+      final result = await ref.read(getMyProfileUseCaseProvider)();
+      if (!identical(state, before)) return;
+      result.fold((_) {}, (profile) => state = AsyncValue.data(profile));
+    } finally {
+      _quietReading = false;
+    }
   }
 
   Future<EmployeeProfile> _load() async {
