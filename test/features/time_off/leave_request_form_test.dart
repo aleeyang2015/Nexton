@@ -1313,6 +1313,10 @@ void main() {
 
       expect(formState('req-9').durationType, LeaveDurationType.firstHalf);
       expect(find.text(en.leaveDurationLabel), findsOneWidget);
+      // The type takes no half day: the other half is not offered.
+      expect(dayPart(en.leaveDurationFullDay), findsOneWidget);
+      expect(dayPart(en.leaveDurationFirstHalf), findsOneWidget);
+      expect(dayPart(en.leaveDurationSecondHalf), findsNothing);
 
       await tester.ensureVisible(dayPart(en.leaveDurationFullDay));
       await tester.tap(dayPart(en.leaveDurationFullDay));

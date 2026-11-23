@@ -92,6 +92,29 @@ void main() {
       expect(stateOf(container).durationType, LeaveDurationType.secondHalf);
     });
 
+    test('a half day that cuts the days picked forgets the return date '
+        'picked by hand for them (#14)', () {
+      final container = containerWith();
+      formOf(container)
+        ..setDates([DateTime(2026, 11, 18), DateTime(2026, 11, 19)])
+        ..setReturnToWorkDate(DateTime(2026, 11, 20))
+        ..setDurationType(LeaveDurationType.firstHalf);
+
+      expect(stateOf(container).dates, [DateTime(2026, 11, 18)]);
+      expect(stateOf(container).returnToWorkOverride, isNull);
+    });
+
+    test('a half day on the one day already picked keeps the return date '
+        'picked by hand (#14)', () {
+      final container = containerWith();
+      formOf(container)
+        ..setDates([DateTime(2026, 11, 18)])
+        ..setReturnToWorkDate(DateTime(2026, 11, 20))
+        ..setDurationType(LeaveDurationType.firstHalf);
+
+      expect(stateOf(container).returnToWorkOverride, DateTime(2026, 11, 20));
+    });
+
     test('removeDate drops that day only', () {
       final container = containerWith();
       formOf(container)
@@ -1341,6 +1364,29 @@ void main() {
 
         expect(container.read(leaveTypesNotifierProvider).value, isEmpty);
       });
+    });
+
+    test('a half day the server refuses for the type: the types are asked '
+        'for again, so the form learns the type takes whole days only; the '
+        'type need not be picked again (#14)', () async {
+      repository = FakeLeaveRepository()
+        ..submitResult = const Result.failure(
+          Failure.validation(message: 'leaveRuleHalfDayNotAllowed'),
+        );
+      final container = containerWith();
+      container.listen(leaveTypesNotifierProvider, (_, _) {});
+      await container.read(leaveTypesNotifierProvider.future);
+      final form = formOf(container)
+        ..setLeaveType('lt-annual')
+        ..setDates([DateTime(2026, 11, 18)])
+        ..setReason('kept');
+
+      expect(await form.submit(), isFalse);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.leaveTypesCalls, 2);
+      expect(stateOf(container).typeRefused, isFalse);
+      expect(stateOf(container).reason, 'kept');
     });
 
     test('another refusal (too long, or an unrelated VALIDATION_ERROR) does '

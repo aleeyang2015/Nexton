@@ -273,6 +273,8 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
       });
     }
 
+    final dayParts = LeaveFormRules.dayParts(state, selectedType);
+
     final blockMessage = _blockMessage(
       l10n,
       LeaveFormRules.block(
@@ -317,18 +319,13 @@ class _LeaveRequestFormState extends ConsumerState<LeaveRequestForm> {
               onSelect: _notifier.setLeaveType,
             ),
           ),
-          // The day-part card ("ຊ່ວງເວລາ": full day / first half / second half),
-          // for a type HR lets be taken by the half day. Picking a type that
-          // takes whole days only puts the request back on a full day
-          // (`setLeaveType`). A half day already on the form keeps the card
-          // even when its type no longer allows one (HR changed it, or an
-          // edit opened on it), so the user can still make it a full day.
-          if ((selectedType?.allowHalfDay ?? false) ||
-              state.durationType.isHalfDay) ...[
+          // The day-part card ("ຊ່ວງເວລາ": full day / first half / second half).
+          if (dayParts.isNotEmpty) ...[
             heightBx(h: 16),
             _SectionCard(
               title: l10n.leaveDurationLabel,
               child: _DurationSelector(
+                options: dayParts,
                 selected: state.durationType,
                 onSelect: _notifier.setDurationType,
               ),
@@ -740,12 +737,18 @@ class _LeaveTypePicker extends StatelessWidget {
   }
 }
 
-/// The day-part radio group: full day, morning or afternoon.
+/// The day-part radio group: the [options] of full day, morning and
+/// afternoon the form offers.
 class _DurationSelector extends StatelessWidget {
+  final List<LeaveDurationType> options;
   final LeaveDurationType selected;
   final ValueChanged<LeaveDurationType> onSelect;
 
-  const _DurationSelector({required this.selected, required this.onSelect});
+  const _DurationSelector({
+    required this.options,
+    required this.selected,
+    required this.onSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -757,7 +760,7 @@ class _DurationSelector extends StatelessWidget {
         spacing: 16,
         runSpacing: 4,
         children: [
-          for (final type in LeaveDurationType.values)
+          for (final type in options)
             _DurationRadioTile(
               label: LeaveCopy.durationLabel(l10n, type),
               selected: type == selected,

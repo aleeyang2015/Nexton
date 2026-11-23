@@ -307,12 +307,19 @@ class LeaveRequestFormNotifier
     final first = charged == null
         ? state.firstLeaveDate
         : (charged.isEmpty ? null : charged.first);
+    final dates = first == null ? const <DateTime>[] : [first];
+    // A return date picked by hand was for the days now cut: it goes, and
+    // the form's own one (the day after) takes its place.
+    final sameDays =
+        state.mode == LeaveDaysMode.separateDays &&
+        listEquals(state.dates, dates);
     state = state.copyWith(
       durationType: type,
       mode: LeaveDaysMode.separateDays,
-      dates: first == null ? const [] : [first],
+      dates: dates,
       rangeStart: null,
       rangeEnd: null,
+      returnToWorkOverride: sameDays ? state.returnToWorkOverride : null,
       balanceRefusedYear: null,
     );
   }
@@ -398,6 +405,18 @@ class LeaveRequestFormNotifier
         // The type picked is switched off or gone: the user picks again
         // (the form does not pick for them), from a list asked for again. A
         // reload that fails leaves the list as it is. What was typed stays.
+        // A half day on a type the server says takes whole days only: HR
+        // changed the type since the list was read. The list is asked for
+        // again, so the form offers a full day only (#14). The type itself
+        // still stands, so nothing has to be picked again.
+        if (LeaveRuleCode.tokenOf(failure) ==
+            LeaveRuleCode.tokenHalfDayNotAllowed) {
+          unawaited(
+            ref
+                .read(leaveTypesNotifierProvider.notifier)
+                .reloadKeepingList(),
+          );
+        }
         if (LeaveRuleCode.isTypeRefused(failure)) {
           state = state.copyWith(typeRefused: true);
           unawaited(
