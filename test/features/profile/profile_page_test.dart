@@ -6,17 +6,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:next_on/features/auth/presentation/providers/module_access_provider.dart';
 import 'package:next_on/core/errors/failure.dart';
 import 'package:next_on/core/utils/result.dart';
+import 'package:next_on/core/upload/presentation/file_link_image.dart';
 import 'package:next_on/core/upload/upload_providers.dart';
 import 'package:next_on/core/widgets/app_toast.dart';
 import 'package:next_on/features/attendance/attendance_providers.dart';
 import 'package:next_on/features/attendance/domain/entities/attendance_summary.dart';
 import 'package:next_on/features/auth/auth_providers.dart';
+import 'package:next_on/features/profile/domain/entities/employee_profile.dart';
 import 'package:next_on/features/profile/presentation/pages/profile_page.dart';
 import 'package:next_on/features/profile/profile_providers.dart';
 import 'package:next_on/l10n/generated/app_localizations.dart';
 
 import '../../support/attendance_test_doubles.dart';
 import '../../support/file_capture_test_doubles.dart';
+import '../../support/file_link_test_doubles.dart';
 import '../../support/auth_test_doubles.dart';
 import '../../support/profile_test_doubles.dart';
 import '../../support/test_asset_bundle.dart';
@@ -44,7 +47,10 @@ void main() {
 
   tearDown(() => auth.sessionExpired.close());
 
-  Future<void> pumpPage(WidgetTester tester) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    List<Override> overrides = const [],
+  }) async {
     tester.view.physicalSize = const Size(390, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -56,6 +62,7 @@ void main() {
           profileRepositoryProvider.overrideWithValue(profiles),
           attendanceRepositoryProvider.overrideWithValue(attendance),
           authRepositoryProvider.overrideWithValue(auth),
+          ...overrides,
         ],
         child: DefaultAssetBundle(
           bundle: TestAssetBundle(),
@@ -298,5 +305,70 @@ void main() {
     expect(find.text(en.lateArrivals), findsNothing);
     expect(find.text(en.absences), findsNothing);
     expect(find.text(en.changePassword), findsOneWidget);
+  });
+
+  // #118: a profile photo's link expires after an hour, like every file link.
+  group('the photo\'s link has expired', () {
+    const photo = 'https://api.nexton.work/api/v1/files/tenants/demo/p.jpg';
+    Result<EmployeeProfile> withPhoto(String sig) => Result.success(
+      EmployeeProfile(
+        id: 'emp-1',
+        fullName: 'Somphone Vilaysone',
+        email: 'somphone.vilaysone@nexton.la',
+        positionTitle: 'Cashier',
+        avatarUrl: '$photo?exp=1&sig=$sig',
+      ),
+    );
+
+    setUp(resetExpiredLinkReports);
+
+    Future<void> settle(WidgetTester tester) async {
+      for (var i = 0; i < 4; i++) {
+        await tester.pump();
+      }
+    }
+
+    testWidgets('a 403: the profile is read again once, quietly, and the new '
+        'link is drawn', (tester) async {
+      profiles.answers = [withPhoto('old'), withPhoto('new')];
+      await pumpPage(
+        tester,
+        overrides: [fileLinksFailWith(403, failing: (u) => u.endsWith('old'))],
+      );
+      await settle(tester);
+
+      expect(profiles.calls, 2);
+      expect(
+        find.byKey(const ValueKey('$photo?exp=1&sig=new')),
+        findsOneWidget,
+      );
+      expect(find.text('Somphone Vilaysone'), findsOneWidget);
+    });
+
+    testWidgets('the fresh link refused too, within 30 s: not read again', (
+      tester,
+    ) async {
+      profiles.answers = [withPhoto('old'), withPhoto('new')];
+      await pumpPage(tester, overrides: [fileLinksFailWith(403)]);
+      await settle(tester);
+
+      expect(profiles.calls, 2);
+      expect(
+        find.byKey(const ValueKey('$photo?exp=1&sig=new')),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.person), findsOneWidget);
+    });
+
+    testWidgets('another error (404): the icon, not read again', (
+      tester,
+    ) async {
+      profiles.answers = [withPhoto('old')];
+      await pumpPage(tester, overrides: [fileLinksFailWith(404)]);
+      await settle(tester);
+
+      expect(profiles.calls, 1);
+      expect(find.byIcon(Icons.person), findsOneWidget);
+    });
   });
 }

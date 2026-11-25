@@ -355,7 +355,13 @@ class _Avatar extends ConsumerWidget {
             child: Center(
               child: uploading
                   ? const CircularProgressIndicator(color: AppColors.primary)
-                  : appAvatar(url: avatarUrl, size: 96),
+                  : appAvatar(
+                      url: avatarUrl,
+                      size: 96,
+                      onExpired: () => ref
+                          .read(profileNotifierProvider.notifier)
+                          .reloadQuietly(),
+                    ),
             ),
           ),
           if (canChange)

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/upload/presentation/file_link_image.dart';
 import '../../../../core/widgets/global_widgets.dart';
 import '../../../../core/widgets/shimmer_box.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -41,7 +42,11 @@ class HomeHeader extends ConsumerWidget {
         widthBx(w: 20),
         GestureDetector(
           onTap: () => context.push(AppRoutes.profile),
-          child: _HeaderAvatar(url: data?.avatarUrl),
+          child: _HeaderAvatar(
+            url: data?.avatarUrl,
+            onExpired: () =>
+                ref.read(profileNotifierProvider.notifier).reloadQuietly(),
+          ),
         ),
         widthBx(w: 12),
         Expanded(
@@ -130,7 +135,10 @@ class _HeaderAvatar extends StatelessWidget {
 
   final String? url;
 
-  const _HeaderAvatar({required this.url});
+  /// The photo's link has expired (#118): the profile is read again.
+  final VoidCallback onExpired;
+
+  const _HeaderAvatar({required this.url, required this.onExpired});
 
   @override
   Widget build(BuildContext context) {
@@ -148,11 +156,10 @@ class _HeaderAvatar extends StatelessWidget {
               color: AppColors.primaryTint,
               child: (url == null || url!.isEmpty)
                   ? const _AvatarFallback()
-                  : Image.network(
-                      url!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const _AvatarFallback(),
+                  : FileLinkImage(
+                      url: url!,
+                      fallback: const _AvatarFallback(),
+                      onExpired: onExpired,
                     ),
             ),
           ),
