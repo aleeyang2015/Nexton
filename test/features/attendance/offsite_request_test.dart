@@ -288,6 +288,43 @@ void main() {
       );
     });
 
+    // #115 (live since 20 Nov 2026): staff with no shift today are refused
+    // an off-site scan in either direction, with the phone's own answer.
+    for (final (method, message) in [
+      (
+        OffsiteMethod.checkIn,
+        'Cannot clock in — no work shift is assigned to this employee. '
+            'Ask HR to assign a shift first.',
+      ),
+      (
+        OffsiteMethod.checkOut,
+        'Cannot clock out — no work shift is assigned to this employee. '
+            'Ask HR to assign a shift first.',
+      ),
+    ]) {
+      test('409 NO_SHIFT_ASSIGNED on a ${method.name} (#115) is the no-shift '
+          'rule, with its employee and the server\'s words', () async {
+        adapter
+          ..status = 409
+          ..body = {
+            'success': false,
+            'error': {
+              'code': 'NO_SHIFT_ASSIGNED',
+              'message': message,
+              'details': {'employee_id': 'emp-7'},
+            },
+          };
+
+        final blocked =
+            (await source.submit(request(method: method))) as OffsiteBlocked;
+
+        expect(blocked.rule, AttendanceRule.noShiftAssigned);
+        expect(blocked.message, message);
+        expect(blocked.details.employeeId, 'emp-7');
+        expect(blocked.rule.meansTodayChanged, isFalse);
+      });
+    }
+
     test('which refusals mean today changed: the four SESSION_*, the '
         'pending check-in and a changed OT close the form; the rest keep it',
         () {
