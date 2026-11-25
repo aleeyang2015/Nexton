@@ -304,7 +304,7 @@ class _Avatar extends ConsumerWidget {
     final picked = await FileSourceSheet.pick(
       context,
       ref,
-      CapturePolicy.photo,
+      CapturePolicy.profilePhoto,
     );
     await ref.read(profilePhotoNotifierProvider.notifier).accept(picked);
   }

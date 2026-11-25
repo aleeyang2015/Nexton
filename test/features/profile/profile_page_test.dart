@@ -248,6 +248,18 @@ void main() {
       expect(capture.asked, ['camera']);
     });
 
+    testWidgets('a gallery photo is asked for as a compatible image (#59: '
+        'an iPhone HEIC would be refused)', (tester) async {
+      await pumpWithCapture(tester);
+
+      await tester.tap(find.byIcon(Icons.edit));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(en.uploadPickPhoto));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(capture.asked, ['gallery(compatible)']);
+    });
+
     testWidgets('no pencil before the profile has loaded', (tester) async {
       profiles.hold = Completer<void>();
       await pumpWithCapture(tester);
